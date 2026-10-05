@@ -2,6 +2,7 @@ package com.integrate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
  * Punto de entrada del monolito modular Intégrate (ADR-0002).
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * {@code common}, {@code config}, {@code security} y {@code modules.*}.
  */
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class IntegrateApplication {
 
     public static void main(String[] args) {

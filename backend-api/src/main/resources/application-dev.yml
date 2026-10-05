@@ -12,6 +12,10 @@ spring:
       - optional:file:../infra/env/.env.development[.properties]
       - optional:file:./infra/env/.env.development[.properties]
 
+  # Política de privacidad v0.1 de desarrollo (ADR-0005 §8). Nunca en prod.
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed-dev
+
   jpa:
     show-sql: false
     properties:

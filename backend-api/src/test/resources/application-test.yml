@@ -1,0 +1,11 @@
+# Perfil de pruebas de integración (PostgresIntegrationTest). Las credenciales y la llave JWT
+# se inyectan en tiempo de ejecución con @DynamicPropertySource: nada sensible aquí (SEC-DIR-004).
+spring:
+  flyway:
+    # Misma política v0.1 de desarrollo que el perfil dev (ADR-0005 §8).
+    locations: classpath:db/migration,classpath:db/seed-dev
+
+logging:
+  level:
+    com.integrate: INFO
+    org.testcontainers: WARN
