@@ -1,24 +1,29 @@
 # Graph Report - integrate  (2026-10-05)
 
 ## Corpus Check
-- 72 files · ~60,749 words
+- 140 files · ~73,835 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 8 file(s) not represented in the graph (top: (none) 4, .properties 1, .cmd 1)
+- Unclassified: 9 file(s) not represented in the graph (top: (none) 4, .example 2, .properties 1)
 
 ## Summary
-- 1002 nodes · 1541 edges · 74 communities (53 shown, 21 thin omitted)
-- Extraction: 92% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 114 edges (avg confidence: 0.9)
+- 1491 nodes · 3027 edges · 101 communities (68 shown, 33 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 275 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `25f2a6f4`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - RF-01 Autenticación y Control de Sesión (JWT)
 - Esquema Catálogo (V3)
-- RF-20 Bitácora Inmutable de Auditoría
+- RefreshToken
 - V5__payments.sql
 - 2.3 Fichas Técnicas de los Object Stores
 - POST /api/v1/bookings/lock (lockBookingSlots)
 - payments.disbursements (85% en custodia)
-- GlobalExceptionHandler.java
+- GlobalExceptionHandler
 - RF-17 Validación Offline de Voucher
 - V2__auth.sql
 - RF-09 Bloqueo Pesimista de Aforo
@@ -44,64 +49,89 @@
 - com.integrate:backend-api
 - routes.tsx
 - ErrorCode
-- .status
+- GlobalExceptionHandlerTest.java
+- org.junit.jupiter.api.Test
 - TraceIdFilter.java
-- errors.ts
-- Política de Cancelación 72h
+- 4. Bitácora de Avances
+- booking.bookings
 - compilerOptions
-- ProbeController
-- Máquina de estados de Reserva
-- TraceIdFilterTest.java
+- RegistrationServiceImpl.java
+- ConsentPurpose
+- PostgresIntegrationTest.java
 - Ley 1581 de 2012 (Habeas Data)
 - Política Determinista de Protección Comunitaria (85% irrenunciable)
-- RF-12 Procesamiento de Pago y Split Payment
-- ErrorCodeTest.java
-- IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox)
+- Session
+- ConsentAndBootstrapIntegrationTest.java
+- BusinessRuleException
 - devDependencies
 - Sistema Intégrate (Plataforma de Turismo Comunitario)
 - compilerOptions
-- catalog.host_profiles
+- GlobalExceptionHandler.java
 - package.json
 - Actor: Gestor de Enlace Comunitario (Proxy Digital)
-- Migraciones Flyway V1–V9
-- ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*
-- eslint.config.js
+- org.springframework.data.jpa.repository.JpaRepository
+- frontend-pwa · Intégrate
+- SessionTransactions.java
 - scripts
-- Bloqueo Pesimista SELECT ... FOR UPDATE
-- booking.bookings
-- vite.config.ts
+- catalog.host_profiles
+- RegistrationService
+- org.springframework.context.annotation.Bean
 - PaymentGatewayAdapter (Mock / Wompi)
 - 7. Sincronización offline – `POST /offline/sync`
 - dependencies
 - .prettierrc.json
-- vitest
+- routes.test.tsx
 - vite-env.d.ts
 - tsconfig.json
-- engines
+- ConsentLedger
+- main.tsx
+- RsaSigningKeysTest.java
+- RsaSigningKeys.java
+- .load
+- uuid
+- .title
+- JwtProperties
+- RouteErrorPage.tsx
+- CommonArchitectureTest.java
+- ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*
+- SessionTransactions
+- PROTOCOLO DE FLUJO DE TRABAJO EN GIT Y GOBERNANZA DE CAMBIOS
+- .requiresConsentUpdate
+- Decisión
+- DocType
+- errors.ts
+- LoginFailureReason
+- Proyecto heredado FoodExpress (a erradicar)
+- IntegrateApplication
+- ADR-0005: Autenticación JWT RS256, sesiones con refresh rotativo y RBAC del módulo `auth`
+- Emails
+- 3. Autenticación
+- AuthTokenResponse
+- PgDomains
 
 ## God Nodes (most connected - your core abstractions)
-1. `ErrorCode` - 32 edges
-2. `GlobalExceptionHandler` - 29 edges
-3. `compilerOptions` - 22 edges
-4. `GlobalExceptionHandlerTest` - 19 edges
-5. `catalog.experiences` - 17 edges
-6. `payments.payment_transactions` - 16 edges
-7. `compilerOptions` - 15 edges
-8. `booking.bookings` - 14 edges
-9. `TraceIdFilter` - 13 edges
-10. `BusinessRuleException` - 11 edges
+1. `ErrorCode` - 37 edges
+2. `GlobalExceptionHandler` - 30 edges
+3. `BusinessRuleException` - 29 edges
+4. `ClientInfo` - 28 edges
+5. `User` - 27 edges
+6. `ConsentPurpose` - 26 edges
+7. `RoleCode` - 26 edges
+8. `AuthServiceIntegrationTest` - 25 edges
+9. `LoginRequest` - 24 edges
+10. `compilerOptions` - 22 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `4.1 Ubicación Exacta de Componentes Técnicos` --references--> `GlobalExceptionHandler`  [INFERRED]
   docs/architecture/backend_guidelines.md → backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java
+- `3.1 `LoginRequest` → `LoginRequest.java`` --references--> `LoginRequest`  [INFERRED]
+  docs/api/dtos_contrato_api.md → backend-api/src/main/java/com/integrate/modules/auth/dto/request/LoginRequest.java
+- `Alternativas Descartadas` --references--> `ProblemDetail`  [INFERRED]
+  docs/architecture/adr/ADR-0003-estructura-comun-errores-rfc9457-trazabilidad.md → frontend-pwa/src/shared/api/errors.ts
+- `4. Bitácora de Avances` --references--> `IntegrateApplication`  [INFERRED]
+  docs/status/PROJECT_STATUS.md → backend-api/src/main/java/com/integrate/IntegrateApplication.java
 - `2. Formato transversal de errores (RFC 9457)` --references--> `GlobalExceptionHandler`  [INFERRED]
   docs/api/dtos_contrato_api.md → backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java
-- `Decisión` --references--> `GlobalExceptionHandler`  [INFERRED]
-  docs/architecture/adr/ADR-0003-estructura-comun-errores-rfc9457-trazabilidad.md → backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java
-- `3. Diccionario de Carpetas y Responsabilidades` --references--> `GlobalExceptionHandler`  [INFERRED]
-  docs/architecture/backend_guidelines.md → backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java
-- `4. Bitácora de Avances` --references--> `GlobalExceptionHandler`  [INFERRED]
-  docs/status/PROJECT_STATUS.md → backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java
 
 ## Import Cycles
 - None detected.
@@ -114,51 +144,47 @@
 - **Adaptadores de pasarela que producen CanonicalPaymentEvent** — docs_api_openapi_mockpaymentgatewayadapter, docs_api_openapi_wompipaymentgatewayadapter, docs_api_openapi_canonicalpaymentevent, docs_api_openapi_wompievent [INFERRED 0.85]
 - **Operación territorial offline: padrón, validación, sincronización** — docs_especificacion_tecnica_rf_16_descarga_padron, docs_especificacion_tecnica_rf_17_validacion_offline, docs_especificacion_tecnica_rf_18_background_sync_conflictos, docs_especificacion_tecnica_integrateofflinedb, docs_modelo_relacional_offline_validations, docs_modelo_relacional_sync_incidents [INFERRED 0.85]
 
-## Communities (74 total, 21 thin omitted)
+## Communities (101 total, 33 thin omitted)
 
 ### Community 0 - "RF-01 Autenticación y Control de Sesión (JWT)"
-Cohesion: 0.29
-Nodes (7): POST /api/v1/auth/login & refresh, RF-01 Autenticación y Control de Sesión (JWT), RF-02 Captura y Auditoría de Consentimiento Habeas Data, Esquema auth (users, roles, user_roles, privacy_policies, habeas_data_consents, login_attempts, refresh_tokens), auth.habeas_data_consents (append-only), auth.refresh_tokens / login_attempts, T-1.1 Gestión de Identidad y RBAC
+Cohesion: 0.22
+Nodes (10): POST /api/v1/auth/login & refresh, RF-01 Autenticación y Control de Sesión (JWT), RF-02 Captura y Auditoría de Consentimiento Habeas Data, RF-03 Gestión y Asignación de Roles RBAC, Esquema auth (users, roles, user_roles, privacy_policies, habeas_data_consents, login_attempts, refresh_tokens), auth.habeas_data_consents (append-only), auth.refresh_tokens / login_attempts, auth.user_roles / auth.roles (RBAC N:M) (+2 more)
 
 ### Community 1 - "Esquema Catálogo (V3)"
 Cohesion: 0.09
 Nodes (39): catalog.categories, catalog.community_associations, catalog.departments, catalog.experience_categories, catalog.experience_images, catalog.experience_status_history, catalog.experiences, catalog.fn_experience_guard() (+31 more)
 
-### Community 2 - "RF-20 Bitácora Inmutable de Auditoría"
-Cohesion: 0.33
-Nodes (5): AuditLogService, RF-20 Bitácora Inmutable de Auditoría, RNF-09 Retención de Auditoría 10 años, audit.audit_trail + chain_head (bitácora encadenada SHA-256, particionada), V9 Endurecimiento de privilegios
+### Community 2 - "RefreshToken"
+Cohesion: 0.13
+Nodes (12): ConsentAction, GRANTED, REVOKED, ConsentChannel, ASSISTED_PROXY, SELF_SERVICE, HabeasDataConsent, LoginAttempt (+4 more)
 
 ### Community 3 - "V5__payments.sql"
 Cohesion: 0.10
 Nodes (36): ix_disbursements_association, ix_disbursements_batch, ix_disbursements_due, ix_disbursements_ready, ix_payment_transactions_booking, ix_payment_transactions_open, ix_payment_transactions_policy, ix_payment_webhook_events_payload (+28 more)
 
 ### Community 4 - "2.3 Fichas Técnicas de los Object Stores"
-Cohesion: 0.11
-Nodes (19): 2.3 Fichas Técnicas de los Object Stores, A. Object Store: `read_only_catalog`, B. Object Store: `operational_roster`, C. Object Store: `revocation_list`, D. Object Store: `public_signing_keys`, Delimitación de Atributos Persistidos, Delimitación de Atributos Persistidos, Delimitación de Atributos Persistidos (+11 more)
+Cohesion: 0.06
+Nodes (31): 1. Matriz de Delimitación de Alcance de Datos (Inclusión vs. Exclusión), 2.1 Identificación de la Base Local, 2.2 Estructura de Almacenes Locales (6 Object Stores), 2.3 Fichas Técnicas de los Object Stores, 2. Especificación Arquitectónica de los Object Stores, 3.1 Metadatos de Sincronización por Registro, 3.2 Especificación Conceptual de la Cola de Sincronización (`sync_outbox`), 3.3 Matriz de Políticas de Resolución de Conflictos (+23 more)
 
 ### Community 5 - "POST /api/v1/bookings/lock (lockBookingSlots)"
 Cohesion: 0.07
 Nodes (36): AccountLockedProblem, AssistedConsent, AssistedHostRegistrationRequest, AssistedHostRegistrationResponse, AuthenticatedUser, AuthTokenResponse, bearerAuth (JWT RS256, TTL 900 s), BookingConflictProblem (+28 more)
 
 ### Community 6 - "payments.disbursements (85% en custodia)"
-Cohesion: 0.30
-Nodes (11): Actor: Asociación Comunitaria de Turismo, RF-19 Conciliación y Dispersión Definitiva, SplitPaymentService, payments.commission_policies (85/15, 72h, 24h), catalog.community_associations, payments.disbursements (85% en custodia), payments.payment_transactions, Esquema payments (+3 more)
-
-### Community 7 - "GlobalExceptionHandler.java"
-Cohesion: 0.07
-Nodes (4): BusinessRuleException, GlobalExceptionHandler, InvalidParam, CommonArchitectureTest
+Cohesion: 0.17
+Nodes (19): POST /api/v1/payments/webhook/{mock|wompi}, Actor: Asociación Comunitaria de Turismo, NotificationDispatcherService (Email/WhatsApp adapters), RF-12 Procesamiento de Pago y Split Payment, RF-19 Conciliación y Dispersión Definitiva, RNF-06 Idempotencia en Pagos y Sincronización, Servicio de Notificaciones (Gmail/SES/Twilio), SplitPaymentService (+11 more)
 
 ### Community 8 - "RF-17 Validación Offline de Voucher"
-Cohesion: 0.17
-Nodes (16): GET /api/v1/offline/day-roster, Voucher Criptográfico JWT (RS256/Ed25519) en QR, Voucher Criptográfico JWT (RS256/Ed25519) en QR/PDF, IndexedDB Stores (crypto_keys, revoked_vouchers, local_consumed_vouchers), RF-15 Emisión de Voucher y Notificación, RF-16 Descarga Preventiva de Padrón y Revocación, RF-17 Validación Offline de Voucher, RNF-05 Criptografía y No Repudio del Voucher (+8 more)
+Cohesion: 0.13
+Nodes (22): GET /api/v1/offline/day-roster, Voucher Criptográfico JWT (RS256/Ed25519) en QR, Voucher Criptográfico JWT (RS256/Ed25519) en QR/PDF, IndexedDB Stores (crypto_keys, revoked_vouchers, local_consumed_vouchers), IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox), RF-15 Emisión de Voucher y Notificación, RF-16 Descarga Preventiva de Padrón y Revocación, RF-17 Validación Offline de Voucher (+14 more)
 
 ### Community 9 - "V2__auth.sql"
 Cohesion: 0.16
 Nodes (22): auth.habeas_data_consents, auth.login_attempts, auth.privacy_policies, auth.refresh_tokens, auth.roles, auth.user_roles, auth.users, auth.v_current_consents (+14 more)
 
 ### Community 10 - "RF-09 Bloqueo Pesimista de Aforo"
-Cohesion: 0.17
-Nodes (10): POST /api/v1/bookings/lock, POST /api/v1/bookings/lock-slots, TTL de Reserva 15 minutos, BookingExpirationWorker (@Scheduled 60s), RF-09 Bloqueo Pesimista de Aforo, RF-11 Expiración Automática de Cupos por TTL, RF-11 Worker de Expiración por TTL, Guía backend: bloqueo de aforo con idempotency_key y lock_timeout 2s (+2 more)
+Cohesion: 0.18
+Nodes (11): POST /api/v1/bookings/lock, POST /api/v1/bookings/lock-slots, AuditLogService, TTL de Reserva 15 minutos, RF-09 Bloqueo Pesimista de Aforo, RF-11 Worker de Expiración por TTL, RF-20 Bitácora Inmutable de Auditoría, RNF-09 Retención de Auditoría 10 años (+3 more)
 
 ### Community 11 - "V7__offline.sql"
 Cohesion: 0.17
@@ -181,8 +207,8 @@ Cohesion: 0.22
 Nodes (3): ix_devices_host, uq_bookings_idempotency, uq_offline_validations_local_id
 
 ### Community 17 - "Contrato de API y DTOs – Núcleo Transaccional Intégrate"
-Cohesion: 0.06
-Nodes (32): 1. Endpoints, 3.1 `LoginRequest` → `LoginRequest.java`, 3.2 `AuthTokenResponse` (login y refresh), 3.3 `AssistedHostRegistrationRequest`, 3.4 `AssistedHostRegistrationResponse` (201), 3. Autenticación, 4. Disponibilidad – `GET /experiences/{id}/availability`, 5.1 `BookingLockRequest` (+24 more)
+Cohesion: 0.18
+Nodes (11): 1. Endpoints, 5.1 `BookingLockRequest`, 5.2 `BookingLockResponse` (201, o 200 con `Idempotency-Replayed: true`), 5.3 Mecanismo transaccional (prevención de sobreventa), 5. Bloqueo pesimista – `POST /bookings/lock`, 6.1 `CanonicalPaymentEvent` (Mock, y salida del adaptador Wompi), 6.2 `WebhookAck` (200), 6.3 Modelo de estados (+3 more)
 
 ### Community 20 - "DIRECTIVA DE SEGURIDAD Y GESTIÓN DE SECRETOS (SEC-DIR-004)"
 Cohesion: 0.11
@@ -209,104 +235,104 @@ Cohesion: 0.29
 Nodes (6): ADR-0002: Definición del Stack Base de Construcción y Dependencias del Backend (Spring Boot 4.1.x, Java 21, Maven), Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
 
 ### Community 37 - "routes.tsx"
-Cohesion: 0.07
-Nodes (31): AppShell(), AppShellProps, MAIN_CONTENT_ID, NavItem, ManagerLayout(), NAV_ITEMS, NAV_ITEMS, TouristLayout() (+23 more)
+Cohesion: 0.18
+Nodes (12): AppShell(), AppShellProps, MAIN_CONTENT_ID, NavItem, ManagerLayout(), NAV_ITEMS, NAV_ITEMS, TouristLayout() (+4 more)
 
 ### Community 38 - "ErrorCode"
-Cohesion: 0.09
+Cohesion: 0.08
 Nodes (22): ErrorCode, AUTH_ACCOUNT_LOCKED, AUTH_ACCOUNT_SUSPENDED, AUTH_INVALID_CREDENTIALS, AUTH_REFRESH_TOKEN_INVALID, AUTH_TOKEN_INVALID, AUTH_USER_ALREADY_EXISTS, BOOKING_INSUFFICIENT_SLOTS (+14 more)
 
+### Community 40 - "org.junit.jupiter.api.Test"
+Cohesion: 0.06
+Nodes (13): ConsentAcceptance, LoginRequest, RegisterRequest, AuthService, PasswordPolicy, ErrorCodeTest, GlobalExceptionHandlerTest, Participant (+5 more)
+
 ### Community 41 - "TraceIdFilter.java"
-Cohesion: 0.08
-Nodes (15): TraceIdFilter, 1.1 Patrón Arquitectónico, 1.2 Stack Tecnológico Confirmado, 1. Resumen Arquitectónico y Stack Confirmado, 2. Árbol Completo de Directorios (Formato ASCII), 3. Diccionario de Carpetas y Responsabilidades, 4.1 Ubicación Exacta de Componentes Técnicos, 4. Mapeo de Componentes Técnicos y Aislamiento de Esquemas (+7 more)
+Cohesion: 0.06
+Nodes (16): TraceIdFilter, TraceIdFilterTest, 1.1 Patrón Arquitectónico, 1.2 Stack Tecnológico Confirmado, 1. Resumen Arquitectónico y Stack Confirmado, 2. Árbol Completo de Directorios (Formato ASCII), 3. Diccionario de Carpetas y Responsabilidades, 4.1 Ubicación Exacta de Componentes Técnicos (+8 more)
 
-### Community 42 - "errors.ts"
-Cohesion: 0.05
-Nodes (37): TimeConfig, IntegrateApplication, ADR-0003, RFC-9457, 2. Formato transversal de errores (RFC 9457), ADR-0003: Estructura base común — errores RFC 9457, catálogo de códigos y trazabilidad `X-Trace-Id`, Alternativas Descartadas, Consecuencias (+29 more)
+### Community 42 - "4. Bitácora de Avances"
+Cohesion: 0.19
+Nodes (10): 4. Bitácora de Avances, ApiError, NetworkError, ProblemDetail, createHttpClient(), HttpClient, HttpClientOptions, HttpMethod (+2 more)
 
-### Community 43 - "Política de Cancelación 72h"
-Cohesion: 0.38
-Nodes (5): RF-13 Cancelación con Reembolso (>72h), RF-14 Retención Comunitaria (<=72h / No-Show), booking.booking_cancellations, payments.refunds, T-3.4 Motor de Políticas de Cancelación (72h)
+### Community 43 - "booking.bookings"
+Cohesion: 0.13
+Nodes (13): BookingExpirationWorker (@Scheduled 60s), RF-10 Reserva y Captura de Datos Médicos, RF-11 Expiración Automática de Cupos por TTL, RF-13 Cancelación con Reembolso (>72h), RF-14 Retención Comunitaria (<=72h / No-Show), booking.booking_cancellations, booking.booking_participants (EPS cifrada), Esquema booking (+5 more)
 
 ### Community 44 - "compilerOptions"
 Cohesion: 0.08
 Nodes (23): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, exactOptionalPropertyTypes, jsx, lib, module, moduleDetection (+15 more)
 
-### Community 45 - "ProbeController"
-Cohesion: 0.20
-Nodes (3): Participant, ProbeController, ProbeRequest
+### Community 45 - "RegistrationServiceImpl.java"
+Cohesion: 0.13
+Nodes (8): RoleCode, ADMIN, HOST, LINK_MANAGER, TOURIST, RoleRepository, UserRoleRepository, RegistrationServiceImpl
 
-### Community 46 - "Máquina de estados de Reserva"
-Cohesion: 0.29
-Nodes (4): RF-08 Moderación y Suspensión Preventiva, Máquina de estados de Reserva, Máquina de estados de Dispersión (CANCELLED→RELEASED solo en SYNC_CONFLICT), Máquina de estados de Experiencia
+### Community 46 - "ConsentPurpose"
+Cohesion: 0.13
+Nodes (15): ConsentStatusResponse, PurposeResponse, ConsentPurpose, HEALTH_EMERGENCY, PERSONAL_DATA, SENSITIVE_VICTIM, ConsentService, ConsentServiceImpl (+7 more)
+
+### Community 47 - "PostgresIntegrationTest.java"
+Cohesion: 0.11
+Nodes (3): MutableClock, PostgresIntegrationTest, TestClockConfig
 
 ### Community 48 - "Ley 1581 de 2012 (Habeas Data)"
-Cohesion: 0.38
+Cohesion: 0.28
 Nodes (5): Ley 1581 de 2012 (Habeas Data), RF-10 Reserva y Captura de Datos Médicos/Emergencia, RNF-01 Seguridad: AES-256-GCM y BCrypt/Argon2id, R-05 Fuga de datos de víctimas (Ley 1581), T-4.1 Auditoría Inmutable Habeas Data y Cifrado AES-256
 
 ### Community 49 - "Política Determinista de Protección Comunitaria (85% irrenunciable)"
-Cohesion: 0.24
-Nodes (11): POST /api/v1/offline/sync, OfflineSyncService / ConflictResolutionService, RF-18 Background Sync y Resolución Determinista de Conflictos, RF-18 Background Sync y Resolución de Conflictos, Esquema offline (devices, roster_downloads, sync_batches, offline_validations, sync_incidents), offline.offline_validations, offline.sync_batches (PK cliente = idempotencia), offline.sync_incidents (+3 more)
+Cohesion: 0.18
+Nodes (10): POST /api/v1/offline/sync, OfflineSyncService / ConflictResolutionService, RF-08 Moderación y Suspensión Preventiva, RF-18 Background Sync y Resolución Determinista de Conflictos, RF-18 Background Sync y Resolución de Conflictos, Máquina de estados de Dispersión (CANCELLED→RELEASED solo en SYNC_CONFLICT), Máquina de estados de Experiencia, R-04 Reclamaciones por cancelación con discrepancia offline (+2 more)
 
-### Community 50 - "RF-12 Procesamiento de Pago y Split Payment"
-Cohesion: 0.36
-Nodes (8): POST /api/v1/payments/webhook/{mock|wompi}, NotificationDispatcherService (Email/WhatsApp adapters), RF-12 Procesamiento de Pago y Split Payment, RNF-06 Idempotencia en Pagos y Sincronización, Servicio de Notificaciones (Gmail/SES/Twilio), notification.notification_outbox (Transactional Outbox), payments.payment_webhook_events (bandeja idempotente), Webhook INSERT ON CONFLICT (provider, idempotency_key) DO NOTHING
+### Community 50 - "Session"
+Cohesion: 0.13
+Nodes (9): AccessTokenIssuer, IssuedToken, AuthProperties, Lockout, IssuedSession, SessionIssuer, AuthenticatedUser, Session (+1 more)
 
-### Community 52 - "IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox)"
-Cohesion: 0.40
-Nodes (4): Intégrate - Plataforma Transaccional de Turismo Comunitario, IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox), Ley 1448 de 2011 (Víctimas), RNF-04 Arquitectura Offline-First
+### Community 52 - "BusinessRuleException"
+Cohesion: 0.20
+Nodes (4): BusinessRuleException, User, AuthErrors, ClientInfo
 
 ### Community 53 - "devDependencies"
 Cohesion: 0.09
 Nodes (23): devDependencies, eslint, eslint-config-prettier, @eslint/js, eslint-plugin-jsx-a11y-x, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals (+15 more)
 
 ### Community 54 - "Sistema Intégrate (Plataforma de Turismo Comunitario)"
-Cohesion: 0.12
-Nodes (12): Módulos com.integrate (auth, catalog, booking, payment, voucher, offline, audit), Proyecto heredado FoodExpress (a erradicar), Pasarela de Pagos Wompi / ePayco, Sistema Intégrate (Plataforma de Turismo Comunitario), Stack: Java 21/Spring Boot 3, React 18 PWA, PostgreSQL 16, AWS, Fase 0: Setup e Infraestructura / DB, Fase 1: MVP Core Transaccional, Fase 2: PWA Offline-First y Validación Territorial (+4 more)
+Cohesion: 0.08
+Nodes (17): Especificación Técnica de Requerimientos Intégrate, Módulos com.integrate (auth, catalog, booking, payment, voucher, offline, audit), Esquema DDL inicial (spec §6), Intégrate - Plataforma Transaccional de Turismo Comunitario, Ley 1448 de 2011 (Víctimas), Pasarela de Pagos Wompi / ePayco, Sistema Intégrate (Plataforma de Turismo Comunitario), Stack: Java 21/Spring Boot 3, React 18 PWA, PostgreSQL 16, AWS (+9 more)
 
 ### Community 55 - "compilerOptions"
 Cohesion: 0.12
 Nodes (16): compilerOptions, allowImportingTsExtensions, lib, module, moduleDetection, moduleResolution, noEmit, noUnusedLocals (+8 more)
 
-### Community 56 - "catalog.host_profiles"
-Cohesion: 0.29
-Nodes (9): RF-03 Gestión y Asignación de Roles RBAC, Esquema catalog (DIVIPOLA, asociaciones, perfiles, experiencias, franjas), catalog.departments / municipalities (DIVIPOLA), catalog.experiences, catalog.host_manager_assignments, catalog.host_profiles, catalog.schedules (objetivo de FOR UPDATE), auth.user_roles / auth.roles (RBAC N:M) (+1 more)
-
 ### Community 57 - "package.json"
-Cohesion: 0.14
-Nodes (13): description, name, private, type, version, eslint, jsdom, prettier (+5 more)
+Cohesion: 0.08
+Nodes (28): ADR-0004, noDeepFeatureImports, description, engines, node, name, private, type (+20 more)
 
 ### Community 58 - "Actor: Gestor de Enlace Comunitario (Proxy Digital)"
 Cohesion: 0.20
 Nodes (8): Actor: Gestor de Enlace Comunitario (Proxy Digital), RF-04 Consulta de Catálogo Territorial y Aforos, RF-05 Registro Autónomo de Propuesta de Experiencia, RF-06 Registro Asistido por Gestor de Enlace, RF-07 Revisión y Autorización de Experiencia, RNF-04 Arquitectura Offline-First y Resiliencia, catalog.link_manager_profiles, T-3.5 Módulo de Gestión Asistida (Proxy Digital)
 
-### Community 59 - "Migraciones Flyway V1–V9"
-Cohesion: 0.22
-Nodes (6): Esquema DDL inicial (spec §6), Roles de BD integrate_owner / integrate_api, Migraciones Flyway V1–V9, Modelo Relacional Intégrate v1.0.0, Normalización 3FN, T-0.4 Migración inicial Flyway (V1__initial_schema.sql)
+### Community 60 - "frontend-pwa · Intégrate"
+Cohesion: 0.29
+Nodes (5): 1. Preparar (una vez), 2. Desarrollo, 3. Calidad, 4. Estructura, frontend-pwa · Intégrate
 
-### Community 60 - "ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*"
-Cohesion: 0.15
-Nodes (11): ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Enmienda (2026-10-05, implementación), 1. Preparar (una vez), 2. Desarrollo (+3 more)
-
-### Community 61 - "eslint.config.js"
-Cohesion: 0.20
-Nodes (9): ADR-0004, noDeepFeatureImports, eslint-config-prettier, @eslint/js, eslint-plugin-jsx-a11y-x, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals (+1 more)
+### Community 61 - "SessionTransactions.java"
+Cohesion: 0.11
+Nodes (13): CredentialStatus, ACTIVE, PENDING_RESET, RevokeReason, ADMIN, LOGOUT, PASSWORD_CHANGE, REUSE_DETECTED (+5 more)
 
 ### Community 62 - "scripts"
 Cohesion: 0.20
 Nodes (10): scripts, build, dev, format, format:check, lint, preview, test (+2 more)
 
-### Community 63 - "Bloqueo Pesimista SELECT ... FOR UPDATE"
-Cohesion: 0.28
-Nodes (7): BookingConcurrencyEngine, RNF-02 Latencia Transaccional de Aforo < 200 ms, RNF-02 Latencia de Aforo < 200 ms, RNF-03 Consistencia ACID y 0% Overbooking, R-01 Contención y bloqueos prolongados en BD (lock_timeout 2s), T-1.3 Motor de Concurrencia y Bloqueo Pesimista, T-4.2 Pruebas de Estrés y Concurrencia (JMeter/Gatling)
+### Community 63 - "catalog.host_profiles"
+Cohesion: 0.16
+Nodes (13): BookingConcurrencyEngine, RNF-02 Latencia Transaccional de Aforo < 200 ms, RNF-02 Latencia de Aforo < 200 ms, RNF-03 Consistencia ACID y 0% Overbooking, Esquema catalog (DIVIPOLA, asociaciones, perfiles, experiencias, franjas), catalog.departments / municipalities (DIVIPOLA), catalog.experiences, catalog.host_manager_assignments (+5 more)
 
-### Community 64 - "booking.bookings"
-Cohesion: 0.33
-Nodes (4): RF-10 Reserva y Captura de Datos Médicos, booking.booking_participants (EPS cifrada), Esquema booking, booking.bookings
+### Community 64 - "RegistrationService"
+Cohesion: 0.17
+Nodes (8): AdminBootstrapRunner, AdminBootstrapCommand, BootstrapOutcome, ADMIN_ALREADY_EXISTS, CREATED, IDENTITY_TAKEN, RegistrationService, 9. RBAC y cadena de seguridad
 
-### Community 65 - "vite.config.ts"
-Cohesion: 0.33
-Nodes (4): ADR-0004, @tailwindcss/vite, vite, @vitejs/plugin-react
+### Community 65 - "org.springframework.context.annotation.Bean"
+Cohesion: 0.21
+Nodes (3): TimeConfig, JwtConfig, PasswordHashingConfig
 
 ### Community 66 - "PaymentGatewayAdapter (Mock / Wompi)"
 Cohesion: 0.40
@@ -324,35 +350,99 @@ Nodes (4): dependencies, react, react-dom, react-router
 Cohesion: 0.50
 Nodes (3): printWidth, singleQuote, trailingComma
 
-### Community 70 - "vitest"
+### Community 70 - "routes.test.tsx"
+Cohesion: 0.29
+Nodes (5): routes, @testing-library/jest-dom, @testing-library/react, @testing-library/user-event, vitest
+
+### Community 73 - "ConsentLedger"
+Cohesion: 0.23
+Nodes (3): HabeasDataConsentRepository, PrivacyPolicyRepository, ConsentLedger
+
+### Community 74 - "main.tsx"
+Cohesion: 0.26
+Nodes (9): ConfigErrorScreen(), ConfigErrorScreenProps, bootstrap(), container, AppConfig, ConfigError, getConfig(), parseConfig() (+1 more)
+
+### Community 78 - "uuid"
+Cohesion: 0.26
+Nodes (3): RegisterResponse, RegisteredUser, 6. Contrato: cuatro endpoints nuevos en `openapi.yaml` y `dtos_contrato_api.md`
+
+### Community 80 - ".title"
+Cohesion: 0.20
+Nodes (9): 2. Formato transversal de errores (RFC 9457), 4. Disponibilidad – `GET /experiences/{id}/availability`, ADR-0003: Estructura base común — errores RFC 9457, catálogo de códigos y trazabilidad `X-Trace-Id`, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión (+1 more)
+
+### Community 82 - "RouteErrorPage.tsx"
+Cohesion: 0.23
+Nodes (8): RouteErrorPage(), Button(), ButtonProps, Variant, VARIANT_CLASSES, SkipLink(), SkipLinkProps, react
+
+### Community 84 - "ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*"
+Cohesion: 0.20
+Nodes (9): ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, Enmienda (2026-10-05, implementación), 5. Estrategia de Ramificación (Branching Model) (+1 more)
+
+### Community 85 - "SessionTransactions"
+Cohesion: 0.36
+Nodes (3): UserRepository, AuthServiceImpl, SessionTransactions
+
+### Community 86 - "PROTOCOLO DE FLUJO DE TRABAJO EN GIT Y GOBERNANZA DE CAMBIOS"
+Cohesion: 0.20
+Nodes (9): 1. Ciclo de Vida y Estados de un Cambio en Git, 2. ¿Cuándo Hacer Commit? (Reglas de Compromiso Local), 3. ¿Cuándo Hacer Push y Subir Cambios a GitHub? (Política por Fases), 4.1 Formato Estandarizado de Mensajes (Conventional Commits), 4.2 Anatomía del Diff: Qué SÍ y Qué NO debe contener un commit, 4. ¿Qué Esperar en Cada Cambio? (Estructura y Anatomía del Diff), Ciclo Operativo por Fases:, PROTOCOLO DE FLUJO DE TRABAJO EN GIT Y GOBERNANZA DE CAMBIOS (+1 more)
+
+### Community 87 - ".requiresConsentUpdate"
+Cohesion: 0.36
+Nodes (5): 3.2 `AuthTokenResponse` (login y refresh), 12. Pruebas (criterio de aceptación de T-1.1/T-1.2), 4. Flujo de login (RF-01), 7. Consentimiento en el login, Contexto
+
+### Community 88 - "Decisión"
+Cohesion: 0.25
+Nodes (8): 10. Actor de la transacción para PostgreSQL, 11. Estructura y entidades, 1. Validación del access token con el *resource server* de Spring Security (sin filtro JWT propio), 2. Llave de firma de sesión por variable de entorno (SEC-DIR-004), 3. Hash de contraseñas: Argon2id directo, 5. Refresh token rotativo, 8. Política vigente: seed solo en dev/test; la `v1.0` real llega por migración, Decisión
+
+### Community 89 - "DocType"
+Cohesion: 0.29
+Nodes (6): DocType, CC, CE, PA, PPT, TI
+
+### Community 90 - "errors.ts"
+Cohesion: 0.43
+Nodes (6): ADR-0003, RFC-9457, InvalidParam, isInvalidParam(), isRecord(), toProblemDetail()
+
+### Community 91 - "LoginFailureReason"
+Cohesion: 0.33
+Nodes (5): LoginFailureReason, ACCOUNT_LOCKED, ACCOUNT_SUSPENDED, BAD_CREDENTIALS, UNKNOWN_USER
+
+### Community 92 - "Proyecto heredado FoodExpress (a erradicar)"
+Cohesion: 0.33
+Nodes (6): Proyecto heredado FoodExpress (a erradicar), Fase 0: Setup e Infraestructura / DB, Fase 1: MVP Core Transaccional, Fase 2: PWA Offline-First y Validación Territorial, Fase 3: Sincronización, Enrolamiento Asistido y Finanzas, Fase 4: Auditoría, Hardening y Cloud AWS
+
+### Community 94 - "ADR-0005: Autenticación JWT RS256, sesiones con refresh rotativo y RBAC del módulo `auth`"
+Cohesion: 0.40
+Nodes (4): ADR-0005: Autenticación JWT RS256, sesiones con refresh rotativo y RBAC del módulo `auth`, Alternativas Descartadas, Consecuencias, Contrato o Esquema Conceptual
+
+### Community 97 - "3. Autenticación"
 Cohesion: 0.50
-Nodes (3): @testing-library/jest-dom, @testing-library/react, vitest
+Nodes (4): 3.1 `LoginRequest` → `LoginRequest.java`, 3.3 `AssistedHostRegistrationRequest`, 3.4 `AssistedHostRegistrationResponse` (201), 3. Autenticación
 
 ## Ambiguous Edges - Review These
-- `booking.bookings` → `Esquema DDL inicial (spec §6)`  [AMBIGUOUS]
+- `Esquema DDL inicial (spec §6)` → `booking.bookings`  [AMBIGUOUS]
   docs/modelo_relacional.md · relation: semantically_similar_to
 - `Migraciones Flyway V1–V9` → `T-0.4 Migración inicial Flyway (V1__initial_schema.sql)`  [AMBIGUOUS]
   docs/roadmap_ejecucion.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **268 isolated node(s):** `com.integrate:backend-api`, `MALFORMED_REQUEST`, `VALIDATION_FAILED`, `RESOURCE_NOT_FOUND`, `RBAC_FORBIDDEN` (+263 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 381 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **21 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **322 isolated node(s):** `com.integrate:backend-api`, `MALFORMED_REQUEST`, `VALIDATION_FAILED`, `RESOURCE_NOT_FOUND`, `RBAC_FORBIDDEN` (+317 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 492 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **33 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What is the exact relationship between `booking.bookings` and `Esquema DDL inicial (spec §6)`?**
+- **What is the exact relationship between `Esquema DDL inicial (spec §6)` and `booking.bookings`?**
   _Edge tagged AMBIGUOUS (relation: semantically_similar_to) - confidence is low._
 - **What is the exact relationship between `Migraciones Flyway V1–V9` and `T-0.4 Migración inicial Flyway (V1__initial_schema.sql)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `Especificación Técnica de Requerimientos Intégrate` connect `Contrato de API y DTOs – Núcleo Transaccional Intégrate` to `IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox)`?**
-  _High betweenness centrality (0.160) - this node is a cross-community bridge._
-- **Why does `Intégrate - Plataforma Transaccional de Turismo Comunitario` connect `IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox)` to `Contrato de API y DTOs – Núcleo Transaccional Intégrate`?**
-  _High betweenness centrality (0.136) - this node is a cross-community bridge._
-- **Why does `4. Bitácora de Avances` connect `errors.ts` to `TraceIdFilter.java`, `3. Backlog Detallado de Tareas Técnicas`, `GlobalExceptionHandler.java`?**
-  _High betweenness centrality (0.117) - this node is a cross-community bridge._
-- **Are the 5 inferred relationships involving `GlobalExceptionHandler` (e.g. with `2. Formato transversal de errores (RFC 9457)` and `Decisión`) actually correct?**
-  _`GlobalExceptionHandler` has 5 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `4. Bitácora de Avances` connect `4. Bitácora de Avances` to `RegistrationService`, `org.springframework.context.annotation.Bean`, `RefreshToken`, `GlobalExceptionHandler`, `org.junit.jupiter.api.Test`, `TraceIdFilter.java`, `ConsentPurpose`, `Session`, `ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*`, `3. Backlog Detallado de Tareas Técnicas`, `IntegrateApplication`?**
+  _High betweenness centrality (0.147) - this node is a cross-community bridge._
+- **Why does `Especificación Técnica de Requerimientos Intégrate` connect `Sistema Intégrate (Plataforma de Turismo Comunitario)` to `2.3 Fichas Técnicas de los Object Stores`?**
+  _High betweenness centrality (0.143) - this node is a cross-community bridge._
+- **Why does `Intégrate - Plataforma Transaccional de Turismo Comunitario` connect `Sistema Intégrate (Plataforma de Turismo Comunitario)` to `RF-17 Validación Offline de Voucher`?**
+  _High betweenness centrality (0.115) - this node is a cross-community bridge._
+- **Are the 6 inferred relationships involving `GlobalExceptionHandler` (e.g. with `2. Formato transversal de errores (RFC 9457)` and `Decisión`) actually correct?**
+  _`GlobalExceptionHandler` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `com.integrate:backend-api`, `MALFORMED_REQUEST`, `VALIDATION_FAILED` to the rest of the system?**
-  _268 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _322 weakly-connected nodes found - possible documentation gaps or missing edges._

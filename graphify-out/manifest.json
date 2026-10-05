@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "docs/status/PROJECT_STATUS.md": {
-    "mtime": 1791226217.6882472,
-    "seen": 1791226243.9708843,
-    "ast_hash": "5f8468c95ea36c64af17971d4e50a316",
+    "mtime": 1791228624.270218,
+    "seen": 1791228644.573147,
+    "ast_hash": "94f35c5d7e7737db6b588f93a707e541",
     "semantic_hash": ""
   },
   "infra/README.md": {
@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "backend-api/pom.xml": {
-    "mtime": 1791186953.047749,
-    "seen": 1791187127.1790044,
-    "ast_hash": "156ee84b73b9ac09b14c9ae13a7c99ee",
+    "mtime": 1791227671.365998,
+    "seen": 1791228644.573147,
+    "ast_hash": "eceb4508d622450abfe08ace8feba4e6",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0002-stack-base-backend-spring-boot.md": {
@@ -168,21 +168,21 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/IntegrateApplication.java": {
-    "mtime": 1791187508.7245438,
-    "seen": 1791187612.2031224,
-    "ast_hash": "f876a72988ee175e10c4071be27490b8",
+    "mtime": 1791228013.6656778,
+    "seen": 1791228644.573147,
+    "ast_hash": "5126424f8a18e247d17c5204285e141b",
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/application-dev.yml": {
-    "mtime": 1791187508.8196723,
-    "seen": 1791187612.2031224,
-    "ast_hash": "4212e09ecbce85afb0fc307a2fc8197c",
+    "mtime": 1791228246.927456,
+    "seen": 1791228644.573147,
+    "ast_hash": "bda385883aac86371e43dc98ea6613f8",
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/application.yml": {
-    "mtime": 1791188241.7126622,
-    "seen": 1791188396.8328602,
-    "ast_hash": "bc1508644080d493b7a041bbeaa164d7",
+    "mtime": 1791228246.843173,
+    "seen": 1791228644.573147,
+    "ast_hash": "7b54d7447f4814f09edcc8518f489b8e",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/common/exception/BusinessRuleException.java": {
@@ -465,6 +465,420 @@
     "mtime": 1791225722.0536413,
     "seen": 1791226243.9708843,
     "ast_hash": "56051b636e2c89045b3dfe3479713a33",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/bootstrap/AdminBootstrapProperties.java": {
+    "mtime": 1791228183.627453,
+    "seen": 1791228644.573147,
+    "ast_hash": "97f81fb936003ee002b582afe711dd56",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/bootstrap/AdminBootstrapRunner.java": {
+    "mtime": 1791228187.7650821,
+    "seen": 1791228644.573147,
+    "ast_hash": "40e0160bbd549e99cc58234b033a9779",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/request/ConsentAcceptance.java": {
+    "mtime": 1791227982.563499,
+    "seen": 1791228644.573147,
+    "ast_hash": "bf74e8f766a288f54d324b0a3e39729f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/request/LoginRequest.java": {
+    "mtime": 1791227982.4883041,
+    "seen": 1791228644.573147,
+    "ast_hash": "50ad4a3626e9864222b149f26d0cf6a4",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/request/RegisterRequest.java": {
+    "mtime": 1791227982.6267638,
+    "seen": 1791228644.573147,
+    "ast_hash": "0c98cdbd103193d78f13cfe28dd96c03",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/response/AuthTokenResponse.java": {
+    "mtime": 1791227982.691924,
+    "seen": 1791228644.573147,
+    "ast_hash": "0bfeb8b0aad5af81858575902391e7a2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/response/ConsentStatusResponse.java": {
+    "mtime": 1791227982.8362021,
+    "seen": 1791228644.573147,
+    "ast_hash": "a36f6e1c8d880cf6b3cc09ec35ef4452",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/response/RegisterResponse.java": {
+    "mtime": 1791227982.7596953,
+    "seen": 1791228644.573147,
+    "ast_hash": "9e57d9f1380ac7687b4c02f76199a2e2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/ConsentAction.java": {
+    "mtime": 1791227760.0751238,
+    "seen": 1791228644.573147,
+    "ast_hash": "de16e1655390e5ab2a54a325cd5a6e9c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/ConsentChannel.java": {
+    "mtime": 1791227760.1986167,
+    "seen": 1791228644.573147,
+    "ast_hash": "1e2fd1d69c64937f31de3515684cf40e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/ConsentPurpose.java": {
+    "mtime": 1791227759.9514718,
+    "seen": 1791228644.573147,
+    "ast_hash": "5492e01edc2393de2ef8ed48f69eb1af",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/CredentialStatus.java": {
+    "mtime": 1791227759.667091,
+    "seen": 1791228644.573147,
+    "ast_hash": "b38fad1242bc23ca61abe52550fbdde2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/DocType.java": {
+    "mtime": 1791227759.825781,
+    "seen": 1791228644.573147,
+    "ast_hash": "57ec6a64889e8f89b9d0b66c01724e04",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/HabeasDataConsent.java": {
+    "mtime": 1791227850.6317909,
+    "seen": 1791228644.573147,
+    "ast_hash": "020da2621815ead4e23011128655190f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/LoginAttempt.java": {
+    "mtime": 1791227850.7142909,
+    "seen": 1791228644.573147,
+    "ast_hash": "b7d1c2cf1093c199542ad40fda4bd8dc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/LoginFailureReason.java": {
+    "mtime": 1791227760.3202267,
+    "seen": 1791228644.573147,
+    "ast_hash": "e2e376c3a1ad24ea9dddc641c48a2d23",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/PgDomains.java": {
+    "mtime": 1791228526.986703,
+    "seen": 1791228644.573147,
+    "ast_hash": "8f9e0936fc43e31098cdfa7e52d7b617",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/PrivacyPolicy.java": {
+    "mtime": 1791228530.6057036,
+    "seen": 1791228644.573147,
+    "ast_hash": "efba890bd3af61a031f3fc0e218ac136",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/RefreshToken.java": {
+    "mtime": 1791228530.7298632,
+    "seen": 1791228644.573147,
+    "ast_hash": "282db2ef831755faff8602e6feaa4d06",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/RevokeReason.java": {
+    "mtime": 1791227760.4246569,
+    "seen": 1791228644.573147,
+    "ast_hash": "f0f539ee796c373c1949d16ce4bbcd3c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/Role.java": {
+    "mtime": 1791227850.4403675,
+    "seen": 1791228644.573147,
+    "ast_hash": "b7d879f263c189dadb3eaeef610641da",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/RoleCode.java": {
+    "mtime": 1791227760.527814,
+    "seen": 1791228644.573147,
+    "ast_hash": "877cc0541d43215884c83a827619345f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/User.java": {
+    "mtime": 1791228530.4815364,
+    "seen": 1791228644.573147,
+    "ast_hash": "680c8e59afcaeb239edc303cdc20ecf9",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/UserRole.java": {
+    "mtime": 1791227850.5093465,
+    "seen": 1791228644.573147,
+    "ast_hash": "6533f842d962c98a71cb52b0fb7481ed",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/UserStatus.java": {
+    "mtime": 1791227759.5530896,
+    "seen": 1791228644.573147,
+    "ast_hash": "5a53b7f678b7bdbc7b86a11bac205673",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/HabeasDataConsentRepository.java": {
+    "mtime": 1791227884.5312865,
+    "seen": 1791228644.573147,
+    "ast_hash": "4895c578ca81c5e2bf11fd6b0a768f4c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/LoginAttemptRepository.java": {
+    "mtime": 1791227884.585515,
+    "seen": 1791228644.573147,
+    "ast_hash": "ac94a18ff318a8c5eddfd30d6e34062b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/PrivacyPolicyRepository.java": {
+    "mtime": 1791227884.4680634,
+    "seen": 1791228644.573147,
+    "ast_hash": "ad304232cf3e81481254c07a21d97960",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/RefreshTokenRepository.java": {
+    "mtime": 1791227884.6463544,
+    "seen": 1791228644.573147,
+    "ast_hash": "7aa2e8f7f383aa6ac98c6353ef47aa3e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/RoleRepository.java": {
+    "mtime": 1791227884.3216832,
+    "seen": 1791228644.573147,
+    "ast_hash": "a2b2e660ad765bf87e737d18da82a255",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/UserRepository.java": {
+    "mtime": 1791227884.2514143,
+    "seen": 1791228644.573147,
+    "ast_hash": "392177331f7610e4b1b57bf88107f1a2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/UserRoleRepository.java": {
+    "mtime": 1791227884.4053648,
+    "seen": 1791228644.573147,
+    "ast_hash": "6a10331560532c5810861a3f65157d67",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/AccessTokenIssuer.java": {
+    "mtime": 1791227953.988847,
+    "seen": 1791228644.573147,
+    "ast_hash": "a3b1222f5e19087891310532a94ceb4a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/AuthProperties.java": {
+    "mtime": 1791228013.7391257,
+    "seen": 1791228644.573147,
+    "ast_hash": "7e1de5d701b40beb7bea55e2527c433b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/AuthService.java": {
+    "mtime": 1791228013.7962325,
+    "seen": 1791228644.573147,
+    "ast_hash": "2f31b1bf2504bb6e7b22bf7ecbe425de",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/ConsentService.java": {
+    "mtime": 1791228013.909459,
+    "seen": 1791228644.573147,
+    "ast_hash": "3ad4363eaa67e56d776e56746316453f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/RegistrationService.java": {
+    "mtime": 1791228019.2492912,
+    "seen": 1791228644.573147,
+    "ast_hash": "d508d13ecbcc44b73ee4a46d63f5477a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/AuthErrors.java": {
+    "mtime": 1791228037.6235693,
+    "seen": 1791228644.573147,
+    "ast_hash": "08a8c8469c7d5eea1985bdad055e2218",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/AuthServiceImpl.java": {
+    "mtime": 1791228148.3012676,
+    "seen": 1791228644.573147,
+    "ast_hash": "b09f2567ce13271c0c585c0014f4d293",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/ConsentLedger.java": {
+    "mtime": 1791228099.4583433,
+    "seen": 1791228644.573147,
+    "ast_hash": "01b4411f36d261820d3bf7505f848260",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/ConsentServiceImpl.java": {
+    "mtime": 1791228099.5394704,
+    "seen": 1791228644.573147,
+    "ast_hash": "253061ddcddc0a0b7cb29409be73c79e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/Emails.java": {
+    "mtime": 1791228148.3659778,
+    "seen": 1791228644.573147,
+    "ast_hash": "d065ccbc24539daf4271e5f8d737880d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/PasswordPolicy.java": {
+    "mtime": 1791228037.6849732,
+    "seen": 1791228644.573147,
+    "ast_hash": "1b2f8108acd26e352c306d934a7094ac",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/RefreshTokenCodec.java": {
+    "mtime": 1791228037.7476017,
+    "seen": 1791228644.573147,
+    "ast_hash": "da214c9f81b32e56b47b46fe44f59c02",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/RegistrationServiceImpl.java": {
+    "mtime": 1791228166.9282675,
+    "seen": 1791228644.573147,
+    "ast_hash": "18c9a9b09698121fa18d5e664ab09578",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/SessionIssuer.java": {
+    "mtime": 1791228132.97089,
+    "seen": 1791228644.573147,
+    "ast_hash": "454cb20ba1135e548d27210dae791e30",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/SessionTransactions.java": {
+    "mtime": 1791228133.0680346,
+    "seen": 1791228644.573147,
+    "ast_hash": "3585e18ff04a6644f7086e4b4caca380",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/AuthenticatedUser.java": {
+    "mtime": 1791227953.8079236,
+    "seen": 1791228644.573147,
+    "ast_hash": "5779cc642176ec6272818a222661a0d2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/ClientInfo.java": {
+    "mtime": 1791227953.680856,
+    "seen": 1791228644.573147,
+    "ast_hash": "b2b12addb6843e650e6f78271317198f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/ConsentStatus.java": {
+    "mtime": 1791227953.7492929,
+    "seen": 1791228644.573147,
+    "ast_hash": "5ea685b7b8263ff397f9b2858829ae2f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/RegisteredUser.java": {
+    "mtime": 1791227953.9279797,
+    "seen": 1791228644.573147,
+    "ast_hash": "7e92660a84f926da42a27e980ff7f85b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/Session.java": {
+    "mtime": 1791227953.868574,
+    "seen": 1791228644.573147,
+    "ast_hash": "4b19a918402e4f6e3c77b1120f743d84",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/PasswordHashingConfig.java": {
+    "mtime": 1791228234.2822342,
+    "seen": 1791228644.573147,
+    "ast_hash": "8886abe196baa4dcd2b764a9982c863c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/jwt/JwtAccessTokenIssuer.java": {
+    "mtime": 1791228234.2146232,
+    "seen": 1791228644.573147,
+    "ast_hash": "f53abe3296426f6c1a0302b4f8878882",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/jwt/JwtConfig.java": {
+    "mtime": 1791228234.1485243,
+    "seen": 1791228644.573147,
+    "ast_hash": "50bde73bed23a02811c33bcfd0969907",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/jwt/JwtProperties.java": {
+    "mtime": 1791228205.146255,
+    "seen": 1791228644.573147,
+    "ast_hash": "a1f4589a2aade9d6228920aa9c90ff70",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/jwt/RsaSigningKeys.java": {
+    "mtime": 1791228205.2153563,
+    "seen": 1791228644.573147,
+    "ast_hash": "055233667650a11b9ebe1f9dd715f04b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/resources/db/seed-dev/R__dev_privacy_policy.sql": {
+    "mtime": 1791228258.59579,
+    "seen": 1791228644.573147,
+    "ast_hash": "b0d9401c7eca73e860a8e71ac56d869c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/AuthServiceIntegrationTest.java": {
+    "mtime": 1791228431.0186388,
+    "seen": 1791228644.573147,
+    "ast_hash": "1fa6e233a1bd5bdff78c546ac814b421",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/AuthTestData.java": {
+    "mtime": 1791228345.65567,
+    "seen": 1791228644.573147,
+    "ast_hash": "1a183c7b1a23f2c7197df6f9b4891222",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/ConsentAndBootstrapIntegrationTest.java": {
+    "mtime": 1791228455.3012183,
+    "seen": 1791228644.573147,
+    "ast_hash": "a0a7d77177947dd9882041d94864a35c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/RegistrationServiceIntegrationTest.java": {
+    "mtime": 1791228373.1497953,
+    "seen": 1791228644.573147,
+    "ast_hash": "701688f964feda6418c091c4666f7931",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/service/impl/PasswordPolicyTest.java": {
+    "mtime": 1791228471.943234,
+    "seen": 1791228644.573147,
+    "ast_hash": "aff264829281d2e3d8fe4fc98a5f67db",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/security/jwt/RsaSigningKeysTest.java": {
+    "mtime": 1791228471.8517764,
+    "seen": 1791228644.573147,
+    "ast_hash": "477f7cee6340b91a2993d6ec3e1bf45e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/support/MutableClock.java": {
+    "mtime": 1791228327.6722443,
+    "seen": 1791228644.573147,
+    "ast_hash": "76714c988e6be3be5a14adc0cced24ac",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/support/PostgresIntegrationTest.java": {
+    "mtime": 1791228373.086576,
+    "seen": 1791228644.573147,
+    "ast_hash": "1a04b7721ab033746cb8183e9d93d669",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/support/TestKeys.java": {
+    "mtime": 1791228327.7279167,
+    "seen": 1791228644.573147,
+    "ast_hash": "2919cd37db6d06b39fe75b27dbb79b25",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/resources/application-test.yml": {
+    "mtime": 1791228327.855173,
+    "seen": 1791228644.573147,
+    "ast_hash": "2eaef678e79ecfa4a215ab29803a919c",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0005-autenticacion-jwt-rbac-sesiones.md": {
+    "mtime": 1791227629.846632,
+    "seen": 1791228644.573147,
+    "ast_hash": "4942fc1c6e030497516349d8e6247848",
     "semantic_hash": ""
   }
 }

@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "docs/status/PROJECT_STATUS.md": {
-    "mtime": 1791188390.845748,
-    "seen": 1791188396.8328602,
-    "ast_hash": "1af79232238b57a4d2ab8fe5f5d11f34",
+    "mtime": 1791226217.6882472,
+    "seen": 1791226243.9708843,
+    "ast_hash": "5f8468c95ea36c64af17971d4e50a316",
     "semantic_hash": ""
   },
   "infra/README.md": {
@@ -249,6 +249,222 @@
     "mtime": 1791188044.569957,
     "seen": 1791188396.8328602,
     "ast_hash": "fec172c63034c0d0a2b1fd4578ba462f",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/.prettierrc.json": {
+    "mtime": 1791225855.516941,
+    "seen": 1791226243.9708843,
+    "ast_hash": "d68b05400d039802253ea458066b4c7b",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/eslint.config.js": {
+    "mtime": 1791225970.537217,
+    "seen": 1791226243.9708843,
+    "ast_hash": "8a032113316043387ddf62588091b3cb",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/package.json": {
+    "mtime": 1791225803.1817422,
+    "seen": 1791226243.9708843,
+    "ast_hash": "11689b2742a71b9466fda4295f638894",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/layouts/AppShell.tsx": {
+    "mtime": 1791225970.6107726,
+    "seen": 1791226243.9708843,
+    "ast_hash": "daabef1eb4f38168eca60af54b4c8630",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/layouts/ManagerLayout.tsx": {
+    "mtime": 1791225915.667431,
+    "seen": 1791226243.9708843,
+    "ast_hash": "27e1e5f6784e6df3b762e5d6f49dd9dd",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/layouts/TouristLayout.tsx": {
+    "mtime": 1791225915.340305,
+    "seen": 1791226243.9708843,
+    "ast_hash": "b96413d4324ef9b16923cf7c9f4adc0e",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/pages/ConfigErrorScreen.tsx": {
+    "mtime": 1791225915.9392135,
+    "seen": 1791226243.9708843,
+    "ast_hash": "b77cce7b6910091b0063015f47c40035",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/pages/NotFoundPage.tsx": {
+    "mtime": 1791225915.8263955,
+    "seen": 1791226243.9708843,
+    "ast_hash": "bdc85ca1ff95f514c458aa388736a6cf",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/pages/RouteErrorPage.tsx": {
+    "mtime": 1791225970.642196,
+    "seen": 1791226243.9708843,
+    "ast_hash": "5db0b950896c79aaf6bde79f66eeef9e",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/routes.test.tsx": {
+    "mtime": 1791225940.3024635,
+    "seen": 1791226243.9708843,
+    "ast_hash": "c7357da794066e27f815df360c58d80f",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/app/routes.tsx": {
+    "mtime": 1791225915.992268,
+    "seen": 1791226243.9708843,
+    "ast_hash": "f08dfe2b171607fbfcded2fd8b1d11d2",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/features/home/ManagerHomePage.tsx": {
+    "mtime": 1791225914.4715195,
+    "seen": 1791226243.9708843,
+    "ast_hash": "5a32c8028c538a4392c2a6483c7bb8fd",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/features/home/TouristHomePage.tsx": {
+    "mtime": 1791225914.3916485,
+    "seen": 1791226243.9708843,
+    "ast_hash": "3fcfc5b99cb90bd24e2c8716e0eed569",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/features/home/index.ts": {
+    "mtime": 1791225914.7024555,
+    "seen": 1791226243.9708843,
+    "ast_hash": "aac0dad24d9e39d268bae4f1a9a6357d",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/main.tsx": {
+    "mtime": 1791225916.0632715,
+    "seen": 1791226243.9708843,
+    "ast_hash": "b1dfba7262bcb431a3d9b9c85db9db32",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/api/errors.ts": {
+    "mtime": 1791225855.783315,
+    "seen": 1791226243.9708843,
+    "ast_hash": "10170740ebebd63cb0cd477a7cc1c45d",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/api/httpClient.test.ts": {
+    "mtime": 1791225982.3293352,
+    "seen": 1791226243.9708843,
+    "ast_hash": "185d3b8835898fe546165c21d1442da7",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/api/httpClient.ts": {
+    "mtime": 1791225855.8400843,
+    "seen": 1791226243.9708843,
+    "ast_hash": "e3d0f5391429759619333521f6336215",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/api/index.ts": {
+    "mtime": 1791225855.8971846,
+    "seen": 1791226243.9708843,
+    "ast_hash": "3a64c4e269f3b69da9627c15aee7635a",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/config/env.test.ts": {
+    "mtime": 1791225940.2000918,
+    "seen": 1791226243.9708843,
+    "ast_hash": "f42ad60b5732a674fc8781b5446361bb",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/config/env.ts": {
+    "mtime": 1791225855.6753209,
+    "seen": 1791226243.9708843,
+    "ast_hash": "fa475373a7e201e3b31cc109fa79dc68",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/config/index.ts": {
+    "mtime": 1791225855.7280416,
+    "seen": 1791226243.9708843,
+    "ast_hash": "4ae98b4c3c06da48cbffa8b97a802596",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/ui/Button.tsx": {
+    "mtime": 1791225970.75335,
+    "seen": 1791226243.9708843,
+    "ast_hash": "53cecf2b4792d6255f2c9ddc6dbea2de",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/ui/SkipLink.tsx": {
+    "mtime": 1791225913.9941056,
+    "seen": 1791226243.9708843,
+    "ast_hash": "0301b25917502cc2c61d6db31292e445",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/ui/index.ts": {
+    "mtime": 1791225914.339356,
+    "seen": 1791226243.9708843,
+    "ast_hash": "707cfc264b25557466207751701bf1e2",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/test/setup.ts": {
+    "mtime": 1791225916.1186438,
+    "seen": 1791226243.9708843,
+    "ast_hash": "d7fc960b6c65ef0089e674bc78c062e9",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/vite-env.d.ts": {
+    "mtime": 1791225855.6175005,
+    "seen": 1791226243.9708843,
+    "ast_hash": "9d4f5a75f439c52d44df7f23616b5ead",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/tsconfig.app.json": {
+    "mtime": 1791225722.2354956,
+    "seen": 1791226243.9708843,
+    "ast_hash": "446f29f17b637275e09fecdb0ee37b7f",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/tsconfig.json": {
+    "mtime": 1791225722.1898744,
+    "seen": 1791226243.9708843,
+    "ast_hash": "cebcd0aef9a53b9c724ac53266f03437",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/tsconfig.node.json": {
+    "mtime": 1791225722.2786436,
+    "seen": 1791226243.9708843,
+    "ast_hash": "986755bfee1f440f4ad75ef7a9f80553",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/vite.config.ts": {
+    "mtime": 1791225722.1417658,
+    "seen": 1791226243.9708843,
+    "ast_hash": "deeadac87b50cd78063c6b35826664c6",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0004-boilerplate-frontend-pwa-vite-react.md": {
+    "mtime": 1791226217.54738,
+    "seen": 1791226243.9708843,
+    "ast_hash": "690096c322fca4f9a370a7d18f821daa",
+    "semantic_hash": ""
+  },
+  "docs/rules/git-workflow.md": {
+    "mtime": 1791188978.8605475,
+    "seen": 1791226243.9708843,
+    "ast_hash": "87612d4acfce11add09253330dcb2bc9",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/README.md": {
+    "mtime": 1791226230.9406505,
+    "seen": 1791226243.9708843,
+    "ast_hash": "56f8409d55798f903111cfa326fcc9ee",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/index.html": {
+    "mtime": 1791225721.9558854,
+    "seen": 1791226243.9708843,
+    "ast_hash": "08663df94ed7a9070fb12f088951aab7",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/public/favicon.svg": {
+    "mtime": 1791225722.0536413,
+    "seen": 1791226243.9708843,
+    "ast_hash": "56051b636e2c89045b3dfe3479713a33",
     "semantic_hash": ""
   }
 }
