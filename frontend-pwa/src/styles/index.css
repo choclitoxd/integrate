@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens de diseño (ADR-0004 §5, RNF-07). Contrastes sobre --color-canvas (#fff):
+ * ink 17,7:1 · ink-muted 10,3:1 · brand 10,4:1 → AA holgado (≥ 7:1) para uso bajo luz solar.
+ */
+@theme {
+  --color-canvas: #ffffff;
+  --color-surface: #f4f6f2;
+  --color-border: #4b5563;
+  --color-ink: #111827;
+  --color-ink-muted: #374151;
+  --color-brand: #14532d;
+  --color-brand-hover: #0f3d21;
+  --color-on-brand: #ffffff;
+  --color-brand-soft: #dcfce7;
+  --color-focus: #ffdd00;
+  --color-focus-halo: #111827;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Foco doble anillo (amarillo + oscuro): visible sobre fondos claros y sobre --color-brand. */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 0;
+    box-shadow: 0 0 0 6px var(--color-focus-halo);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

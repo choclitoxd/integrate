@@ -1,0 +1,71 @@
+package com.integrate.common.exception;
+
+import java.net.URI;
+import org.springframework.http.HttpStatus;
+
+/**
+ * Catálogo único de códigos de error del contrato (docs/api/dtos_contrato_api.md §2, ADR-0003).
+ * Cada constante fija el {@code status} HTTP, el {@code type} RFC 9457 y un {@code title} estable.
+ * Los módulos agregan aquí sus códigos: no se admite un {@code code} en texto libre.
+ */
+public enum ErrorCode {
+
+    // --- Protocolo (type: about:blank) -------------------------------------
+    MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, null, "Bad Request"),
+
+    // --- Transversales -------------------------------------------------------
+    VALIDATION_FAILED(HttpStatus.UNPROCESSABLE_CONTENT, "validation-failed", "Validation Failed"),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "resource-not-found", "Resource Not Found"),
+    RBAC_FORBIDDEN(HttpStatus.FORBIDDEN, "forbidden", "Forbidden"),
+    CONCURRENCY_LOCK_TIMEOUT(HttpStatus.SERVICE_UNAVAILABLE, "concurrency-lock-timeout", "Concurrency Lock Timeout"),
+    IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "idempotency-key-reused", "Idempotency Key Reused"),
+
+    // --- Auth ----------------------------------------------------------------
+    AUTH_INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "invalid-credentials", "Invalid Credentials"),
+    AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "authentication-required", "Authentication Required"),
+    AUTH_REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "refresh-token-invalid", "Refresh Token Invalid"),
+    AUTH_ACCOUNT_SUSPENDED(HttpStatus.FORBIDDEN, "account-suspended", "Account Suspended"),
+    AUTH_ACCOUNT_LOCKED(HttpStatus.LOCKED, "account-locked", "Account Temporarily Locked"),
+    AUTH_USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "user-already-exists", "User Already Exists"),
+
+    // --- Catalog / Booking ---------------------------------------------------
+    CATALOG_EXPERIENCE_NOT_APPROVED(HttpStatus.CONFLICT, "experience-not-approved", "Experience Not Approved"),
+    BOOKING_INSUFFICIENT_SLOTS(HttpStatus.CONFLICT, "insufficient-slots", "Insufficient Available Slots"),
+    BOOKING_SCHEDULE_NOT_BOOKABLE(HttpStatus.CONFLICT, "schedule-not-bookable", "Schedule Not Bookable"),
+    CONSENT_HEALTH_EMERGENCY_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "consent-required", "Consent Required"),
+
+    // --- Payments ------------------------------------------------------------
+    WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "webhook-signature-invalid", "Webhook Signature Invalid"),
+    PAYMENT_BOOKING_NOT_FOUND(HttpStatus.UNPROCESSABLE_CONTENT, "payment-booking-not-found", "Payment Booking Not Found"),
+    PAYMENT_PROVIDER_MISMATCH(HttpStatus.UNPROCESSABLE_CONTENT, "payment-provider-mismatch", "Payment Provider Mismatch"),
+
+    // --- Offline -------------------------------------------------------------
+    OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
+    SYNC_BATCH_PAYLOAD_MISMATCH(HttpStatus.CONFLICT, "sync-batch-payload-mismatch", "Sync Batch Payload Mismatch");
+
+    public static final String PROBLEM_BASE_URI = "https://api.integrate.co/problems/";
+    private static final URI ABOUT_BLANK = URI.create("about:blank");
+
+    private final HttpStatus status;
+    private final String slug;
+    private final String title;
+
+    ErrorCode(HttpStatus status, String slug, String title) {
+        this.status = status;
+        this.slug = slug;
+        this.title = title;
+    }
+
+    public HttpStatus status() {
+        return status;
+    }
+
+    public String title() {
+        return title;
+    }
+
+    /** {@code about:blank} para errores de protocolo; URI de dominio en el resto. */
+    public URI type() {
+        return slug == null ? ABOUT_BLANK : URI.create(PROBLEM_BASE_URI + slug);
+    }
+}

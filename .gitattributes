@@ -1,0 +1,7 @@
+# Scripts que se ejecutan dentro de contenedores Linux: siempre LF.
+*.sh  text eol=lf
+*.sql text eol=lf
+
+# Maven Wrapper (ADR-0002): script POSIX en LF, script Windows en CRLF.
+mvnw     text eol=lf
+*.cmd    text eol=crlf

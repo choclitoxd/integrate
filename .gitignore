@@ -1,0 +1,254 @@
+# ==============================================================================
+# SEGURIDAD Y GESTIÓN DE SECRETOS (SEC-DIR-004)
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+id_rsa*
+secrets/
+credentials.json
+
+# Exclusiones complementarias de certificados, claves privadas y tokens
+*.pfx
+*.pkcs12
+*.cer
+*.crt
+*.der
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*.kdbx
+token.json
+auth.json
+*.ca-bundle
+!**/.env.example
+!**/.env*.example
+
+# ==============================================================================
+# JAVA / SPRING BOOT & MAVEN (BACKEND)
+# ==============================================================================
+target/
+build/
+out/
+bin/
+*.class
+
+# Empaquetados Java
+*.jar
+*.war
+*.ear
+*.nar
+
+# Wrapper Maven (exclusión del binario según estándar del proyecto)
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs de error y volcados de la JVM
+hs_err_pid*
+replay_pid*
+
+# Artefactos temporales de release y build de Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# ==============================================================================
+# NODE.JS / FRONTEND / TYPESCRIPT / JAVASCRIPT
+# ==============================================================================
+node_modules/
+dist/
+dist-ssr/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+
+# Logs de gestores de paquetes npm/yarn/pnpm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Cachés de frameworks y empaquetadores
+.next/
+.nuxt/
+.vuepress/dist/
+.cache/
+.parcel-cache/
+.turbo/
+.astro/
+.svelte-kit/
+*.tsbuildinfo
+.eslintcache
+
+# Entornos locales de desarrollo frontend
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================================================================
+# PYTHON & HERRAMIENTAS DE SOPORTE (UV, GRAPHIFY, SCRIPTS)
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Entornos virtuales de Python (no incluir 'env/' sin anclar para proteger infra/env/)
+.venv/
+venv/
+/ENV/
+env.bak/
+
+# Caché temporal de herramientas de análisis
+graphify-out/cache/
+
+# ==============================================================================
+# PRUEBAS, COBERTURA Y REPORTES
+# ==============================================================================
+coverage/
+*.lcov
+.nyc_output/
+jacoco.exec
+jacoco-resources/
+jacoco/
+surefire-reports/
+failsafe-reports/
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+blob-report/
+
+# ==============================================================================
+# BASES DE DATOS, VOLÚMENES Y RUNTIME LOCAL
+# ==============================================================================
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+*.dump
+*.dmp
+*.sql.bak
+
+# Volúmenes y carpetas persistentes de Docker / LocalStack
+postgres_data/
+localstack_data/
+.localstack/
+local-data/
+data/
+
+# ==============================================================================
+# LOGS Y ARCHIVOS TEMPORALES DEL SISTEMA
+# ==============================================================================
+logs/
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+*.stackdump
+
+# ==============================================================================
+# IDES Y EDITORES DE CÓDIGO
+# ==============================================================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+.ionide/
+
+# IntelliJ IDEA / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Eclipse
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Editores de terminal (Vim, Emacs, Nano)
+.*.sw[a-p]
+*#
+.#*
+
+# Herramientas de IA y asistentes locales
+.cursor/
+.gemini/
+.copilot/
+
+# ==============================================================================
+# SISTEMAS OPERATIVOS Y SINCRONIZACIÓN EN LA NUBE
+# ==============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Conflictos de sincronización (OneDrive, Dropbox, Google Drive)
+*.sync
+*.sb-*
+*.[cC][oO][nN][fF][lL][iI][cC][tT]*
+

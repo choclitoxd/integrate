@@ -1,0 +1,65 @@
+# =============================================================================
+# Intégrate · Configuración base (todos los entornos) — ADR-0002 §4
+# SEC-DIR-004: ninguna credencial aquí. Las variables sin valor por defecto
+# son obligatorias: si faltan, el arranque aborta (fail-fast, §4).
+# =============================================================================
+spring:
+  application:
+    name: integrate-backend-api
+
+  # --- Runtime: rol integrate_api (solo DML) --------------------------------
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      pool-name: integrate-api-pool
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: 2
+      # Esperar conexión menos que statement_timeout (15s) del rol integrate_api.
+      connection-timeout: 5000
+      validation-timeout: 2000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      # lock_timeout (2s), statement_timeout (15s) e idle_in_transaction (30s)
+      # se fijan a nivel de rol en infra/postgres/init/00_bootstrap.sql.
+
+  # --- Migraciones: rol integrate_owner (DDL) -------------------------------
+  flyway:
+    enabled: true
+    url: ${DATABASE_URL}
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
+    locations: classpath:db/migration
+    # V1 crea los 9 esquemas (common + 8 de negocio); el historial vive en common.
+    default-schema: common
+    schemas: common,auth,catalog,booking,payments,voucher,offline,audit,notification
+    validate-on-migrate: true
+    clean-disabled: true
+    baseline-on-migrate: false
+
+  # --- JPA / Hibernate --------------------------------------------------------
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway es el único dueño del esquema; Hibernate solo valida.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+
+logging:
+  # traceId publicado en el MDC por TraceIdFilter (ADR-0003); se inserta en el patrón por defecto.
+  pattern:
+    correlation: "[%X{traceId:-}] "
+  level:
+    root: INFO

@@ -1,0 +1,254 @@
+{
+  "backend-api/src/main/resources/db/migration/V1__extensions_schemas_roles.sql": {
+    "mtime": 1791164385.6172733,
+    "seen": 1791177079.8928914,
+    "ast_hash": "cc92625b41453e230200fc669cd6e6cd",
+    "semantic_hash": "cc92625b41453e230200fc669cd6e6cd"
+  },
+  "backend-api/src/main/resources/db/migration/V2__auth.sql": {
+    "mtime": 1791164446.5335305,
+    "seen": 1791177079.8928914,
+    "ast_hash": "53d3a4788afed680b0f98bc90bd80a4b",
+    "semantic_hash": "53d3a4788afed680b0f98bc90bd80a4b"
+  },
+  "backend-api/src/main/resources/db/migration/V3__catalog.sql": {
+    "mtime": 1791165065.2564962,
+    "seen": 1791177079.8928914,
+    "ast_hash": "d08fa3a4edb2f1a44de7d17f730413d5",
+    "semantic_hash": "d08fa3a4edb2f1a44de7d17f730413d5"
+  },
+  "backend-api/src/main/resources/db/migration/V4__booking.sql": {
+    "mtime": 1791164629.5437047,
+    "seen": 1791177079.8928914,
+    "ast_hash": "3081f4c251c0dee183acc26df731e174",
+    "semantic_hash": "3081f4c251c0dee183acc26df731e174"
+  },
+  "backend-api/src/main/resources/db/migration/V5__payments.sql": {
+    "mtime": 1791165058.9243402,
+    "seen": 1791177079.8928914,
+    "ast_hash": "a0c1d02be5c09a3ae834d6d4676c2c09",
+    "semantic_hash": "a0c1d02be5c09a3ae834d6d4676c2c09"
+  },
+  "backend-api/src/main/resources/db/migration/V6__voucher.sql": {
+    "mtime": 1791164768.1455567,
+    "seen": 1791177079.8928914,
+    "ast_hash": "c77e50d09273d48abda77ab666645be0",
+    "semantic_hash": "c77e50d09273d48abda77ab666645be0"
+  },
+  "backend-api/src/main/resources/db/migration/V7__offline.sql": {
+    "mtime": 1791164812.1131177,
+    "seen": 1791177079.8928914,
+    "ast_hash": "437e86d991e31e806e96ebfd16d2e8a8",
+    "semantic_hash": "437e86d991e31e806e96ebfd16d2e8a8"
+  },
+  "backend-api/src/main/resources/db/migration/V8__audit_notification.sql": {
+    "mtime": 1791164884.2463658,
+    "seen": 1791177079.8928914,
+    "ast_hash": "5f1bb2d13c717f3bf4b6a02cdeac6ed3",
+    "semantic_hash": "5f1bb2d13c717f3bf4b6a02cdeac6ed3"
+  },
+  "backend-api/src/main/resources/db/migration/V9__privileges_hardening.sql": {
+    "mtime": 1791164907.1772828,
+    "seen": 1791177079.8928914,
+    "ast_hash": "da82b9ab6e6a6a1532b72e2d03a54fd3",
+    "semantic_hash": "da82b9ab6e6a6a1532b72e2d03a54fd3"
+  },
+  "infra/postgres/init/00_bootstrap.sql": {
+    "mtime": 1791164351.870744,
+    "seen": 1791177079.8928914,
+    "ast_hash": "ac4e0d63166394cdc2358f0a26840f6b",
+    "semantic_hash": "ac4e0d63166394cdc2358f0a26840f6b"
+  },
+  "docs/especificacion_tecnica.md": {
+    "mtime": 1791188371.7773743,
+    "seen": 1791188396.8328602,
+    "ast_hash": "157806507df31f13f61211867bbc877c",
+    "semantic_hash": ""
+  },
+  "docs/modelo_relacional.md": {
+    "mtime": 1791182290.0199544,
+    "seen": 1791183217.783642,
+    "ast_hash": "146bd565f1a04ee1eb71882bab0e7399",
+    "semantic_hash": "146bd565f1a04ee1eb71882bab0e7399"
+  },
+  "docs/roadmap_ejecucion.md": {
+    "mtime": 1791187104.4878097,
+    "seen": 1791187127.1790044,
+    "ast_hash": "d1d1b30cf4cd6869f3acec5916cbf6ab",
+    "semantic_hash": ""
+  },
+  "docs/api/dtos_contrato_api.md": {
+    "mtime": 1791182357.3941844,
+    "seen": 1791183217.783642,
+    "ast_hash": "0881f65bf8fcd502222a62da6f2c6aaf",
+    "semantic_hash": "0881f65bf8fcd502222a62da6f2c6aaf"
+  },
+  "docs/api/openapi.yaml": {
+    "mtime": 1791182377.5002263,
+    "seen": 1791183217.783642,
+    "ast_hash": "635328ab210bda9c2161a1757326186b",
+    "semantic_hash": "635328ab210bda9c2161a1757326186b"
+  },
+  "docs/architecture/backend_guidelines.md": {
+    "mtime": 1791188371.7275424,
+    "seen": 1791188396.8328602,
+    "ast_hash": "8d78e1acccf3565d88bbc2abe015f9ed",
+    "semantic_hash": ""
+  },
+  "docs/architecture/offline_data_indexeddb.md": {
+    "mtime": 1791182290.1893578,
+    "seen": 1791183217.783642,
+    "ast_hash": "53ed28d3d5728943a9043b338cd7b226",
+    "semantic_hash": "53ed28d3d5728943a9043b338cd7b226"
+  },
+  "backend-api/src/main/resources/db/migration/V10__api_contract_alignment.sql": {
+    "mtime": 1791182193.8305109,
+    "seen": 1791183217.783642,
+    "ast_hash": "4459ba9d746ccef767e8f67409c52b16",
+    "semantic_hash": "4459ba9d746ccef767e8f67409c52b16"
+  },
+  "infra/localstack/init/01_create_bucket.sh": {
+    "mtime": 1791186232.4108305,
+    "seen": 1791186418.6008077,
+    "ast_hash": "cd848e87696bcb4bba6547f1e62264eb",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0001-infraestructura-local-docker-compose.md": {
+    "mtime": 1791186232.2937562,
+    "seen": 1791186418.6008077,
+    "ast_hash": "87b0dcbc544dd80416628b29e0d8ffa9",
+    "semantic_hash": ""
+  },
+  "docs/rules/adr-workflow.md": {
+    "mtime": 1791184176.6969638,
+    "seen": 1791186418.6008077,
+    "ast_hash": "2a14d32d014e0a2c152da2b752e4efb6",
+    "semantic_hash": ""
+  },
+  "docs/security/security_secrets_policy.md": {
+    "mtime": 1791183235.011258,
+    "seen": 1791186418.6008077,
+    "ast_hash": "f8d5840d60688da65416c3cc0b02fe03",
+    "semantic_hash": ""
+  },
+  "docs/status/PROJECT_STATUS.md": {
+    "mtime": 1791188390.845748,
+    "seen": 1791188396.8328602,
+    "ast_hash": "1af79232238b57a4d2ab8fe5f5d11f34",
+    "semantic_hash": ""
+  },
+  "infra/README.md": {
+    "mtime": 1791186248.1501577,
+    "seen": 1791186418.6008077,
+    "ast_hash": "ce85f4c316adb05346e6b54cccd3a77b",
+    "semantic_hash": ""
+  },
+  "infra/docker/docker-compose.yml": {
+    "mtime": 1791186369.247893,
+    "seen": 1791186418.6008077,
+    "ast_hash": "462e71b3bce6be8fa05118db389b62d1",
+    "semantic_hash": ""
+  },
+  "backend-api/mvnw": {
+    "mtime": 1757355668.0,
+    "seen": 1791187127.1790044,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": ""
+  },
+  "backend-api/pom.xml": {
+    "mtime": 1791186953.047749,
+    "seen": 1791187127.1790044,
+    "ast_hash": "156ee84b73b9ac09b14c9ae13a7c99ee",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0002-stack-base-backend-spring-boot.md": {
+    "mtime": 1791186936.2180388,
+    "seen": 1791187127.1790044,
+    "ast_hash": "4ad9df081faf551805d55b5e783c2a10",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/IntegrateApplication.java": {
+    "mtime": 1791187508.7245438,
+    "seen": 1791187612.2031224,
+    "ast_hash": "f876a72988ee175e10c4071be27490b8",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/resources/application-dev.yml": {
+    "mtime": 1791187508.8196723,
+    "seen": 1791187612.2031224,
+    "ast_hash": "4212e09ecbce85afb0fc307a2fc8197c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/resources/application.yml": {
+    "mtime": 1791188241.7126622,
+    "seen": 1791188396.8328602,
+    "ast_hash": "bc1508644080d493b7a041bbeaa164d7",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/exception/BusinessRuleException.java": {
+    "mtime": 1791188155.7170057,
+    "seen": 1791188396.8328602,
+    "ast_hash": "e928a8438336a04a91695c0aa5e06589",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/exception/ErrorCode.java": {
+    "mtime": 1791188155.662241,
+    "seen": 1791188396.8328602,
+    "ast_hash": "2d1c037c148f27b33f06345e1effb67f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java": {
+    "mtime": 1791188307.9502473,
+    "seen": 1791188396.8328602,
+    "ast_hash": "068359c3875def0f4889cfc7eb736bd5",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/payload/InvalidParam.java": {
+    "mtime": 1791188155.7665854,
+    "seen": 1791188396.8328602,
+    "ast_hash": "12e2c2b2f866837b8fac5e8578bfbe23",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/web/TraceIdFilter.java": {
+    "mtime": 1791188155.8214245,
+    "seen": 1791188396.8328602,
+    "ast_hash": "23299b48f265a22b0f4c1fc75585a0da",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/config/TimeConfig.java": {
+    "mtime": 1791188155.8672473,
+    "seen": 1791188396.8328602,
+    "ast_hash": "3fbf1eff10924546bde5e7d7ae9ccaef",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/architecture/CommonArchitectureTest.java": {
+    "mtime": 1791188241.916134,
+    "seen": 1791188396.8328602,
+    "ast_hash": "cd3d4deae16b8f47b38aa1656a6e6b67",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/common/exception/ErrorCodeTest.java": {
+    "mtime": 1791188241.8690035,
+    "seen": 1791188396.8328602,
+    "ast_hash": "920937d878a19c5d2c73fd30dc639080",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/common/exception/GlobalExceptionHandlerTest.java": {
+    "mtime": 1791188308.0478022,
+    "seen": 1791188396.8328602,
+    "ast_hash": "b6f57e21077c6785d9028c9305ff5115",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/common/web/TraceIdFilterTest.java": {
+    "mtime": 1791188248.5816395,
+    "seen": 1791188396.8328602,
+    "ast_hash": "06ca0dedbc4f6860026c4e59e64aed65",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0003-estructura-comun-errores-rfc9457-trazabilidad.md": {
+    "mtime": 1791188044.569957,
+    "seen": 1791188396.8328602,
+    "ast_hash": "fec172c63034c0d0a2b1fd4578ba462f",
+    "semantic_hash": ""
+  }
+}

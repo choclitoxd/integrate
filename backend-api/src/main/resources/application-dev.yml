@@ -1,0 +1,25 @@
+# =============================================================================
+# Intégrate · Perfil dev (local con infra/docker/docker-compose.yml)
+# Activación: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+# Las credenciales se leen del archivo local ignorado por Git
+# infra/env/.env.development (SEC-DIR-004 §2). Variables de entorno del
+# proceso tienen precedencia sobre el archivo.
+# =============================================================================
+spring:
+  config:
+    import:
+      # Ejecutando desde backend-api/ (mvnw) o desde la raíz del repo (IDE).
+      - optional:file:../infra/env/.env.development[.properties]
+      - optional:file:./infra/env/.env.development[.properties]
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.integrate: DEBUG
+    org.flywaydb: INFO
+    org.hibernate.SQL: INFO

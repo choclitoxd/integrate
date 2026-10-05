@@ -1,0 +1,88 @@
+# =============================================================================
+# Intégrate · Infraestructura local de desarrollo (ADR-0001)
+# -----------------------------------------------------------------------------
+# Ejecutar desde infra/docker/:
+#   docker compose --env-file ../env/.env.development up -d                  # solo PostgreSQL
+#   docker compose --env-file ../env/.env.development --profile full up -d   # + LocalStack S3 + Mailpit
+#
+# SEC-DIR-004: este archivo NO contiene credenciales. Toda variable sensible se
+# interpola con ${VAR:?} y Compose aborta si falta (fail-fast).
+# =============================================================================
+name: integrate
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: integrate-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?Defina POSTGRES_SUPERUSER_PASSWORD en infra/env/.env.development}
+      POSTGRES_DB: postgres
+      # TCP (incluido 127.0.0.1 dentro del contenedor) exige contraseña; el socket local queda en trust.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      # Leídas por 00_bootstrap.sql mediante \getenv (solo en el primer arranque).
+      INTEGRATE_OWNER_PASSWORD: ${INTEGRATE_OWNER_PASSWORD:?Defina INTEGRATE_OWNER_PASSWORD}
+      INTEGRATE_API_PASSWORD: ${INTEGRATE_API_PASSWORD:?Defina INTEGRATE_API_PASSWORD}
+      INTEGRATE_REPORTING_PASSWORD: ${INTEGRATE_REPORTING_PASSWORD:?Defina INTEGRATE_REPORTING_PASSWORD}
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - integrate_pgdata:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - integrate_net
+
+  localstack:
+    image: localstack/localstack:4.4
+    container_name: integrate-localstack
+    profiles: ["storage", "full"]
+    restart: unless-stopped
+    environment:
+      SERVICES: s3
+      AWS_DEFAULT_REGION: ${AWS_REGION:?Defina AWS_REGION}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:?Defina AWS_S3_BUCKET_NAME}
+    ports:
+      - "127.0.0.1:${LOCALSTACK_PORT:-4566}:4566"
+    volumes:
+      - integrate_localstack:/var/lib/localstack
+      - ../localstack/init:/etc/localstack/init/ready.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:4566/_localstack/health | grep -q '\"s3\": \"running\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - integrate_net
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    container_name: integrate-mailpit
+    profiles: ["mail", "full"]
+    restart: unless-stopped
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "127.0.0.1:${SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - integrate_net
+
+volumes:
+  integrate_pgdata:
+  integrate_localstack:
+
+networks:
+  integrate_net:
+    name: integrate_net

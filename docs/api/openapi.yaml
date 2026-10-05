@@ -1,0 +1,1308 @@
+openapi: 3.1.0
+info:
+  title: Intégrate API
+  version: 1.0.0
+  summary: Contrato REST del núcleo transaccional de Intégrate (turismo comunitario offline-first).
+  description: |
+    Contrato de los endpoints críticos de autenticación, disponibilidad, bloqueo pesimista de aforo,
+    webhook de pasarela y sincronización offline por lotes.
+
+    **Convenciones**
+    - Timestamps en UTC, ISO-8601 con sufijo `Z`. Fechas locales (`LocalDate`) en zona `America/Bogota`.
+    - Montos en pesos colombianos (COP) como `integer` `int64`, sin centavos.
+    - Todo error se emite como `application/problem+json` (RFC 9457). Los errores de protocolo usan
+      `type: about:blank`; los de dominio usan `https://api.integrate.co/problems/<slug>`.
+    - Roles en el claim `roles` del JWT: `ROLE_TOURIST`, `ROLE_HOST`, `ROLE_LINK_MANAGER`, `ROLE_ADMIN`.
+    - Cada respuesta incluye la cabecera `X-Trace-Id`, igual al `traceId` de los errores.
+servers:
+  - url: https://api.integrate.co
+    description: Producción
+  - url: http://localhost:8080
+    description: Desarrollo local (Docker Compose)
+
+tags:
+  - name: Auth
+    description: Autenticación, sesiones y registro asistido (RF-01, RF-02, RF-03, RF-06).
+  - name: Catalog
+    description: Consulta pública de disponibilidad (RF-04).
+  - name: Booking
+    description: Bloqueo pesimista de aforo con TTL de 15 minutos (RF-09, RF-10).
+  - name: Payments
+    description: Webhooks de pasarela con firma HMAC e idempotencia (RF-12, RNF-06).
+  - name: Offline
+    description: Sincronización por lotes de validaciones de campo (RF-17, RF-18, RNF-06).
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Autentica con email y contraseña.
+      description: |
+        Emite un access token JWT RS256 (900 s) en el cuerpo y un refresh token rotativo (7 días) en una
+        cookie `HttpOnly; Secure; SameSite=Strict` con `Path=/api/v1/auth`.
+        Tras 5 intentos fallidos consecutivos en menos de 10 minutos, la cuenta se bloquea 15 minutos (423).
+        Si el usuario no ha aceptado la versión vigente de la política de datos, responde 200 con
+        `requiresConsentUpdate = true`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            example:
+              email: turista@ejemplo.com
+              password: Password123!
+      responses:
+        '200':
+          description: Autenticación exitosa.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+              examples:
+                consentimientoAlDia:
+                  value:
+                    accessToken: eyJhbGciOiJSUzI1NiIsImtpZCI6ImF1dGgtMjAyNi0xMCIsInR5cCI6IkpXVCJ9...
+                    tokenType: Bearer
+                    expiresIn: 900
+                    user:
+                      id: d3b07384-d113-4c9f-bb9b-734e56599b1a
+                      email: turista@ejemplo.com
+                      fullName: Carlos Restrepo
+                      roles: [ROLE_TOURIST]
+                    requiresConsentUpdate: false
+                    pendingPolicyVersion: null
+                    pendingPurposes: []
+                requiereReconsentimiento:
+                  value:
+                    accessToken: eyJhbGciOiJSUzI1NiIsImtpZCI6ImF1dGgtMjAyNi0xMCIsInR5cCI6IkpXVCJ9...
+                    tokenType: Bearer
+                    expiresIn: 900
+                    user:
+                      id: 0f1e2d3c-4b5a-4968-8776-655443322110
+                      email: anfitrion@comunidad.integrate.co
+                      fullName: Rosa Patiño
+                      roles: [ROLE_HOST, ROLE_TOURIST]
+                    requiresConsentUpdate: true
+                    pendingPolicyVersion: v2.0
+                    pendingPurposes: [PERSONAL_DATA, SENSITIVE_VICTIM]
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/InvalidCredentials' }
+        '403': { $ref: '#/components/responses/AccountSuspended' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '423': { $ref: '#/components/responses/AccountLocked' }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshSession
+      summary: Rota el refresh token y emite un nuevo access token.
+      description: |
+        Endpoint complementario de la rotación obligatoria (Refresh Token Rotation). El token presentado
+        se revoca y se registra su `replaced_by_id`. No lleva body.
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: Sesión renovada.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetRefreshCookie'
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '401': { $ref: '#/components/responses/RefreshTokenInvalid' }
+        '403': { $ref: '#/components/responses/AccountSuspended' }
+
+  /api/v1/auth/register-assisted:
+    post:
+      tags: [Auth]
+      operationId: registerAssistedHost
+      summary: Registra un Anfitrión Comunitario por intermediación del Gestor de Enlace.
+      description: |
+        Solo `ROLE_LINK_MANAGER` y `ROLE_ADMIN`. Crea siempre un usuario con rol `HOST`.
+        - Si no se envía `email`, el servidor genera uno sintético `cc{docNumber}@comunidad.integrate.co`.
+        - La contraseña inicial es un secreto aleatorio que no se revela. La cuenta queda con
+          `credentialStatus = PENDING_RESET` hasta que el anfitrión haga un restablecimiento asistido.
+        - Los datos de víctima se cifran con AES-256-GCM antes de persistir.
+        - El consentimiento se registra con `channel = ASSISTED_PROXY`, `captured_by` = el usuario invocador
+          y la IP y el user agent de la terminal del Gestor. Exige el formato físico firmado en S3 y las
+          finalidades `PERSONAL_DATA` y `SENSITIVE_VICTIM`.
+        - Crea la vinculación en `host_manager_assignments` (`valid_from = NOW()`) con el Gestor autenticado
+          o, si invoca un `ADMIN`, con el `linkManagerId` indicado.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_LINK_MANAGER, ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistedHostRegistrationRequest' }
+            example:
+              fullName: Rosa Patiño
+              docType: CC
+              docNumber: '1094857483'
+              phone: '+573001234567'
+              victimData:
+                victimCondition: true
+                ruvRegistrationNumber: RUV-2019-000123
+                victimizationType: DESPLAZAMIENTO_FORZADO
+                supportDocS3Key: host-support/2026/10/0f1e2d3c.pdf
+              consent:
+                policyVersion: v1.0
+                purposes: [PERSONAL_DATA, SENSITIVE_VICTIM]
+                physicalConsentFormS3Key: consents/physical/2026/10/0f1e2d3c.pdf
+      responses:
+        '201':
+          description: Anfitrión registrado y vinculado al Gestor.
+          headers:
+            Location:
+              description: URI del usuario creado.
+              schema: { type: string, format: uri-reference }
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistedHostRegistrationResponse' }
+              example:
+                userId: 0f1e2d3c-4b5a-4968-8776-655443322110
+                hostProfileId: 5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d
+                associationId: 11111111-2222-4333-8444-555555555555
+                assignmentId: 4821
+                linkManagerId: 99999999-8888-4777-8666-555555555555
+                email: cc1094857483@comunidad.integrate.co
+                emailIsSynthetic: true
+                roles: [ROLE_HOST]
+                credentialStatus: PENDING_RESET
+                consent:
+                  channel: ASSISTED_PROXY
+                  policyVersion: v1.0
+                  purposes: [PERSONAL_DATA, SENSITIVE_VICTIM]
+                  capturedBy: 99999999-8888-4777-8666-555555555555
+                  capturedAt: '2026-10-05T14:02:11Z'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/UserAlreadyExists' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/experiences/{id}/availability:
+    get:
+      tags: [Catalog]
+      operationId: getExperienceAvailability
+      summary: Franjas abiertas con cupos y tarifa de una experiencia aprobada.
+      description: |
+        Endpoint público (el JWT es opcional). Solo lista franjas `OPEN` con `start_time > NOW()` dentro del
+        rango local `[dateFrom, dateTo]` en `America/Bogota`, de máximo 60 días naturales.
+        - Experiencia inexistente o no `APPROVED`: **404** para clientes públicos o turistas.
+        - Experiencia no `APPROVED` consultada con un JWT `ROLE_ADMIN` o `ROLE_LINK_MANAGER`: **409**.
+        `availableSlots` es una lectura sin bloqueo; la garantía de cupo solo la da `POST /bookings/lock`.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la experiencia.
+          schema: { type: string, format: uuid }
+        - name: dateFrom
+          in: query
+          required: true
+          description: Fecha local inicial, inclusiva (YYYY-MM-DD, America/Bogota).
+          schema: { type: string, format: date }
+          example: '2026-10-15'
+        - name: dateTo
+          in: query
+          required: true
+          description: Fecha local final, inclusiva. Debe ser ≥ dateFrom y estar a máximo 60 días.
+          schema: { type: string, format: date }
+          example: '2026-10-31'
+        - name: minSlots
+          in: query
+          required: false
+          description: Filtra las franjas con al menos este número de cupos disponibles.
+          schema: { type: integer, format: int32, minimum: 1, maximum: 30 }
+      responses:
+        '200':
+          description: Disponibilidad de la experiencia.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExperienceAvailabilityResponse' }
+              example:
+                experienceId: 8f8b3c1c-3b98-4c8d-b94d-7bc432a5e912
+                title: Sendero de la Memoria – Vereda La Esperanza
+                timezone: America/Bogota
+                currency: COP
+                unitPriceCop: 80000
+                maxCapacityPerSlot: 12
+                dateFrom: '2026-10-15'
+                dateTo: '2026-10-31'
+                schedules:
+                  - scheduleId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    localDate: '2026-10-15'
+                    startTime: '2026-10-15T12:00:00Z'
+                    endTime: '2026-10-15T17:00:00Z'
+                    localStartTime: '2026-10-15T07:00:00'
+                    localEndTime: '2026-10-15T12:00:00'
+                    totalSlots: 12
+                    availableSlots: 4
+                    status: OPEN
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/ExperienceNotApproved' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/bookings/lock:
+    post:
+      tags: [Booking]
+      operationId: lockBookingSlots
+      summary: Bloquea cupos de una franja de forma atómica y crea una reserva PENDING (TTL 15 min).
+      description: |
+        Solo `ROLE_TOURIST`. Se ejecuta en una sola transacción `READ COMMITTED`:
+        1. `SELECT … FROM catalog.schedules WHERE id = :scheduleId FOR UPDATE` (con `lock_timeout = 2s`).
+        2. Verifica que la franja esté `OPEN`, sea futura, que la experiencia esté `APPROVED` y que
+           `requestedSlots ≤ available_slots`.
+        3. Descuenta `available_slots` e inserta la reserva `PENDING` con `expires_at = NOW() + 15 min`
+           y sus participantes (EPS y contacto de emergencia cifrados con AES-256-GCM).
+        4. Registra el evento en `audit.audit_trail` y hace COMMIT (< 200 ms, RNF-02).
+
+        **Idempotencia.** La cabecera `Idempotency-Key` (UUIDv4) es obligatoria. Si se repite una clave con el
+        mismo payload, devuelve la reserva original (200, `Idempotency-Replayed: true`) sin volver a
+        descontar cupos. Si se repite con un payload distinto, responde 409 `IDEMPOTENCY_KEY_REUSED`.
+
+        **Precondición.** El turista debe haber otorgado el consentimiento `HEALTH_EMERGENCY`; si no, responde 428.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingLockRequest' }
+            example:
+              scheduleId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+              requestedSlots: 2
+              emergencyContact:
+                fullName: Carlos Gómez
+                phone: '+573001234567'
+              participants:
+                - fullName: Juan Pérez
+                  docType: CC
+                  docNumber: '1094000111'
+                  medicalEps: Sura
+                  isHolder: true
+                - fullName: María Gómez
+                  docType: CC
+                  docNumber: '1094000222'
+                  medicalEps: Sanitas
+                  isHolder: false
+      responses:
+        '201':
+          description: Cupos bloqueados; reserva creada en estado PENDING.
+          headers:
+            Location:
+              description: URI de la reserva creada.
+              schema: { type: string, format: uri-reference }
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingLockResponse' }
+              example:
+                bookingId: c5f3b7b2-8c4d-4e9e-a8f6-5912a7d6e41b
+                status: PENDING
+                scheduleId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                experienceId: 8f8b3c1c-3b98-4c8d-b94d-7bc432a5e912
+                lockedSlots: 2
+                unitPriceCop: 80000
+                totalAmountCop: 160000
+                currency: COP
+                createdAt: '2026-10-04T20:20:00Z'
+                expiresAt: '2026-10-04T20:35:00Z'
+                ttlSecondsRemaining: 900
+        '200':
+          description: Reintento idempotente; se devuelve la reserva creada originalmente con esa clave.
+          headers:
+            Idempotency-Replayed:
+              description: Siempre `true` en una respuesta reproducida.
+              schema: { type: boolean, const: true }
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingLockResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/BookingConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '428': { $ref: '#/components/responses/ConsentRequired' }
+        '503': { $ref: '#/components/responses/LockTimeout' }
+
+  /api/v1/payments/webhook/mock:
+    post:
+      tags: [Payments]
+      operationId: receiveMockGatewayWebhook
+      summary: Webhook de la pasarela Mock (modelo canónico de la plataforma).
+      description: |
+        Modelo canónico usado por `MockPaymentGatewayAdapter` en desarrollo y MVP. El proveedor lo determina
+        el path (`MOCK_GATEWAY`), y el campo `provider` del body debe coincidir.
+
+        **Firma:** `X-Signature = hex(HMAC_SHA256(PAYMENT_WEBHOOK_SECRET, X-Timestamp + "." + raw_body))`,
+        comparada en tiempo constante. Se rechaza si `|now − X-Timestamp| > 300 s`.
+
+        **Idempotencia:** `INSERT … ON CONFLICT (provider, event_id) DO NOTHING` en
+        `payments.payment_webhook_events`. Un evento duplicado responde 200 con `duplicate = true`, sin
+        efectos secundarios (no duplica la dispersión ni el voucher).
+
+        **Mapeo de estados (pasarela → pago → reserva):**
+        - `APPROVED` → `APPROVED` → `CONFIRMED`: crea la dispersión del 85% y encola la emisión del voucher.
+        - `DECLINED` → `REJECTED` → `PAYMENT_FAILED`: libera los cupos de inmediato.
+        - `VOIDED` → `VOIDED` → `CANCELLED_REFUNDED`: libera los cupos si la reserva estaba `PENDING`.
+
+        En la base de datos, `provider` se persiste como `MOCK` (este path) o `WOMPI`.
+        - `ERROR` → `ERROR`: la reserva sigue `PENDING` hasta un nuevo evento o hasta que expire su TTL.
+      security:
+        - webhookHmac: []
+      parameters:
+        - $ref: '#/components/parameters/XSignature'
+        - $ref: '#/components/parameters/XTimestamp'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CanonicalPaymentEvent' }
+            example:
+              eventId: evt_01J8Z9X4M
+              provider: MOCK_GATEWAY
+              transactionId: tx_998877
+              bookingId: c5f3b7b2-8c4d-4e9e-a8f6-5912a7d6e41b
+              amountCop: 160000
+              status: APPROVED
+              timestamp: '2026-10-05T01:30:00Z'
+      responses:
+        '200':
+          description: Evento aceptado (nuevo o duplicado).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WebhookAck' }
+              examples:
+                procesado:
+                  value:
+                    received: true
+                    duplicate: false
+                    provider: MOCK_GATEWAY
+                    eventId: evt_01J8Z9X4M
+                    paymentStatus: APPROVED
+                    bookingStatus: CONFIRMED
+                duplicado:
+                  value:
+                    received: true
+                    duplicate: true
+                    provider: MOCK_GATEWAY
+                    eventId: evt_01J8Z9X4M
+                    paymentStatus: APPROVED
+                    bookingStatus: CONFIRMED
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/WebhookSignatureInvalid' }
+        '422': { $ref: '#/components/responses/WebhookUnprocessable' }
+
+  /api/v1/payments/webhook/wompi:
+    post:
+      tags: [Payments]
+      operationId: receiveWompiWebhook
+      summary: Webhook de Wompi (formato nativo, adaptado al modelo de dominio).
+      description: |
+        Recibe el evento nativo de Wompi (`event = transaction.updated`, `data.transaction`).
+        `WompiPaymentGatewayAdapter` lo traduce a `CanonicalPaymentEvent`:
+        - `eventId` = hash SHA-256 de `signature.checksum`.
+        - `transactionId` = `data.transaction.id`.
+        - `bookingId` = `data.transaction.reference`.
+        - `amountCop` = `data.transaction.amount_in_cents / 100`.
+
+        A partir de ahí aplica las mismas reglas de firma, idempotencia `(provider, event_id)` y mapeo de
+        estados que `/webhook/mock`. Ver la nota de compatibilidad de firma en `dtos_contrato_api.md` §8.
+      security:
+        - webhookHmac: []
+      parameters:
+        - $ref: '#/components/parameters/XSignature'
+        - $ref: '#/components/parameters/XTimestamp'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WompiEvent' }
+      responses:
+        '200':
+          description: Evento aceptado (nuevo o duplicado).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WebhookAck' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/WebhookSignatureInvalid' }
+        '422': { $ref: '#/components/responses/WebhookUnprocessable' }
+
+  /api/v1/offline/sync:
+    post:
+      tags: [Offline]
+      operationId: syncOfflineValidations
+      summary: Sincroniza un lote de validaciones de vouchers capturadas sin conexión.
+      description: |
+        Solo `ROLE_LINK_MANAGER` y `ROLE_HOST`, desde un dispositivo `ACTIVE` registrado a nombre del
+        usuario autenticado (`offline.devices.manager_id` o `host_id`). Máximo 100 validaciones por lote.
+
+        **Idempotencia por `syncBatchId`** (PK de `offline.sync_batches`):
+        - Mismo `syncBatchId` y mismo payload (hash SHA-256 canónico): 200 con el resultado original.
+        - Mismo `syncBatchId` y payload distinto: 409 `SYNC_BATCH_PAYLOAD_MISMATCH`.
+
+        **Reglas por ítem** (siempre responde 200 con el resultado de cada ítem):
+        1. `scannedAt > NOW() + 5 min` → `REJECTED_CLOCK_SKEW` con incidente `CLOCK_SKEW_FUTURE_SCAN`.
+        2. Voucher inexistente → `REJECTED_UNKNOWN_VOUCHER` (sin incidente).
+        3. Fecha local de `scannedAt` (America/Bogota) ≠ `valid_date` del voucher → `REJECTED_OUT_OF_DATE`.
+        4. Voucher revocado o reserva cancelada → `REJECTED_REVOKED`. La reserva pasa a `SYNC_CONFLICT`, la
+           dispersión pasa de `CANCELLED` a `RELEASED` (85% protegido) y se crea el incidente HIGH
+           `OVER_REDEMPTION_COMMUNITY_PROTECTED`.
+        5. Varias validaciones del mismo voucher: gana el `scannedAt` más temprano (`ACCEPTED`). Las demás
+           obtienen `REJECTED_DUPLICATE` con incidente `DUPLICATE_OFFLINE_REDEMPTION`. Una validación ya
+           respondida como `ACCEPTED` no se revierte.
+        6. En otro caso → `ACCEPTED`: la reserva pasa a `EXECUTED` y el voucher a `CONSUMED`.
+
+        Toda validación de un voucher existente se persiste en `offline.offline_validations` (append-only),
+        sea cual sea su resultado. Un voucher inexistente se registra solo en `audit.audit_trail`, porque la
+        FK impide guardarlo en esa tabla.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_LINK_MANAGER, ROLE_HOST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfflineSyncBatchRequest' }
+            example:
+              syncBatchId: d3b07384-d113-46fb-9c8e-a2c5a14bc699
+              deviceId: GESTOR-ARM-001
+              deviceSentAt: '2026-10-05T14:00:00Z'
+              validations:
+                - localValidationId: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                  voucherId: 8a7c2b1e-3f4a-4b5c-9d8e-7f6a5b4c3d2e
+                  scannedAt: '2026-10-05T09:15:30Z'
+                  signatureHash: a3f5b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6
+                  shortCode: K7QM4XPA
+                  channel: OFFLINE_PWA
+      responses:
+        '200':
+          description: Lote procesado (o reproducido de forma idempotente). El resultado va por ítem.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfflineSyncBatchResponse' }
+              example:
+                syncBatchId: d3b07384-d113-46fb-9c8e-a2c5a14bc699
+                deviceId: GESTOR-ARM-001
+                replayed: false
+                deviceSentAt: '2026-10-05T14:00:00Z'
+                serverReceivedAt: '2026-10-05T14:00:01Z'
+                processedAt: '2026-10-05T14:00:02Z'
+                clockSkewSeconds: 1
+                summary:
+                  received: 2
+                  confirmed: 1
+                  conflicts: 1
+                  rejected: 0
+                items:
+                  - localValidationId: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                    voucherId: 8a7c2b1e-3f4a-4b5c-9d8e-7f6a5b4c3d2e
+                    status: CONFIRMED
+                    serverOutcome: ACCEPTED
+                    bookingStatus: EXECUTED
+                    incidentType: null
+                    incidentId: null
+                    message: Canje exitoso
+                  - localValidationId: 0c1d2e3f-4a5b-4c6d-8e7f-8091a2b3c4d5
+                    voucherId: 9b8d3c2f-4e5a-4b6c-8d9e-0f1a2b3c4d5e
+                    status: CONFLICT
+                    serverOutcome: REJECTED_REVOKED
+                    bookingStatus: SYNC_CONFLICT
+                    incidentType: OVER_REDEMPTION_COMMUNITY_PROTECTED
+                    incidentId: 7d6c5b4a-3928-4170-8a6b-5c4d3e2f1a0b
+                    message: Voucher revocado en servidor; 85% comunitario protegido y derivado a arbitraje.
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/DeviceForbidden' }
+        '409': { $ref: '#/components/responses/SyncBatchMismatch' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Access token JWT firmado con RS256 (TTL 900 s).
+        Claims: `sub` (UUID del usuario), `roles` (string[] con el prefijo `ROLE_`), `iat`, `exp`, `jti`.
+        El header lleva el `kid` de la llave de sesión.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+      description: Refresh token opaco (rotativo, TTL 7 días). En BD solo se guarda su SHA-256.
+    webhookHmac:
+      type: apiKey
+      in: header
+      name: X-Signature
+      description: HMAC-SHA256 en hex de `X-Timestamp + "." + raw_body` con el secreto del proveedor.
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUIDv4 generado por el cliente por cada intención de reserva.
+      schema: { type: string, format: uuid }
+    XSignature:
+      name: X-Signature
+      in: header
+      required: true
+      schema: { type: string, pattern: '^[a-f0-9]{64}$' }
+    XTimestamp:
+      name: X-Timestamp
+      in: header
+      required: true
+      description: Epoch UNIX en segundos. Tolerancia de ±300 s.
+      schema: { type: integer, format: int64 }
+
+  headers:
+    XTraceId:
+      description: Identificador de correlación de la petición (igual a `traceId` en los errores).
+      schema: { type: string }
+    RetryAfter:
+      description: Segundos que el cliente debe esperar antes de reintentar.
+      schema: { type: integer, minimum: 1 }
+    SetRefreshCookie:
+      description: '`refresh_token=<opaco>; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800`'
+      schema: { type: string }
+
+  schemas:
+    # ---------- Tipos comunes ----------
+    DocType:
+      type: string
+      enum: [CC, CE, PA, PPT, TI]
+      description: Tipo de documento de identidad colombiano o extranjero.
+    DocNumber:
+      type: string
+      pattern: '^[A-Za-z0-9]{4,20}$'
+    PhoneE164:
+      type: string
+      pattern: '^\+[1-9][0-9]{7,14}$'
+      example: '+573001234567'
+    RoleClaim:
+      type: string
+      enum: [ROLE_TOURIST, ROLE_HOST, ROLE_LINK_MANAGER, ROLE_ADMIN]
+    ConsentPurpose:
+      type: string
+      enum: [PERSONAL_DATA, SENSITIVE_VICTIM, HEALTH_EMERGENCY]
+    CopAmount:
+      type: integer
+      format: int64
+      minimum: 0
+      description: Pesos colombianos sin centavos.
+
+    # ---------- Errores (RFC 9457) ----------
+    ProblemDetails:
+      type: object
+      description: Error en formato RFC 9457 (`application/problem+json`).
+      required: [type, title, status, traceId]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: '`about:blank` para errores de protocolo o `https://api.integrate.co/problems/<slug>`.'
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code:
+          type: string
+          description: Código estable de negocio (ver el catálogo en dtos_contrato_api.md §2).
+          pattern: '^[A-Z][A-Z0-9_]+$'
+        traceId: { type: string }
+        invalidParams:
+          type: array
+          items: { $ref: '#/components/schemas/InvalidParam' }
+      additionalProperties: true
+    InvalidParam:
+      type: object
+      required: [name, reason]
+      properties:
+        name:
+          type: string
+          description: Ruta del campo con notación de punto o índice, p. ej. `participants[1].docNumber`.
+        reason: { type: string }
+    AccountLockedProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          required: [lockedUntil]
+          properties:
+            lockedUntil: { type: string, format: date-time }
+    BookingConflictProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            availableSlots:
+              type: [integer, 'null']
+              description: Cupos restantes al momento del rechazo (solo para BOOKING_INSUFFICIENT_SLOTS).
+    ConsentRequiredProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          required: [requiredPurposes, policyVersion]
+          properties:
+            requiredPurposes:
+              type: array
+              items: { $ref: '#/components/schemas/ConsentPurpose' }
+            policyVersion: { type: string }
+
+    # ---------- Auth ----------
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[^\x00]+$'
+          description: No admite caracteres nulos; nunca se registra en logs.
+    AuthenticatedUser:
+      type: object
+      required: [id, email, fullName, roles]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        roles:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/RoleClaim' }
+    AuthTokenResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn, user, requiresConsentUpdate, pendingPolicyVersion, pendingPurposes]
+      properties:
+        accessToken: { type: string, description: JWT RS256. }
+        tokenType: { type: string, const: Bearer }
+        expiresIn: { type: integer, const: 900, description: Segundos de vida del access token. }
+        user: { $ref: '#/components/schemas/AuthenticatedUser' }
+        requiresConsentUpdate: { type: boolean }
+        pendingPolicyVersion: { type: [string, 'null'] }
+        pendingPurposes:
+          type: array
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+
+    VictimData:
+      type: object
+      additionalProperties: false
+      required: [victimCondition]
+      description: Datos sensibles (Ley 1448 de 2011). Se cifran con AES-256-GCM y nunca se devuelven en respuestas.
+      properties:
+        victimCondition: { type: boolean }
+        ruvRegistrationNumber: { type: [string, 'null'], maxLength: 40 }
+        victimizationType: { type: [string, 'null'], maxLength: 80 }
+        supportDocS3Key: { type: [string, 'null'], maxLength: 512 }
+    AssistedConsent:
+      type: object
+      additionalProperties: false
+      required: [policyVersion, purposes, physicalConsentFormS3Key]
+      properties:
+        policyVersion:
+          type: string
+          maxLength: 20
+          description: Debe ser la versión vigente (`is_current`).
+        purposes:
+          type: array
+          minItems: 2
+          uniqueItems: true
+          description: Debe contener exactamente `PERSONAL_DATA` y `SENSITIVE_VICTIM`.
+          items:
+            type: string
+            enum: [PERSONAL_DATA, SENSITIVE_VICTIM]
+        physicalConsentFormS3Key:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Llave S3 del formato físico firmado (PDF), subido previamente.
+    AssistedHostRegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [fullName, docType, docNumber, phone, victimData, consent]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        email:
+          type: [string, 'null']
+          format: email
+          maxLength: 254
+          description: Opcional. Si se omite, el servidor genera `cc{docNumber}@comunidad.integrate.co`.
+        linkManagerId:
+          type: [string, 'null']
+          format: uuid
+          description: |
+            ID del perfil `link_manager_profiles` al que se vincula el anfitrión. Obligatorio si invoca
+            `ROLE_ADMIN`; se ignora (se usa el gestor autenticado) si invoca `ROLE_LINK_MANAGER`.
+        victimData: { $ref: '#/components/schemas/VictimData' }
+        consent: { $ref: '#/components/schemas/AssistedConsent' }
+    AssistedHostRegistrationResponse:
+      type: object
+      required: [userId, hostProfileId, associationId, assignmentId, linkManagerId, email, emailIsSynthetic, roles, credentialStatus, consent]
+      properties:
+        userId: { type: string, format: uuid }
+        hostProfileId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        assignmentId: { type: integer, format: int64 }
+        linkManagerId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        emailIsSynthetic: { type: boolean }
+        roles:
+          type: array
+          items: { type: string, const: ROLE_HOST }
+        credentialStatus: { type: string, const: PENDING_RESET }
+        consent:
+          type: object
+          required: [channel, policyVersion, purposes, capturedBy, capturedAt]
+          properties:
+            channel: { type: string, const: ASSISTED_PROXY }
+            policyVersion: { type: string }
+            purposes:
+              type: array
+              items: { $ref: '#/components/schemas/ConsentPurpose' }
+            capturedBy: { type: string, format: uuid }
+            capturedAt: { type: string, format: date-time }
+
+    # ---------- Catalog ----------
+    ScheduleAvailability:
+      type: object
+      required: [scheduleId, localDate, startTime, endTime, localStartTime, localEndTime, totalSlots, availableSlots, status]
+      properties:
+        scheduleId: { type: string, format: uuid }
+        localDate: { type: string, format: date }
+        startTime: { type: string, format: date-time, description: UTC (sufijo Z). }
+        endTime: { type: string, format: date-time, description: UTC (sufijo Z). }
+        localStartTime:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$'
+          description: Hora local America/Bogota sin offset (descriptiva).
+        localEndTime:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$'
+        totalSlots: { type: integer, minimum: 1, maximum: 30 }
+        availableSlots: { type: integer, minimum: 0, maximum: 30 }
+        status: { type: string, const: OPEN }
+    ExperienceAvailabilityResponse:
+      type: object
+      required: [experienceId, title, timezone, currency, unitPriceCop, maxCapacityPerSlot, dateFrom, dateTo, schedules]
+      properties:
+        experienceId: { type: string, format: uuid }
+        title: { type: string }
+        timezone: { type: string, const: America/Bogota }
+        currency: { type: string, const: COP }
+        unitPriceCop:
+          allOf: [{ $ref: '#/components/schemas/CopAmount' }]
+          description: Tarifa única por persona (sin tarifas diferenciadas en el MVP).
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30 }
+        dateFrom: { type: string, format: date }
+        dateTo: { type: string, format: date }
+        schedules:
+          type: array
+          items: { $ref: '#/components/schemas/ScheduleAvailability' }
+
+    # ---------- Booking ----------
+    EmergencyContact:
+      type: object
+      additionalProperties: false
+      required: [fullName, phone]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+    BookingParticipant:
+      type: object
+      additionalProperties: false
+      required: [fullName, docType, docNumber, medicalEps, isHolder]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        medicalEps: { type: string, minLength: 2, maxLength: 120, description: Se cifra (AES-256-GCM). }
+        isHolder: { type: boolean, description: Exactamente un participante debe ser titular. }
+    BookingLockRequest:
+      type: object
+      additionalProperties: false
+      required: [scheduleId, requestedSlots, emergencyContact, participants]
+      properties:
+        scheduleId: { type: string, format: uuid }
+        requestedSlots: { type: integer, format: int32, minimum: 1, maximum: 10 }
+        emergencyContact: { $ref: '#/components/schemas/EmergencyContact' }
+        participants:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: |
+            `participants.length == requestedSlots`, `(docType, docNumber)` único en el arreglo y exactamente
+            un `isHolder = true`.
+          items: { $ref: '#/components/schemas/BookingParticipant' }
+    BookingLockResponse:
+      type: object
+      required: [bookingId, status, scheduleId, experienceId, lockedSlots, unitPriceCop, totalAmountCop, currency, createdAt, expiresAt, ttlSecondsRemaining]
+      properties:
+        bookingId: { type: string, format: uuid }
+        status: { type: string, const: PENDING }
+        scheduleId: { type: string, format: uuid }
+        experienceId: { type: string, format: uuid }
+        lockedSlots: { type: integer, minimum: 1, maximum: 10 }
+        unitPriceCop: { $ref: '#/components/schemas/CopAmount' }
+        totalAmountCop: { $ref: '#/components/schemas/CopAmount' }
+        currency: { type: string, const: COP }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time, description: createdAt + 15 min. }
+        ttlSecondsRemaining:
+          type: integer
+          minimum: 0
+          maximum: 900
+          description: Se recalcula en cada reproducción idempotente.
+
+    # ---------- Payments ----------
+    GatewayStatus:
+      type: string
+      enum: [APPROVED, DECLINED, VOIDED, ERROR]
+    CanonicalPaymentEvent:
+      type: object
+      additionalProperties: false
+      required: [eventId, provider, transactionId, bookingId, amountCop, status, timestamp]
+      properties:
+        eventId: { type: string, minLength: 1, maxLength: 100, description: Clave de idempotencia junto con provider. }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        transactionId: { type: string, minLength: 1, maxLength: 100 }
+        bookingId: { type: string, format: uuid }
+        amountCop: { $ref: '#/components/schemas/CopAmount' }
+        status: { $ref: '#/components/schemas/GatewayStatus' }
+        timestamp: { type: string, format: date-time }
+    WompiEvent:
+      type: object
+      description: Evento nativo de Wompi (subconjunto usado por el adaptador). Se admiten campos adicionales.
+      required: [event, data, timestamp]
+      additionalProperties: true
+      properties:
+        event: { type: string, example: transaction.updated }
+        data:
+          type: object
+          required: [transaction]
+          properties:
+            transaction:
+              type: object
+              required: [id, reference, amount_in_cents, status]
+              additionalProperties: true
+              properties:
+                id: { type: string }
+                reference: { type: string, description: bookingId (UUID). }
+                amount_in_cents: { type: integer, format: int64 }
+                currency: { type: string, const: COP }
+                status: { type: string, enum: [APPROVED, DECLINED, VOIDED, ERROR, PENDING] }
+                payment_method_type: { type: string }
+        environment: { type: string }
+        signature:
+          type: object
+          properties:
+            properties: { type: array, items: { type: string } }
+            checksum: { type: string }
+        timestamp: { type: integer, format: int64 }
+        sent_at: { type: string, format: date-time }
+    WebhookAck:
+      type: object
+      required: [received, duplicate, provider, eventId]
+      properties:
+        received: { type: boolean, const: true }
+        duplicate: { type: boolean }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        eventId: { type: string }
+        paymentStatus:
+          type: [string, 'null']
+          enum: [APPROVED, REJECTED, ERROR, VOIDED, null]
+        bookingStatus:
+          type: [string, 'null']
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, CANCELLED_REFUNDED, null]
+
+    # ---------- Offline ----------
+    OfflineValidationItem:
+      type: object
+      additionalProperties: false
+      required: [localValidationId, voucherId, scannedAt, shortCode, channel]
+      properties:
+        localValidationId: { type: string, format: uuid, description: UUIDv4 generado en la PWA. }
+        voucherId: { type: string, format: uuid, description: '`jti` del voucher.' }
+        scannedAt: { type: string, format: date-time, description: Reloj del dispositivo en UTC. }
+        signatureHash:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+          description: SHA-256 en hex de la firma leída del QR. Obligatorio si channel = OFFLINE_PWA; se omite en MANUAL_CODE.
+        shortCode:
+          type: string
+          pattern: '^[A-HJ-NP-Z2-9]{8}$'
+          description: 8 caracteres sin ambigüedades (sin I, O, 0, 1).
+        channel: { type: string, enum: [OFFLINE_PWA, MANUAL_CODE] }
+      if:
+        properties: { channel: { const: OFFLINE_PWA } }
+      then:
+        required: [signatureHash]
+    OfflineSyncBatchRequest:
+      type: object
+      additionalProperties: false
+      required: [syncBatchId, deviceId, deviceSentAt, validations]
+      properties:
+        syncBatchId: { type: string, format: uuid, description: Clave de idempotencia del lote. }
+        deviceId:
+          type: string
+          maxLength: 64
+          pattern: '^[A-Za-z0-9._-]{4,64}$'
+          description: '`offline.devices.device_identifier` (no es la PK UUID).'
+        deviceSentAt: { type: string, format: date-time }
+        validations:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: '`localValidationId` único dentro del lote.'
+          items: { $ref: '#/components/schemas/OfflineValidationItem' }
+    ServerOutcome:
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED_REVOKED
+        - REJECTED_DUPLICATE
+        - REJECTED_OUT_OF_DATE
+        - REJECTED_CLOCK_SKEW
+        - REJECTED_UNKNOWN_VOUCHER
+    IncidentType:
+      type: string
+      enum:
+        - OVER_REDEMPTION_COMMUNITY_PROTECTED
+        - DUPLICATE_OFFLINE_REDEMPTION
+        - CLOCK_SKEW_FUTURE_SCAN
+    OfflineSyncItemResult:
+      type: object
+      required: [localValidationId, voucherId, status, serverOutcome, bookingStatus, incidentType, incidentId, message]
+      properties:
+        localValidationId: { type: string, format: uuid }
+        voucherId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [CONFIRMED, CONFLICT, REJECTED]
+          description: |
+            CONFIRMED = canje aceptado; CONFLICT = rechazado y con incidente para el Administrador;
+            REJECTED = rechazado sin incidente.
+        serverOutcome: { $ref: '#/components/schemas/ServerOutcome' }
+        bookingStatus:
+          type: [string, 'null']
+          enum: [CONFIRMED, EXECUTED, NO_SHOW, SYNC_CONFLICT, CANCELLED_REFUNDED, CANCELLED_NO_REFUND, CANCELLED_BY_PLATFORM, null]
+        incidentType:
+          oneOf:
+            - $ref: '#/components/schemas/IncidentType'
+            - type: 'null'
+        incidentId: { type: [string, 'null'], format: uuid }
+        message: { type: string }
+    OfflineSyncBatchResponse:
+      type: object
+      required: [syncBatchId, deviceId, replayed, deviceSentAt, serverReceivedAt, processedAt, clockSkewSeconds, summary, items]
+      properties:
+        syncBatchId: { type: string, format: uuid }
+        deviceId: { type: string }
+        replayed: { type: boolean, description: true si es una reproducción idempotente de un lote ya procesado. }
+        deviceSentAt: { type: string, format: date-time }
+        serverReceivedAt: { type: string, format: date-time }
+        processedAt: { type: string, format: date-time }
+        clockSkewSeconds:
+          type: integer
+          description: serverReceivedAt − deviceSentAt (informativo, para que la PWA corrija su reloj).
+        summary:
+          type: object
+          required: [received, confirmed, conflicts, rejected]
+          properties:
+            received: { type: integer, minimum: 1, maximum: 100 }
+            confirmed: { type: integer, minimum: 0 }
+            conflicts: { type: integer, minimum: 0 }
+            rejected: { type: integer, minimum: 0 }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OfflineSyncItemResult' }
+
+  responses:
+    BadRequest:
+      description: JSON mal formado o tipos incompatibles (error de protocolo).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: 'JSON parse error: Unexpected character (''}'') at line 3.'
+            instance: /api/v1/bookings/lock
+            code: MALFORMED_REQUEST
+            traceId: c4b9-8f21-4d1a
+    Unauthorized:
+      description: Token ausente, inválido o expirado.
+      headers:
+        WWW-Authenticate:
+          schema: { type: string, example: 'Bearer error="invalid_token"' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/authentication-required
+            title: Authentication Required
+            status: 401
+            code: AUTH_TOKEN_INVALID
+            traceId: c4b9-8f21-4d1a
+    InvalidCredentials:
+      description: Email o contraseña incorrectos (mensaje genérico, no revela cuál falló).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/invalid-credentials
+            title: Invalid Credentials
+            status: 401
+            detail: Email or password is incorrect.
+            instance: /api/v1/auth/login
+            code: AUTH_INVALID_CREDENTIALS
+            traceId: c4b9-8f21-4d1a
+    RefreshTokenInvalid:
+      description: Refresh token ausente, expirado, revocado o ya rotado. Fuerza un nuevo login.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/refresh-token-invalid
+            title: Refresh Token Invalid
+            status: 401
+            code: AUTH_REFRESH_TOKEN_INVALID
+            traceId: c4b9-8f21-4d1a
+    Forbidden:
+      description: El rol del invocador no autoriza la operación (RBAC).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/forbidden
+            title: Forbidden
+            status: 403
+            code: RBAC_FORBIDDEN
+            traceId: c4b9-8f21-4d1a
+    AccountSuspended:
+      description: La cuenta está SUSPENDED o ANONYMIZED.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/account-suspended
+            title: Account Suspended
+            status: 403
+            code: AUTH_ACCOUNT_SUSPENDED
+            traceId: c4b9-8f21-4d1a
+    DeviceForbidden:
+      description: Rol no autorizado o dispositivo no registrado, revocado o de otro usuario.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/device-not-authorized
+            title: Device Not Authorized
+            status: 403
+            code: OFFLINE_DEVICE_NOT_AUTHORIZED
+            traceId: c4b9-8f21-4d1a
+    NotFound:
+      description: Recurso inexistente o no visible para el invocador.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/resource-not-found
+            title: Resource Not Found
+            status: 404
+            code: RESOURCE_NOT_FOUND
+            traceId: c4b9-8f21-4d1a
+    ExperienceNotApproved:
+      description: Experiencia no APPROVED consultada desde un panel autorizado (ADMIN o LINK_MANAGER).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/experience-not-approved
+            title: Experience Not Approved
+            status: 409
+            detail: Experience is SUSPENDED; availability is not published.
+            code: CATALOG_EXPERIENCE_NOT_APPROVED
+            traceId: c4b9-8f21-4d1a
+    BookingConflict:
+      description: |
+        Conflicto de negocio en el bloqueo: `BOOKING_INSUFFICIENT_SLOTS`, `BOOKING_SCHEDULE_NOT_BOOKABLE`
+        o `IDEMPOTENCY_KEY_REUSED`.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/BookingConflictProblem' }
+          examples:
+            cuposInsuficientes:
+              value:
+                type: https://api.integrate.co/problems/insufficient-slots
+                title: Insufficient Available Slots
+                status: 409
+                detail: The requested schedule does not have 4 available slots.
+                instance: /api/v1/bookings/lock
+                code: BOOKING_INSUFFICIENT_SLOTS
+                traceId: c4b9-8f21-4d1a
+                availableSlots: 2
+                invalidParams:
+                  - name: requestedSlots
+                    reason: Exceeds current availability (2 remaining)
+            claveReutilizada:
+              value:
+                type: https://api.integrate.co/problems/idempotency-key-reused
+                title: Idempotency Key Reused
+                status: 409
+                detail: Idempotency-Key was already used with a different payload.
+                code: IDEMPOTENCY_KEY_REUSED
+                traceId: c4b9-8f21-4d1a
+    UserAlreadyExists:
+      description: Ya existe un usuario con ese (docType, docNumber) o email.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/user-already-exists
+            title: User Already Exists
+            status: 409
+            code: AUTH_USER_ALREADY_EXISTS
+            traceId: c4b9-8f21-4d1a
+    SyncBatchMismatch:
+      description: Se reenvió un syncBatchId ya procesado con un payload distinto (posible manipulación).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/sync-batch-payload-mismatch
+            title: Sync Batch Payload Mismatch
+            status: 409
+            code: SYNC_BATCH_PAYLOAD_MISMATCH
+            traceId: c4b9-8f21-4d1a
+    UnprocessableEntity:
+      description: Errores semánticos de validación, campo por campo.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/validation-failed
+            title: Validation Failed
+            status: 422
+            detail: One or more fields are invalid.
+            instance: /api/v1/bookings/lock
+            code: VALIDATION_FAILED
+            traceId: c4b9-8f21-4d1a
+            invalidParams:
+              - name: requestedSlots
+                reason: Must be greater than 0
+              - name: participants
+                reason: Size must equal requestedSlots (2)
+    WebhookUnprocessable:
+      description: Evento válido en firma pero inaplicable (reserva desconocida o provider inconsistente).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/payment-booking-not-found
+            title: Payment Booking Not Found
+            status: 422
+            detail: bookingId a9b8c7d6-e5f4-3210-fedc-ba9876543210 does not exist.
+            code: PAYMENT_BOOKING_NOT_FOUND
+            traceId: c4b9-8f21-4d1a
+    WebhookSignatureInvalid:
+      description: Firma HMAC inválida o X-Timestamp fuera de la ventana de ±300 s.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/webhook-signature-invalid
+            title: Webhook Signature Invalid
+            status: 401
+            code: WEBHOOK_SIGNATURE_INVALID
+            traceId: c4b9-8f21-4d1a
+    AccountLocked:
+      description: Cuenta bloqueada temporalmente por 5 intentos fallidos en 10 minutos.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/AccountLockedProblem' }
+          example:
+            type: https://api.integrate.co/problems/account-locked
+            title: Account Temporarily Locked
+            status: 423
+            detail: Too many failed login attempts. Try again later.
+            instance: /api/v1/auth/login
+            code: AUTH_ACCOUNT_LOCKED
+            traceId: c4b9-8f21-4d1a
+            lockedUntil: '2026-10-05T01:45:00Z'
+    ConsentRequired:
+      description: Falta el consentimiento HEALTH_EMERGENCY para tratar datos médicos y de emergencia.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ConsentRequiredProblem' }
+          example:
+            type: https://api.integrate.co/problems/consent-required
+            title: Consent Required
+            status: 428
+            detail: The health and emergency data clause must be accepted before locking slots.
+            code: CONSENT_HEALTH_EMERGENCY_REQUIRED
+            traceId: c4b9-8f21-4d1a
+            requiredPurposes: [HEALTH_EMERGENCY]
+            policyVersion: v1.0
+    LockTimeout:
+      description: La franja está bajo contención y se superó lock_timeout (2 s). Reintentar.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/concurrency-lock-timeout
+            title: Concurrency Lock Timeout
+            status: 503
+            code: CONCURRENCY_LOCK_TIMEOUT
+            traceId: c4b9-8f21-4d1a
