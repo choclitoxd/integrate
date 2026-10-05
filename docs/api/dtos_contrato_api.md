@@ -13,6 +13,10 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 |---|---|---|---|---|
 | POST | `/api/v1/auth/login` | público | 200 | 400, 401, 403, 422, 423 |
 | POST | `/api/v1/auth/refresh` | cookie `refresh_token` | 200 | 401, 403 |
+| POST | `/api/v1/auth/register` | público (solo crea `TOURIST`) | 201 | 400, 409, 422 |
+| POST | `/api/v1/auth/logout` | cookie `refresh_token` (opcional) | 204 | — |
+| GET | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 401 |
+| POST | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 400, 401, 422 |
 | POST | `/api/v1/auth/register-assisted` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 409, 422 |
 | GET | `/api/v1/experiences/{id}/availability` | público (JWT opcional) | 200 | 400, 404, 409, 422 |
 | POST | `/api/v1/bookings/lock` | `TOURIST` | 201 (200 si es replay) | 400, 401, 403, 404, 409, 422, 428, 503 |
@@ -66,7 +70,7 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `AUTH_REFRESH_TOKEN_INVALID` | 401 | refresh |
 | `AUTH_ACCOUNT_SUSPENDED` | 403 | login, refresh |
 | `AUTH_ACCOUNT_LOCKED` | 423 | login |
-| `AUTH_USER_ALREADY_EXISTS` | 409 | register-assisted |
+| `AUTH_USER_ALREADY_EXISTS` | 409 | register, register-assisted |
 | `RBAC_FORBIDDEN` | 403 | protegidos |
 | `RESOURCE_NOT_FOUND` | 404 | availability, lock |
 | `CATALOG_EXPERIENCE_NOT_APPROVED` | 409 | availability (panel ADMIN/LINK_MANAGER) |
@@ -90,7 +94,7 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | Campo | Tipo | Req. | Validación |
 |---|---|---|---|
 | `email` | string(email) | ✔ | `@NotBlank @Email @Size(max=254)`; se normaliza con `lower()` |
-| `password` | string | ✔ | `@NotBlank @Size(max=128)`, sin `\u0000` (→ 400 si viene un payload malicioso); nunca va a logs |
+| `password` | string | ✔ | `@NotEmpty @Size(max=128)`, sin `\u0000` (→ 422 `VALIDATION_FAILED`, sin intentar autenticar); nunca va a logs |
 
 ### 3.2 `AuthTokenResponse` (login y refresh)
 
@@ -109,7 +113,44 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 
 **Cookie de refresh:** `refresh_token=<opaco>; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800`. En `auth.refresh_tokens` solo se persiste `token_sha256`. Cada uso revoca el token anterior y escribe su `replaced_by_id`.
 
-**Bloqueo:** 5 fallos consecutivos en 10 minutos (contados en `auth.login_attempts`) fijan `users.locked_until = now() + 15 min` → 423 con `lockedUntil` y `Retry-After: 900`.
+**Bloqueo:** 5 fallos consecutivos en 10 minutos (contados en `auth.login_attempts`) fijan `users.locked_until = now() + 15 min` → 423 con `lockedUntil` y `Retry-After: 900`. Durante el bloqueo no se verifica la contraseña. Correo inexistente, contraseña errónea y `credential_status = PENDING_RESET` responden el mismo 401; `SUSPENDED` responde 403 solo con la contraseña correcta.
+
+**Rotación (ADR-0005 §5):** presentar un token ya rotado dentro de los 10 s siguientes responde 401 sin más efectos (pestañas concurrentes, reintentos de red); pasada esa ventana se trata como robo y se revocan todas las sesiones del titular (`REUSE_DETECTED`). Todo 401 de `/refresh` borra la cookie. En los endpoints públicos de `/api/v1/auth/**` se ignora la cabecera `Authorization`: un access token expirado no impide renovar la sesión.
+
+### 3.2.1 `RegisterRequest` → `RegisterRequest.java` (`POST /api/v1/auth/register`)
+
+| Campo | Tipo | Req. | Validación / Notas |
+|---|---|---|---|
+| `email` | string | ✔ | `@Email`, ≤ 254 y `^[^@\s]+@[^@\s]+\.[^@\s]+$` (dominio `common.email`); único sin distinguir mayúsculas → 409 |
+| `password` | string | ✔ | 12–128 caracteres (code points), sin `\u0000`, sin reglas de composición (NIST SP 800-63B); Argon2id |
+| `fullName` | string | ✔ | 3–150, al menos 3 caracteres sin espacios externos |
+| `docType` | `CC\|CE\|PA\|PPT\|TI` | ✔ | |
+| `docNumber` | string | ✔ | `^[A-Za-z0-9]{4,20}$`; `(docType, docNumber)` único → 409 |
+| `phone` | string | ✔ | E.164 `^\+[1-9][0-9]{7,14}$` |
+| `consent.policyVersion` | string | ✔ | versión `is_current` → si no, 422 en `consent.policyVersion` |
+| `consent.purposes` | `ConsentPurpose[]` | ✔ | debe incluir `PERSONAL_DATA`; admite `HEALTH_EMERGENCY`; `SENSITIVE_VICTIM` → 422 |
+
+No hay campo de rol: el autorregistro crea siempre `TOURIST`. Respuesta 201 `RegisterResponse {userId, email, roles: [ROLE_TOURIST]}` con `Location`; no emite tokens ni cookie.
+
+### 3.2.2 Consentimientos del titular (`/api/v1/me/consents`)
+
+`ConsentAcceptance {policyVersion, purposes[]}` (también es el objeto `consent` del registro). `POST` otorga sobre la política vigente, omite las finalidades ya vigentes (idempotente) y responde el estado resultante; `SENSITIVE_VICTIM` solo con `ROLE_HOST`.
+
+`ConsentStatusResponse`:
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `currentPolicyVersion` | string \| null | `null` si no hay política publicada |
+| `consents[].purpose` | `ConsentPurpose` | una entrada por finalidad aplicable a los roles del titular |
+| `consents[].state` | `VALID\|OUTDATED\|REVOKED\|MISSING` | `OUTDATED` = otorgado sobre una versión anterior |
+| `consents[].policyVersion` | string \| null | versión del último acto |
+| `consents[].occurredAt` | date-time \| null | UTC |
+| `requiresConsentUpdate` | boolean | falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `+SENSITIVE_VICTIM` para HOST) |
+| `pendingPurposes` | `ConsentPurpose[]` | finalidades exigidas no vigentes |
+
+### 3.2.3 Logout
+
+`POST /api/v1/auth/logout` revoca el refresh token de la cookie (`LOGOUT`), la borra y responde 204, también sin cookie o con un token inválido.
 
 ### 3.3 `AssistedHostRegistrationRequest`
 

@@ -419,16 +419,16 @@ Queda estrictamente prohibido establecer relaciones `@ManyToOne` o `@OneToMany` 
       "docType": "CC",
       "docNumber": "1094857483",
       "phone": "+573001234567",
-      "role": "TOURIST",
-      "habeasDataAccepted": true,
-      "policyVersion": "v1.0"
+      "consent": { "policyVersion": "v1.0", "purposes": ["PERSONAL_DATA"] }
     }
     ```
+    Sin campo de rol: el autorregistro crea siempre un `TOURIST` (ADR-0005 §6).
   - *Response (201 Created):*
     ```json
     {
       "userId": "d3b07384-d113-4c9f-bb9b-734e56599b1a",
-      "message": "Usuario registrado exitosamente con consentimiento auditado."
+      "email": "turista@correo.com",
+      "roles": ["ROLE_TOURIST"]
     }
     ```
 
@@ -453,6 +453,8 @@ Queda estrictamente prohibido establecer relaciones `@ManyToOne` o `@OneToMany` 
     ```
 
 - **POST `/api/v1/auth/refresh`** — rota el refresh token y emite un nuevo access token.
+- **POST `/api/v1/auth/logout`** — revoca la sesión de la cookie y la borra (204).
+- **GET/POST `/api/v1/me/consents`** — estado y otorgamiento de consentimientos sobre la política vigente (RF-02).
 - **POST `/api/v1/auth/register-assisted`** — registro de anfitriones por el Gestor de Enlace o el Administrador, con consentimiento `ASSISTED_PROXY` (RF-06).
 
 ### 5.2 Catálogo y Reservas con Bloqueo Concurrente

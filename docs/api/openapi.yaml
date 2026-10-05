@@ -22,7 +22,7 @@ servers:
 
 tags:
   - name: Auth
-    description: Autenticación, sesiones y registro asistido (RF-01, RF-02, RF-03, RF-06).
+    description: Autenticación, sesiones, autorregistro, consentimientos y registro asistido (RF-01, RF-02, RF-03, RF-06).
   - name: Catalog
     description: Consulta pública de disponibilidad (RF-04).
   - name: Booking
@@ -120,6 +120,137 @@ paths:
               schema: { $ref: '#/components/schemas/AuthTokenResponse' }
         '401': { $ref: '#/components/responses/RefreshTokenInvalid' }
         '403': { $ref: '#/components/responses/AccountSuspended' }
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      operationId: registerTourist
+      summary: Autorregistro de un turista con consentimiento Habeas Data (RF-01, RF-02, ADR-0005 §6).
+      description: |
+        Crea siempre un usuario con rol `TOURIST`: el cuerpo no admite rol (los anfitriones entran por
+        `register-assisted` y los gestores y administradores por asignación). El consentimiento se registra
+        con `channel = SELF_SERVICE`, la IP y el user agent de la petición. `consent.purposes` debe incluir
+        `PERSONAL_DATA` y `consent.policyVersion` debe ser la versión vigente; si no, 422.
+        No inicia sesión: el cliente llama después a `/api/v1/auth/login`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+            example:
+              email: turista@ejemplo.com
+              password: PasswordSegura123*
+              fullName: Carlos Restrepo
+              docType: CC
+              docNumber: '1094857483'
+              phone: '+573001234567'
+              consent:
+                policyVersion: v1.0
+                purposes: [PERSONAL_DATA, HEALTH_EMERGENCY]
+      responses:
+        '201':
+          description: Turista registrado.
+          headers:
+            Location:
+              description: URI del usuario creado.
+              schema: { type: string, format: uri-reference }
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RegisterResponse' }
+              example:
+                userId: d3b07384-d113-4c9f-bb9b-734e56599b1a
+                email: turista@ejemplo.com
+                roles: [ROLE_TOURIST]
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/UserAlreadyExists' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Cierra la sesión del refresh token presentado (ADR-0005 §6).
+      description: |
+        Revoca el refresh token de la cookie con `revoke_reason = LOGOUT` y la borra. Idempotente: sin
+        cookie o con un token inválido también responde 204. El access token vigente expira por sí solo (≤ 900 s).
+      security:
+        - refreshCookie: []
+        - {}
+      responses:
+        '204':
+          description: Sesión cerrada.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+
+  /api/v1/me/consents:
+    get:
+      tags: [Auth]
+      operationId: getMyConsents
+      summary: Estado de consentimiento del titular frente a la política vigente (RF-02, ADR-0005 §6).
+      description: |
+        Una entrada por finalidad aplicable a los roles del titular (`SENSITIVE_VICTIM` solo con `ROLE_HOST`).
+        La PWA lo consulta antes de reservar para pedir `HEALTH_EMERGENCY` en lugar de recibir un 428.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estado actual.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConsentStatusResponse' }
+              example:
+                currentPolicyVersion: v1.0
+                consents:
+                  - purpose: PERSONAL_DATA
+                    state: VALID
+                    policyVersion: v1.0
+                    occurredAt: '2026-10-05T14:02:11Z'
+                  - purpose: HEALTH_EMERGENCY
+                    state: MISSING
+                    policyVersion: null
+                    occurredAt: null
+                requiresConsentUpdate: false
+                pendingPurposes: []
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Auth]
+      operationId: grantMyConsents
+      summary: Otorga finalidades sobre la política vigente (RF-02, ADR-0005 §6).
+      description: |
+        Inserta un acto `GRANTED` / `SELF_SERVICE` por finalidad (tabla append-only). Idempotente: las finalidades
+        ya vigentes no generan un acto nuevo. 422 si la versión no es la vigente o una finalidad no aplica a los
+        roles del titular. La revocación (`REVOKED`) se implementará en la Fase 4.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConsentAcceptance' }
+            example:
+              policyVersion: v1.0
+              purposes: [HEALTH_EMERGENCY]
+      responses:
+        '200':
+          description: Estado resultante.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConsentStatusResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/auth/register-assisted:
     post:
@@ -604,6 +735,9 @@ components:
     SetRefreshCookie:
       description: '`refresh_token=<opaco>; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=604800`'
       schema: { type: string }
+    ClearRefreshCookie:
+      description: '`refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=0` (borra la cookie).'
+      schema: { type: string }
 
   schemas:
     # ---------- Tipos comunes ----------
@@ -722,6 +856,85 @@ components:
         user: { $ref: '#/components/schemas/AuthenticatedUser' }
         requiresConsentUpdate: { type: boolean }
         pendingPolicyVersion: { type: [string, 'null'] }
+        pendingPurposes:
+          type: array
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+
+    ConsentAcceptance:
+      type: object
+      additionalProperties: false
+      required: [policyVersion, purposes]
+      description: Aceptación expresa de finalidades sobre la versión vigente de la política (RF-02).
+      properties:
+        policyVersion:
+          type: string
+          maxLength: 20
+          description: Debe ser la versión vigente (`is_current`).
+        purposes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, fullName, docType, docNumber, phone, consent]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          pattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+          description: Único sin distinguir mayúsculas; se guarda en minúsculas.
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          pattern: '^[^\x00]+$'
+          description: NIST SP 800-63B (sin reglas de composición). Se almacena como Argon2id; nunca va a logs.
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        consent:
+          allOf:
+            - $ref: '#/components/schemas/ConsentAcceptance'
+          description: '`purposes` debe incluir `PERSONAL_DATA`; un turista no puede otorgar `SENSITIVE_VICTIM`.'
+    RegisterResponse:
+      type: object
+      required: [userId, email, roles]
+      properties:
+        userId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { type: string, const: ROLE_TOURIST }
+    ConsentState:
+      type: string
+      enum: [VALID, OUTDATED, REVOKED, MISSING]
+      description: |
+        `VALID` otorgado sobre la política vigente; `OUTDATED` sobre una versión anterior (debe revalidarse);
+        `REVOKED` el último acto fue una revocación; `MISSING` nunca otorgado.
+    ConsentStatusResponse:
+      type: object
+      required: [currentPolicyVersion, consents, requiresConsentUpdate, pendingPurposes]
+      properties:
+        currentPolicyVersion:
+          type: [string, 'null']
+          description: '`null` si no hay ninguna política publicada.'
+        consents:
+          type: array
+          items:
+            type: object
+            required: [purpose, state, policyVersion, occurredAt]
+            properties:
+              purpose: { $ref: '#/components/schemas/ConsentPurpose' }
+              state: { $ref: '#/components/schemas/ConsentState' }
+              policyVersion: { type: [string, 'null'] }
+              occurredAt: { type: [string, 'null'], format: date-time }
+        requiresConsentUpdate:
+          type: boolean
+          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST).'
         pendingPurposes:
           type: array
           items: { $ref: '#/components/schemas/ConsentPurpose' }
@@ -1103,7 +1316,13 @@ components:
             code: AUTH_INVALID_CREDENTIALS
             traceId: c4b9-8f21-4d1a
     RefreshTokenInvalid:
-      description: Refresh token ausente, expirado, revocado o ya rotado. Fuerza un nuevo login.
+      description: |
+        Refresh token ausente, expirado, revocado o ya rotado. Fuerza un nuevo login y borra la cookie.
+        Si el token ya había sido rotado hace más de 10 s (reutilización), se revocan además todas las
+        sesiones del titular (`REUSE_DETECTED`, ADR-0005 §5).
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/ClearRefreshCookie'
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/ProblemDetails' }

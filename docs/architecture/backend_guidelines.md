@@ -77,8 +77,11 @@ integrate-system/
         │   │           │   ├── TimeConfig.java
         │   │           │   └── AsyncJpaAuditConfig.java
         │   │           ├── security/
-        │   │           │   ├── SecurityConfig.java
-        │   │           │   ├── JwtAuthenticationFilter.java
+        │   │           │   ├── SecurityConfig.java              # ADR-0005: resource server, sin filtro JWT propio
+        │   │           │   ├── ProblemAuthenticationEntryPoint.java / ProblemAccessDeniedHandler.java
+        │   │           │   ├── ActorPropagatingTransactionManager.java   # integrate.actor_id por transacción
+        │   │           │   ├── PasswordHashingConfig.java       # Argon2id
+        │   │           │   ├── jwt/                             # JwtConfig, JwtAccessTokenIssuer, RsaSigningKeys
         │   │           │   └── crypto/
         │   │           │       ├── AesGcmEncryptor.java
         │   │           │       └── QrDigitalSigner.java
@@ -144,7 +147,7 @@ integrate-system/
 | `infra/env/` | Plantillas `.env.example` y configuraciones locales segregadas por perfil. | Gestión de variables de entorno para Docker Compose y perfiles de arranque. | Claves criptográficas productivas, certificados SSL privados o contraseñas reales. |
 | `backend-api/.../common/` | `GlobalExceptionHandler`, catálogo `ErrorCode`, `BusinessRuleException`, `InvalidParam`, `TraceIdFilter` (ADR-0003), formateadores utilitarios. | Tratamiento unificado de errores HTTP (RFC 9457, sin sobre en respuestas 2xx), correlación `X-Trace-Id` y utilidades puras sin estado. | Lógica de negocio específica de un caso de uso o inyecciones de repositorios JPA de módulos. |
 | `backend-api/.../config/` | Clases de configuración de Spring (`@Configuration`), beans de OpenAPI/Swagger, hilos de ejecución asíncrona y auditoría JPA. | Ajuste del contenedor de inversión de control (IoC) y parametrización de beans globales del framework. | Lógica de validación de negocio, controladores REST o consultas directas a base de datos. |
-| `backend-api/.../security/` | `SecurityConfig`, `JwtAuthenticationFilter`, `AesGcmEncryptor`, validadores de sesión, gestor de firmas QR. | Control de acceso perimetral, RBAC, criptografía de campos en reposo (AES-256) y validación de tokens JWT. | Lógica transaccional de pagos, persistencia de catálogos o controladores expuestos. |
+| `backend-api/.../security/` | `SecurityConfig` (resource server de Spring Security, ADR-0005), emisor y decoder JWT (`security/jwt`), manejadores 401/403 RFC 9457, propagación del actor a PostgreSQL, `AesGcmEncryptor`, gestor de firmas QR. | Control de acceso perimetral, RBAC, criptografía de campos en reposo (AES-256) y validación de tokens JWT. | Lógica transaccional de pagos, persistencia de catálogos o controladores expuestos. |
 | `backend-api/.../modules/{m}/controller/` | Clases `@RestController` que exponen endpoints HTTP/JSON. | Adaptador primario: deserialización de payloads, validación de esquemas (`@Valid`), autorización declarativa y enrutamiento. | Lógica transaccional de persistencia (`@Transactional`), cálculos contables directos o consultas SQL. |
 | `backend-api/.../modules/{m}/dto/` | Registros Java (Records) o POJOs inmutables para Request/Response. | Contratos de intercambio de datos entre la capa web y la lógica del sistema. | Anotaciones de mapeo relacional JPA (`@Entity`, `@Table`) o lógica operativa de negocio. |
 | `backend-api/.../modules/{m}/entity/` | Clases POJO anotadas con `@Entity`, `@Table(schema = "...")`, asignación de llaves compuestas e índices. | Mapeo objeto-relacional (ORM) estricto de las tablas definidas en las migraciones Flyway. | Anotaciones de controladores HTTP, transformaciones a DTOs de presentación o acceso a red. |
@@ -170,7 +173,7 @@ integrate-system/
   - Integración con APIs externas (Pasarela, AWS S3, Notificaciones): `backend-api/.../modules/integration/`.
 - **Adaptadores de Entrada (Controladores REST):** Ubicados en `backend-api/.../modules/{modulo}/controller/`.
 - **Manejo Global de Errores y Excepciones:** Centralizado en `backend-api/.../common/exception/` bajo un `@RestControllerAdvice` (`GlobalExceptionHandler`) que mapea excepciones de dominio (`BusinessRuleException` + `ErrorCode`) y del framework a `application/problem+json` (RFC 9457) con `code`, `traceId` e `invalidParams`, según ADR-0003. Las respuestas exitosas devuelven el DTO del contrato sin sobre.
-- **Seguridad, Autenticación y Autorización:** Centralizado en `backend-api/.../security/`, conteniendo filtros de interceptación JWT, contexto de seguridad Spring Security y validadores RBAC.
+- **Seguridad, Autenticación y Autorización:** Centralizado en `backend-api/.../security/` (ADR-0005). La validación del access token la hace el resource server de Spring Security (`BearerTokenAuthenticationFilter` + `NimbusJwtDecoder` RS256); no hay filtro JWT propio. La emisión de tokens es un puerto del módulo `auth` (`AccessTokenIssuer`) implementado en `security/jwt`. RBAC por URL y `@PreAuthorize`.
 - **Criptografía (AES-256 y Firmas Digitales):** Ubicado en `backend-api/.../security/crypto/`. `AesGcmEncryptor` gestiona el cifrado/descifrado de atributos de víctimas (Ley 1581 / Ley 1448) y `QrDigitalSigner` la firma asimétrica de vouchers para validación offline.
 
 ---

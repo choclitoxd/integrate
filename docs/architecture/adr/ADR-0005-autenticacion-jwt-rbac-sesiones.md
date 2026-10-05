@@ -151,3 +151,10 @@ sequenceDiagram
         API-->>PWA: 401 AUTH_REFRESH_TOKEN_INVALID + cookie borrada
     end
 ```
+
+## Notas de implementación (T-1.1 / T-1.2, 2026-10-05)
+Desviaciones respecto del texto aceptado, sin cambio de decisión:
+- **§10 Actor:** en lugar de un aspecto AOP (requería añadir `spring-boot-starter-aspectj`), `ActorPropagatingTransactionManager` extiende el `JpaTransactionManager` y ejecuta `set_config('integrate.actor_id', :sub, true)` en `doBegin`. Reemplaza al autoconfigurado (`@ConditionalOnMissingBean`) y cubre cualquier transacción, sea declarativa o con `TransactionTemplate`.
+- **§11 Puerto de emisión:** la interfaz `AccessTokenIssuer` vive en `modules/auth/service` (puerto del módulo) y su implementación `JwtAccessTokenIssuer` en `security/jwt`, para que `auth` no dependa de `security`.
+- **§11 Mapeos:** los dominios `common.*` se declaran en `columnDefinition` (`PgDomains`) porque PostgreSQL los reporta como `Types.DISTINCT` y `ddl-auto: validate` los rechazaba.
+- **§9 Bearer en endpoints públicos:** en `POST /api/v1/auth/{login,register,refresh,logout}` se ignora la cabecera `Authorization` (`PublicAuthEndpoints` como `BearerTokenResolver`). Sin esto, la PWA que llama a `/refresh` con su access token ya expirado recibiría 401 del filtro antes de llegar al controlador.

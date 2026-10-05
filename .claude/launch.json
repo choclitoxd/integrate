@@ -6,6 +6,16 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend-pwa", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "backend-api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c", "backend-api\\mvnw.cmd", "-o", "-q", "-f", "backend-api\\pom.xml", "spring-boot:run",
+        "-Dspring-boot.run.profiles=dev",
+        "-Dspring-boot.run.arguments=--server.port=8081"
+      ],
+      "port": 8081
     }
   ]
 }

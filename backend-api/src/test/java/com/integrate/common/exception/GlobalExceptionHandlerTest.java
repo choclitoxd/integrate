@@ -34,7 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Verifica la tabla de traducción de ADR-0003 contra el contrato RFC 9457 (dtos_contrato_api.md §2). */
-@WebMvcTest
+// Solo el controlador de prueba: el slice no debe arrastrar los controladores de los módulos.
+@WebMvcTest(controllers = GlobalExceptionHandlerTest.ProbeController.class)
 @Import(GlobalExceptionHandlerTest.ProbeController.class)
 @WithMockUser
 class GlobalExceptionHandlerTest {
