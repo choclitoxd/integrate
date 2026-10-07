@@ -158,3 +158,16 @@ Desviaciones respecto del texto aceptado, sin cambio de decisión:
 - **§11 Puerto de emisión:** la interfaz `AccessTokenIssuer` vive en `modules/auth/service` (puerto del módulo) y su implementación `JwtAccessTokenIssuer` en `security/jwt`, para que `auth` no dependa de `security`.
 - **§11 Mapeos:** los dominios `common.*` se declaran en `columnDefinition` (`PgDomains`) porque PostgreSQL los reporta como `Types.DISTINCT` y `ddl-auto: validate` los rechazaba.
 - **§9 Bearer en endpoints públicos:** en `POST /api/v1/auth/{login,register,refresh,logout}` se ignora la cabecera `Authorization` (`PublicAuthEndpoints` como `BearerTokenResolver`). Sin esto, la PWA que llama a `/refresh` con su access token ya expirado recibiría 401 del filtro antes de llegar al controlador.
+## Nota de renumeración y enmienda de alcance (2026-10-07)
+El backlog se reorganizó en dos etapas (`roadmap_ejecucion.md`, `PROJECT_STATUS.md`). Las referencias de este ADR, escritas con la numeración anterior, equivalen a:
+
+| En este ADR | Ahora | Tarea |
+|---|---|---|
+| T-1.4 (lock de reservas, precondición 428) | **T-1.5** | Motor de concurrencia y bloqueo pesimista |
+| T-1.7 (llave de vouchers) | **T-1.8** | Voucher criptográfico PDF/QR |
+| T-1.8 (PWA, refresh *single-flight*) | **T-1.10** | Frontend PWA móvil |
+| T-1.3 (ADR del catálogo, primer ADMIN) | **T-1.4** | Catálogo territorial (ADR-0006) |
+| T-3.4/T-3.5 (`register-assisted`, gestión de roles) | **T-1.3** | Enrolamiento asistido |
+| "Fase 4" (endurecimiento, proxy de AWS, revocación de consentimientos) | **Etapa 2 · Fase 4** (T-2.12 a T-2.14) | — |
+
+**Enmienda de §9 "Fuera de alcance":** `register-assisted` (RF-06) deja de diferirse a la Fase 3; pasa a la **Etapa 1 como T-1.3** y se decidirá en su propio ADR (cifrado AES-GCM de datos de víctima, formato físico de consentimiento en S3, acreditación de gestores). La gestión de roles y suspensión por el administrador (RF-03) sigue fuera de alcance.

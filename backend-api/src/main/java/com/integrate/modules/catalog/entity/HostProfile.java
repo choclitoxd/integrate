@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 /**
  * Perfil de anfitrión ({@code catalog.host_profiles}). Las columnas cifradas de condición de víctima
  * ({@code *_enc}, {@code support_doc_s3_key}, {@code sensitive_key_version}) <b>no se mapean</b> a
- * propósito: llegan con el registro asistido (T-3.5) y AES-GCM (T-4.1), y mientras tanto ningún
+ * propósito: llegan con el enrolamiento asistido y AES-GCM (T-1.3), y mientras tanto ningún
  * DTO puede filtrarlas por accidente (R-05, ADR-0006 §3).
  */
 @Entity

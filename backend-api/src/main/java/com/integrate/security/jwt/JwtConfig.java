@@ -22,7 +22,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 /**
  * Firma y validación del access token de sesión (ADR-0005 §1-§2): RS256 con {@code kid}, una sola
- * llave, emisor {@code integrate-api}. Distinta de la llave de vouchers (T-1.7); no se publica JWKS.
+ * llave, emisor {@code integrate-api}. Distinta de la llave de vouchers (T-1.8); no se publica JWKS.
  */
 @Configuration(proxyBeanMethods = false)
 public class JwtConfig {

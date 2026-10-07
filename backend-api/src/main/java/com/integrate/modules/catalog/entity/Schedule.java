@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 
 /**
- * Franja horaria con aforo ({@code catalog.schedules}). Es la fila que el motor de reservas (T-1.4)
+ * Franja horaria con aforo ({@code catalog.schedules}). Es la fila que el motor de reservas (T-1.5)
  * bloquea con {@code SELECT … FOR UPDATE}; este módulo nunca modifica {@code available_slots}.
  */
 @Entity

@@ -135,3 +135,17 @@ Desviaciones respecto del texto aceptado, sin cambio de decisión:
 - **§7 ArchUnit:** la regla prohíbe que `catalog` dependa de `auth.repository`, `auth.service.impl` y `auth.controller`. Sí puede usar `auth.entity.RoleCode`, que es el tipo del parámetro de `RoleAssignmentService.grant`.
 - **§6 Paginación:** `PageResponse` vive en `common/payload` y `PageRequests` en `common/web`. El orden es siempre `created_at DESC, id`.
 - **§5 Franjas:** `localStart`/`localEnd` aceptan `HH:mm` o `HH:mm:ss`. Las respuestas siempre incluyen los segundos.
+
+## Nota de renumeración y enmienda de alcance (2026-10-07)
+Con la reorganización en dos etapas, **este ADR corresponde a T-1.4** (no a T-1.3, como dicen el encabezado, §1, §8 y el commit `436e760`). Equivalencias del resto de referencias:
+
+| En este ADR | Ahora | Tarea |
+|---|---|---|
+| T-1.3 (esta tarea) | **T-1.4** | Catálogo territorial |
+| T-1.4 (motor de reservas, `POST /bookings/lock`) | **T-1.5** | Bloqueo pesimista |
+| T-1.7 (cliente S3, imágenes después) | **T-1.8** | Voucher (primer uso de S3) |
+| T-1.8 (PWA) | **T-1.10** | Frontend PWA móvil |
+| T-3.4/T-3.5 (Gestor de Enlace, registro asistido) | **T-1.3** | Enrolamiento asistido |
+| T-4.1 (AES-GCM) | **T-1.3** (datos de víctima) / **T-2.12** (auditoría) | — |
+
+**Enmienda de §1:** el registro asistido y los datos de víctima del anfitrión ya **no se difieren a la Fase 3**: llegan con **T-1.3 (Etapa 1)**, que tendrá su propio ADR. Siguen en la Etapa 2 la revisión RF-07 por el gestor y la creación de experiencias a nombre de anfitriones (DoD de la Fase 3), y el flujo de contingencia para cancelar franjas con reservas (Fase 3, política de 72 h). El alta mínima por administrador de §3 se conserva: convive con el enrolamiento asistido.

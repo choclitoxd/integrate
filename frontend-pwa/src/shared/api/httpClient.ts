@@ -15,7 +15,7 @@ export interface HttpClientOptions {
   readonly baseUrl: string;
   /**
    * Devuelve el access token vigente. Vive solo en memoria (nunca localStorage/IndexedDB,
-   * offline_data_indexeddb.md §1); lo cablea el módulo de autenticación en T-1.2.
+   * offline_data_indexeddb.md §1); lo cablea la PWA en T-1.10 sobre los endpoints de T-1.2.
    */
   readonly getAccessToken?: () => string | null;
   readonly fetchImpl?: typeof fetch;

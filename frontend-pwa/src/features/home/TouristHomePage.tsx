@@ -1,4 +1,4 @@
-/** Placeholder del portal del Turista; el catálogo de experiencias llega en T-1.8. */
+/** Placeholder del portal del Turista; el catálogo de experiencias llega en T-1.10. */
 export function TouristHomePage() {
   return (
     <>

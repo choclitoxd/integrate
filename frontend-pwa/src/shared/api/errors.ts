@@ -39,7 +39,7 @@ export class ApiError extends Error {
 
 /**
  * La petición no obtuvo respuesta HTTP (sin red, DNS, CORS, cancelación).
- * Se distingue de ApiError para que la cola offline (T-3.1) decida si reintentar.
+ * Se distingue de ApiError para que la cola offline (T-2.7) decida si reintentar.
  */
 export class NetworkError extends Error {
   override readonly name = 'NetworkError';

@@ -662,7 +662,7 @@ paths:
       tags: [Admin]
       operationId: createHostProfile
       summary: Convierte un usuario activo en anfitrión de una asociación y le otorga ROLE_HOST (ADR-0006 §3).
-      description: Sin datos de víctima (llegan con el registro asistido, T-3.5). El rol aparece en el JWT desde el siguiente login o refresh.
+      description: Sin datos de víctima (llegan con el enrolamiento asistido, T-1.3). El rol aparece en el JWT desde el siguiente login o refresh.
       security: [{ bearerAuth: [] }]
       x-required-roles: [ROLE_ADMIN]
       requestBody:

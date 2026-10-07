@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Consentimiento Habeas Data por autoservicio (RF-02, ADR-0005 §6-§7). Interfaz pública del
- * módulo: el lock de reservas (T-1.4) la consulta para su precondición {@code HEALTH_EMERGENCY}.
+ * módulo: el lock de reservas (T-1.5) la consulta para su precondición {@code HEALTH_EMERGENCY}.
  */
 public interface ConsentService {
 
