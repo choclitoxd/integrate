@@ -460,8 +460,8 @@ Queda estrictamente prohibido establecer relaciones `@ManyToOne` o `@OneToMany` 
 
 ### 5.2 Catálogo y Reservas con Bloqueo Concurrente
 - **GET `/api/v1/experiences`**
-  - *Query Params:* `region`, `minSlots`, `dateFrom`, `dateTo`
-  - *Response (200 OK):* Lista paginada de experiencias aprobadas con sus franjas y cupos restantes.
+  - *Query Params:* `departmentCode`, `municipalityCode`, `category`, `intensity`, `q`, `minSlots`, `dateFrom`, `dateTo`, `page`, `size`
+  - *Response (200 OK):* Página `{items, page, size, totalElements, totalPages}` de experiencias aprobadas (sin datos del anfitrión). El detalle está en `GET /api/v1/experiences/{id}` y las franjas en `/availability` (ADR-0006).
 
 - **GET `/api/v1/experiences/{id}/availability?dateFrom=&dateTo=&minSlots=`**
   - Público. Franjas `OPEN` futuras de una experiencia `APPROVED` (rango máximo 60 días, fechas locales `America/Bogota`) con `unitPriceCop`, `totalSlots` y `availableSlots`.

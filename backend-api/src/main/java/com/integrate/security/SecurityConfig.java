@@ -45,6 +45,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, PublicAuthEndpoints.PATHS).permitAll()
+                        // Catálogo público (RF-04, ADR-0006 §6): lectura anónima.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/experiences", "/api/v1/experiences/*",
+                                "/api/v1/experiences/*/availability", "/api/v1/catalog/**").permitAll()
+                        // Paneles por rol; además @PreAuthorize en cada controlador (defensa en profundidad).
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/host/**").hasRole("HOST")
                         // Destino interno de los errores del contenedor; nunca expone detalles (application.yml).
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())

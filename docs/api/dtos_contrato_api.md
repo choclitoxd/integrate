@@ -74,6 +74,10 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `RBAC_FORBIDDEN` | 403 | protegidos |
 | `RESOURCE_NOT_FOUND` | 404 | availability, lock |
 | `CATALOG_EXPERIENCE_NOT_APPROVED` | 409 | availability (panel ADMIN/LINK_MANAGER) |
+| `CATALOG_INVALID_STATUS_TRANSITION` | 409 | host (editar/enviar), admin (moderación) |
+| `CATALOG_SCHEDULE_CONFLICT` | 409 | franjas (duplicado, cancelación con reservas) |
+| `CATALOG_HOST_PROFILE_EXISTS` | 409 | admin/host-profiles |
+| `CATALOG_ASSOCIATION_EXISTS` | 409 | admin/associations |
 | `BOOKING_INSUFFICIENT_SLOTS` | 409 | lock |
 | `BOOKING_SCHEDULE_NOT_BOOKABLE` | 409 | lock (franja no `OPEN` o ya iniciada) |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | lock |
@@ -215,6 +219,38 @@ Los datos de víctima **nunca** se devuelven en la respuesta.
 **`ScheduleAvailability`:** `scheduleId` (UUID), `localDate` (date), `startTime`/`endTime` (UTC `Z`), `localStartTime`/`localEndTime` (`YYYY-MM-DDTHH:mm:ss` local, solo descriptivo), `totalSlots`, `availableSlots` y `status` (`"OPEN"`).
 
 Visibilidad: una experiencia no `APPROVED` devuelve 404 al público o a un turista, y 409 si el JWT es `ADMIN` o `LINK_MANAGER`. `availableSlots` es una lectura sin lock: es informativa.
+
+---
+
+## 4.1 Catálogo público, panel del anfitrión y moderación (ADR-0006)
+
+**Endpoints**
+
+| Método | Ruta | Rol | Éxito | Errores |
+|---|---|---|---|---|
+| GET | `/api/v1/experiences` | público | 200 (paginado) | 400, 422 |
+| GET | `/api/v1/experiences/{id}` | público | 200 | 404 |
+| GET | `/api/v1/catalog/categories` · `/departments` · `/departments/{code}/municipalities` | público | 200 | 404 |
+| POST · GET | `/api/v1/host/experiences` | `HOST` | 201 · 200 | 401, 403, 422 |
+| GET · PUT | `/api/v1/host/experiences/{id}` | `HOST` (titular) | 200 | 404, 409, 422 |
+| POST | `/api/v1/host/experiences/{id}/submit` | `HOST` (titular) | 200 | 404, 409 |
+| POST · GET | `/api/v1/host/experiences/{id}/schedules` | `HOST` (titular) | 201 · 200 | 404, 409, 422 |
+| POST | `/api/v1/host/schedules/{id}/cancel` | `HOST` (titular) | 200 | 404, 409 |
+| POST · GET | `/api/v1/admin/associations` | `ADMIN` | 201 · 200 | 403, 409, 422 |
+| POST | `/api/v1/admin/host-profiles` | `ADMIN` | 201 | 403, 404, 409 |
+| GET | `/api/v1/admin/experiences?status=` | `ADMIN` | 200 | 403 |
+| POST | `/api/v1/admin/experiences/{id}/{approve\|reject\|suspend\|reinstate\|retire}` | `ADMIN` | 200 | 403, 404, 409, 422 |
+
+**Reglas**
+- **Paginación:** `?page=0&size=20` (máximo 50) → `{items, page, size, totalElements, totalPages}`; orden fijo `created_at DESC, id`.
+- **Privacidad (R-05):** las vistas públicas (`ExperienceSummary`, `ExperienceDetail`) muestran la asociación (`associationName`) y el municipio, nunca al anfitrión.
+- **Búsqueda:** `departmentCode`, `municipalityCode`, `category`, `intensity`, `q` (título, sin distinguir mayúsculas). Con `dateFrom`, `dateTo` o `minSlots` solo aparecen experiencias con una franja `OPEN` futura en el rango (por defecto, los próximos 60 días) y `minSlots` cupos (por defecto 1).
+- **Titularidad:** una experiencia o franja de otro anfitrión responde 404. Un usuario con `ROLE_HOST` sin perfil vigente recibe 403.
+- **Estados:** `DRAFT → PENDING_REVIEW → APPROVED | REJECTED`, `REJECTED → DRAFT` al editar, `APPROVED ↔ SUSPENDED`, `→ RETIRED`. Una transición no permitida responde 409 `CATALOG_INVALID_STATUS_TRANSITION` con `currentStatus`. `reject`, `suspend` y `retire` exigen `{reason}` (≤ 1000), que queda en `experience_status_history` junto con el actor.
+- **Suspensión y retiro** pasan las franjas futuras `OPEN → CLOSED`; **reactivar** devuelve las futuras `CLOSED → OPEN`.
+- **Franjas:** lote de 1 a 60 `{localStart, localEnd, totalSlots}` en hora local `America/Bogota`. Deben ser futuras, con `localEnd > localStart` y `totalSlots ≤ maxCapacityPerSlot` (422 por elemento, `schedules[i].campo`). Un inicio duplicado en el lote o ya existente responde 409 `CATALOG_SCHEDULE_CONFLICT`, y el lote es atómico. Cancelar una franja con cupos vendidos responde 409 hasta la Fase 3.
+- **Experiencia:** `maxCapacityPerSlot` 1–30 y no menor que el aforo de franjas futuras abiertas; `unitPriceCop` entero > 0; `municipalityCode` en DIVIPOLA; `latitude` y `longitude` juntas o ninguna; `categoryCodes` ≤ 5 y existentes.
+- **Alta de anfitrión:** `{userId, associationId}` crea `host_profiles` (sin datos de víctima) y otorga `ROLE_HOST`, visible desde el siguiente login o refresh. Un perfil vigente o una asociación inactiva responden 409 `CATALOG_HOST_PROFILE_EXISTS`; un NIT o RNT duplicado, 409 `CATALOG_ASSOCIATION_EXISTS`.
 
 ---
 

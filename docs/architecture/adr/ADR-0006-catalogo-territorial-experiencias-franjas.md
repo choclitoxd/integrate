@@ -1,6 +1,6 @@
 # ADR-0006: Catálogo territorial — experiencias, franjas, moderación y consulta pública
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-10-07), con autorización para descargar el listado DIVIPOLA de datos.gov.co
 - **Proyecto / Módulo:** Intégrate · `backend-api/` — `modules/catalog` (Fase 1 · T-1.3)
 - **Fecha:** 2026-10-05
 
@@ -127,3 +127,11 @@ modules/catalog/
 └── service/     CatalogQueryService · HostExperienceService · CatalogModerationService · CatalogAdminService (+ impl/)
 modules/auth/service/RoleAssignmentService   ← interfaz pública usada por catalog
 ```
+
+## Notas de implementación (T-1.3, 2026-10-07)
+Desviaciones respecto del texto aceptado, sin cambio de decisión:
+- **§2 DIVIPOLA:** `V11__divipola_municipalities.sql` se generó a partir de `https://www.datos.gov.co/resource/gdxc-w37w.json` (descargado el 2026-10-07): 1.122 entidades (1.103 municipios, 18 áreas no municipalizadas y 1 isla). Sus 33 códigos de departamento coinciden con los de V3. Los nombres se conservan como los publica el DANE (en mayúsculas); la capitalización es tarea del cliente.
+- **§7 Errores:** se agregó un cuarto código, `CATALOG_ASSOCIATION_EXISTS` (409, `association-exists`), para NIT o RNT duplicados. Reutilizar `CATALOG_HOST_PROFILE_EXISTS` habría dado un código engañoso.
+- **§7 ArchUnit:** la regla prohíbe que `catalog` dependa de `auth.repository`, `auth.service.impl` y `auth.controller`. Sí puede usar `auth.entity.RoleCode`, que es el tipo del parámetro de `RoleAssignmentService.grant`.
+- **§6 Paginación:** `PageResponse` vive en `common/payload` y `PageRequests` en `common/web`. El orden es siempre `created_at DESC, id`.
+- **§5 Franjas:** `localStart`/`localEnd` aceptan `HH:mm` o `HH:mm:ss`. Las respuestas siempre incluyen los segundos.

@@ -25,6 +25,10 @@ tags:
     description: Autenticación, sesiones, autorregistro, consentimientos y registro asistido (RF-01, RF-02, RF-03, RF-06).
   - name: Catalog
     description: Consulta pública de disponibilidad (RF-04).
+  - name: Host
+    description: Panel del anfitrión — propuestas y franjas (RF-05, ADR-0006).
+  - name: Admin
+    description: Asociaciones, alta de anfitriones y moderación del catálogo (RF-03, RF-07, RF-08, ADR-0006).
   - name: Booking
     description: Bloqueo pesimista de aforo con TTL de 15 minutos (RF-09, RF-10).
   - name: Payments
@@ -322,6 +326,423 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '409': { $ref: '#/components/responses/UserAlreadyExists' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/experiences:
+    get:
+      tags: [Catalog]
+      operationId: searchExperiences
+      summary: Catálogo público paginado de experiencias aprobadas (RF-04, ADR-0006 §6).
+      description: |
+        Solo experiencias `APPROVED`. Nunca expone datos del anfitrión: la oferta se identifica por la
+        asociación comunitaria y el municipio (R-05). Si llega `dateFrom`, `dateTo` o `minSlots`, solo se listan
+        experiencias con al menos una franja `OPEN` futura en el rango (por defecto los próximos 60 días) y
+        `minSlots` cupos (por defecto 1). Orden fijo: más recientes primero.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - { name: departmentCode, in: query, schema: { type: string, pattern: '^[0-9]{2}$' } }
+        - { name: municipalityCode, in: query, schema: { type: string, pattern: '^[0-9]{5}$' } }
+        - { name: category, in: query, schema: { type: string, pattern: '^[A-Z_]{3,40}$' } }
+        - { name: intensity, in: query, schema: { $ref: '#/components/schemas/PhysicalIntensity' } }
+        - { name: q, in: query, description: Texto contenido en el título (sin distinguir mayúsculas)., schema: { type: string, maxLength: 100 } }
+        - { name: dateFrom, in: query, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, description: '≥ dateFrom y a máximo 60 días.', schema: { type: string, format: date } }
+        - { name: minSlots, in: query, schema: { type: integer, minimum: 1, maximum: 30 } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de experiencias.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/ExperienceSummary' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/experiences/{id}:
+    get:
+      tags: [Catalog]
+      operationId: getExperience
+      summary: Detalle público de una experiencia aprobada (RF-04).
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Detalle.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExperienceDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/catalog/categories:
+    get:
+      tags: [Catalog]
+      operationId: listCategories
+      summary: Categorías temáticas.
+      security: [{}]
+      responses:
+        '200':
+          description: Categorías ordenadas por nombre.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, name]
+                  properties:
+                    code: { type: string }
+                    name: { type: string }
+                    description: { type: [string, 'null'] }
+
+  /api/v1/catalog/departments:
+    get:
+      tags: [Catalog]
+      operationId: listDepartments
+      summary: Departamentos DIVIPOLA.
+      security: [{}]
+      responses:
+        '200':
+          description: Departamentos ordenados por nombre.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Place' } }
+
+  /api/v1/catalog/departments/{code}/municipalities:
+    get:
+      tags: [Catalog]
+      operationId: listMunicipalities
+      summary: Municipios DIVIPOLA de un departamento (nombres oficiales DANE, en mayúsculas).
+      security: [{}]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string, pattern: '^[0-9]{2}$' } }
+      responses:
+        '200':
+          description: Municipios ordenados por nombre.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Place' } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/host/experiences:
+    post:
+      tags: [Host]
+      operationId: createExperience
+      summary: El anfitrión crea una propuesta en DRAFT (RF-05, ADR-0006 §4).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExperienceRequest' }
+      responses:
+        '201':
+          description: Propuesta creada.
+          headers:
+            Location: { schema: { type: string, format: uri-reference } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [Host]
+      operationId: listMyExperiences
+      summary: Experiencias propias en cualquier estado.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de experiencias propias.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/HostExperience' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/host/experiences/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Host]
+      operationId: getMyExperience
+      summary: Experiencia propia (404 si es de otro anfitrión).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      responses:
+        '200':
+          description: Experiencia.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Host]
+      operationId: updateMyExperience
+      summary: Edita una propuesta en DRAFT o REJECTED (una rechazada vuelve a DRAFT).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExperienceRequest' }
+      responses:
+        '200':
+          description: Propuesta actualizada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/host/experiences/{id}/submit:
+    post:
+      tags: [Host]
+      operationId: submitMyExperience
+      summary: Envía a revisión (DRAFT → PENDING_REVIEW).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Propuesta en revisión.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+
+  /api/v1/host/experiences/{id}/schedules:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Host]
+      operationId: createSchedules
+      summary: Lote atómico de 1 a 60 franjas en hora local America/Bogota (ADR-0006 §5).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schedules]
+              properties:
+                schedules:
+                  type: array
+                  minItems: 1
+                  maxItems: 60
+                  items:
+                    type: object
+                    required: [localStart, localEnd, totalSlots]
+                    properties:
+                      localStart: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$', description: Hora local, futura. }
+                      localEnd: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$' }
+                      totalSlots: { type: integer, minimum: 1, maximum: 30, description: '≤ maxCapacityPerSlot de la experiencia.' }
+      responses:
+        '201':
+          description: Franjas creadas.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/HostSchedule' } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/ScheduleConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [Host]
+      operationId: listSchedules
+      summary: Franjas propias con inicio local en [dateFrom, dateTo], cualquier estado.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: dateFrom, in: query, required: true, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Franjas.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/HostSchedule' } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/host/schedules/{id}/cancel:
+    post:
+      tags: [Host]
+      operationId: cancelSchedule
+      summary: Cancela una franja futura sin cupos vendidos (con reservas → 409 hasta la Fase 3).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReasonRequest' }
+      responses:
+        '200':
+          description: Franja cancelada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostSchedule' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/ScheduleConflict' }
+
+  /api/v1/admin/associations:
+    post:
+      tags: [Admin]
+      operationId: createAssociation
+      summary: Alta de asociación comunitaria (RF-03 mínimo, ADR-0006 §3).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssociationRequest' }
+      responses:
+        '201':
+          description: Asociación creada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Association' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/CatalogConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [Admin]
+      operationId: listAssociations
+      summary: Asociaciones vigentes, paginadas.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de asociaciones.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/Association' } }
+
+  /api/v1/admin/host-profiles:
+    post:
+      tags: [Admin]
+      operationId: createHostProfile
+      summary: Convierte un usuario activo en anfitrión de una asociación y le otorga ROLE_HOST (ADR-0006 §3).
+      description: Sin datos de víctima (llegan con el registro asistido, T-3.5). El rol aparece en el JWT desde el siguiente login o refresh.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, associationId]
+              properties:
+                userId: { type: string, format: uuid }
+                associationId: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Anfitrión dado de alta.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [hostProfileId, userId, associationId]
+                properties:
+                  hostProfileId: { type: string, format: uuid }
+                  userId: { type: string, format: uuid }
+                  associationId: { type: string, format: uuid }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CatalogConflict' }
+
+  /api/v1/admin/experiences:
+    get:
+      tags: [Admin]
+      operationId: listExperiencesForModeration
+      summary: Experiencias por estado (cola de revisión con status=PENDING_REVIEW).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ExperienceStatus' } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de experiencias.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/HostExperience' } }
+
+  /api/v1/admin/experiences/{id}/{action}:
+    post:
+      tags: [Admin]
+      operationId: moderateExperience
+      summary: Moderación (RF-07, RF-08). approve y reinstate sin cuerpo; reject, suspend y retire exigen motivo.
+      description: |
+        - `approve`: PENDING_REVIEW → APPROVED.
+        - `reject`: PENDING_REVIEW → REJECTED (motivo obligatorio, se guarda para retroalimentación).
+        - `suspend`: APPROVED → SUSPENDED; las franjas futuras OPEN pasan a CLOSED.
+        - `reinstate`: SUSPENDED → APPROVED; las franjas futuras CLOSED vuelven a OPEN.
+        - `retire`: → RETIRED; las franjas futuras OPEN pasan a CLOSED.
+        Cada transición queda en `experience_status_history` con actor y motivo.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: action, in: path, required: true, schema: { type: string, enum: [approve, reject, suspend, reinstate, retire] } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReasonRequest' }
+      responses:
+        '200':
+          description: Experiencia tras la transición.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/experiences/{id}/availability:
@@ -725,6 +1146,17 @@ components:
       description: Epoch UNIX en segundos. Tolerancia de ±300 s.
       schema: { type: integer, format: int64 }
 
+    Page:
+      name: page
+      in: query
+      description: Página (desde 0).
+      schema: { type: integer, minimum: 0, default: 0 }
+    Size:
+      name: size
+      in: query
+      description: Tamaño de página.
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+
   headers:
     XTraceId:
       description: Identificador de correlación de la petición (igual a `traceId` en los errores).
@@ -1021,6 +1453,132 @@ components:
             capturedAt: { type: string, format: date-time }
 
     # ---------- Catalog ----------
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }
+    Place:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, description: Código DANE (2 dígitos departamento, 5 municipio). }
+        name: { type: string }
+    PhysicalIntensity:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+    ExperienceStatus:
+      type: string
+      enum: [DRAFT, PENDING_REVIEW, REJECTED, APPROVED, SUSPENDED, RETIRED]
+    ReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    ExperienceSummary:
+      type: object
+      description: Tarjeta pública. Sin datos del anfitrión (R-05).
+      required: [id, title, physicalIntensity, durationMinutes, currency, unitPriceCop, maxCapacityPerSlot, municipality, department, associationName, categoryCodes]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer }
+        currency: { type: string, const: COP }
+        unitPriceCop: { $ref: '#/components/schemas/CopAmount' }
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30 }
+        municipality: { $ref: '#/components/schemas/Place' }
+        department: { $ref: '#/components/schemas/Place' }
+        associationName: { type: string }
+        categoryCodes: { type: array, items: { type: string } }
+    ExperienceDetail:
+      type: object
+      required: [summary, description, safetyGuidelines, meetingPoint, timezone]
+      properties:
+        summary: { $ref: '#/components/schemas/ExperienceSummary' }
+        description: { type: string }
+        safetyGuidelines: { type: string }
+        vereda: { type: [string, 'null'] }
+        meetingPoint: { type: string }
+        latitude: { type: [number, 'null'] }
+        longitude: { type: [number, 'null'] }
+        timezone: { type: string, const: America/Bogota }
+    ExperienceRequest:
+      type: object
+      required: [title, description, safetyGuidelines, physicalIntensity, durationMinutes, municipalityCode, meetingPoint, maxCapacityPerSlot, unitPriceCop]
+      properties:
+        title: { type: string, minLength: 5, maxLength: 200 }
+        description: { type: string, maxLength: 10000 }
+        safetyGuidelines: { type: string, maxLength: 5000 }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer, minimum: 15, maximum: 4320 }
+        municipalityCode: { type: string, pattern: '^[0-9]{5}$', description: Debe existir en DIVIPOLA. }
+        vereda: { type: [string, 'null'], maxLength: 150 }
+        meetingPoint: { type: string, maxLength: 500 }
+        latitude: { type: [number, 'null'], minimum: -90, maximum: 90, description: Junto con longitude o ninguna. }
+        longitude: { type: [number, 'null'], minimum: -180, maximum: 180 }
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30, description: Capacidad de carga ambiental (RF-05). }
+        unitPriceCop: { type: integer, format: int64, minimum: 1 }
+        categoryCodes: { type: array, maxItems: 5, uniqueItems: true, items: { type: string } }
+    HostExperience:
+      type: object
+      description: Experiencia vista por su anfitrión o por el administrador.
+      properties:
+        id: { type: string, format: uuid }
+        hostId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        safetyGuidelines: { type: string }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer }
+        municipalityCode: { type: string }
+        vereda: { type: [string, 'null'] }
+        meetingPoint: { type: string }
+        latitude: { type: [number, 'null'] }
+        longitude: { type: [number, 'null'] }
+        maxCapacityPerSlot: { type: integer }
+        unitPriceCop: { type: integer, format: int64 }
+        timezone: { type: string }
+        categoryCodes: { type: array, items: { type: string } }
+        status: { $ref: '#/components/schemas/ExperienceStatus' }
+        rejectionReason: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    HostSchedule:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        localDate: { type: string, format: date }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        localStartTime: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$' }
+        localEndTime: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$' }
+        totalSlots: { type: integer }
+        availableSlots: { type: integer }
+        status: { type: string, enum: [OPEN, CLOSED, CANCELLED] }
+        cancellationReason: { type: [string, 'null'] }
+    AssociationRequest:
+      type: object
+      required: [nit, rntNumber, legalName, associationType, municipalityCode, contactEmail, contactPhone]
+      properties:
+        nit: { type: string, pattern: '^[0-9]{6,12}-[0-9]$' }
+        rntNumber: { type: string, pattern: '^[0-9]{3,20}$' }
+        legalName: { type: string, minLength: 3, maxLength: 200 }
+        associationType: { type: string, enum: [JUNTA_ACCION_COMUNAL, COOPERATIVA_CAMPESINA, ASOCIACION_VICTIMAS, OTRA] }
+        municipalityCode: { type: string, pattern: '^[0-9]{5}$' }
+        address: { type: [string, 'null'], maxLength: 250 }
+        contactEmail: { type: string, format: email }
+        contactPhone: { $ref: '#/components/schemas/PhoneE164' }
+    Association:
+      allOf:
+        - $ref: '#/components/schemas/AssociationRequest'
+        - type: object
+          required: [id, status]
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [ACTIVE, SUSPENDED] }
     ScheduleAvailability:
       type: object
       required: [scheduleId, localDate, startTime, endTime, localStartTime, localEndTime, totalSlots, availableSlots, status]
@@ -1376,6 +1934,37 @@ components:
             status: 404
             code: RESOURCE_NOT_FOUND
             traceId: c4b9-8f21-4d1a
+    InvalidStatusTransition:
+      description: Transición de estado de la experiencia no permitida (incluye `currentStatus`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/invalid-status-transition
+            title: Invalid Status Transition
+            status: 409
+            detail: Cannot approve an experience in status APPROVED
+            code: CATALOG_INVALID_STATUS_TRANSITION
+            currentStatus: APPROVED
+            traceId: c4b9-8f21-4d1a
+    ScheduleConflict:
+      description: Franja con inicio duplicado, cancelación con cupos vendidos o franja no cancelable.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/schedule-conflict
+            title: Schedule Conflict
+            status: 409
+            code: CATALOG_SCHEDULE_CONFLICT
+            invalidParams:
+              - { name: 'schedules[1].localStart', reason: a schedule already starts at this time }
+            traceId: c4b9-8f21-4d1a
+    CatalogConflict:
+      description: Asociación con NIT o RNT ya registrados (`CATALOG_ASSOCIATION_EXISTS`) o perfil de anfitrión vigente / asociación inactiva (`CATALOG_HOST_PROFILE_EXISTS`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
     ExperienceNotApproved:
       description: Experiencia no APPROVED consultada desde un panel autorizado (ADMIN o LINK_MANAGER).
       content:

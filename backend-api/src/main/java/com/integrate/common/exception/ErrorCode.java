@@ -30,6 +30,10 @@ public enum ErrorCode {
 
     // --- Catalog / Booking ---------------------------------------------------
     CATALOG_EXPERIENCE_NOT_APPROVED(HttpStatus.CONFLICT, "experience-not-approved", "Experience Not Approved"),
+    CATALOG_INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "invalid-status-transition", "Invalid Status Transition"),
+    CATALOG_SCHEDULE_CONFLICT(HttpStatus.CONFLICT, "schedule-conflict", "Schedule Conflict"),
+    CATALOG_HOST_PROFILE_EXISTS(HttpStatus.CONFLICT, "host-profile-exists", "Host Profile Already Exists"),
+    CATALOG_ASSOCIATION_EXISTS(HttpStatus.CONFLICT, "association-exists", "Association Already Exists"),
     BOOKING_INSUFFICIENT_SLOTS(HttpStatus.CONFLICT, "insufficient-slots", "Insufficient Available Slots"),
     BOOKING_SCHEDULE_NOT_BOOKABLE(HttpStatus.CONFLICT, "schedule-not-bookable", "Schedule Not Bookable"),
     CONSENT_HEALTH_EMERGENCY_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "consent-required", "Consent Required"),

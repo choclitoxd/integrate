@@ -1,5 +1,6 @@
 package com.integrate.modules.auth.entity;
 
+import com.integrate.common.persistence.PgDomains;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
