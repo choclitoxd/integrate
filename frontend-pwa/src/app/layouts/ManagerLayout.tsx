@@ -5,7 +5,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { to: '/', label: 'Portal turista' },
 ];
 
-/** Shell del Gestor de Enlace; la protección por rol (RBAC) se añade al cablear la autenticación en la PWA (T-1.10). */
+/** Shell del Gestor de Enlace; la protección por rol (RBAC) se añade al cablear la autenticación en la PWA (T-1.11). */
 export function ManagerLayout() {
   return <AppShell navLabel="Navegación del gestor" navItems={NAV_ITEMS} />;
 }

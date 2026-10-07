@@ -165,9 +165,9 @@ El backlog se reorganizó en dos etapas (`roadmap_ejecucion.md`, `PROJECT_STATUS
 |---|---|---|
 | T-1.4 (lock de reservas, precondición 428) | **T-1.5** | Motor de concurrencia y bloqueo pesimista |
 | T-1.7 (llave de vouchers) | **T-1.8** | Voucher criptográfico PDF/QR |
-| T-1.8 (PWA, refresh *single-flight*) | **T-1.10** | Frontend PWA móvil |
+| T-1.8 (PWA, refresh *single-flight*) | **T-1.11** | Autenticación móvil en la PWA |
 | T-1.3 (ADR del catálogo, primer ADMIN) | **T-1.4** | Catálogo territorial (ADR-0006) |
 | T-3.4/T-3.5 (`register-assisted`, gestión de roles) | **T-1.3** | Enrolamiento asistido |
-| "Fase 4" (endurecimiento, proxy de AWS, revocación de consentimientos) | **Etapa 2 · Fase 4** (T-2.12 a T-2.14) | — |
+| "Fase 4" (endurecimiento, proxy de AWS, revocación de consentimientos, límite por IP) | **Etapa 2**: T-2.7 (auditoría Habeas Data) y T-2.16 (despliegue AWS) | Sin tarea propia aún: revocación de consentimientos y límite de intentos por IP |
 
 **Enmienda de §9 "Fuera de alcance":** `register-assisted` (RF-06) deja de diferirse a la Fase 3; pasa a la **Etapa 1 como T-1.3** y se decidirá en su propio ADR (cifrado AES-GCM de datos de víctima, formato físico de consentimiento en S3, acreditación de gestores). La gestión de roles y suspensión por el administrador (RF-03) sigue fuera de alcance.

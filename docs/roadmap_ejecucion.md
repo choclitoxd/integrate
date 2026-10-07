@@ -14,33 +14,33 @@ El presente roadmap técnico de ejecución establece la secuencia lógica, técn
 
 ### Principios Rectores de Dependencia:
 1. **Fundación Inmutable Primero:** No se escribe lógica de negocio sin un esquema relacional con transacciones ACID verificado y migraciones de base de datos automatizadas.
-2. **Estabilización del Core Transaccional (MVP Fase 1):** Antes de abordar la complejidad de sincronización desconectada (*offline-first*), se consolida y prueba bajo estrés el flujo transaccional directo: autenticación, bloqueo pesimista de aforo (`SELECT ... FOR UPDATE`), retención de cupos con TTL (15 min), simulación de pagos con split payment (85/15) y emisión del voucher criptográfico.
-3. **Resiliencia Territorial Desconectada (Fase 2):** Sobre el core transaccional ya estabilizado se construye la capacidad *offline* en el cliente mediante Service Workers, IndexedDB y validación de firma asimétrica en campo.
-4. **Protección Comunitaria Determinista (Fase 3):** Los mecanismos de sincronización en segundo plano y resolución de colisiones implementan como regla inviolable la salvaguarda de los fondos (85%) para las comunidades campesinas y víctimas.
-5. **Calidad, Cumplimiento Legal y Producción (Fase 4):** Hardening de seguridad, auditoría inmutable de Habeas Data (Ley 1581), accesibilidad WCAG 2.1 AA / NTC 5854 y despliegue cloud en AWS.
+2. **Backend antes que Frontend en cada etapa:** Cada etapa construye, estabiliza y certifica el 100% de su backend (Fases 1.1 y 2.1) antes de abordar las interfaces de la PWA móvil (Fases 1.2 y 2.2).
+3. **Estabilización del Core Transaccional (Etapa 1):** Antes de abordar la complejidad de sincronización desconectada (*offline-first*), se consolida y prueba el flujo transaccional directo: identidades y enrolamiento asistido, catálogo, bloqueo pesimista de aforo (`SELECT ... FOR UPDATE`), retención de cupos con TTL (15 min), cobro con retención en custodia (*escrow*) y emisión del voucher criptográfico.
+4. **Resiliencia Territorial Desconectada (Etapa 2 · Fases 2.1 y 2.2):** Sobre el core ya estabilizado se construyen los endpoints de padrón, contingencia y sincronización, y la capacidad *offline* del cliente con Service Workers, IndexedDB y validación de firma asimétrica en campo.
+5. **Protección Comunitaria Determinista (Etapa 2 · Fase 2.1):** La sincronización y la resolución de colisiones implementan como regla inviolable la salvaguarda del 85% para las comunidades campesinas y víctimas; la dispersión 85/15 se ejecuta en esta etapa.
+6. **Calidad, Cumplimiento Legal y Producción (Etapa 2 · Fase 2.3):** Pruebas de carga, accesibilidad WCAG 2.1 AA / NTC 5854 y despliegue cloud en AWS; la auditoría inmutable de Habeas Data con AES-256 se construye en la Fase 2.1.
 
 ---
 
 ## 2. Cronograma de Fases Secuenciales de Desarrollo
 
-El desarrollo se articula en **Dos Grandes Etapas Operativas** trazadas directamente con los tres procesos de negocio transaccionales del Plan de Calidad de Software:
+El desarrollo se articula en **Dos Grandes Etapas Operativas** trazadas directamente con los tres procesos de negocio transaccionales del Plan de Calidad de Software. Dentro de cada etapa, el backend precede al frontend.
 
 ```mermaid
 gantt
     title Roadmap de Ejecución Técnica - Intégrate (2 Grandes Etapas Operativas)
     dateFormat  YYYY-MM-DD
     section Etapa 1: Proc 1 y 2 (Identidades & Core Transaccional)
-    Fase 0 - Setup & DB (Infraestructura Base) :f0_1, 2026-10-05, 14d
-    Fase 1 - Proceso 1: Auth, RBAC & Habeas Data :f1_1, after f0_1, 7d
-    Fase 1 - Proceso 2: Catálogo & Aforo Ecológico :f1_2, after f1_1, 7d
-    Fase 1 - Proceso 2: Bloqueo Pesimista & TTL   :f1_3, after f1_2, 7d
-    Fase 1 - Proceso 2: Checkout, Pago & Voucher QR :f1_4, after f1_3, 7d
+    Fase 0 - Setup & DB (Infraestructura Base)          :f0, 2026-10-05, 14d
+    Fase 1.1 - Backend Proc 1: Auth, RBAC & Enrolamiento :f11a, after f0, 7d
+    Fase 1.1 - Backend Proc 2: Catálogo, Reservas & TTL  :f11b, after f11a, 7d
+    Fase 1.1 - Backend Proc 2: Pago, Voucher & Correo    :f11c, after f11b, 7d
+    Fase 1.2 - Frontend PWA Móvil: Turista & Gestor      :f12, after f11c, 7d
     section Etapa 2: Proc 3 (Validación Offline & Dispersión)
-    Fase 2 - Proceso 3: PWA Offline & IndexedDB   :f2_1, after f1_4, 7d
-    Fase 2 - Proceso 3: Escaneo QR Asimétrico     :f2_2, after f2_1, 7d
-    Fase 3 - Proceso 3: Background Sync & Idempotencia :f3_1, after f2_2, 7d
-    Fase 3 - Proceso 3: Split Payment 85/15 & 72h :f3_2, after f3_1, 7d
-    Fase 4 - Cierre: Auditoría, Estrés & AWS Cloud :f4_1, after f3_2, 7d
+    Fase 2.1 - Backend Proc 3: Padrón, Sync & Conflictos :f21a, after f12, 7d
+    Fase 2.1 - Backend Proc 3: Split 85/15, 72h & Auditoría :f21b, after f21a, 7d
+    Fase 2.2 - Frontend PWA Offline: SW, QR & Background Sync :f22, after f21b, 7d
+    Fase 2.3 - QA & DevOps: Carga, Accesibilidad & AWS   :f23, after f22, 7d
 ```
 
 ---
@@ -53,8 +53,8 @@ gantt
 
 ### ETAPA 1: Núcleo de Identidades, Reserva Concurrente y Checkout Transaccional (Procesos 1 y 2)
 
-#### FASE 0: Entorno Base, Infraestructura y Persistencia (Semanas 1-2) - [Completada]
-*Objetivo:* Establecer el entorno de desarrollo reproducible, el pipeline de integración continua y el esquema de base de datos PostgreSQL con migraciones versionadas y políticas de seguridad.
+#### FASE 0: Entorno Base, Infraestructura y Persistencia - [Completada]
+*Objetivo:* Establecer el entorno de desarrollo reproducible y el esquema de base de datos PostgreSQL con migraciones versionadas y políticas de seguridad.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
@@ -68,61 +68,77 @@ gantt
 
 ---
 
-#### FASE 1: Core Transaccional - Procesos 1 y 2 (Semanas 3-5)
-*Objetivo:* Implementar el flujo transaccional directo de punta a punta: desde la autenticación y registro asistido (Proceso 1), hasta el bloqueo pesimista de aforo (`SELECT ... FOR UPDATE`), cobro electrónico en pasarela con retención en custodia y emisión del voucher criptográfico PDF/QR (Proceso 2).
+#### FASE 1.1: Backend - Núcleo Transaccional e Identidades (Procesos 1 y 2)
+*Objetivo:* Construir, estabilizar y validar el 100% del backend de la Etapa 1: identidades y enrolamiento asistido (Proceso 1), catálogo, bloqueo pesimista de aforo, cobro con retención en custodia, voucher criptográfico y notificación (Proceso 2).
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-1.1** | **[Proceso 1] Dominio de Identidad & RBAC:** Entidades, repositorios y servicios de autenticación, sesiones rotativas y consentimiento (ADR-0005). | T-0.5, T-0.6 | T-1.2 |
-| **T-1.2** | **[Proceso 1] Endpoints de Sesión:** login/registro/refresh/logout y `/me/consents`, JWT stateless RS256 con claims de rol y Spring Security Resource Server (ADR-0005). | T-1.1 | T-1.3, T-1.4 |
-| **T-1.3** | **[Proceso 1] Enrolamiento Asistido & Consentimientos:** Registro asistido de anfitriones por el Gestor de Enlace y captura inmutable de Habeas Data (Ley 1581). | T-1.2, T-1.4 | T-2.2 |
-| **T-1.4** | **[Proceso 2] Catálogo Territorial & Parametrización de Franjas:** CRUD de experiencias, integración DIVIPOLA y franjas horarias con tope de aforo ecológico (ADR-0006). | T-0.5, T-1.2 | T-1.5 |
-| **T-1.5** | **[Proceso 2] Motor de Concurrencia y Bloqueo Pesimista (`SELECT FOR UPDATE`):** Servicio `BookingConcurrencyEngine` con transacción de bloqueo a nivel de fila (<200 ms), descuento de cupos y estado `PENDING`. | T-1.4 | T-1.6, T-1.7 |
-| **T-1.6** | **[Proceso 2] Booking Expiration Worker (TTL 15 min):** Tarea asíncrona `@Scheduled` que audita periódicamente reservas `PENDING` vencidas y reintegra cupos a la franja horaria. | T-1.5 | T-1.7 |
-| **T-1.7** | **[Proceso 2] Adaptador de Pagos Desacoplado & Webhook de Cobro:** Implementación de `PaymentGatewayAdapter` con procesamiento en COP, recepción idempotente de webhooks y retención de fondos (*escrow*). | T-1.5 | T-1.8 |
-| **T-1.8** | **[Proceso 2] Generador de Voucher Criptográfico & PDF/QR:** Servicio que firma el payload JWT con clave privada RSA-2048, genera código QR de alta densidad y renderiza PDF/A. | T-1.7 | T-1.9, T-2.1 |
-| **T-1.9** | **[Proceso 2] Despacho de Notificación Transaccional:** Servicio de correo electrónico (Gmail API / SMTP) que despacha el comprobante y voucher oficial al turista. | T-1.8 | T-1.10 |
-| **T-1.10** | **[Proceso 2] Frontend PWA Móvil (Portal Turista):** Catálogo en tarjetas verticales, selector táctil de franjas, formulario de reserva (contacto/EPS) y checkout con sticky bottom bar (smartphone 360–430 px). | T-0.7, T-1.2, T-1.4, T-1.5, T-1.7 | Fin Etapa 1 |
+| **T-1.1** | **[Proceso 1] Dominio de Identidad & RBAC:** Entidades, repositorios y servicios de autenticación con Argon2id, sesiones rotativas y consentimiento (ADR-0005). | T-0.5, T-0.6 | T-1.2 |
+| **T-1.2** | **[Proceso 1] Endpoints de Sesión:** login/registro/refresh/logout y `/me/consents` con JWT RS256 y Spring Security Resource Server (ADR-0005). | T-1.1 | T-1.3, T-1.4, T-1.11 |
+| **T-1.3** | **[Proceso 1] Enrolamiento Asistido:** Servicios y endpoints del Gestor de Enlace (`/api/v1/gestor/hosts`), asignación de asociación comunitaria y consentimiento inmutable de Habeas Data (Ley 1581 / Ley 1448). | T-1.2, T-1.4 | T-1.12, T-2.1 |
+| **T-1.4** | **[Proceso 2] Catálogo Territorial & Franjas:** Experiencias, municipios DIVIPOLA y franjas horarias con cupo ecológico máximo (ADR-0006). | T-0.5, T-1.2 | T-1.3, T-1.5, T-1.10 |
+| **T-1.5** | **[Proceso 2] Motor de Concurrencia y Bloqueo Pesimista (`SELECT FOR UPDATE`):** Reservas `PENDING` con 0% de overbooking y < 200 ms (`modules/booking/`). | T-1.4 | T-1.6, T-1.7 |
+| **T-1.6** | **[Proceso 2] Booking Expiration Worker (TTL 15 min):** `@Scheduled` que libera los cupos de reservas vencidas o abandonadas. | T-1.5 | T-1.7 |
+| **T-1.7** | **[Proceso 2] Adaptador de Pagos & Webhook:** `PaymentGatewayAdapter` con cobro en COP, webhook idempotente y retención en custodia (*escrow*) (`modules/payment/`). | T-1.5 | T-1.8 |
+| **T-1.8** | **[Proceso 2] Voucher Criptográfico:** Firma RSA-2048, QR de alta densidad y exportación a PDF/A (`modules/voucher/`). | T-1.7 | T-1.9, T-2.1 |
+| **T-1.9** | **[Proceso 2] Notificaciones Transaccionales:** Correo (Gmail API / SMTP) con el voucher y el resumen de la reserva. | T-1.8 | T-1.10 |
+
+---
+
+#### FASE 1.2: Frontend - Interfaces PWA Móvil y Portales de Usuario (Procesos 1 y 2)
+*Objetivo:* Se implementa con el backend de la Fase 1.1 operativo y certificado. Factor de forma móvil estricto (viewport 360–430 px, contenedor `max-w-md`, sticky bottom bar y áreas táctiles $\ge 44\times 44$ px).
+
+| ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
+| :--- | :--- | :--- | :--- |
+| **T-1.10a** | **[Proceso 2] Catálogo móvil:** Tarjetas verticales, filtros DIVIPOLA en bottom-sheet y detalle de la experiencia. | T-0.7, T-1.4 | T-1.10b |
+| **T-1.10b** | **[Proceso 2] Selector táctil de franjas:** Fechas y franjas con cupos en tiempo real; franjas agotadas inhabilitadas. | T-1.10a | T-1.10c |
+| **T-1.10c** | **[Proceso 2] Formulario de reserva:** Identificación, contacto de emergencia, EPS, `inputmode` móviles y aceptación de Habeas Data. | T-1.10b, T-1.5, T-1.11 | T-1.10d |
+| **T-1.10d** | **[Proceso 2] Checkout:** Sticky bottom bar, cuenta regresiva del TTL de 15 min, desglose de tarifas y pasarela en COP. | T-1.10c, T-1.6, T-1.7 | T-1.10e |
+| **T-1.10e** | **[Proceso 2] Confirmación:** QR del voucher a pantalla completa, ficha de viaje y exportación a PDF/A. | T-1.10d, T-1.8 | Fin Etapa 1 |
+| **T-1.11** | **[Proceso 1] Autenticación móvil:** Login, registro de turistas, sesión con refresh token y modal de consentimiento. | T-0.7, T-1.2 | T-1.10c |
+| **T-1.12** | **[Proceso 1] Enrolamiento asistido móvil:** Portal del Gestor (`/gestor/anfitriones/enrolamiento`) con formulario táctil y captura de consentimiento. | T-1.3, T-1.11 | Fin Etapa 1 |
 
 ---
 
 ### ETAPA 2: Validación Territorial Offline-First y Dispersión Financiera (Proceso 3)
 
-#### FASE 2: PWA Offline-First y Validación Territorial (Semanas 6-7)
-*Objetivo:* Dotar a la PWA de capacidades de funcionamiento 100% desconectado para que el Gestor de Enlace pueda descargar padrones locales y verificar vouchers mediante criptografía asimétrica en zonas rurales sin cobertura.
+#### FASE 2.1: Backend - Sincronización Diferida, Dispersión y Auditoría (Proceso 3)
+*Objetivo:* Construir y validar primero la lógica backend de padrón, contingencia, sincronización, reglas financieras y resolución de conflictos.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-2.1** | **[Proceso 3] Infraestructura Offline en Cliente PWA:** Service Workers con Workbox para caché de assets estáticos y esquema IndexedDB (`IntegrateOfflineDB`). | T-0.7, T-1.8 | T-2.3 |
-| **T-2.2** | **[Proceso 3] Endpoints de Descarga Preventiva:** Padrón de vouchers de la jornada y lista delta de revocación (`modules/offline/`). | T-1.3, T-1.8 | T-2.3 |
-| **T-2.3** | **[Proceso 3] Módulo de Descarga Preventiva en PWA:** Padrón local, lista de revocación y clave pública RSA del servidor en IndexedDB. | T-2.1, T-2.2 | T-2.4 |
-| **T-2.4** | **[Proceso 3] Lector QR y Motor de Validación Asimétrica Offline:** Escáner con cámara trasera y Web Crypto API que valida firma digital, expiración y consistencia contra IndexedDB. | T-2.3 | T-2.5 |
-| **T-2.5** | **[Proceso 3] Marcación Local Anti-Doble Canje (RNF-18):** Transición inmediata del voucher a `CONSUMIDO_LOCAL` en IndexedDB para impedir reutilizaciones offline. | T-2.4 | T-2.7 |
-| **T-2.6** | **[Proceso 3] Canal Web de Contingencia:** Ingreso y validación manual del código alfanumérico ante avería o descarga del dispositivo móvil en territorio. | T-2.2 | T-2.8 |
+| **T-2.1** | **[Proceso 3] Descarga preventiva:** Endpoints del padrón de vouchers de la jornada y lista delta de revocación (`modules/offline/`). | T-1.3, T-1.8 | T-2.2, T-2.9 |
+| **T-2.2** | **[Proceso 3] Canje manual de contingencia:** `POST /api/v1/offline/contingency/redeem` con verificación contra padrón y revocación, sin doble canje. | T-2.1 | T-2.3, T-2.12 |
+| **T-2.3** | **[Proceso 3] Sincronización idempotente:** `POST /api/v1/offline/sync` por lotes y transición atómica de reservas a `EXECUTED`. | T-2.1, T-1.5 | T-2.4, T-2.13 |
+| **T-2.4** | **[Proceso 3] Resolución determinista de conflictos:** El 85% de la comunidad es irrenunciable; incidencia contable al Administrador. | T-2.3, T-1.7 | T-2.5, T-2.6 |
+| **T-2.5** | **[Proceso 3] Dispersión (Split Payment 85/15):** 85% a la Asociación/Anfitrión y 15% a la plataforma, con dispersión supletoria a las 24 h. | T-2.3, T-2.4 | T-2.7 |
+| **T-2.6** | **[Proceso 3] Política de cancelación de 72 h:** > 72 h reembolso del 85%; $\le$ 72 h o No-Show, liquidación íntegra a la comunidad. | T-1.7, T-2.4 | T-2.7 |
+| **T-2.7** | **[Proceso 3] Auditoría inmutable de Habeas Data:** Bitácora de accesos sensibles (Ley 1581 / Ley 1448) con cifrado AES-256 en reposo (`modules/audit/`). | T-2.5, T-2.6 | T-2.16 |
 
 ---
 
-#### FASE 3: Sincronización Diferida y Dispersión Financiera - Split Payment (Semanas 8-9)
-*Objetivo:* Habilitar la sincronización en segundo plano con resolución determinista de colisiones y ejecutar la dispersión bancaria exacta hacia las comunidades campesinas y anfitriones.
+#### FASE 2.2: Frontend - PWA Móvil Offline-First y Validación Territorial (Proceso 3)
+*Objetivo:* Implementar para smartphones de campo, consumiendo los endpoints de la Fase 2.1 ya certificados.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-2.7** | **[Proceso 3] Cola de Eventos Diferidos & Background Sync:** Encola las asistencias registradas localmente y las despacha al recuperar conectividad celular. | T-2.5 | T-2.8 |
-| **T-2.8** | **[Proceso 3] Endpoint de Sincronización Idempotente:** `POST /api/v1/offline/sync` procesa lotes con clave de idempotencia y actualiza reservas a `EXECUTED`. | T-2.7, T-2.6, T-1.5 | T-2.9 |
-| **T-2.9** | **[Proceso 3] Motor de Resolución Determinista de Conflictos:** Salvaguarda el 85% de la comunidad si un turista cancelado consume el servicio, derivando la alerta al Admin. | T-2.8, T-1.7 | T-2.10, T-2.11 |
-| **T-2.10** | **[Proceso 3] Dispersión Financiera (Split Payment 85/15):** Órdenes de dispersión en COP hacia la Asociación/Anfitrión (85%) y la plataforma (15%), con dispersión supletoria a las 24 horas. | T-2.8, T-2.9 | T-2.12 |
-| **T-2.11** | **[Proceso 3] Políticas de Cancelación y Reembolso (72h):** Si $\Delta t > 72\text{ h}$ reembolsa 85% al turista; si $\le 72\text{ h}$ o No-Show transfiere el 85% a la Asociación. | T-1.7, T-2.9 | T-2.12 |
+| **T-2.8** | **[Proceso 3] Infraestructura offline:** Service Workers (Workbox) e IndexedDB (`IntegrateOfflineDB`) acotada a < 10 MB. | T-0.7 | T-2.9 |
+| **T-2.9** | **[Proceso 3] Descarga preventiva en PWA:** Padrón local, lista de revocación y clave pública RSA en IndexedDB. | T-2.8, T-2.1 | T-2.10 |
+| **T-2.10** | **[Proceso 3] Lector QR y validación offline:** Cámara trasera (`facingMode: 'environment'`), vibración (`navigator.vibrate`) y Web Crypto API. | T-2.9 | T-2.11 |
+| **T-2.11** | **[Proceso 3] Anti-doble canje local (RNF-18):** Marcación atómica `CONSUMIDO_LOCAL` en IndexedDB al momento de la lectura. | T-2.10 | T-2.13 |
+| **T-2.12** | **[Proceso 3] Contingencia en PWA:** Consulta y canje manual por código alfanumérico ante falla física de la cámara. | T-2.2, T-2.8 | T-2.13 |
+| **T-2.13** | **[Proceso 3] Cola de asistencias y Background Sync:** Encola las validaciones locales y las despacha al recuperar cobertura. | T-2.11, T-2.12, T-2.3 | T-2.15 |
 
 ---
 
-#### FASE 4: Auditoría Legal, Hardening, Pruebas de Carga y Cloud (Semana 10)
-*Objetivo:* Implementar la auditoría estricta de Habeas Data, asegurar la accesibilidad AA, realizar pruebas de estrés de aforo concurrente y desplegar la solución en infraestructura AWS.
+#### FASE 2.3: Calidad, Hardening y Despliegue Cloud (QA & DevOps)
+*Objetivo:* Certificar carga concurrente y accesibilidad, y desplegar la solución en infraestructura AWS.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-2.12** | **Auditoría Inmutable Habeas Data (Ley 1581 / Ley 1448) & Cifrado AES-256:** Bitácora inmutable de accesos sensibles y cifrado a nivel de columna. Panel de auditoría para Admin. | T-2.10, T-2.11 | T-2.14 |
-| **T-2.13** | **Pruebas de Estrés y Accesibilidad:** 200 usuarios concurrentes por los últimos 2 cupos (0% sobreventa, < 200 ms) y auditoría WCAG 2.1 AA / NTC 5854 en la PWA móvil. | T-1.5, T-1.6, T-2.4 | T-2.14 |
-| **T-2.14** | **Pipeline CI/CD y Despliegue en AWS:** ECS Fargate, RDS PostgreSQL, certificados SSL/TLS y bucket S3 para vouchers. | T-2.12, T-2.13 | Puesta en Producción |
+| **T-2.14** | **[Backend/QA] Pruebas de carga:** 200 usuarios concurrentes sobre `SELECT ... FOR UPDATE` (k6/JMeter): 0% sobreventa y < 200 ms. | T-1.5, T-1.6 | T-2.16 |
+| **T-2.15** | **[Frontend/QA] Accesibilidad:** Auditoría y remediación WCAG 2.1 AA / NTC 5854 (contraste solar, teclado, lectores de pantalla). | T-1.10e, T-1.12, T-2.13 | T-2.16 |
+| **T-2.16** | **[DevOps] CI/CD y despliegue en AWS:** ECS Fargate, RDS PostgreSQL, S3 y HTTPS. | T-2.7, T-2.14, T-2.15 | Puesta en Producción |
 
 ---
 
@@ -138,32 +154,36 @@ Cada etapa se cierra formalmente cuando se cumplen los entregables de todas sus 
 - [x] Los paquetes del backend están 100% aislados bajo `com.integrate.*` sin ninguna referencia o dependencia a nombres del dominio de comidas (*FoodExpress*).
 - [ ] Pipeline de GitHub Actions compila el código y ejecuta análisis estático con SonarQube (0 vulnerabilidades críticas).
 
-#### DoD Fase 1: Core Transaccional (Procesos 1 y 2)
-- [ ] El turista puede autenticarse, consultar experiencias y solicitar el bloqueo de cupos.
+#### DoD Fase 1.1: Backend del Core Transaccional
+- [ ] El turista puede autenticarse, consultar experiencias y solicitar el bloqueo de cupos (verificado por API).
 - [ ] El Gestor de Enlace puede enrolar anfitriones con consentimiento asistido de Habeas Data.
-- [ ] Prueba de concurrencia unitaria/integrada valida que el bloqueo pesimista (`SELECT ... FOR UPDATE`) no permite sobreventa bajo hilos paralelos (0 colisiones).
-- [ ] Las reservas abandonadas se cancelan automáticamente tras 15 minutos exactos y los cupos se liberan en el inventario.
+- [ ] Prueba de concurrencia integrada valida que el bloqueo pesimista (`SELECT ... FOR UPDATE`) no permite sobreventa bajo hilos paralelos (0 colisiones).
+- [ ] Las reservas abandonadas se cancelan automáticamente tras 15 minutos y los cupos se liberan en el inventario.
 - [ ] El webhook de pago se procesa de forma idempotente y deja los fondos en custodia (*escrow*); la dispersión 85/15 se certifica en la Etapa 2.
 - [ ] El voucher criptográfico se emite con firma digital válida y el PDF queda almacenado en S3 y enviado al correo del comprador.
-- [ ] La PWA móvil permite al turista recorrer catálogo, franjas, reserva y checkout en un smartphone (360–430 px) sin scroll horizontal.
+
+#### DoD Fase 1.2: Frontend PWA Móvil
+- [ ] El turista recorre catálogo, franjas, reserva, checkout y confirmación en un smartphone (360–430 px) sin scroll horizontal.
+- [ ] Login, registro y renovación de sesión funcionan en la PWA con el modal de consentimiento.
+- [ ] El Gestor de Enlace completa el enrolamiento asistido desde su smartphone.
 
 ### ETAPA 2 (Proceso 3)
 
-#### DoD Fase 2: PWA Offline-First y Validación Territorial
+#### DoD Fase 2.1: Backend de Validación, Sincronización y Dispersión
+- [ ] El padrón y la lista de revocación se descargan por API y el canje de contingencia impide el doble canje.
+- [ ] Ante un conflicto de sincronización por cancelación previa, el sistema ejecuta la resolución determinista: no descuenta el 85% de la comunidad y crea la incidencia contable para el Administrador.
+- [ ] La dispersión calcula y ejecuta de forma comprobada el 85% comunidad / 15% plataforma.
+- [ ] La regla de cancelación de 72 horas ejecuta con precisión matemática los reembolsos del 85% (>72h) o la retención total a favor del anfitrión ($\le$72h).
+- [ ] La tabla de consentimientos es inmutable y los datos sensibles están cifrados con AES-256.
+
+#### DoD Fase 2.2: Frontend PWA Offline-First
 - [ ] La PWA se instala correctamente en dispositivos móviles (Android/iOS) y funciona en modo avión (desconectado).
 - [ ] El Gestor de Enlace puede descargar con un clic el padrón de reservas y la clave pública institucional.
 - [ ] El escáner QR de la PWA valida matemáticamente la autenticidad del voucher sin conexión celular.
 - [ ] Todo voucher escaneado se almacena como `CONSUMIDO_LOCAL` en IndexedDB e impide inmediatamente su reuso local.
-
-#### DoD Fase 3: Sincronización Diferida y Políticas Financieras
 - [ ] Al recuperar la conexión a internet, las asistencias encoladas se sincronizan automáticamente con el servidor en segundo plano.
-- [ ] Ante un conflicto de sincronización por cancelación previa, el sistema ejecuta la resolución determinista: no descuenta el 85% de la comunidad y crea la incidencia contable para el Administrador.
-- [ ] La dispersión calcula y ejecuta de forma comprobada el 85% comunidad / 15% plataforma.
-- [ ] La regla de cancelación de 72 horas ejecuta con precisión matemática los reembolsos del 85% (>72h) o la retención total a favor del anfitrión ($\le$72h).
-- [ ] El Gestor de Enlace puede crear y gestionar experiencias a nombre de anfitriones locales.
 
-#### DoD Fase 4: Auditoría, Hardening y Cloud
-- [ ] Tabla de consentimientos de Habeas Data es inmutable (sin permisos de modificación ni eliminación) y los datos sensibles están cifrados con AES-256.
+#### DoD Fase 2.3: Calidad, Hardening y Cloud
 - [ ] Prueba de carga de 200 peticiones simultáneas sobre el endpoint de bloqueo responde en un tiempo promedio inferior a 200 ms y con 0% de sobreventa.
 - [ ] Auditoría de accesibilidad Lighthouse certifica puntuación $\ge 90$ en accesibilidad cumpliendo WCAG 2.1 AA.
 - [ ] El sistema se encuentra desplegado y operativo en AWS con HTTPS activo.

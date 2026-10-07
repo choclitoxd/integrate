@@ -80,3 +80,15 @@ Rutas iniciales (placeholders)
 /gestor        Layout Gestor   → Panel de jornada (offline en Fase 2)
 *              Página 404 accesible
 ```
+
+## Nota de renumeración (2026-10-07)
+El backlog se reorganizó en dos etapas, con el backend antes que el frontend en cada una (`PROJECT_STATUS.md` §3). Las referencias de este ADR equivalen a:
+
+| En este ADR | Ahora | Tarea |
+|---|---|---|
+| T-2.1 (Service Worker, IndexedDB, directorio `offline/`, elección Dexie/`idb`) | **T-2.8** | Infraestructura offline en la PWA |
+| T-1.8 (catálogo y reserva, TanStack Query) | **T-1.10a–e** | Flujo turista móvil |
+| T-1.2 (cableado del token y la sesión en el cliente, Zod) | **T-1.11** | Autenticación móvil (sobre los endpoints de T-1.2) |
+| T-3.1 (cola offline que decide reintentos) | **T-2.13** | Cola de asistencias y Background Sync |
+
+La delimitación móvil posterior (viewport 360–430 px, contenedor `max-w-md`, navegación inferior y sticky bottom bar; `PROJECT_STATUS.md` §1.2) no está contemplada en este ADR y requerirá una enmienda antes de T-1.10.
