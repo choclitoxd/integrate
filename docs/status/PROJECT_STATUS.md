@@ -1,6 +1,6 @@
 # Estado del Proyecto Intégrate (PROJECT_STATUS.md)
 
-Última actualización: 2026-10-05  
+Última actualización: 2026-10-07  
 Rol: Tech Lead, Arquitecto de Software y PM Técnico  
 Ubicación: `docs/status/PROJECT_STATUS.md`  
 Fuente de verdad operativa del proyecto.
@@ -11,9 +11,9 @@ Fuente de verdad operativa del proyecto.
 
 ### 1.1 Diagnóstico de Artefactos Existentes
 - **Documentación de Especificación y Requerimientos:**
-  - `docs/especificacion_tecnica.md`: 20 Requerimientos Funcionales (RF-01 a RF-20 / CU-01 a CU-20) y No Funcionales (RNF-01 a RNF-20). Modelo de roles RBAC (Turista, Anfitrión, Gestor de Enlace, Administrador), políticas de Habeas Data (Ley 1581 / Ley 1448), split payment (85% comunidad / 15% plataforma) y política de cancelación (72h).
+  - `docs/especificacion_tecnica.md`: 20 Requerimientos Funcionales (RF-01 a RF-20 / CU-01 a CU-20) y No Funcionales (RNF-01 a RNF-30). Modelo de roles RBAC (Turista, Anfitrión, Gestor de Enlace, Administrador), políticas de Habeas Data (Ley 1581 / Ley 1448), split payment (85% comunidad / 15% plataforma) y política de cancelación (72h).
   - `docs/modelo_relacional.md`: Diseño de base de datos relacional PostgreSQL 16 con separación física en 8 esquemas de negocio (`auth`, `catalog`, `booking`, `payments`, `voucher`, `offline`, `audit`, `notification`), llaves compuestas, funciones trigger y políticas RLS.
-  - `docs/roadmap_ejecucion.md`: Cronograma de 5 fases estructuradas por orden de dependencia técnica.
+  - `docs/roadmap_ejecucion.md`: Cronograma técnico estructurado en dos grandes etapas operativas por dependencia técnica y procesos delimitados.
   - `docs/architecture/backend_guidelines.md`: Estructura monolítica modular bajo Arquitectura Hexagonal / Clean Architecture (`com.integrate.*`), reglas de aislamiento de dependencias entre capas, convención de desacoplamiento escalar de entidades JPA.
   - `docs/architecture/offline_data_indexeddb.md`: Especificación de persistencia offline cliente con IndexedDB (`IntegrateOfflineDB`) y sincronización diferida.
   - `docs/api/openapi.yaml` y `docs/api/dtos_contrato_api.md`: Contratos OpenAPI 3.0 consolidados y estructura de DTOs Java.
@@ -22,75 +22,179 @@ Fuente de verdad operativa del proyecto.
   - `docs/security/security_secrets_policy.md`: Gobernanza de secretos y restricciones de seguridad para repositorios y flujos CI/CD.
 
 - **Infraestructura y Persistencia Actual:**
-  - `infra/postgres/init/00_bootstrap.sql`: Script de aprovisionamiento de clúster PostgreSQL 16 (roles `integrate_owner`, `integrate_app`, `integrate_readonly`, base de datos `integrate`, timeouts de sesión y bloqueo pesimista).
-  - `backend-api/src/main/resources/db/migration/`: Migraciones Flyway existentes de `V1` a `V10` cubriendo extensiones, schemas, tablas, permisos y alineación con contrato OpenAPI.
+  - `infra/docker/docker-compose.yml`: Stack Docker (PostgreSQL 16, LocalStack S3, Mailpit).
+  - `infra/postgres/init/00_bootstrap.sql`: Script de aprovisionamiento de clúster PostgreSQL 16 (roles `integrate_owner`, `integrate_api`, `integrate_readonly`, base de datos `integrate`, timeouts de sesión y bloqueo pesimista).
+  - `backend-api/src/main/resources/db/migration/`: Migraciones Flyway de `V1` a `V10` aplicadas en 9 esquemas.
+  - `backend-api/`: Boilerplate Spring Boot 4.1.1 con Java 21, manejo global de errores RFC 9457 y módulo `auth` con JWT/Argon2id operativo y testeado (69/69 pruebas exitosas).
+  - `frontend-pwa/`: Boilerplate Vite 8 + React 19 + TypeScript + Tailwind 4 y estructura base de carpetas.
 
-- **Brechas Identificadas (Lo que falta por construir):**
-  - ~~**Infraestructura:** Falta `docker-compose.yml` y plantillas `.env`~~ → resuelto con ADR-0001 (2026-10-05).
-  - **Backend:** ~~`pom.xml` y Maven Wrapper~~ → resuelto con ADR-0002 (2026-10-05). ~~Clase principal y configuración DataSource/Flyway/HikariCP~~ → resuelto en T-0.4. Faltan los paquetes de arquitectura hexagonal (T-0.6).
-  - **Frontend:** ~~No existe el directorio `frontend-pwa/`~~ → boilerplate resuelto con ADR-0004 (T-0.7). Faltan IndexedDB / Service Workers (T-2.1).
-
----
-
-## 2. Roadmap por Módulos (Backend y Frontend)
-
-### Módulos Backend (Monolito Modular Hexagonal - Java 21 / Spring Boot 4.1)
-1. **Infraestructura & Core Foundation:** Docker Compose, Bootstrap BD, Maven Multi-layer, Configuración JPA/Flyway, Manejador Global de Excepciones y Criptografía (AES-256 / Firmas asimétricas).
-2. **Módulo Auth & Security (`auth`):** Entidades de usuario, credenciales, tokens de refresh, control de intentos, autenticación JWT stateless y filtros RBAC.
-3. **Módulo Catálogo Territorial (`catalog`):** Experiencias turísticas comunitarias, rutas, anfitriones, franjas horarias y control de cupos ecológicos máximos.
-4. **Módulo Reservas & Motor Concurrente (`booking`):** Bloqueo pesimista (`SELECT FOR UPDATE`), retención de cupos con TTL (15 min) y worker asíncrono de expiración.
-5. **Módulo Pagos & Split Payment (`payments`):** Adaptador de pasarela de pago, simulación/webhook, cálculo de dispersión 85/15 y custodia temporal (*escrow*).
-6. **Módulo Voucher Criptográfico (`voucher`):** Emisión de JWT firmado con RSA/Ed25519, empaquetado en código QR de alta densidad y generación de PDF.
-7. **Módulo Offline Server & Sincronización (`offline`):** Endpoints de descarga preventiva de padrón, lista de revocación y recepción idempotente de sincronización en segundo plano.
-8. **Módulo Auditoría & Notificaciones (`audit`, `notification`):** Auditoría inmutable de accesos sensibles (Habeas Data) y despachos transaccionales por email.
-
-### Módulos Frontend PWA (Offline-First - React / Vite / TypeScript / Tailwind)
-1. **Boilerplate & Core Layout:** Configuración de Vite, TypeScript, Tailwind CSS, React Router, Layout Responsive y Design System comunitario.
-2. **Almacenamiento Local IndexedDB & Service Worker:** Configuración de `IntegrateOfflineDB`, Workbox y estrategias de caché estático/dinámico.
-3. **Portal Turista (Online):** Catálogo de experiencias, selector de franjas, formulario de reserva con datos médicos/contacto y flujo de checkout/pago.
-4. **Billetera de Vouchers (Turista):** Visualización de voucher offline, renderizado de código QR firmado y descarga de PDF.
-5. **Portal Gestor de Enlace (Offline-First):** Descarga preventiva de padrón de la jornada, escáner de QR por cámara web/móvil, validador criptográfico offline y marcación anti-doble canje.
-6. **Sincronización en Segundo Plano:** Motor de sincronización automática al detectar reconexión a Internet y visor de auditoría/conflictos.
+### 1.2 Delimitación Formal de Plataforma: Aplicación Móvil (PWA Smartphone)
+La aplicación cliente (`frontend-pwa`) está formal y contractualmente delimitada para operar como una **Aplicación Web Progresiva Móvil (Mobile-First / PWA para Smartphone)**:
+- **Dispositivo y Factor de Forma Objetivo:** Smartphones (Android e iOS). Tanto el portal del Turista como el portal operativo del Gestor de Enlace Comunitario están diseñados primordialmente para teléfonos móviles.
+- **Resolución y Viewport Base:** Diseñado con enfoque *Mobile-First estricto* para anchos de pantalla móvil estándar de **360 px a 430 px** (ej. 360×800, 375×667, 390×844, 412×915). En pantallas de mayor tamaño (desktop/tablets), la interfaz se presenta confinada en un contenedor móvil centrado (`max-w-md` / 430 px) con sombra perimetral simulando la experiencia de una app móvil nativa, garantizando fidelidad de diseño y evitando layouts dispersos.
+- **Ergonomía Táctil y Zona del Pulgar (Thumb Zone):**
+  - **Sticky Bottom Action Bar:** Botones de acción principal (CTAs como *"Bloquear Cupos"*, *"Confirmar y Pagar"*, *"Escanear QR"*) anclados de forma fija en la parte inferior de la pantalla para operarse cómodamente con una sola mano.
+  - **Dimensiones Táctiles Mínimas:** Elementos interactivos con área de contacto $\ge 44 \times 44$ px (criterio WCAG 2.1 AA / Touch Target Size).
+  - **Navegación Móvil Inferior:** Menú de navegación inferior (*Bottom Navigation Bar*) y cabeceras compactas con botón "Atrás" siempre visible.
+  - **Cero Scroll Horizontal:** Bloqueo estricto de scroll lateral (`overflow-x: hidden`), tablas transformadas en tarjetas verticales móviles (*mobile cards*).
+  - **Formularios Adaptados:** Inputs optimizados con atributos móviles nativos (`inputmode="numeric"` para cédula/teléfono, `inputmode="email"` y selectores de fecha nativos tipo rueda/modal).
+- **Integración con Hardware Móvil y Capacidades PWA:**
+  - **Instalabilidad:** Web App Manifest (`manifest.json` con `display: standalone`, `orientation: portrait`, `theme-color: #14532d`) para funcionamiento en pantalla completa sin barra de navegación del explorador.
+  - **Cámara Trasera Móvil:** Lector QR configurado específicamente con `facingMode: 'environment'` para escaneo ágil con la cámara principal del dispositivo.
+  - **Feedback Háptico:** Disparo de vibración táctil corta mediante `navigator.vibrate` al validar satisfactoriamente un voucher en territorio.
+  - **Restricción de Recursos:** Persistencia local IndexedDB acotada a $< 10$ MB para no degradar memoria ni batería en smartphones de gama media/baja utilizados en zonas rurales.
 
 ---
 
-## 3. Backlog Detallado de Tareas Técnicas
+## 2. Estructuración del Proyecto en Dos Etapas
 
-### Fase 0: Entorno Base, Infraestructura y Persistencia
-- [x] `T-0.1`: Crear `infra/docker/docker-compose.yml` y plantillas de variables de entorno `infra/env/.env.example` y `infra/env/.env.development` (local, ignorado por Git) para levantar PostgreSQL 16 con el script `00_bootstrap.sql` (ADR-0001).
-- [x] `T-0.2`: Validar ejecución del contenedor PostgreSQL, creación de roles (`integrate_owner`, `integrate_api`) y base de datos `integrate`.
-- [x] `T-0.3`: Crear archivo `backend-api/pom.xml` con dependencias requeridas (Spring Boot 4.1.1, Java 21, Spring Data JPA, Flyway, PostgreSQL Driver, Validation, Lombok, Nimbus JOSE / JWT, Bouncy Castle) y Maven Wrapper (ADR-0002).
-- [x] `T-0.4`: Configurar clase de entrada `IntegrateApplication.java` y archivos de configuración de propiedades `application.yml` y `application-dev.yml` en `backend-api/src/main/resources/`.
-- [x] `T-0.5`: Ejecutar y verificar migración Flyway completa (`V1` a `V10`) contra la base de datos PostgreSQL local.
-- [x] `T-0.6`: Configurar estructura base común (`common/exception`, `common/payload`, `config/`) en `backend-api`.
-- [x] `T-0.7`: Inicializar proyecto `frontend-pwa` con Vite + React + TypeScript + Tailwind CSS y estructura base de directorios (Cierre de Fase 0).
+Para alinearse rigurosamente con los **tres procesos de negocio transaccionales delimitados** en el *Plan de Gestión de la Calidad del Proyecto* y en la *Especificación Técnica*, la ejecución del sistema se consolida en **dos etapas estratégicas**:
 
-### Fase 1: MVP Core Transaccional (Backend & Frontend)
-- [x] `T-1.1`: [Backend] Implementar entidades JPA, repositorios, DTOs y servicios de autenticación y RBAC (`modules/auth/`) (ADR-0005).
-- [x] `T-1.2`: [Backend] Implementar endpoints de autenticación (`/api/v1/auth/login`, `register`, `refresh`, `logout`, `/api/v1/me/consents`) con JWT y Spring Security (ADR-0005).
-- [ ] `T-1.3`: [Backend] Implementar módulo de catálogo (`modules/catalog/`) para visualización y administración de experiencias y franjas horarias.
-- [ ] `T-1.4`: [Backend] Implementar motor de reserva y concurrencia con bloqueo pesimista `SELECT ... FOR UPDATE` (`modules/booking/`).
-- [ ] `T-1.5`: [Backend] Implementar worker asíncrono `@Scheduled` para liberación de reservas vencidas (TTL 15 min).
-- [ ] `T-1.6`: [Backend] Implementar adaptador de pagos desacoplado con split payment (85% anfitrión / 15% plataforma) y webhook de confirmación (`modules/payment/`).
-- [ ] `T-1.7`: [Backend] Implementar generador criptográfico de vouchers con firma asimétrica y renderizado de código QR/PDF (`modules/voucher/`).
-- [ ] `T-1.8`: [Frontend] Implementar catálogo y flujo de reserva en la PWA (vistas de experiencia, selección de franja, checkout).
+```mermaid
+graph TD
+    subgraph ETAPA_1 ["ETAPA 1: Núcleo Transaccional & Identidades (Procesos 1 y 2)"]
+        direction TB
+        E1_BASE["Cimiento Base:<br/>Docker, PostgreSQL 16, Flyway V1-V10, Boilerplates"]
+        P1["PROCESO 1: Gestión de Identidades, Autenticación y Verificación Asistida<br/>(RBAC, JWT RS256, Habeas Data Ley 1581, Registro Autónomo y Asistido)"]
+        P2["PROCESO 2: Reserva Concurrente, Bloqueo de Aforo y Checkout Transaccional<br/>(Catálogo, Bloqueo Pesimista SELECT FOR UPDATE, TTL 15 min, Pasarela/Cobro, Voucher PDF/QR)"]
+        E1_BASE --> P1 --> P2
+    end
 
-### Fase 2: PWA Offline-First y Validación Territorial
-- [ ] `T-2.1`: [Frontend] Configurar Service Workers (Workbox) y base de datos IndexedDB (`IntegrateOfflineDB`) para almacenamiento desconectado.
-- [ ] `T-2.2`: [Backend] Implementar endpoints de descarga preventiva de padrón de vouchers y lista delta de revocación (`modules/offline/`).
-- [ ] `T-2.3`: [Frontend] Implementar módulo de descarga preventiva y almacenamiento de padrón local en IndexedDB.
-- [ ] `T-2.4`: [Frontend] Integrar lector QR con cámara web/móvil y motor de validación criptográfica offline (Web Crypto API) con marcación local anti-doble canje.
+    subgraph ETAPA_2 ["ETAPA 2: Validación Territorial Offline & Dispersión (Proceso 3)"]
+        direction TB
+        P3_OFFLINE["Operación Offline-First en Campo:<br/>IndexedDB, Service Workers, Padrón Preventivo, Validador Asimétrico QR, Anti-Doble Canje"]
+        P3_SYNC["Sincronización & Contingencia:<br/>Background Sync, Endpoint Idempotente, Resolución Determinista (85% intocable), Contingencia Web"]
+        P3_FINANCE["Dispersión Financiera & Cierre:<br/>Split Payment 85/15 vía Pasarela, Regla Cancelación 72h, Auditoría Habeas Data, Despliegue AWS"]
+        P3_OFFLINE --> P3_SYNC --> P3_FINANCE
+    end
 
-### Fase 3: Sincronización Diferida y Gobernanza
-- [ ] `T-3.1`: [Frontend] Implementar cola de sincronización en IndexedDB y disparador de Background Sync al recuperar conectividad.
-- [ ] `T-3.2`: [Backend] Implementar endpoint idempotente de sincronización por lotes (`POST /api/v1/offline/sync`) con resolución determinista de colisiones.
-- [ ] `T-3.3`: [Backend] Implementar políticas de cancelación automatizadas (regla de 72 horas).
-- [ ] `T-3.4`: [Frontend/Backend] Implementar flujo de enrolamiento asistido de anfitriones por parte del Gestor de Enlace.
+    ETAPA_1 -->|Voucher emitido y fondos en custodia escrow| ETAPA_2
+```
 
-### Fase 4: Hardening, Auditoría y Producción
-- [ ] `T-4.1`: [Backend] Implementar auditoría inmutable de accesos a datos sensibles de víctimas (Habeas Data Ley 1581 / Ley 1448).
-- [ ] `T-4.2`: [Backend] Pruebas de carga y estrés concurrente (JMeter o k6) para verificar ausencia de overbooking bajo contención pesimista.
-- [ ] `T-4.3`: [Frontend] Auditoría de accesibilidad WCAG 2.1 AA / NTC 5854.
+### 2.1 Cobertura de Módulos por Etapa
+
+#### **ETAPA 1: Procesos 1 y 2 (Núcleo de Identidades, Reserva Concurrente y Checkout)**
+*Asegura la identificación de actores, la oferta de experiencias y la transacción segura con garantía de cero sobreventa.*
+1. **Infraestructura & Base Común (Completado):** Docker Compose, PostgreSQL 16, esquemas relacionales, Flyway, RFC 9457 y trazabilidad `traceId`.
+2. **Proceso 1 - Módulo Auth & Security (`auth`):**
+   - Entidades de usuario, credenciales, sesiones y refresh rotativo con detección de reutilización.
+   - Seguridad stateless con Resource Server JWT RS256 y control RBAC (Turista, Anfitrión, Gestor de Enlace, Administrador).
+   - Captura y auditoría de consentimiento de Habeas Data (Ley 1581 / Ley 1448).
+   - Flujo de enrolamiento asistido de anfitriones por parte del Gestor de Enlace Comunitario.
+3. **Proceso 2 - Módulo Catálogo Territorial (`catalog`):**
+   - Publicación y moderación de experiencias turísticas, municipios DIVIPOLA y franjas horarias con límite estricto de capacidad de carga ecológica.
+4. **Proceso 2 - Módulo Reservas & Concurrencia (`booking`):**
+   - Motor de bloqueo pesimista en base de datos (`SELECT ... FOR UPDATE`) para erradicar el overbooking (latencia < 200 ms).
+   - Reserva temporal en estado `PENDING` con temporizador de expiración (TTL de 15 minutos).
+   - Worker asíncrono `@Scheduled` para liberación automática de cupos vencidos.
+5. **Proceso 2 - Módulo Pagos & Checkout Transaccional (`payments`):**
+   - Adaptador desacoplado de pasarela colombiana (`PaymentGatewayAdapter`) para procesamiento en COP.
+   - Procesamiento idempotente de webhooks de pago y retención de fondos en custodia (*escrow transaccional*).
+6. **Proceso 2 - Módulo Voucher Criptográfico & Notificaciones (`voucher`, `notification`):**
+   - Generación de JWT firmado asimétricamente con clave privada RSA-2048 empaquetado en código QR.
+   - Renderizado del voucher oficial en PDF y almacenamiento seguro.
+   - Despacho transaccional formal por correo electrónico (Gmail/SMTP) con soporte complementario de mensajería.
+7. **Proceso 2 - Frontend PWA Móvil (Portal Turista en Smartphone):**
+   - Interfaz mobile-first: catálogo en tarjetas verticales, selector táctil de franjas horarias con aforo, formulario de reserva móvil (contacto/EPS) y checkout transaccional con sticky bottom bar.
+
+#### **ETAPA 2: Proceso 3 (Validación en Campo y Dispersión Financiera - Split Payment)**
+*Asegura la operación continua en comunidades rurales desconectadas y la retribución económica exacta hacia las familias campesinas.*
+1. **Proceso 3 - Arquitectura PWA Offline-First (`frontend-pwa`):**
+   - Service Workers (Workbox) y base de datos local en el navegador IndexedDB (`IntegrateOfflineDB`).
+   - Módulo de descarga preventiva diaria: padrón de reservas de la jornada, delta de revocación y clave pública RSA.
+2. **Proceso 3 - Validación Territorial en Campo (Desconectada):**
+   - Lector QR por cámara web/móvil y motor de validación criptográfica offline mediante Web Crypto API.
+   - Marcación atómica inmediata en IndexedDB como `CONSUMIDO_LOCAL` para impedir el doble canje sin conexión (RNF-18).
+   - Canal web de contingencia para ingreso manual del código alfanumérico ante falla física o descarga de la terminal móvil.
+3. **Proceso 3 - Sincronización Diferida & Resolución de Conflictos (`offline`):**
+   - Cola de eventos de asistencia local y disparo automático de Background Sync al detectar cobertura móvil.
+   - Endpoint backend idempotente (`POST /api/v1/offline/sync`) para actualizar reservas a `EXECUTED`.
+   - Motor de resolución determinista de conflictos: salvaguarda obligatoria del 85% de la comunidad ante cancelaciones desincronizadas, escalando la incidencia contable al Administrador.
+4. **Proceso 3 - Dispersión Financiera Automatizada (Split Payment) & Cancelaciones (`payments`):**
+   - Algoritmo de dispersión exacta: liquidación del 85% a la cuenta de la Asociación/Anfitrión y 15% de sostenibilidad a la plataforma.
+   - Dispersión automática supletoria a las 24 horas del evento si no hubo reporte de inasistencia ni queja.
+   - Ejecución automatizada de la política de cancelación de 72 horas (> 72 h: reembolso del 85% al turista; $\le$ 72 h o No-Show: 0% al turista y giro íntegro del 85% a la comunidad).
+5. **Hardening, Calidad y Despliegue:**
+   - Auditoría inmutable de Habeas Data con cifrado AES-256 en reposo (`audit`).
+   - Pruebas de estrés y contención concurrente para certificar cero sobreventa.
+   - Auditoría de accesibilidad WCAG 2.1 AA / NTC 5854 en interfaces de campo.
+   - Pipeline de integración continua y despliegue cloud en AWS (ECS, RDS, S3).
+
+---
+
+## 3. Backlog Detallado de Tareas Técnicas por Etapa
+
+### ETAPA 1: Identidades, Reserva Concurrente y Checkout Transaccional (Procesos 1 y 2)
+
+#### Cimiento Base: Infraestructura y Persistencia (Fase 0 - Completada)
+- [x] `T-0.1`: Crear `infra/docker/docker-compose.yml` y plantillas de variables de entorno `infra/env/.env.example` y `infra/env/.env.development` para PostgreSQL 16 con `00_bootstrap.sql` (ADR-0001).
+- [x] `T-0.2`: Validar ejecución del contenedor PostgreSQL, roles (`integrate_owner`, `integrate_api`) y base de datos `integrate`.
+- [x] `T-0.3`: Crear archivo `backend-api/pom.xml` con Spring Boot 4.1.1, Java 21, Spring Data JPA, Flyway, PostgreSQL Driver, Nimbus JOSE y Maven Wrapper (ADR-0002).
+- [x] `T-0.4`: Configurar `IntegrateApplication.java` y perfiles `application.yml` y `application-dev.yml` con fail-fast de variables de entorno.
+- [x] `T-0.5`: Ejecutar y verificar migración Flyway completa (`V1` a `V10`) sobre los 9 esquemas de base de datos.
+- [x] `T-0.6`: Configurar estructura base común (errores RFC 9457 con `ProblemDetail`, `ErrorCode`, `GlobalExceptionHandler`, `TraceIdFilter`, ArchUnit) (ADR-0003).
+- [x] `T-0.7`: Inicializar proyecto `frontend-pwa` con Vite + React + TypeScript + Tailwind CSS y diseño accesible (ADR-0004).
+
+#### Fase 1.1: Backend - Núcleo Transaccional e Identidades (Procesos 1 y 2)
+*Prioridad de ejecución: Construir, estabilizar y validar el 100% del backend de la Etapa 1 antes de iniciar desarrollos en frontend.*
+
+##### Proceso 1 - Gestión de Identidades, Autenticación y Enrolamiento:
+- [x] `T-1.1`: [Backend] Implementar entidades JPA, repositorios, DTOs y servicios de autenticación y RBAC (`modules/auth/`) con Argon2id y tokens JWT RS256 (ADR-0005).
+- [x] `T-1.2`: [Backend] Implementar endpoints de autenticación (`/api/v1/auth/login`, `register`, `refresh`, `logout`, `/api/v1/me/consents`) con Spring Security Resource Server (ADR-0005).
+- [x] `T-1.3`: [Backend] Implementar servicios y endpoints de enrolamiento asistido de anfitriones por el Gestor de Enlace (`/api/v1/gestor/hosts`), asignación de asociación comunitaria y persistencia inmutable de consentimientos de Habeas Data (Ley 1581 / Ley 1448).
+
+##### Proceso 2 - Catálogo, Reserva Concurrente, Bloqueo de Aforo y Checkout:
+- [ ] `T-1.4`: [Backend] Implementar módulo de catálogo territorial (`modules/catalog/`): experiencias, municipios DIVIPOLA y franjas horarias con cupo ecológico máximo (ADR-0006).
+- [ ] `T-1.5`: [Backend] Implementar motor transaccional de reservas y concurrencia pesimista (`SELECT ... FOR UPDATE` en `modules/booking/`) garantizando tasa 0% de overbooking (<200 ms).
+- [ ] `T-1.6`: [Backend] Implementar worker asíncrono `@Scheduled` para liberación automática de cupos bloqueados ante abandono o expiración (TTL 15 min).
+- [ ] `T-1.7`: [Backend] Implementar adaptador desacoplado de pasarela de pago (`modules/payment/`) con procesamiento de cobro en COP y webhook idempotente.
+- [ ] `T-1.8`: [Backend] Implementar generador de vouchers criptográficos con firma asimétrica RSA-2048, código QR de alta densidad y exportación a PDF/A (`modules/voucher/`).
+- [ ] `T-1.9`: [Backend] Implementar servicio de notificaciones transaccionales vía correo electrónico (Gmail API / SMTP) para despacho del voucher y resumen de reserva.
+
+#### Fase 1.2: Frontend - Interfaces PWA Móvil y Portales de Usuario (Procesos 1 y 2)
+*Se implementa una vez el Backend transaccional se encuentre 100% operativo y certificado. Delimitación estricta a factor de forma móvil (viewport 360-430 px, contenedor centrado `max-w-md`, ergonomía táctil con sticky bottom bar y áreas $\ge 44\times 44$ px).*
+
+##### Proceso 2 - Flujo Turista Móvil de Catálogo, Reserva y Checkout (Subdivisión detallada de T-1.10):
+- [ ] `T-1.10`: [Frontend Móvil] Suite de interfaz móvil de catálogo, reserva y checkout en la PWA (Desglosada en subtareas operativas para smartphone):
+  - [ ] `T-1.10a`: [Frontend Móvil] Implementar interfaz móvil de catálogo territorial: vista de exploración pública en tarjetas verticales, filtros por municipio DIVIPOLA en drawer/bottom-sheet táctil, tarjetas informativas con aforo ecológico y página de detalle móvil (itinerario, recomendaciones y tarifas en COP).
+  - [ ] `T-1.10b`: [Frontend Móvil] Implementar selector táctil de fechas y franjas horarias con consulta de aforo y cupos disponibles en tiempo real, e inhabilitación visual de franjas agotadas (0 cupos).
+  - [ ] `T-1.10c`: [Frontend Móvil] Implementar formulario móvil de formalización de reserva con captura de datos de identificación civil, contacto de emergencia, datos médicos/EPS obligatorios para póliza de turismo, inputs optimizados (`inputmode`) y aceptación explícita de Habeas Data.
+  - [ ] `T-1.10d`: [Frontend Móvil] Implementar pantalla móvil de checkout transaccional con sticky bottom action bar, temporizador visual de expiración (cuenta regresiva TTL de 15 minutos), desglose de tarifas e integración visual con pasarela de pagos en COP (PSE, tarjetas y billeteras).
+  - [ ] `T-1.10e`: [Frontend Móvil] Implementar pantalla móvil de confirmación de reserva exitosa con renderizado a pantalla completa del código QR criptográfico de alta densidad, ficha de viaje y botón de exportación a PDF/A del voucher oficial.
+
+##### Proceso 1 - Autenticación y Enrolamiento en PWA Móvil:
+- [ ] `T-1.11`: [Frontend Móvil] Implementar interfaz móvil de autenticación y registro de turistas en la PWA (login táctil, registro de nuevo usuario, control de sesión con refresh token y modal de consentimiento legal de Habeas Data).
+- [ ] `T-1.12`: [Frontend Móvil] Implementar interfaz móvil de enrolamiento asistido en el portal del Gestor de Enlace (`/gestor/anfitriones/enrolamiento`) optimizada para operación en smartphone de campo con formulario táctil y captura de consentimiento de tratamiento de datos personales.
+
+---
+
+### ETAPA 2: Validación en Campo y Dispersión Financiera (Proceso 3)
+
+#### Fase 2.1: Backend - Sincronización Diferida, Dispersión y Auditoría (Proceso 3)
+*Prioridad de ejecución: Construir y validar primero la lógica backend de sincronización, reglas financieras y resolución de conflictos.*
+- [ ] `T-2.1`: [Backend] Implementar endpoints de descarga preventiva de padrón de vouchers de la jornada y lista delta de revocación (`modules/offline/`).
+- [ ] `T-2.2`: [Backend] Implementar endpoint transaccional de canje manual alfanumérico de contingencia (`POST /api/v1/offline/contingency/redeem`) con verificación contra padrón/revocación y prevención de doble canje.
+- [ ] `T-2.3`: [Backend] Implementar endpoint idempotente de sincronización por lotes (`POST /api/v1/offline/sync`) y transición atómica de reservas a `EXECUTED`.
+- [ ] `T-2.4`: [Backend] Implementar motor de resolución determinista de conflictos contables que proteja de forma irrenunciable el 85% de la comunidad campesina.
+- [ ] `T-2.5`: [Backend] Implementar algoritmo de dispersión financiera automatizada (split payment 85% asociación/anfitrión y 15% plataforma) y dispersión supletoria a las 24 h.
+- [ ] `T-2.6`: [Backend] Implementar ejecución automática de la política de cancelación de 72 horas (> 72 h reembolso 85%; $\le$ 72 h o No-Show liquidación íntegra a la comunidad).
+- [ ] `T-2.7`: [Backend] Implementar bitácora inmutable de auditoría de Habeas Data (Ley 1581 / Ley 1448) con cifrado AES-256 en reposo (`modules/audit/`).
+
+#### Fase 2.2: Frontend - PWA Móvil Offline-First y Validación Territorial (Proceso 3)
+*Se implementa para smartphones de campo consumiendo los endpoints de descarga preventiva y sincronización ya certificados.*
+- [ ] `T-2.8`: [Frontend Móvil] Configurar Service Workers (Workbox) y base de datos IndexedDB (`IntegrateOfflineDB`) para soporte 100% desconectado en smartphones rurales (< 10 MB).
+- [ ] `T-2.9`: [Frontend Móvil] Implementar módulo móvil de descarga preventiva y almacenamiento de padrón local en IndexedDB para el Gestor de Enlace.
+- [ ] `T-2.10`: [Frontend Móvil] Integrar lector QR con cámara trasera de smartphone (`facingMode: 'environment'`), respuesta háptica de vibración (`navigator.vibrate`) y motor de validación criptográfica offline mediante Web Crypto API.
+- [ ] `T-2.11`: [Frontend Móvil] Implementar marcación atómica local anti-doble canje (`CONSUMIDO_LOCAL`) en IndexedDB al momento de la lectura (RNF-18).
+- [ ] `T-2.12`: [Frontend Móvil] Implementar interfaz móvil de contingencia en PWA (módulo Gestor/Admin) para consulta y canje manual mediante código alfanumérico ante falla física de cámara.
+- [ ] `T-2.13`: [Frontend Móvil] Implementar cola de eventos de asistencia diferida en smartphone y disparador automático de Background Sync al recuperar cobertura móvil.
+
+#### Fase 2.3: Calidad, Hardening y Despliegue Cloud (QA & DevOps)
+- [ ] `T-2.14`: [Backend/QA] Ejecutar pruebas de carga y estrés de contención pesimista de aforos (`SELECT ... FOR UPDATE`) con k6/JMeter (200 usuarios concurrentes, tasa 0% sobreventa y latencia < 200 ms).
+- [ ] `T-2.15`: [Frontend/QA] Ejecutar auditoría y remediación de accesibilidad en PWA bajo estándares WCAG 2.1 AA / NTC 5854 (contraste solar en exteriores, navegación semántica por teclado y lectores de pantalla).
+- [ ] `T-2.16`: [DevOps] Configurar pipeline de CI/CD final y despliegue de infraestructura cloud en AWS (ECS Fargate, RDS PostgreSQL, S3).
+
+---
 
 ---
 
@@ -119,6 +223,9 @@ Fuente de verdad operativa del proyecto.
 | 2026-10-05 | T-1.1 | Completado | Dominio `auth`: 7 entidades (relaciones escalares; dominios `common.*` declarados en `columnDefinition` porque PostgreSQL los reporta como `Types.DISTINCT` y `ddl-auto: validate` los rechazaba), repositorios con `FOR UPDATE` (usuario y refresh token), DTOs del contrato y servicios: `AuthService` (verificación Argon2id fuera de transacción y hash ficticio para correos inexistentes; bloqueo 5 fallos/10 min → 15 min; rotación con `replaced_by_id`, gracia de 10 s y `REUSE_DETECTED` sobre todas las sesiones; logout idempotente; los rechazos confirman la transacción para no perder el intento), `RegistrationService` (solo `TOURIST`, 409 también ante la carrera del índice único, bootstrap del primer `ADMIN`), `ConsentService` (estado por finalidad y otorgamiento idempotente). Puerto `AccessTokenIssuer` implementado en `security/jwt` (RS256 + `kid`, `iss`, `jti`), llave por `JWT_SIGNING_KEY` con fail-fast (≥ 2048 bits, sin eco de la entrada), `Argon2PasswordEncoder` (19 MiB, t=2, p=1). Seed `R__dev_privacy_policy.sql` (v0.1) solo en `dev`/`test`. Starter `spring-boot-starter-security-oauth2-resource-server` agregado. Pruebas: 33 nuevas (Testcontainers con el mismo `00_bootstrap.sql`, la app como `integrate_api`); suite completa 51/51. | `backend-api/pom.xml`, `backend-api/src/main/java/com/integrate/{IntegrateApplication.java,modules/auth/**,security/**}`, `backend-api/src/main/resources/{application.yml,application-dev.yml,db/seed-dev/**}`, `backend-api/src/test/**`, `infra/env/.env.example` |
 | 2026-10-05 | T-1.2 | Completado | `AuthController` (`login`, `register` 201 + `Location`, `refresh`, `logout` 204) y `MeConsentController` (`GET/POST /api/v1/me/consents`). Cookie `refresh_token` `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth`, borrada en logout y en todo 401 de refresh; `Cache-Control: no-store` en respuestas con token. `SecurityConfig` stateless y deny-by-default con el resource server (claim `roles` → authorities, `@EnableMethodSecurity`); en los `POST` públicos de `/api/v1/auth/**` se ignora `Authorization` para que un access token expirado no bloquee el refresh. 401/403 de la cadena en RFC 9457 con `traceId` (`ProblemAuthenticationEntryPoint` con `WWW-Authenticate: Bearer`, `ProblemAccessDeniedHandler`). CORS por `CORS_ALLOWED_ORIGINS` (vacío por defecto). Actor propagado a PostgreSQL con `ActorPropagatingTransactionManager` (`set_config(..., true)` por transacción). Contrato actualizado (`openapi.yaml`: `register`, `logout`, `me/consents` y esquemas, verificado con SnakeYAML: parsea y todas las `$ref` resuelven; `dtos_contrato_api.md`; `especificacion_tecnica.md` §5.1 sin `role`; `backend_guidelines.md` sin `JwtAuthenticationFilter`; notas de implementación en ADR-0005). `GlobalExceptionHandlerTest` acotado a su controlador de prueba. Pruebas: 18 nuevas (15 de API sobre la cadena real + 3 ArchUnit), suite 69/69. Verificado de punta a punta con `curl` contra el backend real (perfil `dev`, puerto 8081): registro, login con cookie, 401 RFC 9457, consentimientos, refresh con Bearer adjunto, logout y refresh revocado. Se agregó a `infra/env/.env.development` (local, ignorado) una llave RSA de desarrollo y la configuración `backend-api` a `.claude/launch.json`. | `backend-api/src/main/java/com/integrate/{modules/auth/controller/**,security/**}`, `backend-api/src/main/resources/application.yml`, `backend-api/src/test/**`, `docs/api/{openapi.yaml,dtos_contrato_api.md}`, `docs/especificacion_tecnica.md`, `docs/architecture/{backend_guidelines.md,adr/ADR-0005-*.md}`, `infra/env/.env.example`, `.claude/launch.json` |
 | 2026-10-05 | T-1.3 | En desarrollo | Redacción de ADR-0006 (Propuesto): catálogo con anfitrión autónomo (RF-05) y moderación del administrador (RF-07/RF-08), franjas en hora local con tope de aforo, consulta pública paginada sin datos del anfitrión (R-05), alta mínima de asociaciones y perfiles de anfitrión por `ADMIN`. Bloqueos detectados: `catalog.municipalities` vacía (FK obligatoria de experiencias) → migración `V11` con DIVIPOLA oficial (requiere autorizar la descarga de datos.gov.co); sin endpoints para crear asociaciones ni anfitriones. Flujos del Gestor de Enlace e imágenes diferidos. | `docs/architecture/adr/ADR-0006-catalogo-territorial-experiencias-franjas.md`, `docs/status/PROJECT_STATUS.md` |
+| 2026-10-07 | N/A | Completado | Reestructuración del estado operativo del proyecto en dos etapas principales trazadas con el Plan de Calidad de Software: Etapa 1 con Procesos 1 y 2 (Identidades, Catálogo, Reserva Concurrente, TTL, Pagos/Voucher) y Etapa 2 con Proceso 3 (PWA Offline-First, Validación en Campo, Background Sync, Split Payment 85/15 y Hardening). | `docs/status/PROJECT_STATUS.md`, `docs/roadmap_ejecucion.md` |
+| 2026-10-07 | N/A | Completado | Reordenamiento secuencial por prioridad técnica: ejecución del 100% del Backend por etapa antes de abordar Frontend (Fase 1.1 Backend T-1.1 a T-1.9 $\rightarrow$ Fase 1.2 Frontend PWA T-1.10a-e/T-1.11/T-1.12; Fase 2.1 Backend T-2.1 a T-2.7 $\rightarrow$ Fase 2.2 Frontend PWA Offline T-2.8 a T-2.13 $\rightarrow$ Fase 2.3 QA/DevOps T-2.14 a T-2.16). | `docs/status/PROJECT_STATUS.md` |
+| 2026-10-07 | N/A | Completado | Delimitación formal de la plataforma cliente: aplicación orientada exclusivamente a Smartphone (Mobile-First estricto, viewport 360-430 px, contenedor centrado `max-w-md` en desktop, sticky bottom bar, cámara trasera para escaneo QR, feedback háptico y límites de cuota móvil). | `docs/status/PROJECT_STATUS.md` |
 
 
 

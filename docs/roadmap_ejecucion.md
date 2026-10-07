@@ -23,99 +23,99 @@ El presente roadmap técnico de ejecución establece la secuencia lógica, técn
 
 ## 2. Cronograma de Fases Secuenciales de Desarrollo
 
+El desarrollo se articula en **Dos Grandes Etapas Operativas** trazadas directamente con los tres procesos de negocio transaccionales del Plan de Calidad de Software:
+
 ```mermaid
 gantt
-    title Roadmap de Ejecución Técnica - Intégrate (5 Fases / 10 Semanas)
+    title Roadmap de Ejecución Técnica - Intégrate (2 Grandes Etapas Operativas)
     dateFormat  YYYY-MM-DD
-    section Fase 0: Setup & DB
-    Infraestructura Base & Boilerplate      :f0_1, 2026-10-05, 7d
-    Modelado Relacional & Flyway           :f0_2, after f0_1, 7d
-    section Fase 1: MVP Core Transaccional
-    Auth, RBAC & Habeas Data Base          :f1_1, after f0_2, 7d
-    Catálogo Territorial & Franjas         :f1_2, after f1_1, 7d
-    Motor Concurrente de Aforo & TTL       :f1_3, after f1_2, 7d
-    Checkout Mock & Split Payment (85/15)  :f1_4, after f1_3, 7d
-    Voucher Criptográfico (QR/PDF)         :f1_5, after f1_4, 7d
-    section Fase 2: PWA Offline-First
-    Service Workers & IndexedDB Storage    :f2_1, after f1_5, 7d
-    Descarga Preventiva & Lista Revocación :f2_2, after f2_1, 7d
-    Escaneo & Validación Criptográfica     :f2_3, after f2_2, 7d
-    section Fase 3: Sync & Políticas
-    Background Sync & Idempotencia Server  :f3_1, after f2_3, 7d
-    Resolución Determinista de Conflictos  :f3_2, after f3_1, 7d
-    Políticas de Cancelación (72h)         :f3_3, after f3_2, 7d
-    Enrolamiento Asistido Gestor de Enlace :f3_4, after f3_3, 7d
-    section Fase 4: Hardening & Cloud
-    Auditoría Inmutable & Seguridad        :f4_1, after f3_4, 7d
-    Testing Concurrente & Accesibilidad AA :f4_2, after f4_1, 7d
-    CI/CD & Despliegue AWS (ECS/RDS/S3)    :f4_3, after f4_2, 7d
+    section Etapa 1: Proc 1 y 2 (Identidades & Core Transaccional)
+    Fase 0 - Setup & DB (Infraestructura Base) :f0_1, 2026-10-05, 14d
+    Fase 1 - Proceso 1: Auth, RBAC & Habeas Data :f1_1, after f0_1, 7d
+    Fase 1 - Proceso 2: Catálogo & Aforo Ecológico :f1_2, after f1_1, 7d
+    Fase 1 - Proceso 2: Bloqueo Pesimista & TTL   :f1_3, after f1_2, 7d
+    Fase 1 - Proceso 2: Checkout, Pago & Voucher QR :f1_4, after f1_3, 7d
+    section Etapa 2: Proc 3 (Validación Offline & Dispersión)
+    Fase 2 - Proceso 3: PWA Offline & IndexedDB   :f2_1, after f1_4, 7d
+    Fase 2 - Proceso 3: Escaneo QR Asimétrico     :f2_2, after f2_1, 7d
+    Fase 3 - Proceso 3: Background Sync & Idempotencia :f3_1, after f2_2, 7d
+    Fase 3 - Proceso 3: Split Payment 85/15 & 72h :f3_2, after f3_1, 7d
+    Fase 4 - Cierre: Auditoría, Estrés & AWS Cloud :f4_1, after f3_2, 7d
 ```
 
 ---
 
-## 3. Desglose Detallado de Tareas por Dependencia Técnica
+## 3. Desglose Detallado de Tareas por Etapa y Dependencia Técnica
 
-### FASE 0: Entorno Base, Infraestructura y Persistencia (Semanas 1-2)
-*Objetivo:* Establecer el entorno de desarrollo reproducirle, el pipeline de integración continua y el esquema de base de datos PostgreSQL con migraciones versionadas.
+---
+
+### ETAPA 1: Núcleo de Identidades, Reserva Concurrente y Checkout Transaccional (Procesos 1 y 2)
+
+#### FASE 0: Entorno Base, Infraestructura y Persistencia (Semanas 1-2) - [Completada]
+*Objetivo:* Establecer el entorno de desarrollo reproducible, el pipeline de integración continua y el esquema de base de datos PostgreSQL con migraciones versionadas y políticas de seguridad.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
 | **T-0.1** | Configurar repositorios, monorepo/multimódulo (`backend-api`, `frontend-pwa`) y pipeline CI base con GitHub Actions. | Ninguna | T-0.2, T-0.3 |
 | **T-0.2** | Orquestar entorno de desarrollo local con Docker Compose (PostgreSQL 16, LocalStack S3 y Mailpit/SMTP). | T-0.1 | T-0.4 |
 | **T-0.3** | Configurar boilerplate Backend (Java 21, Spring Boot 4.1.x, Spring Data JPA, Lombok, Validation) con paquetes limpios `com.integrate.*`. | T-0.1 | T-0.4, T-1.1 |
-| **T-0.4** | Diseñar scripts de migración inicial con Flyway (`V1__initial_schema.sql`) con tipos ENUM, tablas base e índices transaccionales. | T-0.2, T-0.3 | T-1.2, T-1.3 |
+| **T-0.4** | Diseñar scripts de migración inicial con Flyway (`V1__initial_schema.sql` a `V10`) con tipos ENUM, tablas base e índices transaccionales. | T-0.2, T-0.3 | T-1.2, T-1.3 |
 | **T-0.5** | Configurar boilerplate Frontend PWA (React, Vite, TypeScript, Tailwind CSS, React Router DOM, Axios). | T-0.1 | T-1.1, T-1.2 |
 
 ---
 
-### FASE 1: Core / MVP Transaccional (Semanas 3-5)
-*Objetivo:* Implementar el flujo transaccional directo de punta a punta: desde la autenticación del turista y selección de experiencia, hasta el bloqueo atómico pesimista, pago simulado con split payment y emisión del voucher criptográfico.
+#### FASE 1: Core Transaccional - Procesos 1 y 2 (Semanas 3-5)
+*Objetivo:* Implementar el flujo transaccional directo de punta a punta: desde la autenticación y registro asistido (Proceso 1), hasta el bloqueo pesimista de aforo (`SELECT ... FOR UPDATE`), cobro electrónico en pasarela y emisión del voucher criptográfico PDF/QR (Proceso 2).
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-1.1** | **Gestión de Identidad & RBAC Básico:** Endpoints de login/registro, generación de JWT stateless con claims de rol y Spring Security Filter. | T-0.3, T-0.4, T-0.5 | T-1.2, T-1.3 |
-| **T-1.2** | **Catálogo Territorial & Parametrización de Franjas:** CRUD de experiencias y franjas horarias con capacidad de carga ecológica máxima. Interfaz de visualización pública. | T-0.4, T-1.1 | T-1.3 |
-| **T-1.3** | **Motor de Concurrencia y Bloqueo Pesimista (`SELECT FOR UPDATE`):** Servicio `BookingConcurrencyEngine` con transacción de bloqueo a nivel de fila (<200 ms), descuento de cupos y creación de reserva en estado `PENDING`. | T-0.4, T-1.2 | T-1.4, T-1.5 |
-| **T-1.4** | **Booking Expiration Worker (TTL 15 min):** Tarea asíncrona `@Scheduled` que audita periódicamente reservas `PENDING` vencidas y reintegra cupos a la franja horaria. | T-1.3 | T-1.5 |
-| **T-1.5** | **Adaptador de Pagos Desacoplado & Split Payment:** Implementación de `PaymentGatewayAdapter` con componente Mock transaccional y endpoint de webhook que calcula la desagregación 85% / 15%. | T-1.3 | T-1.6 |
-| **T-1.6** | **Generador de Voucher Criptográfico & PDF/QR:** Servicio que firma el payload JWT con clave privada RSA-2048, genera código QR de alta densidad, renderiza PDF y sube a AWS S3. | T-1.5 | T-1.7, T-2.1 |
-| **T-1.7** | **Despacho de Notificación Transaccional:** Servicio de correo electrónico (Gmail API / SMTP) que despacha el comprobante y voucher oficial al turista. | T-1.6 | Fin Fase 1 |
+| **T-1.1** | **[Proceso 1] Gestión de Identidad & RBAC Básico:** Endpoints de login/registro, generación de JWT stateless RS256 con claims de rol y Spring Security Resource Server. | T-0.3, T-0.4, T-0.5 | T-1.2, T-1.3 |
+| **T-1.2** | **[Proceso 1] Enrolamiento Asistido & Consentimientos:** Registro asistido por el Gestor de Enlace y captura inmutable de Habeas Data (Ley 1581). | T-1.1 | T-1.3 |
+| **T-1.3** | **[Proceso 2] Catálogo Territorial & Parametrización de Franjas:** CRUD de experiencias, integración DIVIPOLA y franjas horarias con tope de aforo ecológico. | T-0.4, T-1.1 | T-1.4 |
+| **T-1.4** | **[Proceso 2] Motor de Concurrencia y Bloqueo Pesimista (`SELECT FOR UPDATE`):** Servicio `BookingConcurrencyEngine` con transacción de bloqueo a nivel de fila (<200 ms), descuento de cupos y estado `PENDING`. | T-1.3 | T-1.5, T-1.6 |
+| **T-1.5** | **[Proceso 2] Booking Expiration Worker (TTL 15 min):** Tarea asíncrona `@Scheduled` que audita periódicamente reservas `PENDING` vencidas y reintegra cupos a la franja horaria. | T-1.4 | T-1.6 |
+| **T-1.6** | **[Proceso 2] Adaptador de Pagos Desacoplado & Webhook de Cobro:** Implementación de `PaymentGatewayAdapter` con procesamiento en COP, recepción idempotente de webhooks y retención de fondos (*escrow*). | T-1.4 | T-1.7 |
+| **T-1.7** | **[Proceso 2] Generador de Voucher Criptográfico & PDF/QR:** Servicio que firma el payload JWT con clave privada RSA-2048, genera código QR de alta densidad y renderiza PDF/A. | T-1.6 | T-1.8, T-2.1 |
+| **T-1.8** | **[Proceso 2] Despacho de Notificación Transaccional:** Servicio de correo electrónico (Gmail API / SMTP) que despacha el comprobante y voucher oficial al turista. | T-1.7 | Fin Etapa 1 |
 
 ---
 
-### FASE 2: PWA Offline-First y Validación Territorial (Semanas 6-7)
-*Objetivo:* Dotar a la PWA de capacidades de funcionamiento sin internet para que el Gestor de Enlace pueda descargar padrones locales y verificar vouchers mediante criptografía asimétrica en zonas desconectadas.
+### ETAPA 2: Validación Territorial Offline-First y Dispersión Financiera (Proceso 3)
+
+#### FASE 2: PWA Offline-First y Validación Territorial (Semanas 6-7)
+*Objetivo:* Dotar a la PWA de capacidades de funcionamiento 100% desconectado para que el Gestor de Enlace pueda descargar padrones locales y verificar vouchers mediante criptografía asimétrica en zonas rurales sin cobertura.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-2.1** | **Infraestructura Offline en Cliente PWA:** Configuración de Service Workers con Workbox para caché de assets estáticos y esquema de IndexedDB para almacenamiento de datos locales. | T-0.5, T-1.6 | T-2.2 |
-| **T-2.2** | **Módulo de Descarga Preventiva (Padrón Local & Llaves):** Funcionalidad en PWA para descargar el padrón de vouchers de la jornada, la lista delta de revocación y la clave pública RSA del servidor. | T-2.1, T-1.2 | T-2.3 |
-| **T-2.3** | **Lector QR y Motor de Validación Asimétrica Offline:** Integración de escáner de cámara web/móvil y motor Web Crypto API que valida firma digital, expiración y consistencia contra IndexedDB. | T-2.2 | T-2.4 |
-| **T-2.4** | **Marcación Local Anti-Doble Canje (RNF-18):** Lógica en IndexedDB que transiciona de inmediato el voucher a `CONSUMIDO_LOCAL` en el almacenamiento del dispositivo para impedir reutilizaciones offline. | T-2.3 | T-3.1 |
+| **T-2.1** | **[Proceso 3] Infraestructura Offline en Cliente PWA:** Configuración de Service Workers con Workbox para caché de assets estáticos y esquema de IndexedDB para almacenamiento de datos locales. | T-0.5, T-1.7 | T-2.2 |
+| **T-2.2** | **[Proceso 3] Módulo de Descarga Preventiva (Padrón Local & Llaves):** Funcionalidad en PWA para descargar el padrón de vouchers de la jornada, la lista delta de revocación y la clave pública RSA del servidor. | T-2.1, T-1.3 | T-2.3 |
+| **T-2.3** | **[Proceso 3] Lector QR y Motor de Validación Asimétrica Offline:** Integración de escáner de cámara web/móvil y motor Web Crypto API que valida firma digital, expiración y consistencia contra IndexedDB. | T-2.2 | T-2.4 |
+| **T-2.4** | **[Proceso 3] Marcación Local Anti-Doble Canje (RNF-18):** Lógica en IndexedDB que transiciona de inmediato el voucher a `CONSUMIDO_LOCAL` en el dispositivo para impedir reutilizaciones offline. | T-2.3 | T-3.1 |
+| **T-2.5** | **[Proceso 3] Canal Web de Contingencia:** Módulo administrativo para ingreso y validación manual del código alfanumérico ante avería o descarga del dispositivo móvil en territorio. | T-2.2 | T-3.1 |
 
 ---
 
-### FASE 3: Sincronización Diferida, Enrolamiento Asistido y Finanzas (Semanas 8-9)
-*Objetivo:* Habilitar la sincronización en segundo plano con resolución de conflictos determinista, completar la gestión delegada del Gestor de Enlace y parametrizar las políticas de cancelación estricta.
+#### FASE 3: Sincronización Diferida y Dispersión Financiera - Split Payment (Semanas 8-9)
+*Objetivo:* Habilitar la sincronización en segundo plano con resolución determinista de colisiones y ejecutar la dispersión bancaria exacta hacia las comunidades campesinas y anfitriones.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
-| **T-3.1** | **Cola de Eventos Diferidos & Background Sync:** Mecanismo en Service Worker que encola las asistencias registradas localmente y las despacha automáticamente al recuperar conectividad celular. | T-2.4 | T-3.2 |
-| **T-3.2** | **Endpoint de Sincronización Idempotente en Servidor:** Controlador `/api/v1/offline/sync` que procesa lotes de asistencias con clave de idempotencia y actualiza estados de reserva a `EXECUTED`. | T-3.1, T-1.3 | T-3.3 |
-| **T-3.3** | **Motor de Resolución Determinista de Conflictos:** Algoritmo en backend que salvaguarda el 85% a favor de la comunidad campesina si un turista cancelado consume el servicio fraudulentamente, derivando la alerta al Admin. | T-3.2, T-1.5 | T-3.4, T-4.1 |
-| **T-3.4** | **Motor de Políticas de Cancelación y Reembolso (72h):** Endpoints y lógica financiera que calculan $\Delta t$: si $>72\text{ h}$ reembolsa 85% al turista; si $\le 72\text{ h}$ o No-Show transfiere 85% a la Asociación. | T-1.5, T-3.3 | T-4.1 |
-| **T-3.5** | **Módulo de Gestión Asistida (Proxy Digital):** Interfaz para que el Gestor de Enlace registre anfitriones y formule propuestas de experiencias a nombre de ellos. | T-1.1, T-1.2 | T-4.1 |
+| **T-3.1** | **[Proceso 3] Cola de Eventos Diferidos & Background Sync:** Mecanismo en Service Worker que encola las asistencias registradas localmente y las despacha automáticamente al recuperar conectividad celular. | T-2.4, T-2.5 | T-3.2 |
+| **T-3.2** | **[Proceso 3] Endpoint de Sincronización Idempotente en Servidor:** Controlador `/api/v1/offline/sync` que procesa lotes de asistencias con clave de idempotencia y actualiza estados de reserva a `EXECUTED`. | T-3.1, T-1.4 | T-3.3 |
+| **T-3.3** | **[Proceso 3] Motor de Resolución Determinista de Conflictos:** Algoritmo en backend que salvaguarda el 85% a favor de la comunidad campesina si un turista cancelado consume el servicio fraudulentamente, derivando la alerta al Admin. | T-3.2, T-1.6 | T-3.4, T-4.1 |
+| **T-3.4** | **[Proceso 3] Algoritmo de Dispersión Financiera (Split Payment 85/15):** Ejecución automatizada de órdenes de dispersión bancaria en COP hacia la Asociación/Anfitrión (85%) y plataforma (15%), con dispersión supletoria a las 24 horas. | T-3.2, T-3.3 | T-4.1 |
+| **T-3.5** | **[Proceso 3] Motor de Políticas de Cancelación y Reembolso (72h):** Lógica financiera que calcula $\Delta t$: si $>72\text{ h}$ reembolsa 85% al turista; si $\le 72\text{ h}$ o No-Show transfiere 85% a la Asociación. | T-1.6, T-3.3 | T-4.1 |
 
 ---
 
-### FASE 4: Auditoría Legal, Hardening, Pruebas de Carga y Cloud (Semana 10)
+#### FASE 4: Auditoría Legal, Hardening, Pruebas de Carga y Cloud (Semana 10)
 *Objetivo:* Implementar la auditoría estricta de Habeas Data, asegurar la accesibilidad AA, realizar pruebas de estrés de aforo concurrente y desplegar la solución en infraestructura AWS.
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
 | **T-4.1** | **Auditoría Inmutable Habeas Data (Ley 1581) & Cifrado AES-256:** Registro inmutable de consentimientos y cifrado a nivel de columna para datos de víctimas y médicos. Panel de auditoría para Admin. | T-3.3, T-3.4 | T-4.2 |
-| **T-4.2** | **Pruebas de Estrés y Concurrencia de Aforo:** Suite de pruebas con JMeter/Gatling simulando 200 usuarios concurrentes compitiendo por los últimos 2 cupos para certificar tasa 0% sobreventa y latencia < 200 ms. | T-1.3, T-1.4 | T-4.3 |
-| **T-4.3** | **Hardening de Accesibilidad (WCAG 2.1 AA / NTC 5854):** Ajuste de contrastes para luz solar en campo, navegación semántica por teclado y soporte de lectores de pantalla en la PWA. | T-2.3, T-3.5 | T-4.4 |
+| **T-4.2** | **Pruebas de Estrés y Concurrencia de Aforo:** Suite de pruebas con JMeter/Gatling simulando 200 usuarios concurrentes compitiendo por los últimos 2 cupos para certificar tasa 0% sobreventa y latencia < 200 ms. | T-1.4, T-1.5 | T-4.3 |
+| **T-4.3** | **Hardening de Accesibilidad (WCAG 2.1 AA / NTC 5854):** Ajuste de contrastes para luz solar en campo, navegación semántica por teclado y soporte de lectores de pantalla en la PWA. | T-2.3 | T-4.4 |
 | **T-4.4** | **Pipeline CI/CD y Despliegue en AWS:** Configuración de contenedores en AWS ECS Fargate, base de datos en AWS RDS PostgreSQL, certificados SSL/TLS y bucket AWS S3 para almacenamiento de vouchers. | T-0.1, T-4.1, T-4.2 | Puesta en Producción |
 
 ---

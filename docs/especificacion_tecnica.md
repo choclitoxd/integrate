@@ -34,6 +34,7 @@ La plataforma erradica la sobreventa de cupos (*overbooking*) en senderos de con
 - Motor de reservas transaccional con control de concurrencia pesimista en PostgreSQL (`SELECT ... FOR UPDATE`) y control de tiempo de vida (TTL de 15 minutos).
 - Generación de vouchers criptográficos intransferibles firmados asimétricamente (JWT con RSA-256 o Ed25519) empacados en códigos QR y exportables a PDF.
 - PWA *Offline-First* con almacenamiento local en IndexedDB y Service Workers para consulta local y validación en campo sin red.
+- Factor de forma y cliente móvil exclusivo (Mobile-First / PWA para Smartphone): Diseño y operación de la aplicación cliente delimitados primordialmente para teléfonos móviles (viewport estándar 360 px a 430 px, contenedor centrado `max-w-md` en escritorio, ergonomía táctil con sticky bottom bar, cámara trasera para lector QR y áreas táctiles $\ge 44 \times 44$ px).
 - Descarga preventiva diaria de padrón de vouchers y delta de revocación local.
 - Sincronización en segundo plano (*Background Sync*) y resolución determinista de conflictos contables que protege irrenunciablemente el 85% de la comunidad.
 - Integración desacoplada con pasarela de pagos colombiana mediante `PaymentGatewayAdapter` (Mock en MVP / Pasarela regulada en prod) para cobro y dispersión (85% anfitrión/asociación, 15% plataforma).
@@ -315,17 +316,17 @@ A continuación se especifican los 20 requerimientos funcionales del sistema, tr
 
 ### 4.1 Patrón Arquitectónico Global
 El sistema adopta una **Arquitectura en Capas Limpia (Clean Layered Architecture / Hexagonal)** en el Backend y una **Arquitectura Basada en Componentes Progresivos (PWA con Service Workers)** en el Frontend:
-- **Frontend PWA:** React 18+ (con Vite), TypeScript, Tailwind CSS, Service Workers con Workbox, IndexedDB nativo (mediante Dexie.js o `idb`).
+- **Frontend PWA Móvil:** React 19 con Vite, TypeScript, Tailwind CSS, Service Workers con Workbox, IndexedDB nativo (mediante Dexie.js o `idb`). Delimitado estrictamente para **Smartphones** (viewport móvil 360–430 px, layout centrado `max-w-md` en escritorio, navegación inferior y ergonomía táctil).
 - **Backend API:** Java 21 LTS con Spring Boot 4.1.x (ADR-0002), Spring Security 7 (Stateless JWT), Spring Data JPA / Hibernate, Spring Scheduler.
 - **Persistencia & Almacenamiento:** PostgreSQL 16 con migraciones controladas por Flyway; AWS S3 para almacenamiento de documentos PDF y comprobantes QR.
 - **Entorno de Despliegue:** Orquestación local con Docker Compose; infraestructura productiva en AWS (ECS Fargate / EC2 para servicios de backend y PWA, AWS RDS para PostgreSQL).
 
 ```mermaid
 graph TD
-    subgraph Clientes ["Clientes (PWA Responsive)"]
-        TuristaPWA["Turista PWA (Online)"]
-        GestorPWA["Gestor de Enlace PWA (Offline-First / IndexedDB)"]
-        AdminWeb["Panel Administrador Web"]
+    subgraph Clientes ["Clientes (PWA Smartphone / Mobile-First)"]
+        TuristaPWA["Turista PWA Móvil (Online / Smartphone)"]
+        GestorPWA["Gestor de Enlace PWA Móvil (Offline-First / Smartphone)"]
+        AdminWeb["Panel Administrador Web (Contenedor Mobile / Desktop)"]
     end
 
     subgraph Edge ["Frontera de Entrada"]
