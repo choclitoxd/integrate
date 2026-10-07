@@ -11,4 +11,7 @@ public interface HostProfileRepository extends JpaRepository<HostProfile, UUID> 
     Optional<HostProfile> findByUserIdAndDeletedAtIsNull(UUID userId);
 
     boolean existsByUserIdAndDeletedAtIsNull(UUID userId);
+
+    /** Un documento soporte respalda a un solo anfitrión (ADR-0007 §5). */
+    boolean existsBySupportDocS3Key(String supportDocS3Key);
 }

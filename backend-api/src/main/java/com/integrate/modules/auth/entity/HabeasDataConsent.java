@@ -1,5 +1,6 @@
 package com.integrate.modules.auth.entity;
 
+import com.integrate.common.persistence.PgDomains;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,6 +59,13 @@ public class HabeasDataConsent {
     @Column(nullable = false, length = 20)
     private ConsentChannel channel;
 
+    /** Gestor o administrador que capturó el consentimiento asistido; {@code null} en autoservicio. */
+    @Column(name = "captured_by")
+    private UUID capturedBy;
+
+    @Column(name = "physical_consent_form_s3_key", length = 1024, columnDefinition = PgDomains.S3_KEY)
+    private String physicalConsentFormS3Key;
+
     /** Otorgamiento por el propio titular ({@code channel = SELF_SERVICE}, sin {@code captured_by}). */
     public static HabeasDataConsent selfServiceGrant(UUID userId, PrivacyPolicy policy, ConsentPurpose purpose,
                                                      InetAddress ipAddress, String userAgent, Instant now) {
@@ -70,6 +78,21 @@ public class HabeasDataConsent {
         consent.userAgent = userAgent;
         consent.occurredAt = now;
         consent.channel = ConsentChannel.SELF_SERVICE;
+        return consent;
+    }
+
+    /**
+     * Otorgamiento capturado por un gestor en el registro asistido ({@code ASSISTED_PROXY}, ADR-0007 §3).
+     * La IP y el user agent son los de la terminal de quien lo captura; el formato físico firmado
+     * queda como evidencia en S3.
+     */
+    public static HabeasDataConsent assistedProxyGrant(UUID userId, PrivacyPolicy policy, ConsentPurpose purpose,
+                                                       UUID capturedBy, String physicalConsentFormS3Key,
+                                                       InetAddress ipAddress, String userAgent, Instant now) {
+        HabeasDataConsent consent = selfServiceGrant(userId, policy, purpose, ipAddress, userAgent, now);
+        consent.channel = ConsentChannel.ASSISTED_PROXY;
+        consent.capturedBy = capturedBy;
+        consent.physicalConsentFormS3Key = physicalConsentFormS3Key;
         return consent;
     }
 }

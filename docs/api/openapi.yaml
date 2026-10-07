@@ -25,10 +25,12 @@ tags:
     description: Autenticación, sesiones, autorregistro, consentimientos y registro asistido (RF-01, RF-02, RF-03, RF-06).
   - name: Catalog
     description: Consulta pública de disponibilidad (RF-04).
+  - name: Gestor
+    description: Operaciones del Gestor de Enlace — subida de documentos, anfitriones de su jurisdicción y activación asistida (RF-03, ADR-0007).
   - name: Host
     description: Panel del anfitrión — propuestas y franjas (RF-05, ADR-0006).
   - name: Admin
-    description: Asociaciones, alta de anfitriones y moderación del catálogo (RF-03, RF-07, RF-08, ADR-0006).
+    description: Asociaciones, alta de anfitriones, acreditación de gestores y moderación del catálogo (RF-03, RF-07, RF-08, ADR-0006, ADR-0007).
   - name: Booking
     description: Bloqueo pesimista de aforo con TTL de 15 minutos (RF-09, RF-10).
   - name: Payments
@@ -262,16 +264,22 @@ paths:
       operationId: registerAssistedHost
       summary: Registra un Anfitrión Comunitario por intermediación del Gestor de Enlace.
       description: |
-        Solo `ROLE_LINK_MANAGER` y `ROLE_ADMIN`. Crea siempre un usuario con rol `HOST`.
-        - Si no se envía `email`, el servidor genera uno sintético `cc{docNumber}@comunidad.integrate.co`.
+        Solo `ROLE_LINK_MANAGER` con acreditación `ACTIVE` (si no, 403 `ENROLLMENT_MANAGER_NOT_ACTIVE`) y `ROLE_ADMIN`.
+        Crea siempre un usuario con rol `HOST` en la asociación del gestor (ADR-0007 §3).
+        - Si no se envía `email`, el servidor genera uno sintético `{docType}{docNumber}@comunidad.integrate.co`
+          en minúsculas (`cc1094857483@…` para CC).
         - La contraseña inicial es un secreto aleatorio que no se revela. La cuenta queda con
-          `credentialStatus = PENDING_RESET` hasta que el anfitrión haga un restablecimiento asistido.
+          `credentialStatus = PENDING_RESET` hasta que el anfitrión la active con el código que emite el gestor
+          (`/api/v1/gestor/hosts/{hostProfileId}/activation-code` → `/api/v1/auth/activate`).
+        - Con `victimCondition = false` no se admiten RUV, hecho victimizante ni soporte (422).
+        - Las llaves S3 deben venir de `/api/v1/gestor/uploads` con el tipo correcto, el objeto debe existir, ser PDF
+          de hasta 5 MB y no estar ya usado; si no, 422 `ENROLLMENT_DOCUMENT_INVALID`.
         - Los datos de víctima se cifran con AES-256-GCM antes de persistir.
         - El consentimiento se registra con `channel = ASSISTED_PROXY`, `captured_by` = el usuario invocador
           y la IP y el user agent de la terminal del Gestor. Exige el formato físico firmado en S3 y las
           finalidades `PERSONAL_DATA` y `SENSITIVE_VICTIM`.
         - Crea la vinculación en `host_manager_assignments` (`valid_from = NOW()`) con el Gestor autenticado
-          o, si invoca un `ADMIN`, con el `linkManagerId` indicado.
+          o, si invoca un `ADMIN`, con el `linkManagerId` indicado (422 si falta, 404 si no existe, 409 si no está `ACTIVE`).
       security:
         - bearerAuth: []
       x-required-roles: [ROLE_LINK_MANAGER, ROLE_ADMIN]
@@ -324,9 +332,129 @@ paths:
                   capturedAt: '2026-10-05T14:02:11Z'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '403': { $ref: '#/components/responses/EnrollmentForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/UserAlreadyExists' }
+        '422': { $ref: '#/components/responses/DocumentInvalid' }
+
+  /api/v1/auth/activate:
+    post:
+      tags: [Auth]
+      operationId: activateAssistedAccount
+      summary: Activa la cuenta de un anfitrión registrado por un gestor con un código de un solo uso (ADR-0007 §6).
+      description: |
+        Canjea el código que el gestor entregó al anfitrión por una contraseña propia: la cuenta pasa de
+        `PENDING_RESET` a `ACTIVE` y el anfitrión inicia sesión después con `/api/v1/auth/login`.
+        El código tolera minúsculas, guiones y espacios. Correo inexistente, código erróneo, vencido (72 h),
+        consumido o con 5 intentos fallidos responden el mismo 401 `AUTH_ACTIVATION_INVALID`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ActivationRequest' }
+            example:
+              email: cc1094857483@comunidad.integrate.co
+              code: 7K3QD-M9X2P
+              newPassword: una-clave-larga-y-propia
+      responses:
+        '204':
+          description: Cuenta activada.
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/ActivationInvalid' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/gestor/uploads:
+    post:
+      tags: [Gestor]
+      operationId: presignEnrollmentDocument
+      summary: URL prefirmada para subir un PDF del enrolamiento directamente a S3 (ADR-0007 §5).
+      description: |
+        El servidor genera la llave (`consents/physical/{yyyy}/{MM}/{uuid}.pdf` o `host-support/…`), sin datos
+        personales. El cliente hace `PUT uploadUrl` con `Content-Type: application/pdf` antes de `expiresAt`
+        (5 minutos) y luego envía `s3Key` en `register-assisted`, que verifica el objeto (existe, es PDF, ≤ 5 MB).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_LINK_MANAGER, ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DocumentUploadRequest' }
+      responses:
+        '201':
+          description: URL de subida emitida.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DocumentUploadResponse' }
+              example:
+                s3Key: consents/physical/2026/10/0f1e2d3c-4b5a-4968-8776-655443322110.pdf
+                uploadUrl: https://integrate-sensitive.s3.amazonaws.com/consents/physical/2026/10/0f1e2d3c-4b5a-4968-8776-655443322110.pdf?X-Amz-Signature=...
+                contentType: application/pdf
+                maxSizeBytes: 5242880
+                expiresAt: '2026-10-07T14:07:11Z'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/EnrollmentForbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/gestor/hosts:
+    get:
+      tags: [Gestor]
+      operationId: listManagedHosts
+      summary: Anfitriones bajo la jurisdicción vigente del gestor autenticado (ADR-0007 §1).
+      description: Solo datos de contacto; el documento se muestra con sus 4 últimos caracteres y nunca hay datos de víctima.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_LINK_MANAGER]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de anfitriones.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/ManagedHost' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/EnrollmentForbidden' }
+
+  /api/v1/gestor/hosts/{hostProfileId}/activation-code:
+    post:
+      tags: [Gestor]
+      operationId: issueActivationCode
+      summary: Emite el código de activación de un anfitrión de la jurisdicción del gestor (ADR-0007 §6).
+      description: |
+        Código de 10 caracteres en base32 de Crockford (`XXXXX-XXXXX`) que vence a las 72 h; solo se guarda su
+        SHA-256 y se muestra una única vez. Emitir uno nuevo revoca el anterior. Un anfitrión fuera de la
+        jurisdicción vigente responde 404; una cuenta ya activa, 409.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_LINK_MANAGER]
+      parameters:
+        - name: hostProfileId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Código emitido.
+          headers:
+            Cache-Control:
+              description: Siempre `no-store`.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivationCode' }
+              example:
+                code: 7K3QD-M9X2P
+                expiresAt: '2026-10-10T14:02:11Z'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/EnrollmentForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
 
   /api/v1/experiences:
     get:
@@ -689,6 +817,61 @@ paths:
                   associationId: { type: string, format: uuid }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/CatalogConflict' }
+
+  /api/v1/admin/link-managers:
+    post:
+      tags: [Admin]
+      operationId: accreditLinkManager
+      summary: Acredita a un usuario existente como Gestor de Enlace de una asociación y le otorga ROLE_LINK_MANAGER (ADR-0007 §2).
+      description: El rol aparece en el JWT desde el siguiente login o refresh. `accreditedOn` no puede ser futura.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LinkManagerRequest' }
+      responses:
+        '201':
+          description: Gestor acreditado.
+          headers:
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkManager' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/LinkManagerConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/admin/link-managers/{id}/{action}:
+    post:
+      tags: [Admin]
+      operationId: changeLinkManagerStatus
+      summary: Suspende, reactiva o revoca una acreditación (ADR-0007 §2).
+      description: '`suspend`: ACTIVE → SUSPENDED · `reinstate`: SUSPENDED → ACTIVE · `revoke`: → REVOKED (terminal).'
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: action
+          in: path
+          required: true
+          schema: { type: string, enum: [suspend, reinstate, revoke] }
+      responses:
+        '200':
+          description: Acreditación actualizada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkManager' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
 
   /api/v1/admin/experiences:
     get:
@@ -1452,6 +1635,68 @@ components:
             capturedBy: { type: string, format: uuid }
             capturedAt: { type: string, format: date-time }
 
+    # ---------- Enrolamiento asistido (ADR-0007) ----------
+    ActivationRequest:
+      type: object
+      additionalProperties: false
+      required: [email, code, newPassword]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        code: { type: string, maxLength: 20, description: 'Código entregado por el gestor (XXXXX-XXXXX).' }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
+    DocumentUploadRequest:
+      type: object
+      additionalProperties: false
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [PHYSICAL_CONSENT_FORM, VICTIM_SUPPORT_DOC] }
+    DocumentUploadResponse:
+      type: object
+      required: [s3Key, uploadUrl, contentType, maxSizeBytes, expiresAt]
+      properties:
+        s3Key: { type: string, maxLength: 512 }
+        uploadUrl: { type: string, format: uri, description: URL `PUT` firmada; vence en `expiresAt`. }
+        contentType: { type: string, const: application/pdf }
+        maxSizeBytes: { type: integer, format: int64, const: 5242880 }
+        expiresAt: { type: string, format: date-time }
+    ManagedHost:
+      type: object
+      required: [hostProfileId, userId, fullName, email, emailIsSynthetic, phone, docType, docNumberLast4, credentialStatus, assignedSince]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        emailIsSynthetic: { type: boolean }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumberLast4: { type: string, maxLength: 4 }
+        credentialStatus: { type: string, enum: [ACTIVE, PENDING_RESET] }
+        assignedSince: { type: string, format: date-time }
+    ActivationCode:
+      type: object
+      required: [code, expiresAt]
+      properties:
+        code: { type: string, pattern: '^[0-9A-HJKMNP-TV-Z]{5}-[0-9A-HJKMNP-TV-Z]{5}$' }
+        expiresAt: { type: string, format: date-time }
+    LinkManagerRequest:
+      type: object
+      additionalProperties: false
+      required: [userId, associationId, accreditedOn]
+      properties:
+        userId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        accreditedOn: { type: string, format: date }
+    LinkManager:
+      type: object
+      required: [linkManagerId, userId, associationId, accreditationStatus, accreditedOn]
+      properties:
+        linkManagerId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        accreditationStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
+
     # ---------- Catalog ----------
     PageMeta:
       type: object
@@ -2027,6 +2272,52 @@ components:
             title: Sync Batch Payload Mismatch
             status: 409
             code: SYNC_BATCH_PAYLOAD_MISMATCH
+            traceId: c4b9-8f21-4d1a
+    EnrollmentForbidden:
+      description: Rol no autorizado (`RBAC_FORBIDDEN`) o gestor sin acreditación `ACTIVE` aunque su JWT conserve el rol (`ENROLLMENT_MANAGER_NOT_ACTIVE`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/manager-not-active
+            title: Link Manager Not Active
+            status: 403
+            code: ENROLLMENT_MANAGER_NOT_ACTIVE
+            traceId: c4b9-8f21-4d1a
+    ActivationInvalid:
+      description: Código de activación inválido, vencido, consumido o agotado, o correo inexistente (misma respuesta).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/activation-invalid
+            title: Activation Code Invalid
+            status: 401
+            code: AUTH_ACTIVATION_INVALID
+            traceId: c4b9-8f21-4d1a
+    LinkManagerConflict:
+      description: El usuario ya tiene una acreditación vigente (`ENROLLMENT_MANAGER_EXISTS`) o la asociación está inactiva (`CATALOG_HOST_PROFILE_EXISTS`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/manager-exists
+            title: Link Manager Already Exists
+            status: 409
+            code: ENROLLMENT_MANAGER_EXISTS
+            traceId: c4b9-8f21-4d1a
+    DocumentInvalid:
+      description: Validación de campos (`VALIDATION_FAILED`) o PDF del enrolamiento no subido, de otro tipo, que no es PDF, que excede 5 MB o que ya respalda otro registro (`ENROLLMENT_DOCUMENT_INVALID`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/document-invalid
+            title: Document Invalid
+            status: 422
+            code: ENROLLMENT_DOCUMENT_INVALID
+            invalidParams:
+              - { name: consent.physicalConsentFormS3Key, reason: the document has not been uploaded }
             traceId: c4b9-8f21-4d1a
     UnprocessableEntity:
       description: Errores semánticos de validación, campo por campo.

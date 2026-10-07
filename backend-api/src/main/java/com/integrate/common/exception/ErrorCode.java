@@ -27,6 +27,12 @@ public enum ErrorCode {
     AUTH_ACCOUNT_SUSPENDED(HttpStatus.FORBIDDEN, "account-suspended", "Account Suspended"),
     AUTH_ACCOUNT_LOCKED(HttpStatus.LOCKED, "account-locked", "Account Temporarily Locked"),
     AUTH_USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "user-already-exists", "User Already Exists"),
+    AUTH_ACTIVATION_INVALID(HttpStatus.UNAUTHORIZED, "activation-invalid", "Activation Code Invalid"),
+
+    // --- Enrolamiento asistido (ADR-0007) ------------------------------------
+    ENROLLMENT_MANAGER_NOT_ACTIVE(HttpStatus.FORBIDDEN, "manager-not-active", "Link Manager Not Active"),
+    ENROLLMENT_MANAGER_EXISTS(HttpStatus.CONFLICT, "manager-exists", "Link Manager Already Exists"),
+    ENROLLMENT_DOCUMENT_INVALID(HttpStatus.UNPROCESSABLE_CONTENT, "document-invalid", "Document Invalid"),
 
     // --- Catalog / Booking ---------------------------------------------------
     CATALOG_EXPERIENCE_NOT_APPROVED(HttpStatus.CONFLICT, "experience-not-approved", "Experience Not Approved"),

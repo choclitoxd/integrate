@@ -51,6 +51,10 @@ public class SecurityConfig {
                         // Paneles por rol; además @PreAuthorize en cada controlador (defensa en profundidad).
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/host/**").hasRole("HOST")
+                        // Enrolamiento asistido (ADR-0007 §1): gestor acreditado o administrador.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register-assisted", "/api/v1/gestor/uploads")
+                        .hasAnyRole("LINK_MANAGER", "ADMIN")
+                        .requestMatchers("/api/v1/gestor/**").hasRole("LINK_MANAGER")
                         // Destino interno de los errores del contenedor; nunca expone detalles (application.yml).
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())

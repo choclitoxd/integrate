@@ -17,7 +17,13 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 | POST | `/api/v1/auth/logout` | cookie `refresh_token` (opcional) | 204 | — |
 | GET | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 401 |
 | POST | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 400, 401, 422 |
-| POST | `/api/v1/auth/register-assisted` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 409, 422 |
+| POST | `/api/v1/auth/register-assisted` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 404, 409, 422 |
+| POST | `/api/v1/auth/activate` | público | 204 | 400, 401, 422 |
+| POST | `/api/v1/gestor/uploads` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 422 |
+| GET | `/api/v1/gestor/hosts` | `LINK_MANAGER` | 200 (paginado) | 401, 403 |
+| POST | `/api/v1/gestor/hosts/{hostProfileId}/activation-code` | `LINK_MANAGER` | 201 | 401, 403, 404, 409 |
+| POST | `/api/v1/admin/link-managers` | `ADMIN` | 201 | 400, 401, 403, 404, 409, 422 |
+| POST | `/api/v1/admin/link-managers/{id}/{suspend\|reinstate\|revoke}` | `ADMIN` | 200 | 401, 403, 404, 409 |
 | GET | `/api/v1/experiences/{id}/availability` | público (JWT opcional) | 200 | 400, 404, 409, 422 |
 | POST | `/api/v1/bookings/lock` | `TOURIST` | 201 (200 si es replay) | 400, 401, 403, 404, 409, 422, 428, 503 |
 | POST | `/api/v1/payments/webhook/mock` | firma HMAC | 200 | 400, 401, 422 |
@@ -71,10 +77,14 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `AUTH_ACCOUNT_SUSPENDED` | 403 | login, refresh |
 | `AUTH_ACCOUNT_LOCKED` | 423 | login |
 | `AUTH_USER_ALREADY_EXISTS` | 409 | register, register-assisted |
+| `AUTH_ACTIVATION_INVALID` | 401 | activate (correo, código erróneo, vencido, consumido o agotado: misma respuesta) |
+| `ENROLLMENT_MANAGER_NOT_ACTIVE` | 403 | register-assisted, gestor/* (gestor sin acreditación `ACTIVE`) |
+| `ENROLLMENT_MANAGER_EXISTS` | 409 | admin/link-managers |
+| `ENROLLMENT_DOCUMENT_INVALID` | 422 | register-assisted (PDF inexistente, de otro tipo, > 5 MB o ya usado) |
 | `RBAC_FORBIDDEN` | 403 | protegidos |
 | `RESOURCE_NOT_FOUND` | 404 | availability, lock |
 | `CATALOG_EXPERIENCE_NOT_APPROVED` | 409 | availability (panel ADMIN/LINK_MANAGER) |
-| `CATALOG_INVALID_STATUS_TRANSITION` | 409 | host (editar/enviar), admin (moderación) |
+| `CATALOG_INVALID_STATUS_TRANSITION` | 409 | host (editar/enviar), admin (moderación, acreditación de gestores), register-assisted (gestor indicado no activo), activation-code (cuenta ya activa) |
 | `CATALOG_SCHEDULE_CONFLICT` | 409 | franjas (duplicado, cancelación con reservas) |
 | `CATALOG_HOST_PROFILE_EXISTS` | 409 | admin/host-profiles |
 | `CATALOG_ASSOCIATION_EXISTS` | 409 | admin/associations |
@@ -164,17 +174,22 @@ No hay campo de rol: el autorregistro crea siempre `TOURIST`. Respuesta 201 `Reg
 | `docType` | `CC\|CE\|PA\|PPT\|TI` | ✔ | |
 | `docNumber` | string | ✔ | `^[A-Za-z0-9]{4,20}$`; `(docType, docNumber)` único → 409 |
 | `phone` | string | ✔ | E.164 `^\+[1-9][0-9]{7,14}$` |
-| `email` | string \| null | | si se omite, el servidor genera `cc{docNumber}@comunidad.integrate.co` |
+| `email` | string \| null | | si se omite, el servidor genera `{docType}{docNumber}@comunidad.integrate.co` en minúsculas (p. ej. `cc1094857483@…`) |
 | `linkManagerId` | UUID \| null | condicional | **obligatorio si el invocador es `ADMIN`**; si es `LINK_MANAGER` se usa el gestor autenticado |
 | `victimData.victimCondition` | boolean | ✔ | cifrado → `victim_condition_enc` |
 | `victimData.ruvRegistrationNumber` | string \| null | | ≤ 40, cifrado |
 | `victimData.victimizationType` | string \| null | | ≤ 80, cifrado |
-| `victimData.supportDocS3Key` | string \| null | | ≤ 512 |
+| `victimData.supportDocS3Key` | string \| null | | ≤ 512; llave emitida por `/gestor/uploads` con `kind = VICTIM_SUPPORT_DOC` |
 | `consent.policyVersion` | string | ✔ | debe ser la versión `is_current` → si no, 422 |
 | `consent.purposes` | string[] | ✔ | exactamente `{PERSONAL_DATA, SENSITIVE_VICTIM}` |
-| `consent.physicalConsentFormS3Key` | string | ✔ | PDF firmado, subido antes a S3 |
+| `consent.physicalConsentFormS3Key` | string | ✔ | PDF firmado, subido antes a S3 con `/gestor/uploads` (`kind = PHYSICAL_CONSENT_FORM`) |
 
-Reglas de servidor: el anfitrión y el gestor deben pertenecer a la misma `association_id` (RF-03, FK compuesta D3). El anfitrión no debe tener un gestor vigente; si lo tiene, la restricción EXCLUDE responde 409. La contraseña inicial es un secreto aleatorio que nunca se devuelve.
+Reglas de servidor (ADR-0007 §3):
+- **Gestor efectivo:** un `LINK_MANAGER` sin acreditación `ACTIVE` recibe 403 `ENROLLMENT_MANAGER_NOT_ACTIVE`. Si invoca un `ADMIN`, `linkManagerId` falta → 422 (`invalidParams[0].name = linkManagerId`), no existe → 404, no está `ACTIVE` → 409 `CATALOG_INVALID_STATUS_TRANSITION`.
+- **Asociación:** es siempre la del gestor; el cliente no la elige. Así se cumple la regla de misma asociación (RF-03), que además respaldan las FK compuestas (D3). Una asociación inactiva responde 409 `CATALOG_HOST_PROFILE_EXISTS`.
+- **Datos de víctima:** con `victimCondition = false` no se admiten RUV, hecho victimizante ni soporte (422 por campo). Se cifran con AES-256-GCM en la aplicación, atados a su fila y columna.
+- **Documentos:** cada llave debe tener el prefijo de su tipo, existir en S3, ser `application/pdf` de hasta 5 MB y no estar ya usada; si no, 422 `ENROLLMENT_DOCUMENT_INVALID`.
+- **Credencial:** la contraseña inicial es un secreto aleatorio que nunca se devuelve. La cuenta se habilita con un código de activación (§3.5).
 
 ### 3.4 `AssistedHostRegistrationResponse` (201)
 
@@ -189,6 +204,18 @@ Reglas de servidor: el anfitrión y el gestor deben pertenecer a la misma `assoc
 | `consent` | `{channel:"ASSISTED_PROXY", policyVersion, purposes[], capturedBy, capturedAt}` |
 
 Los datos de víctima **nunca** se devuelven en la respuesta.
+
+### 3.5 Gestor de Enlace y activación asistida (ADR-0007)
+
+**Acreditación** (`POST /api/v1/admin/link-managers`, `ADMIN`): `{userId, associationId, accreditedOn}` (fecha no futura) crea la acreditación `ACTIVE` y otorga `ROLE_LINK_MANAGER`, visible desde el siguiente login o refresh. Respuesta: `{linkManagerId, userId, associationId, accreditationStatus, accreditedOn}`. Una acreditación vigente responde 409 `ENROLLMENT_MANAGER_EXISTS`. Las acciones `suspend` (`ACTIVE → SUSPENDED`), `reinstate` (`SUSPENDED → ACTIVE`) y `revoke` (terminal) responden 409 `CATALOG_INVALID_STATUS_TRANSITION` con `currentStatus` si no aplican.
+
+**Subida prefirmada** (`POST /api/v1/gestor/uploads`): `{kind: PHYSICAL_CONSENT_FORM | VICTIM_SUPPORT_DOC}` → 201 `{s3Key, uploadUrl, contentType: "application/pdf", maxSizeBytes: 5242880, expiresAt}`. El servidor genera la llave (`consents/physical/{yyyy}/{MM}/{uuid}.pdf` o `host-support/…`). El cliente hace `PUT uploadUrl` con `Content-Type: application/pdf` antes de `expiresAt` (5 minutos); el backend no recibe el binario.
+
+**Anfitriones del gestor** (`GET /api/v1/gestor/hosts`, paginado, orden de asignación más reciente): `ManagedHost` = `{hostProfileId, userId, fullName, email, emailIsSynthetic, phone, docType, docNumberLast4, credentialStatus, assignedSince}`. Solo asignaciones vigentes del gestor autenticado; nunca datos de víctima ni el documento completo.
+
+**Código de activación** (`POST /api/v1/gestor/hosts/{hostProfileId}/activation-code`): 201 `{code: "XXXXX-XXXXX", expiresAt}` con `Cache-Control: no-store`. Base32 de Crockford, vence a las 72 h y solo se guarda su SHA-256. Emitir uno nuevo revoca el anterior. Un anfitrión fuera de la jurisdicción vigente responde 404; una cuenta ya activa, 409.
+
+**Activación** (`POST /api/v1/auth/activate`, público): `{email, code, newPassword}` → 204. La contraseña cumple la política de 12–128 caracteres (422). El código tolera minúsculas, guiones y espacios. Correo inexistente, código erróneo, vencido, consumido o con 5 intentos fallidos responden el mismo 401 `AUTH_ACTIVATION_INVALID`. Tras activar, el anfitrión inicia sesión con `/auth/login`.
 
 ---
 

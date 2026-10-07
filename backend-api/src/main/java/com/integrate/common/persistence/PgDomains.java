@@ -13,6 +13,8 @@ public final class PgDomains {
     public static final String PHONE_E164 = "\"common\".\"phone_e164\"";
     public static final String SHA256_HEX = "\"common\".\"sha256_hex\"";
     public static final String COP_AMOUNT = "\"common\".\"cop_amount\"";
+    public static final String CIPHERTEXT = "\"common\".\"ciphertext\"";
+    public static final String S3_KEY = "\"common\".\"s3_key\"";
 
     private PgDomains() {
     }

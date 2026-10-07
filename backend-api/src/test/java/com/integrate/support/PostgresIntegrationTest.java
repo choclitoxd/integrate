@@ -23,7 +23,7 @@ import org.testcontainers.utility.MountableFile;
  * los privilegios de V9 y los triggers append-only se ejercitan de verdad.
  *
  * <p>Un único contenedor por JVM (patrón singleton); las contraseñas de los roles son aleatorias
- * por ejecución. Requiere Docker.
+ * por ejecución. Requiere Docker. S3 se sustituye por {@link InMemoryDocumentStorage}.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -34,6 +34,7 @@ public abstract class PostgresIntegrationTest {
 
     private static final String OWNER_PASSWORD = UUID.randomUUID().toString();
     private static final String API_PASSWORD = UUID.randomUUID().toString();
+    private static final String SENSITIVE_DATA_KEY = TestKeys.sensitiveDataKey();
 
     @SuppressWarnings("resource") // vive toda la JVM; Ryuk lo elimina al terminar
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16.6-alpine")
@@ -51,6 +52,9 @@ public abstract class PostgresIntegrationTest {
     @Autowired
     protected MutableClock clock;
 
+    @Autowired
+    protected InMemoryDocumentStorage documentStorage;
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         String url = "jdbc:postgresql://" + POSTGRES.getHost() + ":" + POSTGRES.getFirstMappedPort() + "/integrate";
@@ -61,6 +65,8 @@ public abstract class PostgresIntegrationTest {
         registry.add("FLYWAY_PASSWORD", () -> OWNER_PASSWORD);
         registry.add("JWT_SIGNING_KEY", TestKeys::sessionSigningKey);
         registry.add("JWT_SIGNING_KEY_ID", () -> "session-test");
+        registry.add("SENSITIVE_DATA_KEY_V1", () -> SENSITIVE_DATA_KEY);
+        registry.add("AWS_S3_SENSITIVE_BUCKET_NAME", () -> "integrate-sensitive-test");
     }
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -71,6 +77,13 @@ public abstract class PostgresIntegrationTest {
         @Primary
         MutableClock mutableClock() {
             return new MutableClock(START);
+        }
+
+        /** Sustituye a S3: las pruebas no dependen de LocalStack (ADR-0007 §8). */
+        @Bean
+        @Primary
+        InMemoryDocumentStorage inMemoryDocumentStorage(MutableClock clock) {
+            return new InMemoryDocumentStorage(clock);
         }
     }
 }

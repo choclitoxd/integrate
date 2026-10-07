@@ -37,6 +37,22 @@ final class CatalogErrors {
         return new BusinessRuleException(ErrorCode.CATALOG_HOST_PROFILE_EXISTS, detail);
     }
 
+    /** El gestor no tiene acreditación {@code ACTIVE} aunque su JWT conserve el rol (ADR-0007 §2). */
+    static BusinessRuleException managerNotActive() {
+        return new BusinessRuleException(ErrorCode.ENROLLMENT_MANAGER_NOT_ACTIVE,
+                "The link manager has no active accreditation.");
+    }
+
+    static BusinessRuleException managerExists() {
+        return new BusinessRuleException(ErrorCode.ENROLLMENT_MANAGER_EXISTS,
+                "The user already has an active link manager accreditation.");
+    }
+
+    static BusinessRuleException documentInvalid(String field, String reason) {
+        return new BusinessRuleException(ErrorCode.ENROLLMENT_DOCUMENT_INVALID, "The uploaded document is not valid.")
+                .with("invalidParams", List.of(new InvalidParam(field, reason)));
+    }
+
     static BusinessRuleException forbidden(String detail) {
         return new BusinessRuleException(ErrorCode.RBAC_FORBIDDEN, detail);
     }

@@ -73,6 +73,21 @@ class ConsentLedger {
                 .toList());
     }
 
+    /** Inserta un acto {@code GRANTED / ASSISTED_PROXY} por finalidad (ADR-0007 §3). */
+    Instant insertAssistedGrants(UUID userId, PrivacyPolicy policy, Set<ConsentPurpose> purposes, UUID capturedBy,
+                                 String physicalConsentFormS3Key, ClientInfo client) {
+        Instant now = clock.instant();
+        consentRepository.saveAll(EnumSet.copyOf(purposes).stream()
+                .map(p -> HabeasDataConsent.assistedProxyGrant(userId, policy, p, capturedBy, physicalConsentFormS3Key,
+                        client.ipAddress(), client.userAgent(), now))
+                .toList());
+        return now;
+    }
+
+    boolean isConsentFormInUse(String physicalConsentFormS3Key) {
+        return consentRepository.existsByPhysicalConsentFormS3Key(physicalConsentFormS3Key);
+    }
+
     ConsentStatus status(UUID userId, Collection<RoleCode> roles, Optional<PrivacyPolicy> current) {
         // Primer registro por finalidad = último acto (mismo criterio que auth.v_current_consents).
         Map<ConsentPurpose, HabeasDataConsent> latest = new EnumMap<>(ConsentPurpose.class);

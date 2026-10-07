@@ -17,7 +17,8 @@ public record AuthProperties(
         @DefaultValue("900s") Duration accessTokenTtl,
         @DefaultValue("7d") Duration refreshTokenTtl,
         @DefaultValue("10s") Duration refreshReuseGrace,
-        @DefaultValue Lockout lockout) {
+        @DefaultValue Lockout lockout,
+        @DefaultValue("72h") Duration activationCodeTtl) {
 
     /** 5 fallos consecutivos en 10 minutos bloquean la cuenta 15 minutos. */
     public record Lockout(

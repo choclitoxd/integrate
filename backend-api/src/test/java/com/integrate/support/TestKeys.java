@@ -22,6 +22,13 @@ public final class TestKeys {
         return toBase64Pem(SESSION);
     }
 
+    /** Llave AES-256 aleatoria en el formato de {@code SENSITIVE_DATA_KEY_V1} (ADR-0007 §4). */
+    public static String sensitiveDataKey() {
+        byte[] key = new byte[32];
+        new java.security.SecureRandom().nextBytes(key);
+        return Base64.getEncoder().encodeToString(key);
+    }
+
     public static KeyPair generate(int bits) {
         try {
             KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");

@@ -13,4 +13,7 @@ public interface HabeasDataConsentRepository extends JpaRepository<HabeasDataCon
      * finalidad se resuelve en memoria.
      */
     List<HabeasDataConsent> findByUserIdOrderByOccurredAtDescIdDesc(UUID userId);
+
+    /** Un formato físico firmado respalda el consentimiento de un solo titular (ADR-0007 §5). */
+    boolean existsByPhysicalConsentFormS3Key(String physicalConsentFormS3Key);
 }

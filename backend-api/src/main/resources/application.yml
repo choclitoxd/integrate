@@ -66,6 +66,20 @@ integrate:
       doc-type: ${BOOTSTRAP_ADMIN_DOC_TYPE:PA}
       doc-number: ${BOOTSTRAP_ADMIN_DOC_NUMBER:ADMIN0001}
       phone: ${BOOTSTRAP_ADMIN_PHONE:+10000000000}
+  # --- Datos sensibles (ADR-0007 §4): AES-256 de 32 bytes en Base64 por versión; sin default (fail-fast)
+  crypto:
+    sensitive:
+      current-version: ${SENSITIVE_DATA_KEY_CURRENT_VERSION:1}
+      keys:
+        1: ${SENSITIVE_DATA_KEY_V1}
+  # --- Documentos sensibles en S3 (ADR-0007 §5): endpoint y credenciales estáticas solo en local
+  #     (LocalStack); vacías = cadena por defecto del SDK (rol IAM en despliegue).
+  storage:
+    region: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT_URL:}
+    sensitive-bucket: ${AWS_S3_SENSITIVE_BUCKET_NAME}
+    access-key-id: ${AWS_ACCESS_KEY_ID:}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
 
 server:
   port: ${SERVER_PORT:8080}

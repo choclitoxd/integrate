@@ -19,6 +19,12 @@ class CommonArchitectureTest {
             .that().resideInAPackage("com.integrate.common..")
             .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules..", "com.integrate.security..");
 
+    /** El cifrado de datos sensibles tiene un único punto de entrada auditable (ADR-0007 §4). */
+    @ArchTest
+    static final ArchRule onlyCommonCryptoUsesJavaxCrypto = noClasses()
+            .that().resideOutsideOfPackage("com.integrate.common.crypto")
+            .should().dependOnClassesThat().resideInAnyPackage("javax.crypto..");
+
     @ArchTest
     static final ArchRule onlyCommonExceptionTranslatesErrors = noClasses()
             .that().resideOutsideOfPackage("com.integrate.common.exception")

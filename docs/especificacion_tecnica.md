@@ -456,7 +456,10 @@ Queda estrictamente prohibido establecer relaciones `@ManyToOne` o `@OneToMany` 
 - **POST `/api/v1/auth/refresh`** — rota el refresh token y emite un nuevo access token.
 - **POST `/api/v1/auth/logout`** — revoca la sesión de la cookie y la borra (204).
 - **GET/POST `/api/v1/me/consents`** — estado y otorgamiento de consentimientos sobre la política vigente (RF-02).
-- **POST `/api/v1/auth/register-assisted`** — registro de anfitriones por el Gestor de Enlace o el Administrador, con consentimiento `ASSISTED_PROXY` (RF-06).
+- **POST `/api/v1/auth/register-assisted`** — registro de anfitriones por el Gestor de Enlace o el Administrador, con consentimiento `ASSISTED_PROXY` y datos de víctima cifrados con AES-256-GCM (RF-06, ADR-0007).
+- **POST `/api/v1/auth/activate`** — el anfitrión canjea el código de un solo uso que le entregó su gestor por una contraseña propia (`PENDING_RESET → ACTIVE`, ADR-0007 §6).
+- **`/api/v1/gestor/**`** — operaciones del Gestor de Enlace acreditado: subida prefirmada de PDF a S3 (`/uploads`), anfitriones de su jurisdicción (`/hosts`) y emisión del código de activación (`/hosts/{id}/activation-code`).
+- **`/api/v1/admin/link-managers`** — acreditación, suspensión, reactivación y revocación de gestores por el Administrador (RF-03).
 
 ### 5.2 Catálogo y Reservas con Bloqueo Concurrente
 - **GET `/api/v1/experiences`**

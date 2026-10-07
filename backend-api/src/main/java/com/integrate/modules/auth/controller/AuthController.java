@@ -2,11 +2,13 @@ package com.integrate.modules.auth.controller;
 
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
+import com.integrate.modules.auth.dto.request.ActivationRequest;
 import com.integrate.modules.auth.dto.request.LoginRequest;
 import com.integrate.modules.auth.dto.request.RegisterRequest;
 import com.integrate.modules.auth.dto.response.AuthTokenResponse;
 import com.integrate.modules.auth.dto.response.RegisterResponse;
 import com.integrate.modules.auth.service.AuthService;
+import com.integrate.modules.auth.service.CredentialActivationService;
 import com.integrate.modules.auth.service.RegistrationService;
 import com.integrate.modules.auth.service.model.RegisteredUser;
 import com.integrate.modules.auth.service.model.Session;
@@ -23,7 +25,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Sesión y autorregistro (RF-01, RF-02; contrato {@code Auth}, ADR-0005). Todos los endpoints son públicos. */
+/**
+ * Sesión, autorregistro y activación asistida (RF-01, RF-02; contrato {@code Auth}, ADR-0005, ADR-0007 §6).
+ * Todos los endpoints son públicos.
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -31,6 +36,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final RegistrationService registrationService;
+    private final CredentialActivationService activationService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponse> login(@Valid @RequestBody LoginRequest request,
@@ -44,6 +50,12 @@ public class AuthController {
         RegisteredUser user = registrationService.registerTourist(request, ClientInfos.from(http));
         return ResponseEntity.created(URI.create("/api/v1/users/" + user.userId()))
                 .body(RegisterResponse.from(user));
+    }
+
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activate(@Valid @RequestBody ActivationRequest request) {
+        activationService.activate(request.email(), request.code(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/refresh")

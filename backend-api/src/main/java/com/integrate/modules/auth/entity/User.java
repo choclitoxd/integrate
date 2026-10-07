@@ -88,6 +88,23 @@ public class User {
         return user;
     }
 
+    /**
+     * Anfitrión registrado por un gestor (ADR-0007 §3): {@code PENDING_RESET} con un hash de un secreto
+     * aleatorio que nadie conoce. No puede iniciar sesión hasta activar la cuenta.
+     */
+    public static User registerPendingReset(String email, String unusablePasswordHash, String fullName,
+                                            DocType docType, String docNumber, String phone) {
+        User user = register(email, unusablePasswordHash, fullName, docType, docNumber, phone);
+        user.credentialStatus = CredentialStatus.PENDING_RESET;
+        return user;
+    }
+
+    /** Fija la contraseña elegida por el titular y habilita el login (ADR-0007 §6). */
+    public void activateCredentials(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.credentialStatus = CredentialStatus.ACTIVE;
+    }
+
     /** {@code true} si la cuenta no puede autenticarse de ningún modo (anonimizada o dada de baja). */
     public boolean isClosed() {
         return status == UserStatus.ANONYMIZED || deletedAt != null;
