@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${experienceTitle}">Reserva confirmada</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f4;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f4;">
+    <tr>
+      <td align="center" style="padding:16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="max-width:480px;background:#ffffff;border-radius:8px;">
+          <tr>
+            <td style="padding:20px 20px 8px 20px;">
+              <p style="margin:0;font-size:13px;color:#14532d;font-weight:bold;">Intégrate</p>
+              <h1 style="margin:8px 0 0 0;font-size:20px;line-height:26px;color:#14532d;">Tu reserva está confirmada</h1>
+              <p style="margin:12px 0 0 0;font-size:15px;line-height:22px;">
+                Hola, <span th:text="${touristName}">turista</span>. Tu pago fue aprobado y adjuntamos tu
+                voucher oficial en PDF.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 20px;">
+              <h2 style="margin:0;font-size:17px;line-height:23px;" th:text="${experienceTitle}">Experiencia</h2>
+              <p style="margin:8px 0 0 0;font-size:15px;line-height:22px;">
+                <span th:text="${localDate}">fecha</span>, de <span th:text="${localStartTime}">07:00</span>
+                a <span th:text="${localEndTime}">12:00</span> (hora de Colombia)<br>
+                Punto de encuentro: <span th:text="${meetingPoint}">punto</span><br>
+                <span th:text="${municipality}">municipio</span>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="font-size:15px;line-height:22px;border-top:1px solid #e3e8e3;">
+                <tr><td style="padding:8px 0 0 0;">Titular</td>
+                    <td align="right" style="padding:8px 0 0 0;" th:text="${holderName}">titular</td></tr>
+                <tr><td>Cupos</td><td align="right" th:text="${slots}">1</td></tr>
+                <tr><td>Total pagado</td><td align="right" th:text="${totalAmountCop}">$ 0</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 20px;">
+              <p style="margin:0;font-size:13px;color:#4a4a4a;">Código de contingencia</p>
+              <p style="margin:4px 0 0 0;font-size:26px;letter-spacing:3px;font-weight:bold;"
+                 th:text="${shortCode}">XXXXXXXX</p>
+              <p style="margin:12px 0 0 0;font-size:14px;line-height:21px;">
+                El día de la experiencia presenta el código QR del PDF (en tu teléfono o impreso) y el documento de
+                identidad del titular. Si la cámara no puede leer el QR, el gestor puede ingresar este código.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 20px 20px 20px;font-size:12px;line-height:18px;color:#5a5a5a;">
+              Referencia de la reserva: <span th:text="${bookingId}">id</span><br>
+              Este correo es transaccional y se envió porque realizaste una reserva. Tus datos personales se tratan
+              conforme a la Ley 1581 de 2012.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

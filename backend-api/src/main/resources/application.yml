@@ -38,6 +38,21 @@ spring:
     clean-disabled: true
     baseline-on-migrate: false
 
+  # --- Correo SMTP (ADR-0011 §4): Mailpit en local; Gmail SMTP con contraseña de aplicación o un relé en
+  #     producción. Host y puerto sin default (fail-fast); credenciales opcionales (Mailpit no las pide).
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
+      mail.smtp.starttls.required: ${SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
+
   # --- JPA / Hibernate --------------------------------------------------------
   jpa:
     open-in-view: false
@@ -118,6 +133,17 @@ integrate:
       core: 2
       max: 4
       queue: 200
+  # --- Notificaciones (ADR-0011 §3, §7): remitente obligatorio y despachador del outbox.
+  notification:
+    mail-from: ${MAIL_FROM}
+    dispatch:
+      enabled: true
+      interval: PT15S
+      batch-size: 20
+      stale-after: PT10M
+    backoff:
+      initial: PT1M
+      max: PT6H
 
 server:
   port: ${SERVER_PORT:8080}

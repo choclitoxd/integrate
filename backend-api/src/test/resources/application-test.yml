@@ -16,6 +16,11 @@ integrate:
       # Las pruebas invocan el barrido directamente (ADR-0010 §10).
       enabled: false
 
+  notification:
+    dispatch:
+      # Las pruebas invocan el despachador directamente contra GreenMail (ADR-0011 §8).
+      enabled: false
+
 logging:
   level:
     com.integrate: INFO

@@ -33,7 +33,7 @@ public class BookingVouchersImpl implements BookingVouchers {
             BookingParticipant holder = participants.stream().filter(BookingParticipant::isHolder).findFirst()
                     .orElseThrow(() -> new IllegalStateException("Booking " + bookingId + " has no holder"));
             return new VoucherSubject(bookingId, booking.getTouristId(), booking.getStatus().name(),
-                    booking.getScheduleId(), booking.getSlotsCount(),
+                    booking.getScheduleId(), booking.getSlotsCount(), booking.getTotalAmountCop(),
                     new Holder(holder.getFullName(), holder.getDocType().name(), holder.getDocNumber()),
                     participants.stream().map(BookingParticipant::getFullName).toList());
         });

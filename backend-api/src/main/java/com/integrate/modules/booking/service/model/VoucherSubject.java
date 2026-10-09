@@ -1,5 +1,6 @@
 package com.integrate.modules.booking.service.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,10 +9,11 @@ import java.util.UUID;
  * ({@code fn_participant_guard}), así que estos datos sirven para volver a derivar el token firmado.
  *
  * @param status           valor de {@code booking.bookings.status}
+ * @param totalAmountCop   total pactado de la reserva (resumen del correo, ADR-0011 §2)
  * @param participantNames nombres de todos los participantes, titular primero
  */
 public record VoucherSubject(UUID bookingId, UUID touristId, String status, UUID scheduleId, int slots,
-                             Holder holder, List<String> participantNames) {
+                             BigDecimal totalAmountCop, Holder holder, List<String> participantNames) {
 
     public static final String CONFIRMED = "CONFIRMED";
 

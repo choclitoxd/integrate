@@ -1,5 +1,7 @@
 package com.integrate.support;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetup;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.time.Clock;
@@ -56,8 +58,12 @@ public abstract class PostgresIntegrationTest {
                     MountableFile.forHostPath(Path.of("..", "infra", "postgres", "init", "00_bootstrap.sql")),
                     "/docker-entrypoint-initdb.d/00_bootstrap.sql");
 
+    /** Servidor SMTP en memoria para el despacho de correos (ADR-0011 §8); vive toda la JVM, como PostgreSQL. */
+    protected static final GreenMail SMTP = new GreenMail(new ServerSetup(0, "127.0.0.1", ServerSetup.PROTOCOL_SMTP));
+
     static {
         POSTGRES.start();
+        SMTP.start();
     }
 
     @Autowired
@@ -89,6 +95,9 @@ public abstract class PostgresIntegrationTest {
         registry.add("AWS_S3_BUCKET_NAME", () -> "integrate-vouchers-test");
         registry.add("VOUCHER_SIGNING_KEY", () -> TestKeys.toBase64Pem(VOUCHER_KEY));
         registry.add("VOUCHER_SIGNING_KEY_ID", () -> VOUCHER_KID);
+        registry.add("SMTP_HOST", () -> "127.0.0.1");
+        registry.add("SMTP_PORT", () -> SMTP.getSmtp().getPort());
+        registry.add("MAIL_FROM", () -> "Integrate <no-reply@integrate.test>");
     }
 
     @TestConfiguration(proxyBeanMethods = false)

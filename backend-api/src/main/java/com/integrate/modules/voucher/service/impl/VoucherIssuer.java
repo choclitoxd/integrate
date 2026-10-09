@@ -47,6 +47,7 @@ public class VoucherIssuer {
     private final VoucherPdfRenderer renderer;
     private final VoucherDocumentStorage storage;
     private final AuditTrail auditTrail;
+    private final VoucherEmail voucherEmail;
     private final VoucherProperties properties;
     private final Clock clock;
     private final TransactionTemplate transaction;
@@ -54,7 +55,8 @@ public class VoucherIssuer {
     public VoucherIssuer(VoucherRepository voucherRepository, BookingVouchers bookingVouchers,
                          ScheduleDirectory scheduleDirectory, SigningKeyRegistrar keys, VoucherSigner signer,
                          VoucherPdfRenderer renderer, VoucherDocumentStorage storage, AuditTrail auditTrail,
-                         VoucherProperties properties, Clock clock, PlatformTransactionManager transactionManager) {
+                         VoucherEmail voucherEmail, VoucherProperties properties, Clock clock,
+                         PlatformTransactionManager transactionManager) {
         this.voucherRepository = voucherRepository;
         this.bookingVouchers = bookingVouchers;
         this.scheduleDirectory = scheduleDirectory;
@@ -63,6 +65,7 @@ public class VoucherIssuer {
         this.renderer = renderer;
         this.storage = storage;
         this.auditTrail = auditTrail;
+        this.voucherEmail = voucherEmail;
         this.properties = properties;
         this.clock = clock;
         this.transaction = new TransactionTemplate(transactionManager);
@@ -141,7 +144,13 @@ public class VoucherIssuer {
                 voucher.getCreatedAt(), voucher.getExpiresAt(), token));
         String key = pdfKey(voucher);
         storage.put(key, pdf, VoucherPdfRenderer.CONTENT_TYPE);
-        transaction.executeWithoutResult(status -> voucherRepository.attachPdf(voucherId, key));
+        // Mismo COMMIT para el PDF y el correo (ADR-0011 §2): solo quien fija la clave encola, así el correo sale una
+        // sola vez aunque dos generadores compitan, y nunca antes de que el adjunto exista en S3.
+        transaction.executeWithoutResult(status -> {
+            if (voucherRepository.attachPdf(voucherId, key) == 1) {
+                voucherEmail.enqueue(voucher, key, subject, schedule);
+            }
+        });
         log.info("voucher.pdf voucherId={} bytes={}", voucherId, pdf.length);
     }
 

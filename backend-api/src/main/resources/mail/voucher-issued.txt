@@ -1,0 +1,23 @@
+Hola, [(${touristName})]:
+
+Tu pago fue aprobado y tu reserva está confirmada. Adjuntamos tu voucher oficial en PDF.
+
+[(${experienceTitle})]
+Fecha: [(${localDate})], de [(${localStartTime})] a [(${localEndTime})] (hora de Colombia)
+Punto de encuentro: [(${meetingPoint})]
+Lugar: [(${municipality})]
+
+Titular: [(${holderName})]
+Cupos: [(${slots})]
+Total pagado: [(${totalAmountCop})]
+Código de contingencia: [(${shortCode})]
+
+El día de la experiencia presenta el código QR del PDF (en tu teléfono o impreso) y el documento
+de identidad del titular. Si la cámara no puede leer el QR, el gestor puede ingresar el código de
+contingencia.
+
+Referencia de la reserva: [(${bookingId})]
+
+Intégrate · Turismo comunitario de memoria y paz
+Este correo es transaccional y se envió porque realizaste una reserva. Tus datos personales se
+tratan conforme a la Ley 1581 de 2012.

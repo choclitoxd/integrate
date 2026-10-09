@@ -30,6 +30,7 @@
         <awssdk.version>2.46.7</awssdk.version>
         <pdfbox.version>3.0.8</pdfbox.version>
         <zxing.version>3.5.4</zxing.version>
+        <greenmail.version>2.1.14</greenmail.version>
     </properties>
 
     <dependencyManagement>
@@ -127,6 +128,17 @@
             <version>${pdfbox.version}</version>
         </dependency>
 
+        <!-- ===================== Notificaciones ===================== -->
+        <!-- ADR-0011 §4-§5: SMTP con JavaMailSender y plantillas Thymeleaf (solo el motor: no hay vistas web). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+        </dependency>
+
         <!-- ===================== Productividad ===================== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -135,6 +147,13 @@
         </dependency>
 
         <!-- ===================== Testing y arquitectura ===================== -->
+        <!-- ADR-0011 §8: servidor SMTP en memoria para las pruebas de despacho. -->
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail</artifactId>
+            <version>${greenmail.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>

@@ -156,11 +156,11 @@ Cada etapa se cierra formalmente cuando se cumplen los entregables de todas sus 
 
 #### DoD Fase 1.1: Backend del Core Transaccional
 - [x] El turista puede autenticarse, consultar experiencias y solicitar el bloqueo de cupos (verificado por API).
-- [ ] El Gestor de Enlace puede enrolar anfitriones con consentimiento asistido de Habeas Data.
+- [x] El Gestor de Enlace puede enrolar anfitriones con consentimiento asistido de Habeas Data.
 - [x] Prueba de concurrencia integrada valida que el bloqueo pesimista (`SELECT ... FOR UPDATE`) no permite sobreventa bajo hilos paralelos (0 colisiones).
 - [x] Las reservas abandonadas se cancelan automáticamente tras 15 minutos y los cupos se liberan en el inventario.
 - [x] El webhook de pago se procesa de forma idempotente y deja los fondos en custodia (*escrow*); la dispersión 85/15 se certifica en la Etapa 2.
-- [ ] El voucher criptográfico se emite con firma digital válida y el PDF queda almacenado en S3 y enviado al correo del comprador.
+- [x] El voucher criptográfico se emite con firma digital válida y el PDF queda almacenado en S3 y enviado al correo del comprador.
 
 #### DoD Fase 1.2: Frontend PWA Móvil
 - [ ] El turista recorre catálogo, franjas, reserva, checkout y confirmación en un smartphone (360–430 px) sin scroll horizontal.

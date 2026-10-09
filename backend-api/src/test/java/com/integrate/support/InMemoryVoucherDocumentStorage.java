@@ -25,8 +25,14 @@ public class InMemoryVoucherDocumentStorage implements VoucherDocumentStorage {
         failing.set(fail);
     }
 
+    /** Simula un objeto perdido en S3; devuelve su contenido para restaurarlo con {@link #put}. */
+    public Optional<byte[]> remove(String key) {
+        return Optional.ofNullable(objects.remove(key));
+    }
+
+    @Override
     public Optional<byte[]> get(String key) {
-        return Optional.ofNullable(objects.get(key));
+        return Optional.ofNullable(objects.get(key)).map(byte[]::clone);
     }
 
     @Override

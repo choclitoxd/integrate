@@ -64,6 +64,21 @@ class ModuleBoundariesTest {
                     "com.integrate.modules.payment.service.impl..", "com.integrate.modules.payment.controller..",
                     "com.integrate.modules.auth.repository..", "com.integrate.modules.auth.service.impl..");
 
+    /** El despacho de correo solo conoce {@code common}; los demás módulos encolan por su interfaz (ADR-0011 §7). */
+    @ArchTest
+    static final ArchRule notificationDependsOnlyOnCommon = noClasses()
+            .that().resideInAPackage("com.integrate.modules.notification..")
+            .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.auth..",
+                    "com.integrate.modules.catalog..", "com.integrate.modules.booking..",
+                    "com.integrate.modules.payment..", "com.integrate.modules.voucher..");
+
+    @ArchTest
+    static final ArchRule notificationIsUsedOnlyThroughItsPublicApi = noClasses()
+            .that().resideOutsideOfPackage("com.integrate.modules.notification..")
+            .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.notification.entity..",
+                    "com.integrate.modules.notification.repository..", "com.integrate.modules.notification.sender..",
+                    "com.integrate.modules.notification.service.impl..", "com.integrate.modules.notification.worker..");
+
     @ArchTest
     static final ArchRule nothingDependsOnVoucher = noClasses()
             .that().resideInAnyPackage("com.integrate.modules.booking..", "com.integrate.modules.catalog..",

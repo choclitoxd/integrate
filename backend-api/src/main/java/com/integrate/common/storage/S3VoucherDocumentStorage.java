@@ -3,6 +3,7 @@ package com.integrate.common.storage;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Optional;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -44,6 +45,15 @@ public class S3VoucherDocumentStorage implements VoucherDocumentStorage {
                 return false;
             }
             throw e;
+        }
+    }
+
+    @Override
+    public Optional<byte[]> get(String key) {
+        try {
+            return Optional.of(client.getObjectAsBytes(g -> g.bucket(bucket).key(key)).asByteArray());
+        } catch (NoSuchKeyException e) {
+            return Optional.empty();
         }
     }
 
