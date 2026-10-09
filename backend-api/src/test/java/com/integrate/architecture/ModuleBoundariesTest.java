@@ -24,4 +24,18 @@ class ModuleBoundariesTest {
     static final ArchRule authDoesNotDependOnCatalog = noClasses()
             .that().resideInAPackage("com.integrate.modules.auth..")
             .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.catalog..");
+
+    /** El inventario de cupos es de {@code catalog}: {@code booking} solo usa {@code SlotInventory} (ADR-0008 §2). */
+    @ArchTest
+    static final ArchRule bookingUsesOnlyThePublicCatalogAndAuthApis = noClasses()
+            .that().resideInAPackage("com.integrate.modules.booking..")
+            .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.catalog.repository..",
+                    "com.integrate.modules.catalog.entity..", "com.integrate.modules.catalog.service.impl..",
+                    "com.integrate.modules.catalog.controller..", "com.integrate.modules.auth.repository..",
+                    "com.integrate.modules.auth.service.impl..", "com.integrate.modules.auth.controller..");
+
+    @ArchTest
+    static final ArchRule catalogAndAuthDoNotDependOnBooking = noClasses()
+            .that().resideInAnyPackage("com.integrate.modules.catalog..", "com.integrate.modules.auth..")
+            .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.booking..");
 }

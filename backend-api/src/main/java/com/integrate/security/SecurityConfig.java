@@ -55,6 +55,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register-assisted", "/api/v1/gestor/uploads")
                         .hasAnyRole("LINK_MANAGER", "ADMIN")
                         .requestMatchers("/api/v1/gestor/**").hasRole("LINK_MANAGER")
+                        // Reservas (ADR-0008 §1): solo el turista.
+                        .requestMatchers("/api/v1/bookings/**").hasRole("TOURIST")
                         // Destino interno de los errores del contenedor; nunca expone detalles (application.yml).
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())

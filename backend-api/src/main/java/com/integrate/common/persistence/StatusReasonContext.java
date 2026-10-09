@@ -1,4 +1,4 @@
-package com.integrate.modules.catalog.repository;
+package com.integrate.common.persistence;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository;
 /**
  * Motivo de negocio de la transacción en curso para los historiales de estado:
  * {@code set_config('integrate.status_reason', :reason, true)}, leído por {@code common.current_reason()}
- * en {@code fn_experience_status_log} (ADR-0006 §4). Alcance de transacción: no se filtra por el pool.
+ * en {@code fn_experience_status_log} (ADR-0006 §4) y {@code fn_booking_status_log} (ADR-0008 §7). Alcance
+ * de transacción: no se filtra por el pool.
  */
 @Repository
 public class StatusReasonContext {

@@ -5,6 +5,12 @@ spring:
     # Misma política v0.1 de desarrollo que el perfil dev (ADR-0005 §8).
     locations: classpath:db/migration,classpath:db/seed-dev
 
+integrate:
+  booking:
+    expiration:
+      # Las pruebas invocan el worker de expiración directamente, con el reloj de prueba (ADR-0008 §9).
+      enabled: false
+
 logging:
   level:
     com.integrate: INFO

@@ -26,6 +26,7 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 | POST | `/api/v1/admin/link-managers/{id}/{suspend\|reinstate\|revoke}` | `ADMIN` | 200 | 401, 403, 404, 409 |
 | GET | `/api/v1/experiences/{id}/availability` | público (JWT opcional) | 200 | 400, 404, 409, 422 |
 | POST | `/api/v1/bookings/lock` | `TOURIST` | 201 (200 si es replay) | 400, 401, 403, 404, 409, 422, 428, 503 |
+| GET | `/api/v1/bookings/{bookingId}` | `TOURIST` (dueño) | 200 | 400, 401, 403, 404 |
 | POST | `/api/v1/payments/webhook/mock` | firma HMAC | 200 | 400, 401, 422 |
 | POST | `/api/v1/payments/webhook/wompi` | firma HMAC | 200 | 400, 401, 422 |
 | POST | `/api/v1/offline/sync` | `LINK_MANAGER`, `HOST` | 200 | 400, 401, 403, 409, 422 |
@@ -305,21 +306,24 @@ Visibilidad: una experiencia no `APPROVED` devuelve 404 al público o a un turis
 | Campo | Tipo | Notas |
 |---|---|---|
 | `bookingId` | UUID | |
-| `status` | `"PENDING"` | |
+| `status` | enum `BookingStatus` | Siempre `PENDING` en el 201; estado actual en el replay 200 y en `GET /bookings/{bookingId}` (ADR-0008 §5) |
 | `scheduleId`, `experienceId` | UUID | |
 | `lockedSlots` | int | |
 | `unitPriceCop`, `totalAmountCop` | int64 | `total = unit × slots` (D4) |
 | `currency` | `"COP"` | |
 | `createdAt`, `expiresAt` | date-time | `expiresAt = createdAt + 15 min` |
-| `ttlSecondsRemaining` | int 0–900 | se recalcula en cada replay |
+| `ttlSecondsRemaining` | int 0–900 | se recalcula en cada respuesta; 0 si ya no está `PENDING` |
+
+`GET /api/v1/bookings/{bookingId}` devuelve este mismo esquema solo al turista dueño; una reserva ajena o inexistente responde 404 (ADR-0008 §1).
 
 ### 5.3 Mecanismo transaccional (prevención de sobreventa)
 
 1. Control de idempotencia: se busca `Idempotency-Key` + `touristId`.
-   - Si existe con el mismo hash de payload → replay 200.
-   - Si existe con un hash distinto → 409 `IDEMPOTENCY_KEY_REUSED`.
+   - Si existe con el mismo hash de payload y tiene menos de 24 h → replay 200.
+   - Si existe con un hash distinto, o tiene más de 24 h → 409 `IDEMPOTENCY_KEY_REUSED`.
+   - Si dos peticiones con la misma clave chocan en el índice único `uq_bookings_idempotency`, la perdedora se revierte completa (incluido el descuento) y se responde como replay (ADR-0008 §3).
 2. Precondición de consentimiento `HEALTH_EMERGENCY` → si falta, 428.
-3. Transacción `READ COMMITTED` con `SET LOCAL lock_timeout = '2s'` y `SET LOCAL integrate.actor_id`:
+3. Transacción `READ COMMITTED` con `lock_timeout = 2s` (fijado en el rol `integrate_api`, `00_bootstrap.sql`) y `SET LOCAL integrate.actor_id`:
    - `SELECT … FROM catalog.schedules WHERE id = ? FOR UPDATE`. Si vence el timeout → 503 `CONCURRENCY_LOCK_TIMEOUT` con `Retry-After: 1`.
    - Si la experiencia no está `APPROVED` → 404. Si la franja no está `OPEN` o ya empezó → 409 `BOOKING_SCHEDULE_NOT_BOOKABLE`.
    - Si `requestedSlots > available_slots` → 409 `BOOKING_INSUFFICIENT_SLOTS` con `availableSlots`.

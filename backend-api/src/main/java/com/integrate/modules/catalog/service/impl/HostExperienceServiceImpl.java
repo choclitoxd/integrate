@@ -2,6 +2,7 @@ package com.integrate.modules.catalog.service.impl;
 
 import com.integrate.common.payload.InvalidParam;
 import com.integrate.common.payload.PageResponse;
+import com.integrate.common.persistence.StatusReasonContext;
 import com.integrate.modules.catalog.dto.request.ExperienceRequest;
 import com.integrate.modules.catalog.dto.request.ScheduleBatchRequest;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
@@ -19,7 +20,6 @@ import com.integrate.modules.catalog.repository.ExperienceRepository;
 import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
-import com.integrate.modules.catalog.repository.StatusReasonContext;
 import com.integrate.modules.catalog.service.HostExperienceService;
 import java.time.Clock;
 import java.time.Instant;

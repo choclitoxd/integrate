@@ -1013,8 +1013,9 @@ paths:
         4. Registra el evento en `audit.audit_trail` y hace COMMIT (< 200 ms, RNF-02).
 
         **Idempotencia.** La cabecera `Idempotency-Key` (UUIDv4) es obligatoria. Si se repite una clave con el
-        mismo payload, devuelve la reserva original (200, `Idempotency-Replayed: true`) sin volver a
-        descontar cupos. Si se repite con un payload distinto, responde 409 `IDEMPOTENCY_KEY_REUSED`.
+        mismo payload dentro de 24 h, devuelve la reserva original (200, `Idempotency-Replayed: true`) sin volver a
+        descontar cupos, con su `status` **actual** (p. ej. `EXPIRED` si venció el TTL; ADR-0008 §5). Si se repite
+        con un payload distinto, o pasadas 24 h, responde 409 `IDEMPOTENCY_KEY_REUSED`.
 
         **Precondición.** El turista debe haber otorgado el consentimiento `HEALTH_EMERGENCY`; si no, responde 428.
       security:
@@ -1069,7 +1070,7 @@ paths:
                 expiresAt: '2026-10-04T20:35:00Z'
                 ttlSecondsRemaining: 900
         '200':
-          description: Reintento idempotente; se devuelve la reserva creada originalmente con esa clave.
+          description: Reintento idempotente; se devuelve la reserva creada originalmente con esa clave y su estado actual.
           headers:
             Idempotency-Replayed:
               description: Siempre `true` en una respuesta reproducida.
@@ -1087,6 +1088,36 @@ paths:
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
         '428': { $ref: '#/components/responses/ConsentRequired' }
         '503': { $ref: '#/components/responses/LockTimeout' }
+
+  /api/v1/bookings/{bookingId}:
+    get:
+      tags: [Booking]
+      operationId: getBooking
+      summary: Consulta una reserva propia (destino de `Location` del lock y base de la cuenta regresiva del checkout).
+      description: |
+        Solo `ROLE_TOURIST` y solo sobre sus propias reservas: una reserva ajena o inexistente responde 404.
+        `status` es el estado actual y `ttlSecondsRemaining` se recalcula (0 si ya no está `PENDING`). ADR-0008 §1.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Reserva del turista autenticado.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingLockResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /api/v1/payments/webhook/mock:
     post:
@@ -1899,7 +1930,13 @@ components:
       required: [bookingId, status, scheduleId, experienceId, lockedSlots, unitPriceCop, totalAmountCop, currency, createdAt, expiresAt, ttlSecondsRemaining]
       properties:
         bookingId: { type: string, format: uuid }
-        status: { type: string, const: PENDING }
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT]
+          description: |
+            Siempre `PENDING` en el 201. En la reproducción idempotente (200) y en `GET /bookings/{bookingId}` es el
+            estado actual de la reserva (ADR-0008 §5).
         scheduleId: { type: string, format: uuid }
         experienceId: { type: string, format: uuid }
         lockedSlots: { type: integer, minimum: 1, maximum: 10 }
@@ -1912,7 +1949,7 @@ components:
           type: integer
           minimum: 0
           maximum: 900
-          description: Se recalcula en cada reproducción idempotente.
+          description: Se recalcula en cada respuesta; 0 si la reserva ya no está `PENDING`.
 
     # ---------- Payments ----------
     GatewayStatus:

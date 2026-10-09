@@ -4,6 +4,8 @@ import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
 import com.integrate.common.payload.InvalidParam;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
+import com.integrate.modules.catalog.entity.ScheduleStatus;
+import java.time.Instant;
 import java.util.List;
 
 /** Fábrica de las excepciones del módulo {@code catalog} (ADR-0006 §7). */
@@ -31,6 +33,21 @@ final class CatalogErrors {
     static BusinessRuleException scheduleConflict(String detail, List<InvalidParam> params) {
         BusinessRuleException e = new BusinessRuleException(ErrorCode.CATALOG_SCHEDULE_CONFLICT, detail);
         return params.isEmpty() ? e : e.with("invalidParams", params);
+    }
+
+    /** La franja no está {@code OPEN} o ya inició (contrato §5.3). */
+    static BusinessRuleException scheduleNotBookable(ScheduleStatus status, Instant startTime) {
+        return new BusinessRuleException(ErrorCode.BOOKING_SCHEDULE_NOT_BOOKABLE,
+                status == ScheduleStatus.OPEN ? "The schedule already started at " + startTime + "."
+                        : "The schedule is " + status + " and does not accept bookings.");
+    }
+
+    static BusinessRuleException insufficientSlots(int requested, int available) {
+        return new BusinessRuleException(ErrorCode.BOOKING_INSUFFICIENT_SLOTS,
+                "The requested schedule does not have " + requested + " available slots.")
+                .with("availableSlots", available)
+                .with("invalidParams", List.of(new InvalidParam("requestedSlots",
+                        "Exceeds current availability (" + available + " remaining)")));
     }
 
     static BusinessRuleException hostProfileConflict(String detail) {

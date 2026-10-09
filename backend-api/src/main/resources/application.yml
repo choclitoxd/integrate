@@ -80,6 +80,14 @@ integrate:
     sensitive-bucket: ${AWS_S3_SENSITIVE_BUCKET_NAME}
     access-key-id: ${AWS_ACCESS_KEY_ID:}
     secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+  # --- Reservas (ADR-0008 §8): TTL del bloqueo, ventana de idempotencia y worker de expiración (RF-11)
+  booking:
+    hold-ttl: PT15M
+    idempotency-window: PT24H
+    expiration:
+      enabled: true
+      interval: PT60S
+      batch-size: 100
 
 server:
   port: ${SERVER_PORT:8080}
