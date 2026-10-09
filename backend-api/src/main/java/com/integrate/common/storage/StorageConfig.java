@@ -49,6 +49,15 @@ public class StorageConfig {
         return new S3DocumentStorage(client, presigner, properties.sensitiveBucket(), clock);
     }
 
+    @Bean
+    VoucherDocumentStorage voucherDocumentStorage(S3Client client, S3Presigner presigner, StorageProperties properties,
+                                                  Clock clock) {
+        if (properties.voucherBucket() == null || properties.voucherBucket().isBlank()) {
+            throw new IllegalStateException("integrate.storage.voucher-bucket is required (AWS_S3_BUCKET_NAME)");
+        }
+        return new S3VoucherDocumentStorage(client, presigner, properties.voucherBucket(), clock);
+    }
+
     private static AwsCredentialsProvider credentials(StorageProperties properties) {
         return properties.hasStaticCredentials()
                 ? StaticCredentialsProvider.create(

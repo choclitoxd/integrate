@@ -78,6 +78,8 @@ integrate:
     region: ${AWS_REGION:us-east-1}
     endpoint: ${AWS_ENDPOINT_URL:}
     sensitive-bucket: ${AWS_S3_SENSITIVE_BUCKET_NAME}
+    # Vouchers PDF (ADR-0010 §7): bucket privado propio, sin default (fail-fast).
+    voucher-bucket: ${AWS_S3_BUCKET_NAME}
     access-key-id: ${AWS_ACCESS_KEY_ID:}
     secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
   # --- Reservas (ADR-0008 §8): TTL del bloqueo, ventana de idempotencia y worker de expiración (RF-11)
@@ -102,6 +104,20 @@ integrate:
       events-secret-previous: ${WOMPI_EVENTS_SECRET_PREVIOUS:}
       # Cubre los reintentos de Wompi (30 min, 3 h y 24 h) con margen.
       max-event-age: PT25H
+  # --- Vouchers (ADR-0010 §9): llave RSA propia (PKCS#8 PEM en Base64, >= 2048 bits) sin default (fail-fast).
+  voucher:
+    signing-key: ${VOUCHER_SIGNING_KEY}
+    signing-key-id: ${VOUCHER_SIGNING_KEY_ID}
+    validity-after-end: PT24H
+    download-url-ttl: PT5M
+    sweep:
+      enabled: true
+      interval: PT60S
+      batch-size: 50
+    executor:
+      core: 2
+      max: 4
+      queue: 200
 
 server:
   port: ${SERVER_PORT:8080}

@@ -1191,6 +1191,55 @@ paths:
                 traceId: c4b9-8f21-4d1a
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/bookings/{bookingId}/voucher:
+    get:
+      tags: [Booking]
+      operationId: getBookingVoucher
+      summary: Voucher criptográfico de una reserva propia confirmada (ADR-0010).
+      description: |
+        Solo `ROLE_TOURIST` y solo sobre sus propias reservas. Ajena, inexistente o sin voucher por no estar
+        confirmada → 404. Confirmada pero con el voucher aún en emisión (asíncrona) → 409 `VOUCHER_NOT_READY` con
+        `Retry-After: 2`.
+
+        `token` es el JWT compacto **RS256** (`typ: voucher+jwt`, `kid`) que codifica el QR. No se almacena: se
+        re-deriva (la firma es determinista) y se verifica contra `token_sha256`; es `null` si ya no se puede
+        re-derivar (llave rotada), y entonces el QR original sigue en el PDF. Claims mínimos: `iss`, `jti`, `bid`,
+        `sid`, `xid`, `vd` (fecha local de la franja), `doc` (`TIPO:NÚMERO` del titular), `slots`, `iat`, `exp`;
+        sin nombre, EPS, contacto ni montos. `pdfUrl` es una URL prefirmada de 5 min (`null` mientras el PDF se
+        genera). Respuesta con `Cache-Control: no-store`.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Voucher emitido.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VoucherResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: La reserva está confirmada pero el voucher aún se está emitiendo (`VOUCHER_NOT_READY`).
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+              example:
+                type: https://api.integrate.co/problems/voucher-not-ready
+                title: Voucher Not Ready
+                status: 409
+                code: VOUCHER_NOT_READY
+                traceId: c4b9-8f21-4d1a
+
   /api/v1/dev/payments/{paymentId}/simulate:
     post:
       tags: [Payments]
@@ -2129,6 +2178,25 @@ components:
           description: |
             Estado de la reserva tras el evento. Una aprobación tardía deja `paymentStatus = APPROVED` con la
             reserva en `EXPIRED` (o el estado que tuviera) y ordena el reembolso del 100% (`LATE_APPROVAL`).
+
+    VoucherResponse:
+      type: object
+      required: [voucherId, jti, bookingId, shortCode, status, issuedAt, expiresAt, validDate, pdfStatus]
+      properties:
+        voucherId: { type: string, format: uuid }
+        jti: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$', description: Código de contingencia (ingreso manual). }
+        status: { type: string, enum: [ISSUED, REVOKED, CONSUMED, EXPIRED] }
+        issuedAt: { type: string, format: date-time, description: Claim iat (segundos). }
+        expiresAt: { type: string, format: date-time, description: Fin de la franja + 24 h (claim exp). }
+        validDate: { type: string, format: date, description: Fecha local (America/Bogota) en la que el QR es válido. }
+        token:
+          type: [string, 'null']
+          description: JWT compacto RS256 del QR, re-derivado y verificado; null si ya no se puede re-derivar.
+        pdfStatus: { type: string, enum: [READY, GENERATING] }
+        pdfUrl: { type: [string, 'null'], format: uri, description: URL prefirmada de 5 min; null mientras se genera. }
+        pdfUrlExpiresAt: { type: [string, 'null'], format: date-time }
 
     PaymentStartRequest:
       type: object

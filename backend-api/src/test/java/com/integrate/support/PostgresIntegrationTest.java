@@ -1,6 +1,7 @@
 package com.integrate.support;
 
 import java.nio.file.Path;
+import java.security.KeyPair;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
@@ -42,6 +43,10 @@ public abstract class PostgresIntegrationTest {
     protected static final String WOMPI_INTEGRITY_SECRET = "test_integrity_" + UUID.randomUUID();
     protected static final String WOMPI_PUBLIC_KEY = "pub_test_" + UUID.randomUUID();
 
+    /** Llave de vouchers efímera (ADR-0010 §2): las pruebas verifican la firma con su parte pública. */
+    protected static final KeyPair VOUCHER_KEY = TestKeys.generate(2048);
+    protected static final String VOUCHER_KID = "voucher-test-" + UUID.randomUUID().toString().substring(0, 8);
+
     @SuppressWarnings("resource") // vive toda la JVM; Ryuk lo elimina al terminar
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16.6-alpine")
             .withEnv("INTEGRATE_OWNER_PASSWORD", OWNER_PASSWORD)
@@ -61,6 +66,9 @@ public abstract class PostgresIntegrationTest {
     @Autowired
     protected InMemoryDocumentStorage documentStorage;
 
+    @Autowired
+    protected InMemoryVoucherDocumentStorage voucherStorage;
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         String url = "jdbc:postgresql://" + POSTGRES.getHost() + ":" + POSTGRES.getFirstMappedPort() + "/integrate";
@@ -78,6 +86,9 @@ public abstract class PostgresIntegrationTest {
         registry.add("WOMPI_PUBLIC_KEY", () -> WOMPI_PUBLIC_KEY);
         registry.add("WOMPI_INTEGRITY_SECRET", () -> WOMPI_INTEGRITY_SECRET);
         registry.add("WOMPI_EVENTS_SECRET", () -> WOMPI_EVENTS_SECRET);
+        registry.add("AWS_S3_BUCKET_NAME", () -> "integrate-vouchers-test");
+        registry.add("VOUCHER_SIGNING_KEY", () -> TestKeys.toBase64Pem(VOUCHER_KEY));
+        registry.add("VOUCHER_SIGNING_KEY_ID", () -> VOUCHER_KID);
     }
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -95,6 +106,13 @@ public abstract class PostgresIntegrationTest {
         @Primary
         InMemoryDocumentStorage inMemoryDocumentStorage(MutableClock clock) {
             return new InMemoryDocumentStorage(clock);
+        }
+
+        /** Sustituye al bucket de vouchers (ADR-0010 §10). */
+        @Bean
+        @Primary
+        InMemoryVoucherDocumentStorage inMemoryVoucherDocumentStorage(MutableClock clock) {
+            return new InMemoryVoucherDocumentStorage(clock);
         }
     }
 }

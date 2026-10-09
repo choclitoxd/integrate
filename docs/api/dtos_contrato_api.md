@@ -27,6 +27,7 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 | GET | `/api/v1/experiences/{id}/availability` | público (JWT opcional) | 200 | 400, 404, 409, 422 |
 | POST | `/api/v1/bookings/lock` | `TOURIST` | 201 (200 si es replay) | 400, 401, 403, 404, 409, 422, 428, 503 |
 | GET | `/api/v1/bookings/{bookingId}` | `TOURIST` (dueño) | 200 | 400, 401, 403, 404 |
+| GET | `/api/v1/bookings/{bookingId}/voucher` | `TOURIST` (dueño) | 200 | 400, 401, 403, 404, 409 (+ `Retry-After: 2`) |
 | POST | `/api/v1/bookings/{bookingId}/payment` | `TOURIST` (dueño) | 201 (200 si retoma el intento abierto) | 400, 401, 403, 404, 409, 422 |
 | POST | `/api/v1/dev/payments/{paymentId}/simulate` | `TOURIST` (dueño), **solo `dev`/`test`** | 200 | 401, 403, 404, 422 |
 | POST | `/api/v1/payments/webhook/mock` | firma HMAC | 200 | 400, 401, 422 |
@@ -100,6 +101,7 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `PAYMENT_BOOKING_NOT_FOUND` | 422 | webhooks |
 | `PAYMENT_PROVIDER_MISMATCH` | 422 | webhooks (`provider` del body ≠ path) |
 | `PAYMENT_AMOUNT_MISMATCH` | 422 | webhooks (monto del evento ≠ monto del intento; `expectedAmountCop`, `receivedAmountCop`) |
+| `VOUCHER_NOT_READY` | 409 | bookings/{id}/voucher (confirmada, voucher aún en emisión; `Retry-After: 2`) |
 | `PAYMENT_BOOKING_NOT_PAYABLE` | 409 | bookings/{id}/payment (reserva no `PENDING` o TTL vencido; `bookingStatus`) |
 | `OFFLINE_DEVICE_NOT_AUTHORIZED` | 403 | sync |
 | `SYNC_BATCH_PAYLOAD_MISMATCH` | 409 | sync |
@@ -468,3 +470,9 @@ Las validaciones de vouchers existentes quedan en `offline.offline_validations` 
 - Pendiente: conciliación periódica contra la API de Wompi (intentos colgados o webhooks perdidos tras una rotación mal hecha); fuera del alcance de T-1.7.
 - Las decisiones citan RNF-13, RNF-18, RNF-23 y RNF-29, que no existen en la especificación (solo hay RNF-01 a RNF-09).
 - V10 se detiene a propósito si las tablas append-only ya contienen finalidades, `server_outcome` o `incident_type` antiguos.
+
+## 9. Voucher — `GET /bookings/{bookingId}/voucher` (ADR-0010)
+
+`VoucherResponse`: `voucherId`, `jti`, `bookingId`, `shortCode` (`^[A-HJ-NP-Z2-9]{8}$`), `status` (`ISSUED|REVOKED|CONSUMED|EXPIRED`), `issuedAt`, `expiresAt`, `validDate`, `token` (o `null`), `pdfStatus` (`READY|GENERATING`), `pdfUrl` (prefirmada, 5 min) y `pdfUrlExpiresAt`.
+
+**Token del QR (JWS compacto RS256):** encabezado `{alg: RS256, typ: voucher+jwt, kid}`. Claims, en este orden: `iss` (`integrate`), `jti`, `bid` (reserva), `sid` (franja), `xid` (experiencia), `vd` (fecha local `YYYY-MM-DD` en `America/Bogota`), `doc` (`TIPO:NÚMERO` del titular), `slots`, `iat` y `exp` (fin de la franja + 24 h). No lleva nombre, EPS, contacto ni montos. La PWA lo verifica sin conexión con la llave pública SPKI de `voucher.signing_keys` (`RSASSA-PKCS1-v1_5` + SHA-256 en Web Crypto) y compara `vd` con la fecha local del escaneo.

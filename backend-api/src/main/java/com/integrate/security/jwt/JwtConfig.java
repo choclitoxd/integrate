@@ -1,5 +1,6 @@
 package com.integrate.security.jwt;
 
+import com.integrate.common.crypto.RsaSigningKeys;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
@@ -34,7 +35,7 @@ public class JwtConfig {
         if (properties.keyId() == null || properties.keyId().isBlank()) {
             throw new IllegalStateException("JWT_SIGNING_KEY_ID is not set (ADR-0005 §2)");
         }
-        return RsaSigningKeys.load(properties.signingKey());
+        return RsaSigningKeys.load(properties.signingKey(), "JWT_SIGNING_KEY");
     }
 
     @Bean

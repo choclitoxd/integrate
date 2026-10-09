@@ -11,6 +11,11 @@ integrate:
       # Las pruebas invocan el worker de expiración directamente, con el reloj de prueba (ADR-0008 §9).
       enabled: false
 
+  voucher:
+    sweep:
+      # Las pruebas invocan el barrido directamente (ADR-0010 §10).
+      enabled: false
+
 logging:
   level:
     com.integrate: INFO

@@ -28,6 +28,8 @@
         <bouncycastle.version>1.86</bouncycastle.version>
         <archunit.version>1.5.1</archunit.version>
         <awssdk.version>2.46.7</awssdk.version>
+        <pdfbox.version>3.0.8</pdfbox.version>
+        <zxing.version>3.5.4</zxing.version>
     </properties>
 
     <dependencyManagement>
@@ -105,6 +107,24 @@
                     <artifactId>netty-nio-client</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- ===================== Voucher: QR y PDF/A ===================== -->
+        <!-- ADR-0010 §6: QR con ZXing (solo core: se dibuja como vector) y PDF/A-2b con PDFBox + XMP. Apache 2.0. -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>xmpbox</artifactId>
+            <version>${pdfbox.version}</version>
         </dependency>
 
         <!-- ===================== Productividad ===================== -->

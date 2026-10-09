@@ -51,6 +51,9 @@ public enum ErrorCode {
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.UNPROCESSABLE_CONTENT, "payment-amount-mismatch", "Payment Amount Mismatch"),
     PAYMENT_BOOKING_NOT_PAYABLE(HttpStatus.CONFLICT, "booking-not-payable", "Booking Not Payable"),
 
+    // --- Voucher (ADR-0010) ----------------------------------------------------
+    VOUCHER_NOT_READY(HttpStatus.CONFLICT, "voucher-not-ready", "Voucher Not Ready"),
+
     // --- Offline -------------------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
     SYNC_BATCH_PAYLOAD_MISMATCH(HttpStatus.CONFLICT, "sync-batch-payload-mismatch", "Sync Batch Payload Mismatch");
