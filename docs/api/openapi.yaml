@@ -1119,6 +1119,112 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /api/v1/bookings/{bookingId}/payment:
+    post:
+      tags: [Payments]
+      operationId: startBookingPayment
+      summary: Inicia (o retoma) el cobro de una reserva propia en PENDING (ADR-0009 §3).
+      description: |
+        Solo `ROLE_TOURIST` y solo sobre sus propias reservas (ajena o inexistente → 404). La reserva debe seguir
+        `PENDING` y con su TTL vigente; si no, 409 `PAYMENT_BOOKING_NOT_PAYABLE` con `bookingStatus`.
+
+        **Un solo intento abierto por reserva:** si ya existe uno `INITIATED | PENDING` del proveedor activo, se
+        devuelve ese mismo intento (200) y se actualiza su `paymentMethod` si aún está `INITIATED`. Un intento en
+        `ERROR` no se reutiliza (201 con un intento nuevo). El monto es el total de la reserva y la política de
+        comisión vigente queda congelada en el intento.
+
+        `checkout` depende del proveedor y siempre incluye `type`:
+        - `MOCK`: `{type, reference}`. El pago se completa con el webhook Mock o el simulador de `dev`.
+        - `WOMPI`: `{type, publicKey, currency, amountInCents, reference, integritySignature}` para el widget, con
+          `integritySignature = SHA-256(reference + amountInCents + currency + secreto de integridad)`, recalculada
+          en cada llamada.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentStartRequest' }
+            example: { paymentMethod: PSE }
+      responses:
+        '201':
+          description: Intento de cobro creado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentCheckoutResponse' }
+              example:
+                paymentId: 0d1e0f4a-6b7c-4d8e-9f00-112233445566
+                bookingId: c5f3b7b2-8c4d-4e9e-a8f6-5912a7d6e41b
+                provider: MOCK_GATEWAY
+                paymentMethod: PSE
+                status: INITIATED
+                amountCop: 160000
+                currency: COP
+                bookingExpiresAt: '2026-10-04T20:35:00Z'
+                checkout: { type: MOCK, reference: 0d1e0f4a-6b7c-4d8e-9f00-112233445566 }
+        '200':
+          description: Se retomó el intento abierto de la reserva.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentCheckoutResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: La reserva no está PENDING o su TTL venció (`PAYMENT_BOOKING_NOT_PAYABLE`, con `bookingStatus`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+              example:
+                type: https://api.integrate.co/problems/booking-not-payable
+                title: Booking Not Payable
+                status: 409
+                code: PAYMENT_BOOKING_NOT_PAYABLE
+                bookingStatus: EXPIRED
+                traceId: c4b9-8f21-4d1a
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/dev/payments/{paymentId}/simulate:
+    post:
+      tags: [Payments]
+      operationId: simulateMockPayment
+      summary: 'Solo perfiles dev y test: simula el evento de la pasarela Mock para un intento propio.'
+      description: |
+        Existe únicamente con los perfiles `dev` y `test` (ADR-0009 §1, punto C); en despliegue responde 404.
+        Pasa el evento por el mismo procesador que `/payments/webhook/mock` (idempotencia, escrow, aprobación
+        tardía), sin firma. Solo sobre intentos `MOCK` del turista autenticado (otro caso → 404).
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentSimulationRequest' }
+            example: { status: APPROVED }
+      responses:
+        '200':
+          description: Evento simulado procesado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WebhookAck' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
   /api/v1/payments/webhook/mock:
     post:
       tags: [Payments]
@@ -1200,16 +1306,22 @@ paths:
         `WompiPaymentGatewayAdapter` lo traduce a `CanonicalPaymentEvent`:
         - `eventId` = hash SHA-256 de `signature.checksum`.
         - `transactionId` = `data.transaction.id`.
-        - `bookingId` = `data.transaction.reference`.
-        - `amountCop` = `data.transaction.amount_in_cents / 100`.
+        - `data.transaction.reference` = `paymentId` del intento (la reserva se obtiene del intento; ADR-0009).
+        - `amountCop` = `data.transaction.amount_in_cents / 100` (debe ser un número entero de pesos).
 
-        A partir de ahí aplica las mismas reglas de firma, idempotencia `(provider, event_id)` y mapeo de
-        estados que `/webhook/mock`. Ver la nota de compatibilidad de firma en `dtos_contrato_api.md` §8.
-      security:
-        - webhookHmac: []
-      parameters:
-        - $ref: '#/components/parameters/XSignature'
-        - $ref: '#/components/parameters/XTimestamp'
+        **Firma nativa (ADR-0009 §4):** `signature.checksum = SHA-256(valores de signature.properties, en ese
+        orden, leídos de data + timestamp + secreto de eventos)`, comparada en tiempo constante y sin distinguir
+        mayúsculas. No usa `X-Signature`/`X-Timestamp`. Durante una rotación se acepta también el secreto
+        anterior (`WOMPI_EVENTS_SECRET_PREVIOUS`).
+
+        **Ventana:** no hay ventana de 300 s, porque Wompi reintenta a los 30 min, 3 h y 24 h con el `timestamp`
+        original. Se rechaza un `timestamp` con más de 25 h de antigüedad o más de 5 min en el futuro; las
+        repeticiones las frena la idempotencia `(provider, event_id)`.
+
+        Un evento que no sea `transaction.updated` responde 200 sin efectos (`eventId`, `paymentStatus` y
+        `bookingStatus` nulos). Un `PENDING` de Wompi se acepta con 200 y deja el pago en `PENDING`. Si el
+        proveedor no está configurado, responde 404.
+      security: []
       requestBody:
         required: true
         content:
@@ -1984,7 +2096,7 @@ components:
               additionalProperties: true
               properties:
                 id: { type: string }
-                reference: { type: string, description: bookingId (UUID). }
+                reference: { type: string, description: 'paymentId (UUID) del intento; ADR-0009.' }
                 amount_in_cents: { type: integer, format: int64 }
                 currency: { type: string, const: COP }
                 status: { type: string, enum: [APPROVED, DECLINED, VOIDED, ERROR, PENDING] }
@@ -1999,18 +2111,56 @@ components:
         sent_at: { type: string, format: date-time }
     WebhookAck:
       type: object
-      required: [received, duplicate, provider, eventId]
+      required: [received, duplicate, provider]
       properties:
         received: { type: boolean, const: true }
         duplicate: { type: boolean }
         provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
-        eventId: { type: string }
+        eventId:
+          type: [string, 'null']
+          description: Nulo solo en un evento de Wompi que no es de transacciones (ignorado).
         paymentStatus:
           type: [string, 'null']
-          enum: [APPROVED, REJECTED, ERROR, VOIDED, null]
+          enum: [INITIATED, PENDING, APPROVED, REJECTED, ERROR, VOIDED, null]
         bookingStatus:
           type: [string, 'null']
-          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, CANCELLED_REFUNDED, null]
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT, null]
+          description: |
+            Estado de la reserva tras el evento. Una aprobación tardía deja `paymentStatus = APPROVED` con la
+            reserva en `EXPIRED` (o el estado que tuviera) y ordena el reembolso del 100% (`LATE_APPROVAL`).
+
+    PaymentStartRequest:
+      type: object
+      additionalProperties: false
+      required: [paymentMethod]
+      properties:
+        paymentMethod: { type: string, enum: [PSE, CARD, NEQUI, DAVIPLATA] }
+    PaymentSimulationRequest:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [APPROVED, DECLINED, VOIDED, ERROR] }
+    PaymentCheckoutResponse:
+      type: object
+      required: [paymentId, bookingId, provider, paymentMethod, status, amountCop, currency, bookingExpiresAt, checkout]
+      properties:
+        paymentId: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        paymentMethod: { type: string, enum: [PSE, CARD, NEQUI, DAVIPLATA] }
+        status: { type: string, enum: [INITIATED, PENDING] }
+        amountCop: { $ref: '#/components/schemas/CopAmount' }
+        currency: { type: string, const: COP }
+        bookingExpiresAt: { type: string, format: date-time, description: El pago debe completarse antes. }
+        checkout:
+          type: object
+          required: [type]
+          additionalProperties: true
+          description: Datos propios de la pasarela (ver `startBookingPayment`).
+          properties:
+            type: { type: string, enum: [MOCK, WOMPI] }
 
     # ---------- Offline ----------
     OfflineValidationItem:

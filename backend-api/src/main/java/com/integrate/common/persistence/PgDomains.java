@@ -15,6 +15,7 @@ public final class PgDomains {
     public static final String COP_AMOUNT = "\"common\".\"cop_amount\"";
     public static final String CIPHERTEXT = "\"common\".\"ciphertext\"";
     public static final String S3_KEY = "\"common\".\"s3_key\"";
+    public static final String PERCENTAGE = "\"common\".\"percentage\"";
 
     private PgDomains() {
     }

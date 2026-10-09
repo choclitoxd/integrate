@@ -36,6 +36,12 @@ public abstract class PostgresIntegrationTest {
     private static final String API_PASSWORD = UUID.randomUUID().toString();
     private static final String SENSITIVE_DATA_KEY = TestKeys.sensitiveDataKey();
 
+    /** Secretos de pasarela generados en memoria por ejecución, para firmar webhooks en las pruebas (ADR-0009 §9). */
+    protected static final String MOCK_WEBHOOK_SECRET = TestKeys.sensitiveDataKey();
+    protected static final String WOMPI_EVENTS_SECRET = "test_events_" + UUID.randomUUID();
+    protected static final String WOMPI_INTEGRITY_SECRET = "test_integrity_" + UUID.randomUUID();
+    protected static final String WOMPI_PUBLIC_KEY = "pub_test_" + UUID.randomUUID();
+
     @SuppressWarnings("resource") // vive toda la JVM; Ryuk lo elimina al terminar
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16.6-alpine")
             .withEnv("INTEGRATE_OWNER_PASSWORD", OWNER_PASSWORD)
@@ -67,6 +73,11 @@ public abstract class PostgresIntegrationTest {
         registry.add("JWT_SIGNING_KEY_ID", () -> "session-test");
         registry.add("SENSITIVE_DATA_KEY_V1", () -> SENSITIVE_DATA_KEY);
         registry.add("AWS_S3_SENSITIVE_BUCKET_NAME", () -> "integrate-sensitive-test");
+        registry.add("PAYMENT_PROVIDER", () -> "MOCK");
+        registry.add("PAYMENT_WEBHOOK_SECRET_MOCK", () -> MOCK_WEBHOOK_SECRET);
+        registry.add("WOMPI_PUBLIC_KEY", () -> WOMPI_PUBLIC_KEY);
+        registry.add("WOMPI_INTEGRITY_SECRET", () -> WOMPI_INTEGRITY_SECRET);
+        registry.add("WOMPI_EVENTS_SECRET", () -> WOMPI_EVENTS_SECRET);
     }
 
     @TestConfiguration(proxyBeanMethods = false)

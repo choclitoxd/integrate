@@ -38,4 +38,22 @@ class ModuleBoundariesTest {
     static final ArchRule catalogAndAuthDoNotDependOnBooking = noClasses()
             .that().resideInAnyPackage("com.integrate.modules.catalog..", "com.integrate.modules.auth..")
             .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.booking..");
+
+    /** Las transiciones de la reserva son de {@code booking}: {@code payment} solo usa interfaces públicas (ADR-0009 §2). */
+    @ArchTest
+    static final ArchRule paymentUsesOnlyPublicApis = noClasses()
+            .that().resideInAPackage("com.integrate.modules.payment..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "com.integrate.modules.booking.repository..", "com.integrate.modules.booking.entity..",
+                    "com.integrate.modules.booking.service.impl..", "com.integrate.modules.booking.controller..",
+                    "com.integrate.modules.catalog.repository..", "com.integrate.modules.catalog.entity..",
+                    "com.integrate.modules.catalog.service.impl..", "com.integrate.modules.catalog.controller..",
+                    "com.integrate.modules.auth.repository..", "com.integrate.modules.auth.service.impl..",
+                    "com.integrate.modules.auth.controller..");
+
+    @ArchTest
+    static final ArchRule nothingDependsOnPayment = noClasses()
+            .that().resideInAnyPackage("com.integrate.modules.booking..", "com.integrate.modules.catalog..",
+                    "com.integrate.modules.auth..")
+            .should().dependOnClassesThat().resideInAnyPackage("com.integrate.modules.payment..");
 }

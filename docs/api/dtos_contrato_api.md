@@ -27,8 +27,10 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 | GET | `/api/v1/experiences/{id}/availability` | público (JWT opcional) | 200 | 400, 404, 409, 422 |
 | POST | `/api/v1/bookings/lock` | `TOURIST` | 201 (200 si es replay) | 400, 401, 403, 404, 409, 422, 428, 503 |
 | GET | `/api/v1/bookings/{bookingId}` | `TOURIST` (dueño) | 200 | 400, 401, 403, 404 |
+| POST | `/api/v1/bookings/{bookingId}/payment` | `TOURIST` (dueño) | 201 (200 si retoma el intento abierto) | 400, 401, 403, 404, 409, 422 |
+| POST | `/api/v1/dev/payments/{paymentId}/simulate` | `TOURIST` (dueño), **solo `dev`/`test`** | 200 | 401, 403, 404, 422 |
 | POST | `/api/v1/payments/webhook/mock` | firma HMAC | 200 | 400, 401, 422 |
-| POST | `/api/v1/payments/webhook/wompi` | firma HMAC | 200 | 400, 401, 422 |
+| POST | `/api/v1/payments/webhook/wompi` | checksum nativo de Wompi | 200 | 400, 401, 404, 422 |
 | POST | `/api/v1/offline/sync` | `LINK_MANAGER`, `HOST` | 200 | 400, 401, 403, 409, 422 |
 
 ---
@@ -97,6 +99,8 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `WEBHOOK_SIGNATURE_INVALID` | 401 | webhooks |
 | `PAYMENT_BOOKING_NOT_FOUND` | 422 | webhooks |
 | `PAYMENT_PROVIDER_MISMATCH` | 422 | webhooks (`provider` del body ≠ path) |
+| `PAYMENT_AMOUNT_MISMATCH` | 422 | webhooks (monto del evento ≠ monto del intento; `expectedAmountCop`, `receivedAmountCop`) |
+| `PAYMENT_BOOKING_NOT_PAYABLE` | 409 | bookings/{id}/payment (reserva no `PENDING` o TTL vencido; `bookingStatus`) |
 | `OFFLINE_DEVICE_NOT_AUTHORIZED` | 403 | sync |
 | `SYNC_BATCH_PAYLOAD_MISMATCH` | 409 | sync |
 
@@ -334,8 +338,16 @@ Visibilidad: una experiencia no `APPROVED` devuelve 404 al público o a un turis
 
 ## 6. Webhook de pasarela – `POST /payments/webhook/{mock|wompi}`
 
-**Cabeceras:** `X-Signature` (hex de 64 caracteres) y `X-Timestamp` (epoch en segundos).
-**Firma:** `HMAC_SHA256(secret_proveedor, X-Timestamp + "." + raw_body)`, comparada en tiempo constante (`MessageDigest.isEqual`). Ventana de ±300 s. Si falla → 401.
+**Mock — cabeceras:** `X-Signature` (hex de 64 caracteres) y `X-Timestamp` (epoch en segundos).
+**Mock — firma:** `HMAC_SHA256(PAYMENT_WEBHOOK_SECRET_MOCK decodificado de Base64, X-Timestamp + "." + raw_body)`, comparada en tiempo constante (`MessageDigest.isEqual`). Ventana de ±300 s. Si falla → 401.
+
+**Wompi — firma nativa (ADR-0009 §4):** `signature.checksum = SHA-256(valores de signature.properties leídos de data, en el orden declarado + timestamp + WOMPI_EVENTS_SECRET)`, comparada en tiempo constante y sin distinguir mayúsculas. Durante una rotación también vale `WOMPI_EVENTS_SECRET_PREVIOUS`. No hay ventana de 300 s: Wompi reintenta a los 30 min, 3 h y 24 h con el `timestamp` original, así que solo se rechaza un `timestamp` de más de 25 h o de más de 5 min en el futuro.
+
+**Comunes:** una firma inválida no se guarda en `payment_webhook_events` (evita ocupar la clave única de un evento legítimo) y se audita `PAYMENT_WEBHOOK_REJECTED` (`WARNING`). Un proveedor sin secretos configurados responde 404.
+
+### 6.0 Inicio del pago — `POST /bookings/{bookingId}/payment` (ADR-0009 §3)
+
+`PaymentStartRequest`: `paymentMethod` (`PSE|CARD|NEQUI|DAVIPLATA`). `PaymentCheckoutResponse`: `paymentId`, `bookingId`, `provider` (`MOCK_GATEWAY|WOMPI`), `paymentMethod`, `status` (`INITIATED|PENDING`), `amountCop`, `currency`, `bookingExpiresAt` y `checkout` (siempre con `type`; Wompi agrega `publicKey`, `currency`, `amountInCents`, `reference` e `integritySignature`). Un solo intento abierto (`INITIATED|PENDING`) por reserva: una segunda llamada lo retoma (200); un intento en `ERROR` no se reutiliza.
 
 ### 6.1 `CanonicalPaymentEvent` (Mock, y salida del adaptador Wompi)
 
@@ -354,7 +366,7 @@ Visibilidad: una experiencia no `APPROVED` devuelve 404 al público o a un turis
 | Campo canónico | Origen en el evento Wompi |
 |---|---|
 | `transactionId` | `data.transaction.id` |
-| `bookingId` | `data.transaction.reference` |
+| intento de pago | `data.transaction.reference` (= `paymentId`; la reserva se obtiene del intento) |
 | `amountCop` | `amount_in_cents / 100` |
 | `status` | `data.transaction.status` |
 | `eventId` | ver §8.6 |
@@ -371,6 +383,10 @@ Visibilidad: una experiencia no `APPROVED` devuelve 404 al público o a un turis
 | `DECLINED` | `REJECTED` | `PAYMENT_FAILED` | libera los cupos en la misma transacción |
 | `VOIDED` | `VOIDED` | `CANCELLED_REFUNDED` | libera los cupos si la reserva estaba `PENDING` (transición habilitada en V10) |
 | `ERROR` | `ERROR` | `PENDING` (sin cambio) | el TTL de 15 minutos sigue corriendo |
+| `PENDING` (solo Wompi) | `PENDING` | sin cambio | — |
+| `APPROVED` sobre una reserva ya no `PENDING` | `APPROVED` | sin cambio (p. ej. `EXPIRED`) | **aprobación tardía (S3):** `refunds` `LATE_APPROVAL` por el 100% en `REQUESTED` (ejecución en T-2.6), sin dispersión, auditoría `HIGH` |
+
+`disbursements.amount_cop = CEIL(amount × community_pct / 100)` (política congelada en el intento) y `release_at = end_time` de la franja `+ payout_grace_hours`. El 15% de la plataforma no se almacena: es `amount − disbursement`. Un evento sobre un pago ya final se registra (`processing_error`) y responde 200 sin efectos. Al confirmar se publica `BookingConfirmedEvent` después del `COMMIT` (señal para T-1.8).
 
 Todo ocurre en una transacción: `INSERT … ON CONFLICT (provider, event_id) DO NOTHING`, luego las transiciones, luego la auditoría.
 
@@ -448,6 +464,7 @@ Las validaciones de vouchers existentes quedan en `offline.offline_validations` 
 | 14 | La versión de la política sigue el formato `vN.N` (ej. `v2.0`) por el `CHECK` de `privacy_policies` | Contrato |
 
 **Pendientes conocidos**
-- La firma nativa de Wompi es un checksum en el body (cabecera `X-Event-Checksum`). Si Wompi llama directo, sin un proxy que re-firme con `X-Signature` y `X-Timestamp`, el adaptador debe validar ese checksum.
+- ~~La firma nativa de Wompi es un checksum en el body.~~ **Resuelto en ADR-0009 §4:** `/webhook/wompi` valida el checksum nativo (sin `X-Signature`/`X-Timestamp`), con rotación de dos secretos y ventana de 25 h.
+- Pendiente: conciliación periódica contra la API de Wompi (intentos colgados o webhooks perdidos tras una rotación mal hecha); fuera del alcance de T-1.7.
 - Las decisiones citan RNF-13, RNF-18, RNF-23 y RNF-29, que no existen en la especificación (solo hay RNF-01 a RNF-09).
 - V10 se detiene a propósito si las tablas append-only ya contienen finalidades, `server_outcome` o `incident_type` antiguos.

@@ -88,6 +88,20 @@ integrate:
       enabled: true
       interval: PT60S
       batch-size: 100
+  # --- Pagos (ADR-0009 §7): proveedor activo sin default (fail-fast); cada adaptador se activa solo con sus secretos.
+  payments:
+    provider: ${PAYMENT_PROVIDER}
+    mock:
+      webhook-secret: ${PAYMENT_WEBHOOK_SECRET_MOCK:}
+      signature-tolerance: PT5M
+    wompi:
+      public-key: ${WOMPI_PUBLIC_KEY:}
+      integrity-secret: ${WOMPI_INTEGRITY_SECRET:}
+      events-secret: ${WOMPI_EVENTS_SECRET:}
+      # Solo durante una rotación del secreto de eventos (ADR-0009 §4).
+      events-secret-previous: ${WOMPI_EVENTS_SECRET_PREVIOUS:}
+      # Cubre los reintentos de Wompi (30 min, 3 h y 24 h) con margen.
+      max-event-age: PT25H
 
 server:
   port: ${SERVER_PORT:8080}

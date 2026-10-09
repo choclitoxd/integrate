@@ -1,12 +1,15 @@
 package com.integrate.modules.catalog.service.impl;
 
 import com.integrate.modules.catalog.entity.Experience;
+import com.integrate.modules.catalog.entity.HostProfile;
 import com.integrate.modules.catalog.entity.Schedule;
 import com.integrate.modules.catalog.entity.ScheduleStatus;
 import com.integrate.modules.catalog.repository.ExperienceRepository;
+import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
 import com.integrate.modules.catalog.service.SlotInventory;
 import com.integrate.modules.catalog.service.model.ReservedSlots;
+import com.integrate.modules.catalog.service.model.ScheduleSettlement;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -23,11 +26,24 @@ public class SlotInventoryImpl implements SlotInventory {
 
     private final ScheduleRepository scheduleRepository;
     private final ExperienceRepository experienceRepository;
+    private final HostProfileRepository hostProfileRepository;
 
     @Override
     @Transactional(readOnly = true)
     public Optional<UUID> experienceOf(UUID scheduleId) {
         return scheduleRepository.findById(scheduleId).map(Schedule::getExperienceId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ScheduleSettlement> settlementOf(UUID scheduleId) {
+        return scheduleRepository.findById(scheduleId).map(schedule -> {
+            Experience experience = experienceRepository.findById(schedule.getExperienceId())
+                    .orElseThrow(() -> new IllegalStateException("Schedule " + scheduleId + " has no experience"));
+            HostProfile host = hostProfileRepository.findById(experience.getHostId())
+                    .orElseThrow(() -> new IllegalStateException("Experience " + experience.getId() + " has no host"));
+            return new ScheduleSettlement(scheduleId, host.getAssociationId(), schedule.getEndTime());
+        });
     }
 
     @Override

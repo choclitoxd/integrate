@@ -113,10 +113,29 @@ public class Booking {
 
     /** Vencimiento del TTL sin pago (RF-11). El trigger valida la transición y escribe el historial. */
     public void expire() {
-        if (status != BookingStatus.PENDING) {
-            throw new IllegalStateException("Only a PENDING booking can expire (booking " + id + " is " + status + ")");
+        moveFrom(BookingStatus.PENDING, BookingStatus.EXPIRED);
+    }
+
+    /** Pago aprobado (RF-12). El trigger fija {@code confirmed_at}. */
+    public void confirm() {
+        moveFrom(BookingStatus.PENDING, BookingStatus.CONFIRMED);
+    }
+
+    /** Pago rechazado por la pasarela (RF-12): la reserva se pierde y sus cupos se devuelven. */
+    public void failPayment() {
+        moveFrom(BookingStatus.PENDING, BookingStatus.PAYMENT_FAILED);
+    }
+
+    /** Pago anulado sobre una reserva aún {@code PENDING} (F5, V10): sus cupos se devuelven. */
+    public void voidPending() {
+        moveFrom(BookingStatus.PENDING, BookingStatus.CANCELLED_REFUNDED);
+    }
+
+    private void moveFrom(BookingStatus expected, BookingStatus target) {
+        if (status != expected) {
+            throw new IllegalStateException("Booking " + id + " is " + status + ", cannot move to " + target);
         }
-        this.status = BookingStatus.EXPIRED;
+        this.status = target;
     }
 
     /** Contacto de emergencia cifrado con AES-256-GCM (B4); ambas columnas con la misma versión de llave. */

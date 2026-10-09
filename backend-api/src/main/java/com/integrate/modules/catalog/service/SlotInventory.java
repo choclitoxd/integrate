@@ -1,6 +1,7 @@
 package com.integrate.modules.catalog.service;
 
 import com.integrate.modules.catalog.service.model.ReservedSlots;
+import com.integrate.modules.catalog.service.model.ScheduleSettlement;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +17,12 @@ public interface SlotInventory {
 
     /** Experiencia a la que pertenece una franja (lectura sin bloqueo), o vacío si la franja no existe. */
     Optional<UUID> experienceOf(UUID scheduleId);
+
+    /**
+     * Asociación beneficiaria (la del anfitrión de la experiencia) y fin de la franja, para programar la dispersión
+     * del pago (ADR-0009 §2). Lectura sin bloqueo; vacío si la franja no existe.
+     */
+    Optional<ScheduleSettlement> settlementOf(UUID scheduleId);
 
     /**
      * Bloquea la franja con {@code SELECT … FOR UPDATE} (espera como máximo el {@code lock_timeout} del rol),

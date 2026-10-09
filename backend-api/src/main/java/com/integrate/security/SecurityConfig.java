@@ -55,8 +55,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register-assisted", "/api/v1/gestor/uploads")
                         .hasAnyRole("LINK_MANAGER", "ADMIN")
                         .requestMatchers("/api/v1/gestor/**").hasRole("LINK_MANAGER")
-                        // Reservas (ADR-0008 §1): solo el turista.
+                        // Reservas y su pago (ADR-0008 §1, ADR-0009 §1): solo el turista.
                         .requestMatchers("/api/v1/bookings/**").hasRole("TOURIST")
+                        // Webhooks de pasarela (ADR-0009 §4): sin JWT; la autenticidad la da la firma.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/webhook/mock",
+                                "/api/v1/payments/webhook/wompi").permitAll()
+                        // Simulador de pagos (ADR-0009 §1, punto C): el controlador solo existe en dev/test.
+                        .requestMatchers("/api/v1/dev/**").hasRole("TOURIST")
                         // Destino interno de los errores del contenedor; nunca expone detalles (application.yml).
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())

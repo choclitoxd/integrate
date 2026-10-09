@@ -48,6 +48,8 @@ public enum ErrorCode {
     WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "webhook-signature-invalid", "Webhook Signature Invalid"),
     PAYMENT_BOOKING_NOT_FOUND(HttpStatus.UNPROCESSABLE_CONTENT, "payment-booking-not-found", "Payment Booking Not Found"),
     PAYMENT_PROVIDER_MISMATCH(HttpStatus.UNPROCESSABLE_CONTENT, "payment-provider-mismatch", "Payment Provider Mismatch"),
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.UNPROCESSABLE_CONTENT, "payment-amount-mismatch", "Payment Amount Mismatch"),
+    PAYMENT_BOOKING_NOT_PAYABLE(HttpStatus.CONFLICT, "booking-not-payable", "Booking Not Payable"),
 
     // --- Offline -------------------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
