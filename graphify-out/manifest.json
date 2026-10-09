@@ -60,9 +60,9 @@
     "semantic_hash": "ac4e0d63166394cdc2358f0a26840f6b"
   },
   "docs/especificacion_tecnica.md": {
-    "mtime": 1791188371.7773743,
-    "seen": 1791188396.8328602,
-    "ast_hash": "157806507df31f13f61211867bbc877c",
+    "mtime": 1791404897.1027634,
+    "seen": 1791404951.9790463,
+    "ast_hash": "48b0510f749d1fc65d006794607b4777",
     "semantic_hash": ""
   },
   "docs/modelo_relacional.md": {
@@ -72,27 +72,27 @@
     "semantic_hash": "146bd565f1a04ee1eb71882bab0e7399"
   },
   "docs/roadmap_ejecucion.md": {
-    "mtime": 1791187104.4878097,
-    "seen": 1791187127.1790044,
-    "ast_hash": "d1d1b30cf4cd6869f3acec5916cbf6ab",
+    "mtime": 1791524883.3586574,
+    "seen": 1791524949.857143,
+    "ast_hash": "97c32dbd116959e310994b94d6e9b205",
     "semantic_hash": ""
   },
   "docs/api/dtos_contrato_api.md": {
-    "mtime": 1791182357.3941844,
-    "seen": 1791183217.783642,
-    "ast_hash": "0881f65bf8fcd502222a62da6f2c6aaf",
-    "semantic_hash": "0881f65bf8fcd502222a62da6f2c6aaf"
+    "mtime": 1791524691.6822655,
+    "seen": 1791524949.857143,
+    "ast_hash": "31a178a49d09a46d835b852cfb9a35a5",
+    "semantic_hash": ""
   },
   "docs/api/openapi.yaml": {
-    "mtime": 1791182377.5002263,
-    "seen": 1791183217.783642,
-    "ast_hash": "635328ab210bda9c2161a1757326186b",
-    "semantic_hash": "635328ab210bda9c2161a1757326186b"
+    "mtime": 1791524680.0772617,
+    "seen": 1791524949.857143,
+    "ast_hash": "f6162d961657870f974f995a866edb07",
+    "semantic_hash": ""
   },
   "docs/architecture/backend_guidelines.md": {
-    "mtime": 1791188371.7275424,
-    "seen": 1791188396.8328602,
-    "ast_hash": "8d78e1acccf3565d88bbc2abe015f9ed",
+    "mtime": 1791229159.4688888,
+    "seen": 1791402335.3433056,
+    "ast_hash": "1e5f809dbdb2f0311e54555d70b351ac",
     "semantic_hash": ""
   },
   "docs/architecture/offline_data_indexeddb.md": {
@@ -108,9 +108,9 @@
     "semantic_hash": "4459ba9d746ccef767e8f67409c52b16"
   },
   "infra/localstack/init/01_create_bucket.sh": {
-    "mtime": 1791186232.4108305,
-    "seen": 1791186418.6008077,
-    "ast_hash": "cd848e87696bcb4bba6547f1e62264eb",
+    "mtime": 1791403754.5341556,
+    "seen": 1791404951.9790463,
+    "ast_hash": "284286fe084807255d1f7fef1e8658e2",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0001-infraestructura-local-docker-compose.md": {
@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "docs/status/PROJECT_STATUS.md": {
-    "mtime": 1791228624.270218,
-    "seen": 1791228644.573147,
-    "ast_hash": "94f35c5d7e7737db6b588f93a707e541",
+    "mtime": 1791524883.357654,
+    "seen": 1791524949.857143,
+    "ast_hash": "01c2702938cd97785280075e27822c84",
     "semantic_hash": ""
   },
   "infra/README.md": {
@@ -144,9 +144,9 @@
     "semantic_hash": ""
   },
   "infra/docker/docker-compose.yml": {
-    "mtime": 1791186369.247893,
-    "seen": 1791186418.6008077,
-    "ast_hash": "462e71b3bce6be8fa05118db389b62d1",
+    "mtime": 1791403744.2831562,
+    "seen": 1791404951.9790463,
+    "ast_hash": "05fd37ad65e35123e37cf29e64ea958d",
     "semantic_hash": ""
   },
   "backend-api/mvnw": {
@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "backend-api/pom.xml": {
-    "mtime": 1791227671.365998,
-    "seen": 1791228644.573147,
-    "ast_hash": "eceb4508d622450abfe08ace8feba4e6",
+    "mtime": 1791403633.9226322,
+    "seen": 1791404951.9790463,
+    "ast_hash": "5d493aa6eef5fa222283c57b06ab2171",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0002-stack-base-backend-spring-boot.md": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/application.yml": {
-    "mtime": 1791228246.843173,
-    "seen": 1791228644.573147,
-    "ast_hash": "7b54d7447f4814f09edcc8518f489b8e",
+    "mtime": 1791524042.3201036,
+    "seen": 1791524949.857143,
+    "ast_hash": "e8ba760903f2092a4ba2fed0e13d5740",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/common/exception/BusinessRuleException.java": {
@@ -192,9 +192,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/common/exception/ErrorCode.java": {
-    "mtime": 1791188155.662241,
-    "seen": 1791188396.8328602,
-    "ast_hash": "2d1c037c148f27b33f06345e1effb67f",
+    "mtime": 1791403662.699855,
+    "seen": 1791404951.9790463,
+    "ast_hash": "18338fc9b398d6777ea1bac1263d06c4",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java": {
@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/architecture/CommonArchitectureTest.java": {
-    "mtime": 1791188241.916134,
-    "seen": 1791188396.8328602,
-    "ast_hash": "cd3d4deae16b8f47b38aa1656a6e6b67",
+    "mtime": 1791404316.2214408,
+    "seen": 1791404951.9790463,
+    "ast_hash": "b3656264bc230e048d4472026851ad32",
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/common/exception/ErrorCodeTest.java": {
@@ -234,9 +234,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/common/exception/GlobalExceptionHandlerTest.java": {
-    "mtime": 1791188308.0478022,
-    "seen": 1791188396.8328602,
-    "ast_hash": "b6f57e21077c6785d9028c9305ff5115",
+    "mtime": 1791228985.904492,
+    "seen": 1791402335.3433056,
+    "ast_hash": "83aa17cfa1f03d19d7807f413710e1df",
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/common/web/TraceIdFilterTest.java": {
@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/layouts/ManagerLayout.tsx": {
-    "mtime": 1791225915.667431,
-    "seen": 1791226243.9708843,
-    "ast_hash": "27e1e5f6784e6df3b762e5d6f49dd9dd",
+    "mtime": 1791402829.2642896,
+    "seen": 1791404951.9790463,
+    "ast_hash": "3c05d15993c3e5a4044d44258f1a1a90",
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/layouts/TouristLayout.tsx": {
@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/home/TouristHomePage.tsx": {
-    "mtime": 1791225914.3916485,
-    "seen": 1791226243.9708843,
-    "ast_hash": "3fcfc5b99cb90bd24e2c8716e0eed569",
+    "mtime": 1791402829.5136087,
+    "seen": 1791404951.9790463,
+    "ast_hash": "342a7e52c61fbb3e6f43bbc019365b2f",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/home/index.ts": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/errors.ts": {
-    "mtime": 1791225855.783315,
-    "seen": 1791226243.9708843,
-    "ast_hash": "10170740ebebd63cb0cd477a7cc1c45d",
+    "mtime": 1791402829.637223,
+    "seen": 1791404951.9790463,
+    "ast_hash": "d03351e837130cd364234021599b3831",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/httpClient.test.ts": {
@@ -354,9 +354,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/httpClient.ts": {
-    "mtime": 1791225855.8400843,
-    "seen": 1791226243.9708843,
-    "ast_hash": "e3d0f5391429759619333521f6336215",
+    "mtime": 1791402829.3899126,
+    "seen": 1791404951.9790463,
+    "ast_hash": "f886da30ed6b84d44a15a240f71a3c78",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/index.ts": {
@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0004-boilerplate-frontend-pwa-vite-react.md": {
-    "mtime": 1791226217.54738,
-    "seen": 1791226243.9708843,
-    "ast_hash": "690096c322fca4f9a370a7d18f821daa",
+    "mtime": 1791402848.804747,
+    "seen": 1791404951.9790463,
+    "ast_hash": "e8f4e5881ec2cdd6ec5a47756c12372a",
     "semantic_hash": ""
   },
   "docs/rules/git-workflow.md": {
@@ -546,9 +546,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/HabeasDataConsent.java": {
-    "mtime": 1791227850.6317909,
-    "seen": 1791228644.573147,
-    "ast_hash": "020da2621815ead4e23011128655190f",
+    "mtime": 1791403794.2552152,
+    "seen": 1791404951.9790463,
+    "ast_hash": "430c9d660e6db898c6c100426377b798",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/LoginAttempt.java": {
@@ -563,22 +563,16 @@
     "ast_hash": "e2e376c3a1ad24ea9dddc641c48a2d23",
     "semantic_hash": ""
   },
-  "backend-api/src/main/java/com/integrate/modules/auth/entity/PgDomains.java": {
-    "mtime": 1791228526.986703,
-    "seen": 1791228644.573147,
-    "ast_hash": "8f9e0936fc43e31098cdfa7e52d7b617",
-    "semantic_hash": ""
-  },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/PrivacyPolicy.java": {
-    "mtime": 1791228530.6057036,
-    "seen": 1791228644.573147,
-    "ast_hash": "efba890bd3af61a031f3fc0e218ac136",
+    "mtime": 1791399364.0412624,
+    "seen": 1791402335.3433056,
+    "ast_hash": "f2b9e89660613dbcde77a37ca74bf0b2",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/RefreshToken.java": {
-    "mtime": 1791228530.7298632,
-    "seen": 1791228644.573147,
-    "ast_hash": "282db2ef831755faff8602e6feaa4d06",
+    "mtime": 1791399364.164854,
+    "seen": 1791402335.3433056,
+    "ast_hash": "b80fa5496860646d78fed99d089ad5be",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/RevokeReason.java": {
@@ -600,9 +594,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/User.java": {
-    "mtime": 1791228530.4815364,
-    "seen": 1791228644.573147,
-    "ast_hash": "680c8e59afcaeb239edc303cdc20ecf9",
+    "mtime": 1791403794.2540863,
+    "seen": 1791404951.9790463,
+    "ast_hash": "075a4acb642c1cd8d8ae3da06b402e93",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/entity/UserRole.java": {
@@ -618,9 +612,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/repository/HabeasDataConsentRepository.java": {
-    "mtime": 1791227884.5312865,
-    "seen": 1791228644.573147,
-    "ast_hash": "4895c578ca81c5e2bf11fd6b0a768f4c",
+    "mtime": 1791403794.2552152,
+    "seen": 1791404951.9790463,
+    "ast_hash": "a699d05f2b690bb7265a93b95955990c",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/repository/LoginAttemptRepository.java": {
@@ -666,9 +660,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/AuthProperties.java": {
-    "mtime": 1791228013.7391257,
-    "seen": 1791228644.573147,
-    "ast_hash": "7e1de5d701b40beb7bea55e2527c433b",
+    "mtime": 1791403848.815934,
+    "seen": 1791404951.9790463,
+    "ast_hash": "0a334dfa9daa323c1e402c2660718a2f",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/AuthService.java": {
@@ -678,9 +672,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/ConsentService.java": {
-    "mtime": 1791228013.909459,
-    "seen": 1791228644.573147,
-    "ast_hash": "3ad4363eaa67e56d776e56746316453f",
+    "mtime": 1791402228.888277,
+    "seen": 1791402335.3433056,
+    "ast_hash": "c84756e9f709482fa33fb86df8e1b947",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/RegistrationService.java": {
@@ -702,9 +696,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/impl/ConsentLedger.java": {
-    "mtime": 1791228099.4583433,
-    "seen": 1791228644.573147,
-    "ast_hash": "01b4411f36d261820d3bf7505f848260",
+    "mtime": 1791403794.2562273,
+    "seen": 1791404951.9790463,
+    "ast_hash": "608694c468874653561c5b38caee714d",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/impl/ConsentServiceImpl.java": {
@@ -732,9 +726,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/impl/RegistrationServiceImpl.java": {
-    "mtime": 1791228166.9282675,
-    "seen": 1791228644.573147,
-    "ast_hash": "18c9a9b09698121fa18d5e664ab09578",
+    "mtime": 1791403848.8169348,
+    "seen": 1791404951.9790463,
+    "ast_hash": "0a7394824cb3f1132e54d7abb3890204",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/impl/SessionIssuer.java": {
@@ -792,9 +786,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/security/jwt/JwtConfig.java": {
-    "mtime": 1791228234.1485243,
-    "seen": 1791228644.573147,
-    "ast_hash": "50bde73bed23a02811c33bcfd0969907",
+    "mtime": 1791402229.260993,
+    "seen": 1791402335.3433056,
+    "ast_hash": "3a6290ec1d9fc89a82e2153cca3df80e",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/security/jwt/JwtProperties.java": {
@@ -858,27 +852,957 @@
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/support/PostgresIntegrationTest.java": {
-    "mtime": 1791228373.086576,
-    "seen": 1791228644.573147,
-    "ast_hash": "1a04b7721ab033746cb8183e9d93d669",
+    "mtime": 1791404305.5257409,
+    "seen": 1791404951.9790463,
+    "ast_hash": "ecaed0ccbbc95996ede547395077f079",
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/support/TestKeys.java": {
-    "mtime": 1791228327.7279167,
-    "seen": 1791228644.573147,
-    "ast_hash": "2919cd37db6d06b39fe75b27dbb79b25",
+    "mtime": 1791404305.5241983,
+    "seen": 1791404951.9790463,
+    "ast_hash": "f017a8c212992ff083129a78c35be9d0",
     "semantic_hash": ""
   },
   "backend-api/src/test/resources/application-test.yml": {
-    "mtime": 1791228327.855173,
-    "seen": 1791228644.573147,
-    "ast_hash": "2eaef678e79ecfa4a215ab29803a919c",
+    "mtime": 1791524042.4006898,
+    "seen": 1791524949.857143,
+    "ast_hash": "228eb9b890274ac2c7f322a32cbc283f",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0005-autenticacion-jwt-rbac-sesiones.md": {
-    "mtime": 1791227629.846632,
-    "seen": 1791228644.573147,
-    "ast_hash": "4942fc1c6e030497516349d8e6247848",
+    "mtime": 1791402819.0001464,
+    "seen": 1791404951.9790463,
+    "ast_hash": "bb2c965588f900a0223b87faa2bcfae0",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/payload/PageResponse.java": {
+    "mtime": 1791399338.69697,
+    "seen": 1791402335.3433056,
+    "ast_hash": "e57ef7bd2c44e55ad9a4954857879501",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/persistence/PgDomains.java": {
+    "mtime": 1791403662.698718,
+    "seen": 1791404951.9790463,
+    "ast_hash": "9f20c4fcc62af2526be35a879605f8b9",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/web/PageRequests.java": {
+    "mtime": 1791399850.3815389,
+    "seen": 1791402335.3433056,
+    "ast_hash": "89985db24af223b120e30a8f72739d9c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/controller/AuthController.java": {
+    "mtime": 1791403944.4487026,
+    "seen": 1791404951.9790463,
+    "ast_hash": "a226193580ba872d04abb5b1a7b4cedb",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/controller/ClientInfos.java": {
+    "mtime": 1791228779.8786469,
+    "seen": 1791402335.3433056,
+    "ast_hash": "df454af320d032468cf39fd45f66090a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/controller/MeConsentController.java": {
+    "mtime": 1791228780.0603447,
+    "seen": 1791402335.3433056,
+    "ast_hash": "6a1fc9e6f0dbe37a9b310093f3fe8312",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/controller/RefreshCookies.java": {
+    "mtime": 1791228779.9423313,
+    "seen": 1791402335.3433056,
+    "ast_hash": "9685e9ae63d0234035c91f7b86720493",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/RoleAssignmentService.java": {
+    "mtime": 1791399349.8042798,
+    "seen": 1791402335.3433056,
+    "ast_hash": "c0fd742dc36da3da0194379d5f526234",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/RoleAssignmentServiceImpl.java": {
+    "mtime": 1791399349.8754182,
+    "seen": 1791402335.3433056,
+    "ast_hash": "04fdbdb5e19f2e9491cab18b76a010eb",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/AdminCatalogController.java": {
+    "mtime": 1791399850.6303003,
+    "seen": 1791402335.3433056,
+    "ast_hash": "903969fd1ceeae9e8b1740a3412c8693",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/HostExperienceController.java": {
+    "mtime": 1791399850.5333583,
+    "seen": 1791402335.3433056,
+    "ast_hash": "87c01c4e9b5fed440d54d03052e1e734",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/PublicCatalogController.java": {
+    "mtime": 1791399850.4658782,
+    "seen": 1791402335.3433056,
+    "ast_hash": "9a10b3493dee0b9cf4ffb8d5fdf069ce",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/AssociationRequest.java": {
+    "mtime": 1791399566.789462,
+    "seen": 1791402335.3433056,
+    "ast_hash": "c69ddfdbb3798a7ff36fceecc1a2156e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/ExperienceRequest.java": {
+    "mtime": 1791399566.938958,
+    "seen": 1791402335.3433056,
+    "ast_hash": "44a82263ef9a186070a188afd484ae8a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/HostProfileRequest.java": {
+    "mtime": 1791399566.8687708,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0dc5324209c37abe178d991a0b8d5418",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/ReasonRequest.java": {
+    "mtime": 1791399567.0790544,
+    "seen": 1791402335.3433056,
+    "ast_hash": "e8133005073ea413b67cf10088fd6e5e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/ScheduleBatchRequest.java": {
+    "mtime": 1791399567.0114856,
+    "seen": 1791402335.3433056,
+    "ast_hash": "72594ca74502f9d5be3fece3078473d7",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/AssociationResponse.java": {
+    "mtime": 1791399599.7642,
+    "seen": 1791402335.3433056,
+    "ast_hash": "1e7384f2b69dd3fc1321c0bfcf00dcbc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/CategoryResponse.java": {
+    "mtime": 1791399599.7029507,
+    "seen": 1791402335.3433056,
+    "ast_hash": "7aa7093ca02aa8d516095f4bf5c3b1db",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ExperienceAvailabilityResponse.java": {
+    "mtime": 1791399600.1390054,
+    "seen": 1791402335.3433056,
+    "ast_hash": "09f6ae822be5486c94bd1d8996e3a29f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ExperienceDetailResponse.java": {
+    "mtime": 1791399600.0181737,
+    "seen": 1791402335.3433056,
+    "ast_hash": "e4ff148e37ef2a0b8d237b2dbd1bec7e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ExperienceSummaryResponse.java": {
+    "mtime": 1791399599.947863,
+    "seen": 1791402335.3433056,
+    "ast_hash": "2c91366ae5ce253d6e28f001001e1402",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/HostExperienceResponse.java": {
+    "mtime": 1791399599.8832455,
+    "seen": 1791402335.3433056,
+    "ast_hash": "e1af9b4415e9f66f7fef5492b8b86ba0",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/HostProfileResponse.java": {
+    "mtime": 1791399599.822888,
+    "seen": 1791402335.3433056,
+    "ast_hash": "c3831cc235c53726b45f6f6497a077e6",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/PlaceResponse.java": {
+    "mtime": 1791399599.6267045,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0d72418fe2d9c1a20b8926610f6fa7b2",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ScheduleResponse.java": {
+    "mtime": 1791399600.0796256,
+    "seen": 1791402335.3433056,
+    "ast_hash": "a8405ba716f95cd15128bfb8ccacbdbc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/AssociationStatus.java": {
+    "mtime": 1791399400.2013266,
+    "seen": 1791402335.3433056,
+    "ast_hash": "712d0cdf8eb86f50625e5e3b50cf395d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/AssociationType.java": {
+    "mtime": 1791399400.2028348,
+    "seen": 1791402335.3433056,
+    "ast_hash": "b28c0460e2673857e4e6be33b9936dbe",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/Category.java": {
+    "mtime": 1791399427.2179096,
+    "seen": 1791402335.3433056,
+    "ast_hash": "94f75e68f7c01709729af66f87374132",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/CommunityAssociation.java": {
+    "mtime": 1791399427.2878559,
+    "seen": 1791402335.3433056,
+    "ast_hash": "2b35112a47601fa645978b87a2446faf",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/Department.java": {
+    "mtime": 1791399427.0717676,
+    "seen": 1791402335.3433056,
+    "ast_hash": "2985efb34ca9b7b87de923000ca39043",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/Experience.java": {
+    "mtime": 1791399456.8496566,
+    "seen": 1791402335.3433056,
+    "ast_hash": "a0b1c67d6f084d448fab7aa682075e3d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/ExperienceCategory.java": {
+    "mtime": 1791399456.9482903,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0eed377b877de37ce118aa26cdfc6719",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/ExperienceStatus.java": {
+    "mtime": 1791399400.1993258,
+    "seen": 1791402335.3433056,
+    "ast_hash": "22bbd10e0b8841bc25655be7b5c7a185",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/HostProfile.java": {
+    "mtime": 1791403991.6922474,
+    "seen": 1791404951.9790463,
+    "ast_hash": "a6de6dc41f97a53e7d3e2134e8b11dc4",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/Municipality.java": {
+    "mtime": 1791399427.1468427,
+    "seen": 1791402335.3433056,
+    "ast_hash": "08b9e2ee5a8d6f1c352193ed4b2e168b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/PhysicalIntensity.java": {
+    "mtime": 1791399400.1993258,
+    "seen": 1791402335.3433056,
+    "ast_hash": "47064a5d6f90a2156384060dd294ff2d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/Schedule.java": {
+    "mtime": 1791402229.1379368,
+    "seen": 1791402335.3433056,
+    "ast_hash": "98f1da588a2f6ff3735494a5b0df1338",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/ScheduleStatus.java": {
+    "mtime": 1791399400.2013266,
+    "seen": 1791402335.3433056,
+    "ast_hash": "9f30955c884715553f705b4fff2b748d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/CategoryRepository.java": {
+    "mtime": 1791399490.2778282,
+    "seen": 1791402335.3433056,
+    "ast_hash": "a076d281f682cb9e70d71a4f88405fa0",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/CommunityAssociationRepository.java": {
+    "mtime": 1791399490.3517733,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0f6dab64354ecd5b909e41bc6d481f22",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/DepartmentRepository.java": {
+    "mtime": 1791399490.1286972,
+    "seen": 1791402335.3433056,
+    "ast_hash": "3de88c0f3f9159d754cd90418d294e57",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/ExperienceCategoryRepository.java": {
+    "mtime": 1791399490.474781,
+    "seen": 1791402335.3433056,
+    "ast_hash": "431fb7bbd8852da5d63e7f382e70dd14",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/ExperienceRepository.java": {
+    "mtime": 1791399514.7177303,
+    "seen": 1791402335.3433056,
+    "ast_hash": "d72354fb687b1a11ede7c1543427e284",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/ExperienceSpecifications.java": {
+    "mtime": 1791399514.8649435,
+    "seen": 1791402335.3433056,
+    "ast_hash": "88a936f2e26e95b6f58c285effedee97",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/HostProfileRepository.java": {
+    "mtime": 1791404029.4411085,
+    "seen": 1791404951.9790463,
+    "ast_hash": "09c34041b31d9a678582cdb5670e2e0b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/MunicipalityRepository.java": {
+    "mtime": 1791399490.2019548,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0e5936be4de1ddc522b63b51fe56181d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/ScheduleRepository.java": {
+    "mtime": 1791523909.8372135,
+    "seen": 1791524949.857143,
+    "ast_hash": "cbb62cb65f479dd0a692e06dcb9b584b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/CatalogAdminService.java": {
+    "mtime": 1791399683.1614766,
+    "seen": 1791402335.3433056,
+    "ast_hash": "6aba90e0eb5a684602dd94c0e0c60ce8",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/CatalogModerationService.java": {
+    "mtime": 1791399683.3547218,
+    "seen": 1791402335.3433056,
+    "ast_hash": "b69f9ef39a71c07f48a6ef5b79429b51",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/CatalogQueryService.java": {
+    "mtime": 1791399683.4157786,
+    "seen": 1791402335.3433056,
+    "ast_hash": "2ec49467b4838d6e485ef62e3e2df8a6",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/HostExperienceService.java": {
+    "mtime": 1791399683.2919836,
+    "seen": 1791402335.3433056,
+    "ast_hash": "cb7eb90727ea723dcb1a09d388f6417b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/CatalogAdminServiceImpl.java": {
+    "mtime": 1791399756.6158564,
+    "seen": 1791402335.3433056,
+    "ast_hash": "e4a7b58193abd1a56c9a59640c6e90bf",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/CatalogErrors.java": {
+    "mtime": 1791523929.0064104,
+    "seen": 1791524949.857143,
+    "ast_hash": "7aaeca93a4d41088ea40652a5f211d7c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/CatalogModerationServiceImpl.java": {
+    "mtime": 1791524894.9912684,
+    "seen": 1791524949.857143,
+    "ast_hash": "c0397fb54669f10ceb86dea56ca3530e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/CatalogQueryServiceImpl.java": {
+    "mtime": 1791399718.467042,
+    "seen": 1791402335.3433056,
+    "ast_hash": "f8e5f45c3d9bc080be93bca06088105e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/ExperienceViews.java": {
+    "mtime": 1791399648.5177767,
+    "seen": 1791402335.3433056,
+    "ast_hash": "0f055c609870345d1b7fa03c0873aa70",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/HostExperienceServiceImpl.java": {
+    "mtime": 1791524894.9917834,
+    "seen": 1791524949.857143,
+    "ast_hash": "395dfa4ff7496ae4700da1459e4e6703",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/ActorPropagatingTransactionManager.java": {
+    "mtime": 1791228754.4692342,
+    "seen": 1791402335.3433056,
+    "ast_hash": "9eb8be37b5dbc14fe1fdd7b322f5dfdf",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/ActorPropagationConfig.java": {
+    "mtime": 1791228754.522349,
+    "seen": 1791402335.3433056,
+    "ast_hash": "c5b49a325c9d92fde92f962937710e9a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/CorsProperties.java": {
+    "mtime": 1791228725.8623638,
+    "seen": 1791402335.3433056,
+    "ast_hash": "af12295bb90c6ff8626919c78cf4aa5a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/ProblemAccessDeniedHandler.java": {
+    "mtime": 1791228725.808364,
+    "seen": 1791402335.3433056,
+    "ast_hash": "3e8640bdcad73bfbb8e1832b3caff569",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/ProblemAuthenticationEntryPoint.java": {
+    "mtime": 1791228725.7457776,
+    "seen": 1791402335.3433056,
+    "ast_hash": "96d355058340c5c15034c87b148e7911",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/PublicAuthEndpoints.java": {
+    "mtime": 1791403944.4487026,
+    "seen": 1791404951.9790463,
+    "ast_hash": "461c996bdb71ff81f18f54532eb99e21",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/security/SecurityConfig.java": {
+    "mtime": 1791524042.1556742,
+    "seen": 1791524949.857143,
+    "ast_hash": "6ce4b2f00920bfc843f15b25cb08cd94",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/resources/db/migration/V11__divipola_municipalities.sql": {
+    "mtime": 1791399301.764866,
+    "seen": 1791402335.3433056,
+    "ast_hash": "92bc41a089506648574be161fe9cd647",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/architecture/AuthArchitectureTest.java": {
+    "mtime": 1791228856.6239696,
+    "seen": 1791402335.3433056,
+    "ast_hash": "abbaa9226767eb33dc0e64eb3c631985",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/architecture/ModuleBoundariesTest.java": {
+    "mtime": 1791524204.7244503,
+    "seen": 1791524949.857143,
+    "ast_hash": "c53f46dccada92f9867468058ed08a36",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/controller/AuthApiIntegrationTest.java": {
+    "mtime": 1791228986.1858442,
+    "seen": 1791402335.3433056,
+    "ast_hash": "ef790738b2513d0b774ac2cd3b7d9b9c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/catalog/CatalogApiIntegrationTest.java": {
+    "mtime": 1791399953.6007075,
+    "seen": 1791402335.3433056,
+    "ast_hash": "6eaa6dff2a0b0a4869fec98ffd3a45d0",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0006-catalogo-territorial-experiencias-franjas.md": {
+    "mtime": 1791402819.1635318,
+    "seen": 1791404951.9790463,
+    "ast_hash": "37f7f140ca0125a4abf8a14e1bbf367c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/crypto/AesGcmSensitiveDataCipher.java": {
+    "mtime": 1791403693.1768882,
+    "seen": 1791404951.9790463,
+    "ast_hash": "c57a91c550faa25e0b69a4530c8b8f56",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/crypto/SensitiveDataCipher.java": {
+    "mtime": 1791403692.9428663,
+    "seen": 1791404951.9790463,
+    "ast_hash": "32ad247f964b494dc611e22452054cab",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/crypto/SensitiveDataException.java": {
+    "mtime": 1791403693.0346634,
+    "seen": 1791404951.9790463,
+    "ast_hash": "6bc3489507ea87637d89e8f3382202e0",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/crypto/SensitiveDataProperties.java": {
+    "mtime": 1791403693.1070745,
+    "seen": 1791404951.9790463,
+    "ast_hash": "75a7a98f6b60b4d5edfb4d8b4894cd4d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/storage/DocumentStorage.java": {
+    "mtime": 1791403715.2252736,
+    "seen": 1791404951.9790463,
+    "ast_hash": "bc738d5e6ba24ea8bd3b0d3721880941",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/storage/S3DocumentStorage.java": {
+    "mtime": 1791403715.3687303,
+    "seen": 1791404951.9790463,
+    "ast_hash": "12992e078747f5d201ed5c09e25410c4",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/storage/StorageConfig.java": {
+    "mtime": 1791404614.6261904,
+    "seen": 1791404951.9790463,
+    "ast_hash": "dfe982df11fc131b4fdc8a4e81eb2f83",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/storage/StorageProperties.java": {
+    "mtime": 1791404614.545768,
+    "seen": 1791404951.9790463,
+    "ast_hash": "3b339c9bad225161c7ced695f7ce78ed",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/dto/request/ActivationRequest.java": {
+    "mtime": 1791403941.6986818,
+    "seen": 1791404951.9790463,
+    "ast_hash": "35c45157e5b488b8fd16afd8f0f31975",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/entity/CredentialActivationCode.java": {
+    "mtime": 1791403816.8173015,
+    "seen": 1791404951.9790463,
+    "ast_hash": "5cc7515734ed51c9c91f90f2b68698f4",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/repository/CredentialActivationCodeRepository.java": {
+    "mtime": 1791403816.941372,
+    "seen": 1791404951.9790463,
+    "ast_hash": "b2008d11a6d64b4067e13738c704ad6e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/AssistedAccountService.java": {
+    "mtime": 1791403989.904179,
+    "seen": 1791404951.9790463,
+    "ast_hash": "0acec745b00a7dfcd661443d5b6f1209",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/CredentialActivationService.java": {
+    "mtime": 1791403911.2069483,
+    "seen": 1791404951.9790463,
+    "ast_hash": "cc437b87bda949eab2f777e096b3f4fe",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/UserDirectory.java": {
+    "mtime": 1791403921.3328488,
+    "seen": 1791404951.9790463,
+    "ast_hash": "cac1f841d45af9a30c43bdc6371aaeb8",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/ActivationCodes.java": {
+    "mtime": 1791403911.2906332,
+    "seen": 1791404951.9790463,
+    "ast_hash": "c04d196c308fd32db262b21c1e75cbd3",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/AssistedAccountServiceImpl.java": {
+    "mtime": 1791403989.9046962,
+    "seen": 1791404951.9790463,
+    "ast_hash": "014521689d3ac62dccfb4f93a1cc6e4a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/CredentialActivationServiceImpl.java": {
+    "mtime": 1791403911.3686852,
+    "seen": 1791404951.9790463,
+    "ast_hash": "0caf10a9e3a542b51239621455885a85",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/IdentityWriter.java": {
+    "mtime": 1791403884.7056243,
+    "seen": 1791404951.9790463,
+    "ast_hash": "e5df227a7557418f24645c028ee6d360",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/impl/UserDirectoryImpl.java": {
+    "mtime": 1791403921.4051208,
+    "seen": 1791404951.9790463,
+    "ast_hash": "09e4df3cfd128485bec6ee228a6ed5e6",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/AssistedHostAccount.java": {
+    "mtime": 1791403884.8956687,
+    "seen": 1791404951.9790463,
+    "ast_hash": "cf3df451f1aa43dc3056a06a3a4bf56a",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/auth/service/model/ProvisionedHost.java": {
+    "mtime": 1791403884.9781036,
+    "seen": 1791404951.9790463,
+    "ast_hash": "b4f344aa9bd357557603c452de92251c",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/Actors.java": {
+    "mtime": 1791404233.2108076,
+    "seen": 1791404951.9790463,
+    "ast_hash": "e509b3374cf2d22272bd9a63c22eb4b1",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/AdminLinkManagerController.java": {
+    "mtime": 1791404233.4042368,
+    "seen": 1791404951.9790463,
+    "ast_hash": "05fb6a10d3d0b2333ba9f41108c77acc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/AssistedRegistrationController.java": {
+    "mtime": 1791404233.2747297,
+    "seen": 1791404951.9790463,
+    "ast_hash": "8dcb717980a27a5689ea69c62e16d923",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/GestorController.java": {
+    "mtime": 1791404233.3422341,
+    "seen": 1791404951.9790463,
+    "ast_hash": "0f7c0c931129602431cee6153cb6f850",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/controller/RequestClients.java": {
+    "mtime": 1791404233.1297252,
+    "seen": 1791404951.9790463,
+    "ast_hash": "82848f222718e640a38d5a36526a1527",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/AssistedHostRegistrationRequest.java": {
+    "mtime": 1791404062.644845,
+    "seen": 1791404951.9790463,
+    "ast_hash": "4b2ff9becbdfc21f28ae805306ff9b53",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/DocumentKind.java": {
+    "mtime": 1791404056.0001411,
+    "seen": 1791404951.9790463,
+    "ast_hash": "9588e45f4a82406dbf0c685a1126ef68",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/DocumentUploadRequest.java": {
+    "mtime": 1791404056.0011573,
+    "seen": 1791404951.9790463,
+    "ast_hash": "ad1066fb8d9759ec3d6bc9675e7deff6",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/request/LinkManagerRequest.java": {
+    "mtime": 1791404055.9984858,
+    "seen": 1791404951.9790463,
+    "ast_hash": "37d19601c5d83eb9ffe234acb7494e4d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ActivationCodeResponse.java": {
+    "mtime": 1791404056.0041573,
+    "seen": 1791404951.9790463,
+    "ast_hash": "7c60818d650f4a9f5906c169e4d9739d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/AssistedHostRegistrationResponse.java": {
+    "mtime": 1791404056.0031567,
+    "seen": 1791404951.9790463,
+    "ast_hash": "e473c93e99f67662375b0be81dac56e9",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/DocumentUploadResponse.java": {
+    "mtime": 1791404056.0021553,
+    "seen": 1791404951.9790463,
+    "ast_hash": "dd5e0626b15c9668b83af4568d8dc6c3",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/LinkManagerResponse.java": {
+    "mtime": 1791404056.0021553,
+    "seen": 1791404951.9790463,
+    "ast_hash": "57407d5b5ea4b6dde393fac6ddf76c54",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/dto/response/ManagedHostResponse.java": {
+    "mtime": 1791404056.0031567,
+    "seen": 1791404951.9790463,
+    "ast_hash": "f518af28c8ac511e70b7ab1cf2812090",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/AccreditationStatus.java": {
+    "mtime": 1791404011.2317507,
+    "seen": 1791404951.9790463,
+    "ast_hash": "a6744e2959a46c8af2f264e02fb486b1",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/HostManagerAssignment.java": {
+    "mtime": 1791404011.3939707,
+    "seen": 1791404951.9790463,
+    "ast_hash": "5e673a7fe1b7c585b9d0f995bb563032",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/entity/LinkManagerProfile.java": {
+    "mtime": 1791404011.3228197,
+    "seen": 1791404951.9790463,
+    "ast_hash": "baef62e642c8ea56a07c6f3510d822de",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/HostManagerAssignmentRepository.java": {
+    "mtime": 1791404029.1848223,
+    "seen": 1791404951.9790463,
+    "ast_hash": "1d07e113f8d1bdebf0baf2c501e25066",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/repository/LinkManagerProfileRepository.java": {
+    "mtime": 1791404029.0156908,
+    "seen": 1791404951.9790463,
+    "ast_hash": "37494b3f0662a4a47b1be9ca705f34b0",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/AssistedEnrollmentService.java": {
+    "mtime": 1791404090.4070296,
+    "seen": 1791404951.9790463,
+    "ast_hash": "e0713b8305d1f99f2e10eab606cb846b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/GestorHostService.java": {
+    "mtime": 1791404090.5122342,
+    "seen": 1791404951.9790463,
+    "ast_hash": "31d5394ceb59e0a5f093af466cf9a7b7",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/LinkManagerAdminService.java": {
+    "mtime": 1791404090.3089066,
+    "seen": 1791404951.9790463,
+    "ast_hash": "adfbcd4992af0cdbeed1a7d3e9bf8b34",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/AssistedEnrollmentServiceImpl.java": {
+    "mtime": 1791404150.77303,
+    "seen": 1791404951.9790463,
+    "ast_hash": "01917ced5dfa36b29131ac4cdf40bf5d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/EnrollmentDocuments.java": {
+    "mtime": 1791404116.1849525,
+    "seen": 1791404951.9790463,
+    "ast_hash": "376ab2c1be9eea90e0a0fd59adfafe82",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/GestorHostServiceImpl.java": {
+    "mtime": 1791404164.4214854,
+    "seen": 1791404951.9790463,
+    "ast_hash": "71589138b59ab90eabed022f49b4f6df",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/LinkManagerAdminServiceImpl.java": {
+    "mtime": 1791404116.260116,
+    "seen": 1791404951.9790463,
+    "ast_hash": "f6db6a6483cc6d14dde86d843755c3cc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/LinkManagers.java": {
+    "mtime": 1791404116.0999458,
+    "seen": 1791404951.9790463,
+    "ast_hash": "26eb26aa6eef4e40fa9f9b2ff431eda9",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/resources/db/migration/V12__credential_activation_codes.sql": {
+    "mtime": 1791403652.4320526,
+    "seen": 1791404951.9790463,
+    "ast_hash": "b086c3e291221a9954184eff1ee51bdd",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/common/crypto/AesGcmSensitiveDataCipherTest.java": {
+    "mtime": 1791404307.01497,
+    "seen": 1791404951.9790463,
+    "ast_hash": "1fe81efdb4ee521c5663da5801620093",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/auth/service/impl/ActivationCodesTest.java": {
+    "mtime": 1791404307.0988564,
+    "seen": 1791404951.9790463,
+    "ast_hash": "3cd5f810946cb5cc16f920283dc000bb",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/catalog/AssistedEnrollmentApiIntegrationTest.java": {
+    "mtime": 1791404426.8236797,
+    "seen": 1791404951.9790463,
+    "ast_hash": "eed6ab206fbe6b157d063e460c913365",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/support/InMemoryDocumentStorage.java": {
+    "mtime": 1791404306.907671,
+    "seen": 1791404951.9790463,
+    "ast_hash": "91aa65e8fb6ef8f2e25bee34819ac4a2",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0007-enrolamiento-asistido-gestor-enlace.md": {
+    "mtime": 1791404885.5594125,
+    "seen": 1791404951.9790463,
+    "ast_hash": "780eec3edb17361b181a3ae71cb5b21f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/audit/AuditEntry.java": {
+    "mtime": 1791523886.1905968,
+    "seen": 1791524949.857143,
+    "ast_hash": "28e5fa5aae70afcde611e4954648b611",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/audit/AuditTrail.java": {
+    "mtime": 1791523886.273686,
+    "seen": 1791524949.857143,
+    "ast_hash": "7ee7afb2ea1813912160ba12a543a0df",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/audit/JpaAuditTrail.java": {
+    "mtime": 1791523886.343133,
+    "seen": 1791524949.857143,
+    "ast_hash": "09a48a447a021ca7f20a159552b84770",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/common/persistence/StatusReasonContext.java": {
+    "mtime": 1791523867.5643373,
+    "seen": 1791524949.857143,
+    "ast_hash": "3de1072240f8f9fd1a9033a4e0ee3a45",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/config/BookingProperties.java": {
+    "mtime": 1791524042.2294319,
+    "seen": 1791524949.857143,
+    "ast_hash": "59fc268377cc4ea22495f90ef35782c9",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/config/BookingSchedulingConfig.java": {
+    "mtime": 1791524147.7403312,
+    "seen": 1791524949.857143,
+    "ast_hash": "3f17df49d8ec4f76525127ca8a580abe",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/controller/BookingController.java": {
+    "mtime": 1791524163.1956596,
+    "seen": 1791524949.857143,
+    "ast_hash": "0d69332ffbc63eb066c9840d104661b6",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/dto/request/BookingLockRequest.java": {
+    "mtime": 1791523996.6496878,
+    "seen": 1791524949.857143,
+    "ast_hash": "f7958ebea63b0b55904ea97feb4569ae",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/dto/response/BookingLockResponse.java": {
+    "mtime": 1791523996.7487254,
+    "seen": 1791524949.857143,
+    "ast_hash": "559397199f4de92ae9486b4716f32843",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/entity/Booking.java": {
+    "mtime": 1791523964.2492228,
+    "seen": 1791524949.857143,
+    "ast_hash": "fe1858cfbcff49308db15983d575d35f",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/entity/BookingParticipant.java": {
+    "mtime": 1791523964.3355596,
+    "seen": 1791524949.857143,
+    "ast_hash": "e1aa17df00d2b6323b6102ff80e72c53",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/entity/BookingStatus.java": {
+    "mtime": 1791523964.157281,
+    "seen": 1791524949.857143,
+    "ast_hash": "a55b68285be2c73857a594ca31d988cd",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/repository/BookingParticipantRepository.java": {
+    "mtime": 1791523964.541541,
+    "seen": 1791524949.857143,
+    "ast_hash": "0d76e3857116c5f431c4d9e49727b6f7",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/repository/BookingRepository.java": {
+    "mtime": 1791523964.4473107,
+    "seen": 1791524949.857143,
+    "ast_hash": "d39f63513d9e038047cdf85537c53a55",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/BookingExpirationService.java": {
+    "mtime": 1791524763.6684709,
+    "seen": 1791524949.857143,
+    "ast_hash": "822ae37ee61e4cc335a58de7857f49ef",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/BookingLockService.java": {
+    "mtime": 1791524059.7593853,
+    "seen": 1791524949.857143,
+    "ast_hash": "57253d79564e8ca2304b00d7730651bc",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/BookingQueryService.java": {
+    "mtime": 1791524059.9163349,
+    "seen": 1791524949.857143,
+    "ast_hash": "bbe615897c268fa313f906a58ea4c12d",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/impl/BookingErrors.java": {
+    "mtime": 1791524060.06178,
+    "seen": 1791524949.857143,
+    "ast_hash": "0057dd3c2a4affed8dfcef3ce90ca861",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/impl/BookingExpirationServiceImpl.java": {
+    "mtime": 1791524766.491256,
+    "seen": 1791524949.857143,
+    "ast_hash": "7ad8a370b42e6ace8582b8256b91fb95",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/impl/BookingLockServiceImpl.java": {
+    "mtime": 1791524655.103207,
+    "seen": 1791524949.857143,
+    "ast_hash": "d6a2ba154a4fcd34c120519653fe7402",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/impl/BookingQueryServiceImpl.java": {
+    "mtime": 1791524147.4797702,
+    "seen": 1791524949.857143,
+    "ast_hash": "b2c7f518d314b875f9933e97f1babca3",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/impl/BookingRequestHasher.java": {
+    "mtime": 1791524082.1641695,
+    "seen": 1791524949.857143,
+    "ast_hash": "0be78100bd2cea9726a098cf6715a416",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/model/ExpiredBatch.java": {
+    "mtime": 1791524763.7532196,
+    "seen": 1791524949.857143,
+    "ast_hash": "9a3cfbe7353d8bec3bd6dc49e4aab66b",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/service/model/LockOutcome.java": {
+    "mtime": 1791524059.8426578,
+    "seen": 1791524949.857143,
+    "ast_hash": "4494a3ebd9aeb69bc83b9c02f156bb96",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/booking/worker/BookingExpirationWorker.java": {
+    "mtime": 1791524766.491256,
+    "seen": 1791524949.857143,
+    "ast_hash": "3b8ccc1a45c9993c2aedad32c0c79759",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/SlotInventory.java": {
+    "mtime": 1791523983.793794,
+    "seen": 1791524949.857143,
+    "ast_hash": "8b1e52761ed43259d89df6e1c692103e",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/impl/SlotInventoryImpl.java": {
+    "mtime": 1791523983.9479828,
+    "seen": 1791524949.857143,
+    "ast_hash": "b80ad0990f7ad1353d75a3ca33bd7f86",
+    "semantic_hash": ""
+  },
+  "backend-api/src/main/java/com/integrate/modules/catalog/service/model/ReservedSlots.java": {
+    "mtime": 1791523903.4414077,
+    "seen": 1791524949.857143,
+    "ast_hash": "7660df7e464354e7d9a8ffb2d1fc55f8",
+    "semantic_hash": ""
+  },
+  "backend-api/src/test/java/com/integrate/modules/booking/BookingApiIntegrationTest.java": {
+    "mtime": 1791524766.4929874,
+    "seen": 1791524949.857143,
+    "ast_hash": "1012857793983d55191ca005cad9e3a5",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0008-reserva-concurrente-bloqueo-pesimista-ttl.md": {
+    "mtime": 1791524871.4895308,
+    "seen": 1791524949.857143,
+    "ast_hash": "d8e31fa6422eaa8005cbef618e213b03",
     "semantic_hash": ""
   }
 }
