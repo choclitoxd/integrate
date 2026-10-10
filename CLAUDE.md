@@ -19,7 +19,22 @@ Rules:
 ## Flujo de Trabajo y Arquitectura
 
 Para cualquier petición de desarrollo, nueva funcionalidad, módulo o cambio estructural en el backend, se debe seguir estrictamente el flujo definido en `@docs/rules/adr-workflow.md`, generando primero el documento ADR correspondiente y esperando la confirmación y aceptación expresa del desarrollador antes de producir código.
+Para cualquier desarrollo, creación de componentes, vistas o interacción con la PWA cliente, es **OBLIGATORIO** adherirse a la directiva de frontend en [`docs/rules/frontend-rules.md`](file:///c:/Users/victx/OneDrive/Documentos/U/Ing3/Proyecto/integrate/docs/rules/frontend-rules.md) (diseño Mobile-First 360–430 px, tokens de color certificados para contraste solar WCAG AAA, áreas táctiles $\ge 44 \times 44$ px, fronteras arquitectónicas de capas y superación obligatoria de los 5 comandos del Quality Gate).
 Toda interacción con Git, commits y subida de cambios debe regirse estrictamente por `@docs/rules/git-workflow.md` y la política de secretos `@docs/security/security_secrets_policy.md`.
+
+## Precedencia sobre skills de diseño (Impeccable y similares)
+
+La skill `impeccable` (`.claude/skills/impeccable/`) y cualquier otra skill de diseño (`frontend-design`, `make-interfaces-feel-better`, etc.) son **subordinadas** a `docs/rules/frontend-rules.md` (`FE-DIR-001`). Ante cualquier conflicto gana FE-DIR-001, sin excepción. Para Impeccable, FE-DIR-001 cuenta como el "brief fijado" que su propia regla "The brief wins" obliga a respetar. En concreto:
+
+- **Color:** `colorize`, `bolder`, `overdrive`, `delight`, `live`, `generate` y `new-work` solo pueden usar tokens existentes de `src/styles/tokens.ts` / `@theme`. Prohibido introducir hex en línea o clases Tailwind no mapeadas. Un token nuevo o modificado exige actualizar `tokens.ts`, `index.css` y `tokens.test.ts` y que pase el test de contraste; si la propuesta lo requiere, se pide confirmación antes.
+- **Contraste:** el umbral de Impeccable (≥ 4.5:1) **no** aplica. Texto principal y secundario ≥ 7:1 (AAA); terciario/placeholder ≥ 4.5:1; bordes e indicadores ≥ 3:1.
+- **Foco:** no se re-tematiza el anillo de foco "desde la paleta". Se conserva el doble anillo `--color-focus` (3 px) + `--color-focus-halo` (6 px).
+- **Viewport:** se diseña y verifica en 360–430 px con contenedor `max-w-md` en desktop; las pasadas "desktop + mobile" de Impeccable no autorizan layouts anchos. Áreas táctiles ≥ 44×44 px, separación ≥ 8 px, acciones primarias en barra inferior fija.
+- **Motion:** toda animación de `animate`/`delight`/`overdrive` respeta `prefers-reduced-motion`.
+- **Mundo visual:** prohibido "reemplazar el mundo visual" (redesign / `new-work` / `document` sobre DESIGN.md) o cambiar tipografías sin aprobación expresa. Las fuentes nuevas deben ser auto-hospedadas y aprobadas antes de añadirse.
+- **Arquitectura y datos:** se respetan las fronteras de capas, `createHttpClient`/`ApiError`, la semántica (`h1` único, landmarks, `lang="es-CO"`, `SkipLink`) y las reglas de sesión de FE-DIR-001 aunque el comando sea solo "visual".
+- **Cierre:** el "verificar en pasadas acotadas y parar" de Impeccable no sustituye el Quality Gate. Ningún trabajo hecho con Impeccable se da por terminado sin los 5 comandos de la Directiva 7 en verde.
+- **Herramientas de Impeccable:** su launcher (`scripts/impeccable`) descarga un binario la primera vez. No se ejecuta sin consentimiento explícito del desarrollador en esa sesión; si no lo hay, se usa su modo "Launcher unavailable" (leer PRODUCT.md / DESIGN.md directamente). Tampoco se activan `hooks on`, el modo `live` ni ediciones de CSP sin pedirlo. Si `init` o `document` escriben PRODUCT.md / DESIGN.md, deben incluir estas restricciones como compromisos fijos.
 
 
 ## task-observer (activation)
