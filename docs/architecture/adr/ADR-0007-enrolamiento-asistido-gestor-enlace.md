@@ -217,3 +217,7 @@ Desviaciones respecto del texto aceptado, sin cambio de decisión:
   - 18 nuevas: 6 de `AesGcmSensitiveDataCipher`, 3 de `ActivationCodes`, 8 de integración de la API del enrolamiento y la guardia ArchUnit de `javax.crypto`;
   - la suite pasa 99/99;
   - verificado de punta a punta contra el backend `dev` y LocalStack real: URL prefirmada → `PUT` del PDF → registro asistido → listado → código → activación → login.
+
+## Enmienda (ADR-0014, 2026-10-09)
+
+§6: una cuenta de anfitrión con correo sintético (`@comunidad.integrate.co`) no puede usar la recuperación por correo. Su gestor puede emitirle un código de activación aunque la cuenta ya esté `ACTIVE`; la cuenta no pasa a `PENDING_RESET` y, al canjear el código, se revocan sus sesiones. Una cuenta activa con correo real sigue respondiendo 409.

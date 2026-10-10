@@ -258,6 +258,36 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/privacy-policies/current:
+    get:
+      tags: [Auth]
+      operationId: getCurrentPrivacyPolicy
+      summary: Política de tratamiento de datos vigente (Ley 1581 art. 9, ADR-0013 §1).
+      description: |
+        Pública. El registro exige `consent.policyVersion` igual a esta versión, y el titular debe poder leer el
+        documento antes de aceptarlo (autorización previa, expresa e informada). Cambia solo por migración, por eso
+        se puede cachear 5 minutos.
+      security: []
+      responses:
+        '200':
+          description: Política vigente.
+          headers:
+            Cache-Control:
+              description: '`max-age=300, public`.'
+              schema: { type: string }
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrivacyPolicy' }
+              example:
+                version: v1.0
+                title: Política de Tratamiento de Datos Personales de Intégrate
+                documentUrl: https://integrate.co/legal/politica-datos-v1.0.pdf
+                effectiveFrom: '2026-10-01T05:00:00Z'
+                contentSha256: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+        '404': { $ref: '#/components/responses/PrivacyPolicyNotPublished' }
+
   /api/v1/auth/register-assisted:
     post:
       tags: [Auth]
@@ -364,6 +394,57 @@ paths:
         '401': { $ref: '#/components/responses/ActivationInvalid' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      operationId: forgotPassword
+      summary: Solicita un enlace de restablecimiento de contraseña por correo (ADR-0014 §1).
+      description: |
+        Responde **202 sin cuerpo siempre**, exista o no la cuenta, para no revelar qué correos están registrados.
+        Si la cuenta es activa, con correo real y no superó 3 solicitudes en la última hora, emite un token de
+        un solo uso (15 min, revoca el anterior) y encola en la misma transacción el correo con el enlace
+        `{FRONTEND_BASE_URL}/restablecer-contrasena#token=<token>`. El token viaja en el fragmento: nunca llega
+        al servidor. Las cuentas con correo sintético recuperan el acceso con un código de su gestor.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+            example:
+              email: carlos@ejemplo.com
+      responses:
+        '202':
+          description: Solicitud recibida (misma respuesta exista o no la cuenta).
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/auth/reset-password:
+    post:
+      tags: [Auth]
+      operationId: resetPassword
+      summary: Restablece la contraseña con el token del enlace recibido por correo (ADR-0014 §4).
+      description: |
+        Deja la cuenta `ACTIVE` y sin bloqueo, consume el token, revoca su código de activación vivo y **todos**
+        sus refresh tokens (`PASSWORD_CHANGE`) y encola el aviso `PASSWORD_CHANGED`. No inicia sesión: el
+        cliente vuelve a `/api/v1/auth/login`. Token inexistente, vencido, usado, reemplazado o de una cuenta no
+        apta responden el mismo 401.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordRequest' }
+            example:
+              token: 3q2-7wEXAMPLEtokenEXAMPLEtokenEXAMPLEtok_w
+              newPassword: una-clave-larga-y-propia
+      responses:
+        '204':
+          description: Contraseña restablecida y sesiones revocadas.
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/ResetTokenInvalid' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
   /api/v1/gestor/uploads:
     post:
       tags: [Gestor]
@@ -430,7 +511,8 @@ paths:
       description: |
         Código de 10 caracteres en base32 de Crockford (`XXXXX-XXXXX`) que vence a las 72 h; solo se guarda su
         SHA-256 y se muestra una única vez. Emitir uno nuevo revoca el anterior. Un anfitrión fuera de la
-        jurisdicción vigente responde 404; una cuenta ya activa, 409.
+        jurisdicción vigente responde 404; una cuenta ya activa con correo real, 409 (recupera por correo). Una
+        cuenta activa con correo sintético sí recibe código: es su forma de recuperar el acceso (ADR-0014 §4).
       security: [{ bearerAuth: [] }]
       x-required-roles: [ROLE_LINK_MANAGER]
       parameters:
@@ -1682,6 +1764,15 @@ components:
           minItems: 1
           uniqueItems: true
           items: { $ref: '#/components/schemas/ConsentPurpose' }
+    PrivacyPolicy:
+      type: object
+      required: [version, title, documentUrl, effectiveFrom, contentSha256]
+      properties:
+        version: { type: string, pattern: '^v[0-9]+\.[0-9]+$' }
+        title: { type: string, maxLength: 200 }
+        documentUrl: { type: string, format: uri, pattern: '^https://' }
+        effectiveFrom: { type: string, format: date-time }
+        contentSha256: { type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 del documento publicado. }
     RegisterRequest:
       type: object
       additionalProperties: false
@@ -1828,6 +1919,19 @@ components:
             capturedAt: { type: string, format: date-time }
 
     # ---------- Enrolamiento asistido (ADR-0007) ----------
+    ForgotPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [token, newPassword]
+      properties:
+        token: { type: string, maxLength: 128, description: 'Token del fragmento del enlace (43 caracteres Base64 URL).' }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
     ActivationRequest:
       type: object
       additionalProperties: false
@@ -2423,6 +2527,17 @@ components:
             status: 403
             code: OFFLINE_DEVICE_NOT_AUTHORIZED
             traceId: c4b9-8f21-4d1a
+    PrivacyPolicyNotPublished:
+      description: No hay ninguna política de tratamiento de datos vigente.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/privacy-policy-not-published
+            title: Privacy Policy Not Published
+            status: 404
+            code: PRIVACY_POLICY_NOT_PUBLISHED
+            traceId: c4b9-8f21-4d1a
     NotFound:
       description: Recurso inexistente o no visible para el invocador.
       content:
@@ -2538,6 +2653,17 @@ components:
             title: Link Manager Not Active
             status: 403
             code: ENROLLMENT_MANAGER_NOT_ACTIVE
+            traceId: c4b9-8f21-4d1a
+    ResetTokenInvalid:
+      description: Token de restablecimiento inexistente, vencido, usado, reemplazado o de una cuenta no apta (misma respuesta).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/reset-token-invalid
+            title: Password Reset Token Invalid
+            status: 401
+            code: AUTH_RESET_TOKEN_INVALID
             traceId: c4b9-8f21-4d1a
     ActivationInvalid:
       description: Código de activación inválido, vencido, consumido o agotado, o correo inexistente (misma respuesta).

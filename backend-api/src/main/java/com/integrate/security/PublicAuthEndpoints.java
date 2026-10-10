@@ -7,7 +7,8 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenResolv
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 
 /**
- * Endpoints de sesión públicos (ADR-0005 §9) y la activación asistida (ADR-0007 §6). En ellos se <b>ignora</b> la cabecera
+ * Endpoints de sesión públicos (ADR-0005 §9), la activación asistida (ADR-0007 §6) y la recuperación de
+ * contraseña (ADR-0014 §1). En ellos se <b>ignora</b> la cabecera
  * {@code Authorization}: la PWA envía su access token en todas las peticiones y, cuando expira,
  * llama a {@code /refresh} todavía con él; validarlo ahí devolvería 401 y dejaría al cliente sin
  * forma de renovar la sesión.
@@ -16,7 +17,7 @@ final class PublicAuthEndpoints implements BearerTokenResolver {
 
     static final String[] PATHS = {
             "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/logout",
-            "/api/v1/auth/activate"};
+            "/api/v1/auth/activate", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password"};
     private static final Set<String> PATH_SET = Set.of(PATHS);
 
     private final BearerTokenResolver delegate = new DefaultBearerTokenResolver();

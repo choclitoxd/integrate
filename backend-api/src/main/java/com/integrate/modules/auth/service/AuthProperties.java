@@ -18,7 +18,15 @@ public record AuthProperties(
         @DefaultValue("7d") Duration refreshTokenTtl,
         @DefaultValue("10s") Duration refreshReuseGrace,
         @DefaultValue Lockout lockout,
-        @DefaultValue("72h") Duration activationCodeTtl) {
+        @DefaultValue("72h") Duration activationCodeTtl,
+        @DefaultValue PasswordReset passwordReset) {
+
+    /** Tokens de restablecimiento (ADR-0014 §2): 15 minutos y como máximo 3 solicitudes por cuenta y hora. */
+    public record PasswordReset(
+            @DefaultValue("15m") Duration ttl,
+            @DefaultValue("3") int maxRequestsPerWindow,
+            @DefaultValue("1h") Duration window) {
+    }
 
     /** 5 fallos consecutivos en 10 minutos bloquean la cuenta 15 minutos. */
     public record Lockout(

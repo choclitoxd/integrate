@@ -99,10 +99,15 @@ public class User {
         return user;
     }
 
-    /** Fija la contraseña elegida por el titular y habilita el login (ADR-0007 §6). */
-    public void activateCredentials(String passwordHash) {
+    /**
+     * Fija la contraseña elegida por el titular, por activación asistida (ADR-0007 §6) o por restablecimiento
+     * por correo (ADR-0014 §4): la cuenta queda activa (el titular ya demostró su identidad con el código o el
+     * enlace) y sin bloqueo, porque el bloqueo protegía una contraseña que deja de existir.
+     */
+    public void resetCredentials(String passwordHash) {
         this.passwordHash = passwordHash;
         this.credentialStatus = CredentialStatus.ACTIVE;
+        this.lockedUntil = null;
     }
 
     /** {@code true} si la cuenta no puede autenticarse de ningún modo (anonimizada o dada de baja). */

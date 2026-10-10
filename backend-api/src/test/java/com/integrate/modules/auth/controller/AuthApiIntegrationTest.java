@@ -92,6 +92,32 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
     // --------------------------------------------------------------- register
 
     @Test
+    void currentPrivacyPolicyIsPublicAndCacheable() throws Exception {
+        mvc.perform(get("/api/v1/privacy-policies/current"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "max-age=300, public"))
+                .andExpect(jsonPath("$.version").value(DEV_POLICY))
+                .andExpect(jsonPath("$.title").isNotEmpty())
+                .andExpect(jsonPath("$.documentUrl", matchesPattern("^https://.+")))
+                .andExpect(jsonPath("$.effectiveFrom").isNotEmpty())
+                .andExpect(jsonPath("$.contentSha256", matchesPattern("^[0-9a-f]{64}$")));
+    }
+
+    @Test
+    void currentPrivacyPolicyIs404WhenNoneIsPublished() throws Exception {
+        jdbc.update("UPDATE auth.privacy_policies SET is_current = false WHERE is_current");
+        try {
+            mvc.perform(get("/api/v1/privacy-policies/current"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                    .andExpect(jsonPath("$.code").value("PRIVACY_POLICY_NOT_PUBLISHED"))
+                    .andExpect(jsonPath("$.traceId").isNotEmpty());
+        } finally {
+            jdbc.update("UPDATE auth.privacy_policies SET is_current = true WHERE version = ?", DEV_POLICY);
+        }
+    }
+
+    @Test
     void registerReturns201WithLocationAndNoSession() throws Exception {
         String email = uniqueEmail("api.registro");
 

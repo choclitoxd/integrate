@@ -296,6 +296,28 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
         assertThat(tokenFor(email, NEW_PASSWORD)).isNotBlank();
 
         activate(email, second, NEW_PASSWORD).andExpect(status().isUnauthorized());
+
+        // Cuenta con correo sintético ya activa: sin recuperación por correo, el gestor emite un código nuevo
+        // (ADR-0014 §4). La contraseña vigente sigue valiendo hasta que se canjee.
+        String recovery = issueCode(hostProfileId);
+        assertThat(tokenFor(email, NEW_PASSWORD)).isNotBlank();
+        activate(email, recovery, NEW_PASSWORD + "-nueva").andExpect(status().isNoContent());
+        assertThat(tokenFor(email, NEW_PASSWORD + "-nueva")).isNotBlank();
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM auth.refresh_tokens t JOIN auth.users u ON u.id = t.user_id
+                 WHERE u.email = ? AND t.revoke_reason = 'PASSWORD_CHANGE'""", Long.class, email)).isEqualTo(2L);
+    }
+
+    @Test
+    void activeAccountWithARealEmailRecoversByEmailNotByCode() throws Exception {
+        String consentKey = uploaded(gestor.token(), "PHYSICAL_CONSENT_FORM");
+        String json = register(registrationBody(uniqueDocNumber(), uniqueEmail("anfitriona"), null,
+                        victimBody(false, null, null, null), consentKey))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String hostProfileId = JsonPath.read(json, "$.hostProfileId");
+        String email = JsonPath.read(json, "$.email");
+
+        activate(email, issueCode(hostProfileId), NEW_PASSWORD).andExpect(status().isNoContent());
         action(gestor.token(), "/api/v1/gestor/hosts/" + hostProfileId + "/activation-code")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.currentStatus").value("ACTIVE"));

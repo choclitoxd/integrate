@@ -17,8 +17,11 @@ Los DTOs se implementan como `record` de Java 21 en `modules/{m}/dto/request` y 
 | POST | `/api/v1/auth/logout` | cookie `refresh_token` (opcional) | 204 | — |
 | GET | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 401 |
 | POST | `/api/v1/me/consents` | autenticado (cualquier rol) | 200 | 400, 401, 422 |
+| GET | `/api/v1/privacy-policies/current` | público | 200 | 404 |
 | POST | `/api/v1/auth/register-assisted` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 404, 409, 422 |
 | POST | `/api/v1/auth/activate` | público | 204 | 400, 401, 422 |
+| POST | `/api/v1/auth/forgot-password` | público | 202 (siempre) | 400, 422 |
+| POST | `/api/v1/auth/reset-password` | público | 204 | 400, 401, 422 |
 | POST | `/api/v1/gestor/uploads` | `LINK_MANAGER`, `ADMIN` | 201 | 400, 401, 403, 422 |
 | GET | `/api/v1/gestor/hosts` | `LINK_MANAGER` | 200 (paginado) | 401, 403 |
 | POST | `/api/v1/gestor/hosts/{hostProfileId}/activation-code` | `LINK_MANAGER` | 201 | 401, 403, 404, 409 |
@@ -82,6 +85,8 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `AUTH_ACCOUNT_LOCKED` | 423 | login |
 | `AUTH_USER_ALREADY_EXISTS` | 409 | register, register-assisted |
 | `AUTH_ACTIVATION_INVALID` | 401 | activate (correo, código erróneo, vencido, consumido o agotado: misma respuesta) |
+| `AUTH_RESET_TOKEN_INVALID` | 401 | reset-password (token inexistente, vencido, usado, reemplazado o cuenta no apta: misma respuesta) |
+| `PRIVACY_POLICY_NOT_PUBLISHED` | 404 | privacy-policies/current (ninguna versión vigente) |
 | `ENROLLMENT_MANAGER_NOT_ACTIVE` | 403 | register-assisted, gestor/* (gestor sin acreditación `ACTIVE`) |
 | `ENROLLMENT_MANAGER_EXISTS` | 409 | admin/link-managers |
 | `ENROLLMENT_DOCUMENT_INVALID` | 422 | register-assisted (PDF inexistente, de otro tipo, > 5 MB o ya usado) |
@@ -169,6 +174,9 @@ No hay campo de rol: el autorregistro crea siempre `TOURIST`. Respuesta 201 `Reg
 | `requiresConsentUpdate` | boolean | falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `+SENSITIVE_VICTIM` para HOST) |
 | `pendingPurposes` | `ConsentPurpose[]` | finalidades exigidas no vigentes |
 
+### 3.2.2.1 Política vigente (`GET /api/v1/privacy-policies/current`, ADR-0013 §1)
+Pública y cacheable (`Cache-Control: max-age=300, public`): `{version, title, documentUrl, effectiveFrom, contentSha256}`. La PWA la consulta antes del registro para enlazar el documento y enviar `consent.policyVersion`. Sin versión vigente → 404 `PRIVACY_POLICY_NOT_PUBLISHED`.
+
 ### 3.2.3 Logout
 
 `POST /api/v1/auth/logout` revoca el refresh token de la cookie (`LOGOUT`), la borra y responde 204, también sin cookie o con un token inválido.
@@ -224,6 +232,22 @@ Los datos de víctima **nunca** se devuelven en la respuesta.
 
 **Activación** (`POST /api/v1/auth/activate`, público): `{email, code, newPassword}` → 204. La contraseña cumple la política de 12–128 caracteres (422). El código tolera minúsculas, guiones y espacios. Correo inexistente, código erróneo, vencido, consumido o con 5 intentos fallidos responden el mismo 401 `AUTH_ACTIVATION_INVALID`. Tras activar, el anfitrión inicia sesión con `/auth/login`.
 
+
+**Recuperación de cuentas con correo sintético** (ADR-0014 §4): una cuenta con correo `@comunidad.integrate.co` no puede recuperar la contraseña por correo. Su gestor puede emitirle un código nuevo aunque la cuenta ya esté `ACTIVE`, sin pasarla a `PENDING_RESET`: la contraseña vigente sigue valiendo hasta que se canjee el código, y al canjearlo se revocan sus sesiones (`PASSWORD_CHANGE`). Una cuenta activa con correo real responde 409.
+
+### 3.6 Recuperación de contraseña (ADR-0014)
+
+**Solicitud** (`POST /api/v1/auth/forgot-password`, público): `{email}` → **202 sin cuerpo, siempre**. Correo inexistente, cuenta cerrada o suspendida, correo sintético o límite alcanzado (3 solicitudes por cuenta y hora) responden igual y no escriben nada. Si la cuenta es apta, se emite un token nuevo, que revoca el anterior, y en la misma transacción se encola el correo `PASSWORD_RESET_REQUESTED` con el enlace `{FRONTEND_BASE_URL}/restablecer-contrasena#token=<token>`. El token va en el fragmento para que nunca llegue al servidor. Solo un correo mal formado responde 422.
+
+**Restablecimiento** (`POST /api/v1/auth/reset-password`, público): `{token, newPassword}` → 204.
+- **Token:** 32 bytes en Base64 URL (43 caracteres). Es de un solo uso, vence a los 15 minutos y solo se guarda su SHA-256.
+- **Contraseña:** cumple la política de 12–128 caracteres (422 sobre `newPassword`).
+- **Efectos del 204:**
+  - la cuenta queda `ACTIVE` y sin bloqueo, y su código de activación vivo se revoca;
+  - se revocan todos sus refresh tokens con `PASSWORD_CHANGE`;
+  - se encola el aviso `PASSWORD_CHANGED`;
+  - no se inicia sesión: el cliente vuelve a `/auth/login`.
+- **Token inválido:** inexistente, vencido, usado, reemplazado o de una cuenta no apta responde el mismo 401 `AUTH_RESET_TOKEN_INVALID`.
 ---
 
 ## 4. Disponibilidad – `GET /experiences/{id}/availability`

@@ -98,6 +98,7 @@ public abstract class PostgresIntegrationTest {
         registry.add("SMTP_HOST", () -> "127.0.0.1");
         registry.add("SMTP_PORT", () -> SMTP.getSmtp().getPort());
         registry.add("MAIL_FROM", () -> "Integrate <no-reply@integrate.test>");
+        registry.add("FRONTEND_BASE_URL", () -> "https://app.integrate.test");
     }
 
     @TestConfiguration(proxyBeanMethods = false)

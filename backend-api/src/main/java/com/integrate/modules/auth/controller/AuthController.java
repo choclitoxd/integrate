@@ -3,12 +3,15 @@ package com.integrate.modules.auth.controller;
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
 import com.integrate.modules.auth.dto.request.ActivationRequest;
+import com.integrate.modules.auth.dto.request.ForgotPasswordRequest;
 import com.integrate.modules.auth.dto.request.LoginRequest;
 import com.integrate.modules.auth.dto.request.RegisterRequest;
+import com.integrate.modules.auth.dto.request.ResetPasswordRequest;
 import com.integrate.modules.auth.dto.response.AuthTokenResponse;
 import com.integrate.modules.auth.dto.response.RegisterResponse;
 import com.integrate.modules.auth.service.AuthService;
 import com.integrate.modules.auth.service.CredentialActivationService;
+import com.integrate.modules.auth.service.PasswordResetService;
 import com.integrate.modules.auth.service.RegistrationService;
 import com.integrate.modules.auth.service.model.RegisteredUser;
 import com.integrate.modules.auth.service.model.Session;
@@ -37,6 +40,7 @@ public class AuthController {
     private final AuthService authService;
     private final RegistrationService registrationService;
     private final CredentialActivationService activationService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponse> login(@Valid @RequestBody LoginRequest request,
@@ -55,6 +59,20 @@ public class AuthController {
     @PostMapping("/activate")
     public ResponseEntity<Void> activate(@Valid @RequestBody ActivationRequest request) {
         activationService.activate(request.email(), request.code(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 202 siempre, sin cuerpo: la respuesta no revela si la cuenta existe (ADR-0014 §1). */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request,
+                                               HttpServletRequest http) {
+        passwordResetService.requestReset(request.email(), ClientInfos.from(http));
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.noContent().build();
     }
 
