@@ -1,6 +1,7 @@
 # frontend-pwa · Intégrate
 
-PWA de Intégrate (Turista y Gestor de Enlace). Decisión de diseño: [ADR-0004](../docs/architecture/adr/ADR-0004-boilerplate-frontend-pwa-vite-react.md).
+PWA de Intégrate (Turista y Gestor de Enlace). Decisión de diseño: [ADR-0004](../docs/architecture/adr/ADR-0004-boilerplate-frontend-pwa-vite-react.md).  
+Directivas obligatorias de desarrollo: [FE-DIR-001](../docs/rules/frontend-rules.md).
 
 Stack: Vite 8 · React 19 · TypeScript 6 · Tailwind CSS 4 · React Router 8 · Vitest · ESLint 10 (+ `jsx-a11y-x`).
 Requiere Node `>=22.12`.

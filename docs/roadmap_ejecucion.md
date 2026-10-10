@@ -35,6 +35,7 @@ gantt
     Fase 1.1 - Backend Proc 1: Auth, RBAC & Enrolamiento :f11a, after f0, 7d
     Fase 1.1 - Backend Proc 2: Catálogo, Reservas & TTL  :f11b, after f11a, 7d
     Fase 1.1 - Backend Proc 2: Pago, Voucher & Correo    :f11c, after f11b, 7d
+    Fase 1.1 - Backend Proc 1: Recuperación de contraseña :f11d, after f11c, 2d
     Fase 1.2 - Frontend PWA Móvil: Turista & Gestor      :f12, after f11c, 7d
     section Etapa 2: Proc 3 (Validación Offline & Dispersión)
     Fase 2.1 - Backend Proc 3: Padrón, Sync & Conflictos :f21a, after f12, 7d
@@ -69,19 +70,20 @@ gantt
 ---
 
 #### FASE 1.1: Backend - Núcleo Transaccional e Identidades (Procesos 1 y 2)
-*Objetivo:* Construir, estabilizar y validar el 100% del backend de la Etapa 1: identidades y enrolamiento asistido (Proceso 1), catálogo, bloqueo pesimista de aforo, cobro con retención en custodia, voucher criptográfico y notificación (Proceso 2).
+*Objetivo:* Construir, estabilizar y validar el 100% del backend de la Etapa 1: identidades, enrolamiento asistido y recuperación de contraseña (Proceso 1), catálogo, bloqueo pesimista de aforo, cobro con retención en custodia, voucher criptográfico y notificación (Proceso 2).
 
 | ID Tarea | Nombre de la Tarea | Dependencias Técnicas | Desbloquea |
 | :--- | :--- | :--- | :--- |
 | **T-1.1** | **[Proceso 1] Dominio de Identidad & RBAC:** Entidades, repositorios y servicios de autenticación con Argon2id, sesiones rotativas y consentimiento (ADR-0005). | T-0.5, T-0.6 | T-1.2 |
-| **T-1.2** | **[Proceso 1] Endpoints de Sesión:** login/registro/refresh/logout y `/me/consents` con JWT RS256 y Spring Security Resource Server (ADR-0005). | T-1.1 | T-1.3, T-1.4, T-1.11 |
+| **T-1.2** | **[Proceso 1] Endpoints de Sesión:** login/registro/refresh/logout y `/me/consents` con JWT RS256 y Spring Security Resource Server (ADR-0005). | T-1.1 | T-1.3, T-1.4, T-1.11, T-1.13a |
 | **T-1.3** | **[Proceso 1] Enrolamiento Asistido:** Servicios y endpoints del Gestor de Enlace (`/api/v1/gestor/hosts`), asignación de asociación comunitaria y consentimiento inmutable de Habeas Data (Ley 1581 / Ley 1448). | T-1.2, T-1.4 | T-1.12, T-2.1 |
 | **T-1.4** | **[Proceso 2] Catálogo Territorial & Franjas:** Experiencias, municipios DIVIPOLA y franjas horarias con cupo ecológico máximo (ADR-0006). | T-0.5, T-1.2 | T-1.3, T-1.5, T-1.10 |
 | **T-1.5** | **[Proceso 2] Motor de Concurrencia y Bloqueo Pesimista (`SELECT FOR UPDATE`):** Reservas `PENDING` con 0% de overbooking y < 200 ms (`modules/booking/`). | T-1.4 | T-1.6, T-1.7 |
 | **T-1.6** | **[Proceso 2] Booking Expiration Worker (TTL 15 min):** `@Scheduled` que libera los cupos de reservas vencidas o abandonadas. | T-1.5 | T-1.7 |
 | **T-1.7** | **[Proceso 2] Adaptador de Pagos & Webhook:** `PaymentGatewayAdapter` con cobro en COP, webhook idempotente y retención en custodia (*escrow*) (`modules/payment/`). | T-1.5 | T-1.8 |
 | **T-1.8** | **[Proceso 2] Voucher Criptográfico:** Firma RSA-2048, QR de alta densidad y exportación a PDF/A (`modules/voucher/`). | T-1.7 | T-1.9, T-2.1 |
-| **T-1.9** | **[Proceso 2] Notificaciones Transaccionales:** Correo (Gmail API / SMTP) con el voucher y el resumen de la reserva. | T-1.8 | T-1.10 |
+| **T-1.9** | **[Proceso 2] Notificaciones Transaccionales:** Correo (Gmail API / SMTP) con el voucher y el resumen de la reserva. | T-1.8 | T-1.10, T-1.13a |
+| **T-1.13a** | **[Proceso 1] Recuperación de Contraseña:** Endpoints `forgot-password` y `reset-password`, tokens SHA-256 (TTL 15 min), correo outbox y actualización Argon2id con revocación de sesiones (ADR-0014). *Agregada el 2026-10-09: reabre la Fase 1.1.* | T-1.2, T-1.9 | T-1.13b |
 
 ---
 
@@ -95,8 +97,9 @@ gantt
 | **T-1.10c** | **[Proceso 2] Formulario de reserva:** Identificación, contacto de emergencia, EPS, `inputmode` móviles y aceptación de Habeas Data. | T-1.10b, T-1.5, T-1.11 | T-1.10d |
 | **T-1.10d** | **[Proceso 2] Checkout:** Sticky bottom bar, cuenta regresiva del TTL de 15 min, desglose de tarifas y pasarela en COP. | T-1.10c, T-1.6, T-1.7 | T-1.10e |
 | **T-1.10e** | **[Proceso 2] Confirmación:** QR del voucher a pantalla completa, ficha de viaje y exportación a PDF/A. | T-1.10d, T-1.8 | Fin Etapa 1 |
-| **T-1.11** | **[Proceso 1] Autenticación móvil:** Login, registro de turistas, sesión con refresh token y modal de consentimiento. | T-0.7, T-1.2 | T-1.10c |
+| **T-1.11** | **[Proceso 1] Autenticación móvil:** Login, registro de turistas, sesión con refresh token y modal de consentimiento. | T-0.7, T-1.2 | T-1.10c, T-1.13b |
 | **T-1.12** | **[Proceso 1] Enrolamiento asistido móvil:** Portal del Gestor (`/gestor/anfitriones/enrolamiento`) con formulario táctil y captura de consentimiento. | T-1.3, T-1.11 | Fin Etapa 1 |
+| **T-1.13b** | **[Proceso 1] Recuperación de contraseña móvil:** Vistas PWA mobile-first (`/recuperar-contrasena`, `/restablecer-contrasena`) y enlace "¿Olvidaste tu contraseña?" en `/ingresar`. | T-1.11, T-1.13a | Fin Etapa 1 |
 
 ---
 
@@ -161,11 +164,13 @@ Cada etapa se cierra formalmente cuando se cumplen los entregables de todas sus 
 - [x] Las reservas abandonadas se cancelan automáticamente tras 15 minutos y los cupos se liberan en el inventario.
 - [x] El webhook de pago se procesa de forma idempotente y deja los fondos en custodia (*escrow*); la dispersión 85/15 se certifica en la Etapa 2.
 - [x] El voucher criptográfico se emite con firma digital válida y el PDF queda almacenado en S3 y enviado al correo del comprador.
+- [x] El usuario solicita la recuperación de su contraseña sin que la respuesta revele si la cuenta existe, la restablece con un token de un solo uso enviado por correo y sus sesiones activas quedan revocadas (verificado por API).
 
 #### DoD Fase 1.2: Frontend PWA Móvil
-- [ ] El turista recorre catálogo, franjas, reserva, checkout y confirmación en un smartphone (360–430 px) sin scroll horizontal.
-- [ ] Login, registro y renovación de sesión funcionan en la PWA con el modal de consentimiento.
-- [ ] El Gestor de Enlace completa el enrolamiento asistido desde su smartphone.
+- [x] El turista recorre catálogo, franjas, reserva, checkout y confirmación en un smartphone (360–430 px) sin scroll horizontal.
+- [x] Login, registro y renovación de sesión funcionan en la PWA con el modal de consentimiento.
+- [x] El Gestor de Enlace completa el enrolamiento asistido desde su smartphone.
+- [ ] El usuario solicita la recuperación desde `/ingresar` y restablece su contraseña en la PWA con el enlace de un solo uso recibido por correo.
 
 ### ETAPA 2 (Proceso 3)
 

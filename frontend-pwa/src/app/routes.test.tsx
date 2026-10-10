@@ -1,43 +1,78 @@
-import { render, screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { routes } from './routes';
-
-function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  render(<RouterProvider router={router} />);
-  return router;
-}
+import { catalogRoutes } from '@/test/fixtures';
+import { renderApp } from '@/test/renderApp';
 
 describe('routes', () => {
-  it('muestra el portal del turista con landmarks accesibles', () => {
-    renderAt('/');
-    expect(screen.getByRole('heading', { level: 1, name: /turismo comunitario/i })).toBeVisible();
+  it('abre en el catálogo del turista con landmarks y navegación inferior', async () => {
+    renderApp('/', catalogRoutes);
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Experiencias comunitarias' }),
+    ).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'contenido');
-    expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Explorar' })).toHaveAttribute('aria-current', 'page');
+    expect(await screen.findByText('1 experiencia')).toBeVisible();
   });
 
   it('el primer elemento enfocable es el skip link hacia <main>', async () => {
-    renderAt('/');
+    renderApp('/', catalogRoutes);
     await userEvent.tab();
     const skip = screen.getByRole('link', { name: 'Saltar al contenido principal' });
     expect(skip).toHaveFocus();
     expect(skip).toHaveAttribute('href', '#contenido');
   });
 
-  it('navega al panel del gestor', async () => {
-    const router = renderAt('/');
-    await userEvent.click(screen.getByRole('link', { name: 'Soy Gestor de Enlace' }));
+  it('lleva a ingresar al visitante que abre una ruta protegida y conserva el destino', () => {
+    const { router } = renderApp('/gestor', catalogRoutes);
+    expect(router.state.location.pathname).toBe('/ingresar');
+    expect(router.state.location.search).toBe('?volver=%2Fgestor');
+    expect(screen.getByRole('heading', { level: 1, name: 'Ingresa a tu cuenta' })).toBeVisible();
+  });
+
+  it('muestra el panel del gestor solo con ROLE_LINK_MANAGER', async () => {
+    const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
+    await userEvent.click(screen.getByRole('link', { name: 'Gestor' }));
     expect(router.state.location.pathname).toBe('/gestor');
     expect(screen.getByRole('heading', { level: 1, name: 'Panel de jornada' })).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Navegación del gestor' })).toBeInTheDocument();
   });
 
+  it('el panel del gestor lleva a enrolar y a sus anfitriones (ADR-0018 §1)', async () => {
+    const { router } = renderApp('/gestor', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
+    const nav = screen.getByRole('navigation', { name: 'Navegación del gestor' });
+    expect(within(nav).getByRole('link', { name: 'Jornada' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(nav).getByRole('link', { name: 'Anfitriones' })).toHaveAttribute(
+      'href',
+      '/gestor/anfitriones',
+    );
+    await userEvent.click(screen.getByRole('link', { name: /Enrolar anfitrión/ }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/gestor/anfitriones/enrolamiento');
+    });
+  });
+
+  it('niega el panel del gestor a un turista', () => {
+    renderApp('/gestor', catalogRoutes, { roles: ['ROLE_TOURIST'] });
+    expect(
+      screen.getByRole('heading', { name: 'Esta sección no está disponible para tu cuenta' }),
+    ).toBeVisible();
+  });
+
+  it('cambia "Ingresar" por "Mi cuenta" con sesión', () => {
+    renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
+    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/cuenta');
+    expect(screen.queryByRole('link', { name: 'Ingresar' })).toBeNull();
+  });
+
   it('responde 404 accesible para rutas desconocidas', () => {
-    renderAt('/no-existe');
+    renderApp('/no-existe');
     expect(screen.getByRole('heading', { level: 1, name: 'Página no encontrada' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/');
   });

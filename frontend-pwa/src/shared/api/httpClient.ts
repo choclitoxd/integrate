@@ -18,6 +18,11 @@ export interface HttpClientOptions {
    * offline_data_indexeddb.md §1); lo cablea la PWA en T-1.11 sobre los endpoints de T-1.2.
    */
   readonly getAccessToken?: () => string | null;
+  /**
+   * Renueva la sesión tras un 401 de una petición que llevaba token (ADR-0013 §3). Devuelve el token
+   * nuevo o null; la petición se reintenta una sola vez. Nunca se invoca para /v1/auth/*.
+   */
+  readonly onUnauthorized?: () => Promise<string | null>;
   readonly fetchImpl?: typeof fetch;
 }
 
@@ -27,6 +32,14 @@ export interface HttpClient {
 
 const TRACE_ID_HEADER = 'X-Trace-Id';
 
+/**
+ * Un 401 de /v1/auth/* es la respuesta del propio flujo de credenciales (activación, login): renovar y
+ * reintentar gastaría intentos. La excepción es el enrolamiento asistido, que va con el token del gestor.
+ */
+function renewsOnUnauthorized(path: string): boolean {
+  return !path.startsWith('/v1/auth/') || path === '/v1/auth/register-assisted';
+}
+
 function isJson(contentType: string | null): boolean {
   return contentType !== null && /\bjson\b/i.test(contentType);
 }
@@ -34,28 +47,37 @@ function isJson(contentType: string | null): boolean {
 export function createHttpClient({
   baseUrl,
   getAccessToken,
+  onUnauthorized,
   fetchImpl = (input, init) => fetch(input, init),
 }: HttpClientOptions): HttpClient {
+  async function send(path: string, options: RequestOptions, token: string | null | undefined) {
+    const headers = new Headers({ Accept: 'application/json, application/problem+json' });
+    for (const [name, value] of Object.entries(options.headers ?? {})) headers.set(name, value);
+    if (options.body !== undefined) headers.set('Content-Type', 'application/json');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    try {
+      return await fetchImpl(`${baseUrl}${path}`, {
+        method: options.method ?? 'GET',
+        headers,
+        // La cookie de refresh (HttpOnly; SameSite=Strict; Path=/api/v1/auth) debe viajar.
+        credentials: 'include',
+        ...(options.body !== undefined && { body: JSON.stringify(options.body) }),
+        ...(options.signal && { signal: options.signal }),
+      });
+    } catch (cause) {
+      throw new NetworkError(cause);
+    }
+  }
+
   return {
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-      const headers = new Headers({ Accept: 'application/json, application/problem+json' });
-      for (const [name, value] of Object.entries(options.headers ?? {})) headers.set(name, value);
-      if (options.body !== undefined) headers.set('Content-Type', 'application/json');
       const token = getAccessToken?.();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
+      let response = await send(path, options, token);
 
-      let response: Response;
-      try {
-        response = await fetchImpl(`${baseUrl}${path}`, {
-          method: options.method ?? 'GET',
-          headers,
-          // La cookie de refresh (HttpOnly; SameSite=Strict; Path=/api/v1/auth) debe viajar.
-          credentials: 'include',
-          ...(options.body !== undefined && { body: JSON.stringify(options.body) }),
-          ...(options.signal && { signal: options.signal }),
-        });
-      } catch (cause) {
-        throw new NetworkError(cause);
+      // Token vencido o revocado: una renovación compartida y un único reintento.
+      if (response.status === 401 && token && onUnauthorized && renewsOnUnauthorized(path)) {
+        const renewed = await onUnauthorized();
+        if (renewed) response = await send(path, options, renewed);
       }
 
       const contentType = response.headers.get('Content-Type');

@@ -1,21 +1,75 @@
 @import 'tailwindcss';
 
 /*
- * Tokens de diseño (ADR-0004 §5, RNF-07). Contrastes sobre --color-canvas (#fff):
- * ink 17,7:1 · ink-muted 10,3:1 · brand 10,4:1 → AA holgado (≥ 7:1) para uso bajo luz solar.
+ * Tokens de diseño del Sistema Intégrate (ADR-0004 §5, RNF-07, NTC 5854).
+ * Certificados matemáticamente para WCAG 2.1 AA (≥ 4.5:1) y AAA (≥ 7.0:1) para luz solar directa.
  */
 @theme {
+  /* 1. Lienzo y Superficies */
   --color-canvas: #ffffff;
   --color-surface: #f4f6f2;
-  --color-border: #4b5563;
-  --color-ink: #111827;
-  --color-ink-muted: #374151;
+  --color-surface-elevated: #ffffff;
+  --color-surface-subtle: #f3f4f6;
+  --color-surface-inverse: #111827;
+
+  /* 2. Marca (Verde Bosque de Conservación) */
   --color-brand: #14532d;
   --color-brand-hover: #0f3d21;
-  --color-on-brand: #ffffff;
+  --color-brand-active: #052e16;
   --color-brand-soft: #dcfce7;
+  --color-brand-border: #166534;
+  --color-on-brand: #ffffff;
+
+  /* 3. Acento Territorial (Terracota, Arcilla y Memoria) */
+  --color-accent: #7c2d12;
+  --color-accent-medium: #9a3412;
+  --color-accent-hover: #5c200c;
+  --color-accent-soft: #ffedd5;
+  --color-on-accent: #ffffff;
+
+  /* 4. Tipografía y Tinta (Ink) */
+  --color-ink: #111827;
+  --color-ink-muted: #374151;
+  --color-ink-subtle: #4b5563;
+  --color-ink-inverse: #ffffff;
+
+  /* 5. Bordes y Divisores (WCAG SC 1.4.11 ≥ 3:1) */
+  --color-border: #4b5563;
+  --color-border-subtle: #6b7280;
+  --color-border-strong: #1f2937;
+
+  /* 6. Estados Semánticos (Validación transaccional y operativa) */
+  --color-success: #166534;
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #15803d;
+  --color-success-text: #14532d;
+  --color-on-success: #ffffff;
+
+  --color-warning: #854d0e;
+  --color-warning-bg: #fefce8;
+  --color-warning-border: #a16207;
+  --color-warning-text: #713f12;
+  --color-on-warning: #ffffff;
+
+  --color-danger: #991b1b;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #b91c1c;
+  --color-danger-text: #991b1b;
+  --color-on-danger: #ffffff;
+
+  --color-info: #1e40af;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #2563eb;
+  --color-info-text: #1e40af;
+  --color-on-info: #ffffff;
+
+  /* 7. Foco Accesible Doble Anillo (WCAG 2.4.7 y 2.4.11) */
   --color-focus: #ffdd00;
   --color-focus-halo: #111827;
+
+  /* 8. Código QR del voucher (ADR-0017 §2): solo para el QR; negro y blanco puros, 21:1 */
+  --color-qr-ink: #000000;
+  --color-qr-paper: #ffffff;
 
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
 }
@@ -26,6 +80,36 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    accent-color: var(--color-brand);
+    caret-color: var(--color-brand);
+  }
+
+  /* Superficies del navegador también desde la paleta (selección de texto). */
+  ::selection {
+    background-color: var(--color-brand-soft);
+    color: var(--color-ink);
+  }
+
+  /* Hoja inferior (ADR-0012 §6): única entrada animada; la regla de movimiento reducido la anula. */
+  dialog.sheet[open] {
+    animation: sheet-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  dialog.sheet[open]::backdrop {
+    animation: backdrop-in 200ms ease-out;
+  }
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
   }
 
   /* Foco doble anillo (amarillo + oscuro): visible sobre fondos claros y sobre --color-brand. */

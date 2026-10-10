@@ -6,3 +6,4 @@ export {
   type HttpMethod,
   type RequestOptions,
 } from './httpClient';
+export { HttpClientContext, shouldRetryRequest, useHttpClient } from './httpClientContext';

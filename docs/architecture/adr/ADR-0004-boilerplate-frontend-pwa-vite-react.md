@@ -91,4 +91,4 @@ El backlog se reorganizó en dos etapas, con el backend antes que el frontend en
 | T-1.2 (cableado del token y la sesión en el cliente, Zod) | **T-1.11** | Autenticación móvil (sobre los endpoints de T-1.2) |
 | T-3.1 (cola offline que decide reintentos) | **T-2.13** | Cola de asistencias y Background Sync |
 
-La delimitación móvil posterior (viewport 360–430 px, contenedor `max-w-md`, navegación inferior y sticky bottom bar; `PROJECT_STATUS.md` §1.2) no está contemplada en este ADR y requerirá una enmienda antes de T-1.10.
+La delimitación móvil posterior (viewport 360–430 px, contenedor `max-w-md`, navegación inferior y sticky bottom bar; `PROJECT_STATUS.md` §1.2) no está contemplada en este ADR y requerirá una enmienda antes de T-1.10. **Resuelta por ADR-0012 (2026-10-09):** shell móvil `max-w-md`, navegación inferior, `StickyActionBar` y TanStack Query.
