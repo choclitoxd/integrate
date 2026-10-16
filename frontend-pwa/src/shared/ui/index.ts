@@ -1,3 +1,4 @@
+export { AdaptiveView } from './AdaptiveView';
 export { BottomSheet } from './BottomSheet';
 export { Button } from './Button';
 export { buttonClassName, type ButtonVariant } from './buttonStyles';

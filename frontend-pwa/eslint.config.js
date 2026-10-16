@@ -7,9 +7,12 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 // Fronteras de la estructura por features (ADR-0004 §2), equivalentes a las reglas ArchUnit del backend.
+// ADR-0020 §5: `desktop.ts` es el segundo punto de entrada público, para cargar las vistas de
+// escritorio con import() diferido sin que viajen en el bundle móvil.
 const noDeepFeatureImports = {
-  group: ['@/features/*/**'],
-  message: 'Importa una feature solo por su index.ts (@/features/<feature>).',
+  group: ['@/features/*/**', '!@/features/*/desktop'],
+  message:
+    'Importa una feature solo por su index.ts (@/features/<feature>) o, para vistas de escritorio, por @/features/<feature>/desktop.',
 };
 
 export default tseslint.config(

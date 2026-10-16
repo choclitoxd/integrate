@@ -16,7 +16,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:quality": "vitest run --coverage --reporter=default --reporter=json --outputFile.json=coverage/vitest-results.json",
+    "quality:bundle": "node scripts/check-bundle-budget.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "~5.103.2",
@@ -36,6 +39,8 @@
     "@types/react": "~19.3.0",
     "@types/react-dom": "~19.3.0",
     "@vitejs/plugin-react": "~6.1.2",
+    "@vitest/coverage-v8": "~5.0.3",
+    "axe-core": "~4.13.0",
     "eslint": "~10.12.0",
     "eslint-config-prettier": "~10.1.8",
     "eslint-plugin-jsx-a11y-x": "~0.2.0",

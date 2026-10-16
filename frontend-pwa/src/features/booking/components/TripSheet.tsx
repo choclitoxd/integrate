@@ -63,8 +63,8 @@ export function TripSheet({ booking }: { booking: Booking }) {
       {detail && (
         <details className="mt-3 rounded-xl border-2 border-info-border bg-info-bg px-4 py-3">
           <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-bold text-info-text">
-            <Icon name="shield" size={20} />
-            Recomendaciones de seguridad
+            <Icon name="backpack" size={20} />
+            ¿Qué llevar y recomendaciones?
           </summary>
           <p className="mt-2 whitespace-pre-line text-ink">{detail.safetyGuidelines}</p>
         </details>

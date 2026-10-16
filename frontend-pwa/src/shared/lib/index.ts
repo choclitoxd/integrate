@@ -5,6 +5,7 @@ export {
   formatClockTime,
   formatCop,
   formatDateTime,
+  formatDistance,
   formatDuration,
   formatLocalTime,
   formatLongDate,
@@ -15,3 +16,4 @@ export {
   toTitleCase,
   weekdayInitial,
 } from './format';
+export { DESKTOP_MEDIA_QUERY, useFormFactor, type FormFactor } from './formFactor';

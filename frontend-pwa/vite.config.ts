@@ -30,6 +30,14 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       css: false,
       restoreMocks: true,
+      // ADR-0019 §4 (RNF-27): cobertura de la lógica de features y de la capa compartida.
+      coverage: {
+        provider: 'v8',
+        include: ['src/features/**/*.{ts,tsx}', 'src/shared/**/*.{ts,tsx}'],
+        exclude: ['**/*.test.{ts,tsx}', '**/index.ts'],
+        reporter: ['text-summary', 'json-summary', 'html'],
+        thresholds: { lines: 80 },
+      },
     },
   };
 });

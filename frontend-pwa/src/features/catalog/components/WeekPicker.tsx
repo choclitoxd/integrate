@@ -24,7 +24,7 @@ interface WeekPickerProps {
 }
 
 const NAV_BUTTON =
-  'inline-flex size-11 items-center justify-center rounded-lg text-brand hover:bg-brand-soft disabled:text-border-subtle disabled:hover:bg-transparent';
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-brand hover:bg-brand-soft disabled:text-border-subtle disabled:hover:bg-transparent';
 
 function monthLabel(days: readonly string[]): string {
   const first = days[0] ?? '';
@@ -51,8 +51,9 @@ function describeDay(date: string, status: DayStatus, available: number, partici
 }
 
 /**
- * Rejilla semanal de lunes a domingo (ADR-0012 §9): 7 × 44 px caben en 360 px sin scroll
- * horizontal. Los días agotados se tachan, además de cambiar de color.
+ * Rejilla semanal de lunes a domingo (ADR-0012 §9). 7 × 44 px con 8 px de separación piden 356 px:
+ * en columnas más angostas (teléfonos de 320–387 px) la semana pasa a dos filas de 4 + 3 sin
+ * solapar objetivos táctiles (ADR-0020 §1). Los días agotados se tachan, además de cambiar de color.
  */
 export function WeekPicker({
   weekStart,
@@ -68,7 +69,7 @@ export function WeekPicker({
   const days = weekDays(weekStart);
 
   return (
-    <div>
+    <div className="@container">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -97,7 +98,10 @@ export function WeekPicker({
         </button>
       </div>
 
-      <ul className="mt-2 grid grid-cols-7 gap-1" aria-label="Días de la semana">
+      <ul
+        className="mt-2 grid grid-cols-4 gap-2 @min-[22.25rem]:grid-cols-7"
+        aria-label="Días de la semana"
+      >
         {days.map((date) => {
           const status = dayStatus(date, byDate, participants, range);
           const available =

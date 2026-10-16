@@ -2,6 +2,9 @@
 
 export type PhysicalIntensity = 'LOW' | 'MEDIUM' | 'HIGH';
 
+/** Forma del recorrido (ADR-0022): circular, ida y vuelta por el mismo camino o solo ida. */
+export type RouteType = 'LOOP' | 'OUT_AND_BACK' | 'ONE_WAY';
+
 export interface Place {
   readonly code: string;
   readonly name: string;
@@ -26,6 +29,11 @@ export interface ExperienceSummary {
   readonly title: string;
   readonly physicalIntensity: PhysicalIntensity;
   readonly durationMinutes: number;
+  /** Datos de recorrido opcionales (ADR-0022): `null` si el anfitrión no los informó. */
+  readonly routeType: RouteType | null;
+  readonly distanceKm: number | null;
+  readonly roundTripMinutes: number | null;
+  readonly stopsCount: number;
   readonly currency: 'COP';
   readonly unitPriceCop: number;
   readonly maxCapacityPerSlot: number;
@@ -48,6 +56,13 @@ export interface ExperienceDetail {
   readonly latitude: number | null;
   readonly longitude: number | null;
   readonly timezone: 'America/Bogota';
+  readonly stops: readonly RouteStop[];
+}
+
+/** Parada del recorrido, en orden de visita. */
+export interface RouteStop {
+  readonly name: string;
+  readonly description: string | null;
 }
 
 export interface ScheduleAvailability {

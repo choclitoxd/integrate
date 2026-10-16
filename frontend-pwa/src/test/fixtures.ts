@@ -7,6 +7,10 @@ export const summary = {
   title: 'Sendero de la Memoria – Vereda La Esperanza',
   physicalIntensity: 'MEDIUM',
   durationMinutes: 270,
+  routeType: 'LOOP',
+  distanceKm: 8.5,
+  roundTripMinutes: 300,
+  stopsCount: 2,
   currency: 'COP',
   unitPriceCop: 80000,
   maxCapacityPerSlot: 12,
@@ -44,6 +48,10 @@ export const detail = {
   latitude: 6.187,
   longitude: -74.995,
   timezone: 'America/Bogota',
+  stops: [
+    { name: 'Mirador del río', description: 'Descanso de 15 minutos con vista al cañón.' },
+    { name: 'Casa de la memoria', description: null },
+  ],
 };
 
 export function schedule(id: string, localDate: string, hour: string, available: number) {

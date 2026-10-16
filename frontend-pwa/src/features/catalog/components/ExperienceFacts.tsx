@@ -1,13 +1,45 @@
-import { formatDuration, pluralize } from '@/shared/lib';
+import { formatDistance, formatDuration, pluralize } from '@/shared/lib';
 import { Icon, type IconName } from '@/shared/ui';
 
 import type { ExperienceSummary } from '../api/types';
 import { INTENSITY_LABELS } from '../filters';
+import { ROUTE_TYPE_LABELS } from '../labels';
 
 interface Fact {
   readonly icon: IconName;
   readonly term: string;
   readonly value: string;
+}
+
+/** Los datos de recorrido son opcionales (ADR-0022): solo se muestran los que el anfitrión informó. */
+function routeFactsOf(experience: ExperienceSummary): readonly Fact[] {
+  const { distanceKm, roundTripMinutes, routeType, stopsCount } = experience;
+  const facts: Fact[] = [];
+  if (distanceKm !== null) {
+    facts.push({
+      icon: 'route',
+      term: 'Distancia',
+      value: routeType
+        ? `${formatDistance(distanceKm)} · ${ROUTE_TYPE_LABELS[routeType]}`
+        : formatDistance(distanceKm),
+    });
+  }
+  if (roundTripMinutes !== null) {
+    facts.push({
+      icon: 'clock',
+      term: 'Tiempo de ida y vuelta',
+      value: formatDuration(roundTripMinutes),
+    });
+  }
+  // "Sin paradas" solo se afirma si el recorrido fue descrito; en las experiencias antiguas no se sabe.
+  if (stopsCount > 0 || distanceKm !== null || routeType !== null) {
+    facts.push({
+      icon: 'mapPin',
+      term: 'Paradas',
+      value: stopsCount > 0 ? pluralize(stopsCount, 'parada', 'paradas') : 'Sin paradas',
+    });
+  }
+  return facts;
 }
 
 function factsOf(experience: ExperienceSummary): readonly Fact[] {
@@ -18,12 +50,27 @@ function factsOf(experience: ExperienceSummary): readonly Fact[] {
       term: 'Intensidad física',
       value: INTENSITY_LABELS[experience.physicalIntensity],
     },
+    ...routeFactsOf(experience),
     {
       icon: 'leaf',
       term: 'Aforo ecológico',
       value: `Máx. ${pluralize(experience.maxCapacityPerSlot, 'persona', 'personas')} por franja`,
     },
   ];
+}
+
+/** Texto de la tarjeta, sin rótulo visible: cada valor debe entenderse solo. */
+function compactValue(fact: Fact): string {
+  switch (fact.term) {
+    case 'Intensidad física':
+      return `Intensidad ${fact.value.toLowerCase()}`;
+    case 'Distancia':
+      return fact.value.split(' · ')[0] ?? fact.value;
+    case 'Tiempo de ida y vuelta':
+      return `Ida y vuelta ${fact.value}`;
+    default:
+      return fact.value;
+  }
 }
 
 interface ExperienceFactsProps {
@@ -49,11 +96,7 @@ export function ExperienceFacts({ experience, variant = 'compact' }: ExperienceF
           <div key={fact.term} className="flex items-center gap-2 text-ink-muted">
             <Icon name={fact.icon} size={18} className="text-brand" />
             <dt className="sr-only">{fact.term}</dt>
-            <dd>
-              {fact.term === 'Intensidad física'
-                ? `Intensidad ${fact.value.toLowerCase()}`
-                : fact.value}
-            </dd>
+            <dd>{compactValue(fact)}</dd>
           </div>
         ),
       )}

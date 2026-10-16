@@ -26,6 +26,9 @@ describe('catálogo (T-1.10a)', () => {
     expect(within(card).getByText('San Carlos, Antioquia')).toBeVisible();
     expect(within(card).getByText('Máx. 12 personas por franja')).toBeVisible();
     expect(within(card).getByText('Intensidad media')).toBeVisible();
+    expect(within(card).getByText('8,5 km')).toBeVisible();
+    expect(within(card).getByText('Ida y vuelta 5 h')).toBeVisible();
+    expect(within(card).getByText('2 paradas')).toBeVisible();
     expect(await within(card).findByText('Memoria histórica')).toBeVisible();
     expect(plain(card.textContent)).toContain('$ 80.000');
   });
@@ -124,11 +127,34 @@ describe('detalle (T-1.10a)', () => {
   it('muestra la ficha, la seguridad y la acción fija hacia las fechas', async () => {
     renderApp(`/experiencias/${EXPERIENCE_ID}`, catalogRoutes);
     expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Recomendaciones de seguridad' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Abrir en mapas' })).toHaveAttribute(
+    expect(screen.getByRole('heading', { name: '¿Qué llevar y recomendaciones?' })).toBeVisible();
+    // Datos del recorrido (ADR-0022): distancia, ida y vuelta y paradas en orden.
+    expect(screen.getByText('8,5 km · Circular')).toBeVisible();
+    expect(screen.getByText('5 h')).toBeVisible();
+    const stopsSection = screen
+      .getByRole('heading', { name: 'Paradas del recorrido' })
+      .closest('section');
+    if (!stopsSection) throw new Error('Sin sección de paradas');
+    expect(
+      within(stopsSection)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      '1Mirador del ríoDescanso de 15 minutos con vista al cañón.',
+      '2Casa de la memoria',
+    ]);
+    // Enlace web, no `geo:`: abre en computador y en celular (en el teléfono, la app si existe).
+    const googleMaps = screen.getByRole('link', { name: /Abrir en Google Maps/ });
+    expect(googleMaps).toHaveAttribute(
       'href',
-      'geo:6.187,-74.995?q=6.187,-74.995',
+      'https://www.google.com/maps/search/?api=1&query=6.187%2C-74.995',
     );
+    expect(googleMaps).toHaveAttribute('target', '_blank');
+    expect(document.querySelector('a[href^="geo:"]')).toBeNull();
+    expect(screen.queryByRole('link', { name: /OpenStreetMap/ })).toBeNull();
+    expect(
+      screen.getByTitle(`Mapa del punto de encuentro de ${summary.title}`),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver fechas' })).toHaveAttribute(
       'href',
       `/experiencias/${EXPERIENCE_ID}/franjas`,

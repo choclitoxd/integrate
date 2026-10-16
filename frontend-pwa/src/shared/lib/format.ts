@@ -30,6 +30,13 @@ export function formatDuration(minutes: number): string {
   return parts.length > 0 ? parts.join(' ') : '0 min';
 }
 
+const KM = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 2 });
+
+/** 12.5 → "12,5 km"; 3 → "3 km". */
+export function formatDistance(km: number): string {
+  return `${KM.format(km)} km`;
+}
+
 const SMALL_WORDS = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'en']);
 
 /** Nombres DANE en mayúsculas → formato título: "SAN JUAN DE NEPOMUCENO" → "San Juan de Nepomuceno". */

@@ -3,7 +3,9 @@ import type { RouteObject } from 'react-router';
 import { AccountPage, ActivatePage, LoginPage, RegisterPage } from '@/features/auth';
 import { CatalogPage, ExperienceDetailPage, SlotPickerPage } from '@/features/catalog';
 import { ManagerHomePage } from '@/features/home';
+import { AdaptiveView } from '@/shared/ui';
 
+import { CatalogDesktop, ExperienceDetailDesktop, SlotPickerDesktop } from './desktopViews';
 import { RequireSession } from './guards/RequireSession';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
@@ -13,8 +15,11 @@ import { RouteErrorPage } from './pages/RouteErrorPage';
 import { RouteLoading } from './pages/RouteLoading';
 
 const toCatalog: ShellHandle = { flow: true, back: () => '/' };
+const catalogHandle: ShellHandle = { wide: true };
+const detailHandle: ShellHandle = { ...toCatalog, wide: true };
 const slotsHandle: ShellHandle = {
   flow: true,
+  wide: true,
   back: ({ experienceId = '' }) => `/experiencias/${experienceId}`,
 };
 
@@ -66,15 +71,31 @@ export const routes: RouteObject[] = [
         path: '/',
         element: <TouristLayout />,
         children: [
-          { index: true, element: <CatalogPage /> },
+          {
+            index: true,
+            element: (
+              <AdaptiveView desktop={CatalogDesktop}>
+                <CatalogPage />
+              </AdaptiveView>
+            ),
+            handle: catalogHandle,
+          },
           {
             path: 'experiencias/:experienceId',
-            element: <ExperienceDetailPage />,
-            handle: toCatalog,
+            element: (
+              <AdaptiveView desktop={ExperienceDetailDesktop}>
+                <ExperienceDetailPage />
+              </AdaptiveView>
+            ),
+            handle: detailHandle,
           },
           {
             path: 'experiencias/:experienceId/franjas',
-            element: <SlotPickerPage />,
+            element: (
+              <AdaptiveView desktop={SlotPickerDesktop}>
+                <SlotPickerPage />
+              </AdaptiveView>
+            ),
             handle: slotsHandle,
           },
           { path: 'ingresar', element: <LoginPage />, handle: toCatalog },

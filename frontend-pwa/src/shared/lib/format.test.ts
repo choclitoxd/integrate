@@ -4,6 +4,7 @@ import {
   addDays,
   formatCop,
   formatDateTime,
+  formatDistance,
   formatDuration,
   formatLocalTime,
   formatLongDate,
@@ -28,6 +29,11 @@ describe('format', () => {
     expect(formatDuration(270)).toBe('4 h 30 min');
     expect(formatDuration(1440)).toBe('1 día');
     expect(formatDuration(3000)).toBe('2 días 2 h');
+  });
+
+  it('formatea distancias en km con coma decimal', () => {
+    expect(formatDistance(12.5)).toBe('12,5 km');
+    expect(formatDistance(3)).toBe('3 km');
   });
 
   it('convierte nombres DANE a formato título respetando conectores', () => {
