@@ -19,13 +19,13 @@ Todo código generado para el frontend debe ceñirse estrictamente a las 7 direc
 
 ## 2. Las 7 Directivas Obligatorias de Frontend
 
-### Directiva 1: Enfoque Móvil Exclusivo (Mobile-First / Smartphone Ergonomics)
-1. **Viewport Objetivo:** Toda vista y flujo debe concebirse primordialmente para anchos de pantalla entre **360 px y 430 px** (factor de forma de smartphones estándar).
-2. **Contenedor en Escritorio:** En pantallas tablet o escritorio, el layout principal debe enmarcarse en un contenedor centrado con ancho máximo (`max-w-md` o equivalente a $\approx 448\text{ px}$), impidiendo layouts estirados que degraden la ergonomía táctil.
+### Directiva 1: Enfoque Mobile-First con Vista de Escritorio Dedicada (enmendada por ADR-0020)
+1. **Viewport Objetivo:** Toda vista y flujo debe concebirse primero para anchos de pantalla entre **320 px y 480 px** (factor de forma de smartphones, incluidos los de gama baja y el reflow de WCAG 1.4.10), verificada sin scroll horizontal en 320, 360, 390, 412 y 430 px.
+2. **Factor de Forma y Escritorio:** La vista se elige con `useFormFactor()` (`shared/lib`), por capacidades y no por User-Agent: `desktop` ⇔ `(min-width: 1024px) and (hover: hover) and (pointer: fine)`; tablets y todo lo demás reciben la vista móvil. En `desktop` la app usa `DesktopShell` (contenedor `max-w-6xl`) y, donde exista, la vista de escritorio dedicada (`features/<f>/pages/desktop/`, cargada con `import()` diferido para que el móvil no la descargue). Sin variante de escritorio, la vista móvil se muestra centrada en `max-w-md`. Las URLs son las mismas en ambos factores de forma.
 3. **Objetivos Táctiles (Target Size - WCAG 2.5.5 / 2.5.8):**
    - Todo botón, enlace, input o control interactivo debe tener un área táctil mínima de **$\ge 44 \times 44\text{ px}$** (`min-h-11 min-w-11` o con padding compensatorio).
    - Separación mínima entre elementos táctiles interactivos de $\ge 8\text{ px}$ para evitar pulsaciones erróneas en campo.
-4. **Zona del Pulgar (Thumb Zone):** Las acciones transaccionales primarias (ej. botón "Reservar", "Confirmar Asistencia", "Escanear QR") deben ubicarse en la parte inferior accesible con una sola mano mediante barras fijas (*sticky bottom bar* o `bottom-0`).
+4. **Zona del Pulgar (Thumb Zone):** En la vista móvil, las acciones transaccionales primarias (ej. botón "Reservar", "Confirmar Asistencia", "Escanear QR") deben ubicarse en la parte inferior accesible con una sola mano mediante barras fijas (*sticky bottom bar* o `bottom-0`). En la vista de escritorio van en un panel lateral fijo (*sticky aside*) visible sin scroll.
 
 ---
 
@@ -139,7 +139,7 @@ npm run build
 | Aspecto | ¿Qué está permitido? | ¿Qué está PROHIBIDO? |
 | :--- | :--- | :--- |
 | **Diseño / CSS** | Tokens certificados (`bg-brand`, `text-ink`, `border-border`) | Hexadecimales arbitrarios (`#22c55e`, `#3b82f6`) o clases Tailwind no mapeadas a `@theme` |
-| **Viewport** | Mobile-First (360–430 px) con contenedor `max-w-md` en desktop | Diseños pensados para desktop con tablas anchas que fuercen scroll horizontal en smartphones |
+| **Viewport** | Mobile-First (320–480 px); en `desktop` (`useFormFactor`) `DesktopShell` y vistas `pages/desktop/` diferidas | Layouts anchos en la vista móvil, scroll horizontal a 320 px, o detección por User-Agent |
 | **Accesibilidad** | Foco doble anillo `:focus-visible`, contraste AAA $\ge 7:1$, `min-h-11` | `outline-none` sin reemplazo, fuentes pequeñas de bajo contraste, botones táctiles $< 44\text{ px}$ |
 | **Arquitectura** | Importar de `@/features/<feature>` por su `index.ts` | Importaciones profundas `@/features/a/internal/File` o `shared` importando de `features` |
 | **Seguridad** | Access token en memoria, refresh token en cookie HttpOnly | Guardar tokens en `localStorage`/IndexedDB; poner secretos en `.env` |
