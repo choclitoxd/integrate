@@ -16,6 +16,14 @@ spring:
   flyway:
     locations: classpath:db/migration,classpath:db/seed-dev
 
+  # ADR-0021: recarga en caliente. La PWA se sirve desde Vite, por eso LiveReload va apagado.
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: true
+      additional-paths: src/main/resources
+
   jpa:
     show-sql: false
     properties:
