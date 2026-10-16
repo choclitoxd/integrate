@@ -1,0 +1,923 @@
+{
+  "generatedAt": "2026-10-11T00:41:02.381Z",
+  "backendTests": {
+    "tests": 180,
+    "failures": 0,
+    "skipped": 0
+  },
+  "vitest": {
+    "total": 165,
+    "passed": 165,
+    "failed": 0
+  },
+  "rnf": [
+    {
+      "id": "RNF-01",
+      "iso": "Seguridad",
+      "process": "P1 Identidades",
+      "name": "Cifrado en reposo/tránsito y anonimización",
+      "state": "Parcial",
+      "evidence": "SensitiveDataAtRestQualityTest",
+      "note": "TLS 1.3 A+ se audita en el despliegue (T-2.16)",
+      "metrics": [
+        {
+          "rnf": "RNF-01",
+          "metric": "Atributos del anfitrión o de víctima en endpoints públicos",
+          "value": 0,
+          "unit": "atributos",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "GET /experiences y /experiences/{id} sin autenticación",
+          "test": "com.integrate.quality.security.SensitiveDataAtRestQualityTest",
+          "measuredAt": "2026-10-11T00:40:26.193993700Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-01",
+          "metric": "Columnas sensibles bajo el dominio de cifrado",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "9 columnas *_enc (víctima, RUV, salud/EPS, contacto de emergencia, cuentas de pago)",
+          "test": "com.integrate.quality.security.SensitiveDataAtRestQualityTest",
+          "measuredAt": "2026-10-11T00:40:26.207362100Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-01",
+          "metric": "Decimales de latitud expuestos en el detalle público",
+          "value": 6,
+          "unit": "decimales",
+          "threshold": "<= 2 (ofuscación por radio)",
+          "pass": false,
+          "detail": "experiencia creada con latitud 6.251234; respuesta: 6.251234",
+          "test": "com.integrate.quality.security.SensitiveDataAtRestQualityTest",
+          "measuredAt": "2026-10-11T00:39:01.508518600Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-01",
+          "metric": "Documento y teléfono de auth.users cifrados",
+          "value": 0,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": false,
+          "detail": "auth.users.doc_number y auth.users.phone (dominios [doc_number, phone_e164])",
+          "test": "com.integrate.quality.security.SensitiveDataAtRestQualityTest",
+          "measuredAt": "2026-10-11T00:39:00.925510300Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-01",
+          "metric": "Valores sensibles de reserva legibles en reposo",
+          "value": 0,
+          "unit": "valores",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "4 valores cifrados (EPS por participante y contacto de emergencia)",
+          "test": "com.integrate.quality.security.SensitiveDataAtRestQualityTest",
+          "measuredAt": "2026-10-11T00:40:26.520694700Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "No cumple"
+    },
+    {
+      "id": "RNF-04",
+      "iso": "Seguridad",
+      "process": "P1 Identidades",
+      "name": "Hashing y custodia de credenciales",
+      "state": "Automatizada",
+      "evidence": "CredentialStorageQualityTest, SecretRedactionQualityTest",
+      "note": "El plan nombra BCrypt; el sistema usa Argon2id (ADR-0005 §3)",
+      "metrics": [
+        {
+          "rnf": "RNF-04",
+          "metric": "Contraseñas almacenadas con hash robusto y sal",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "263 credenciales; Argon2id = 263; texto plano = 0",
+          "test": "com.integrate.quality.security.CredentialStorageQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.646483300Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-04",
+          "metric": "Credenciales con Argon2id",
+          "value": 100,
+          "unit": "%",
+          "threshold": "informativo (el plan nombra BCrypt)",
+          "pass": true,
+          "detail": "Argon2id m=19 MiB, t=2 (ADR-0005 §3)",
+          "test": "com.integrate.quality.security.CredentialStorageQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.647576300Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-04",
+          "metric": "Portadores de secretos que ocultan el secreto al imprimirse",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "IssuedToken, IssuedActivationCode y AdminBootstrapCommand",
+          "test": "com.integrate.quality.security.SecretRedactionQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.915793700Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-05",
+      "iso": "Seguridad",
+      "process": "P3 Validación y split",
+      "name": "Firma criptográfica de vouchers",
+      "state": "Parcial",
+      "evidence": "VoucherTamperDetectionQualityTest",
+      "note": "Verificación en la PWA sin conexión: T-2.10",
+      "metrics": [
+        {
+          "rnf": "RNF-05",
+          "metric": "Tasa de detección de vouchers alterados",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "31 alteraciones: 10 claims, cupos inflados, firma ajena, truncada, vacía, alg=none y 16 bits invertidos",
+          "test": "com.integrate.quality.security.VoucherTamperDetectionQualityTest",
+          "measuredAt": "2026-10-11T00:40:27.062224400Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-06",
+      "iso": "Seguridad",
+      "process": "P1 Identidades",
+      "name": "Bitácora inmutable de Habeas Data",
+      "state": "Automatizada",
+      "evidence": "ConsentAuditQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-06",
+          "metric": "Canales de alta de cuentas que registran el consentimiento",
+          "value": 66.667,
+          "unit": "%",
+          "threshold": "= 100 % (cero tolerancia legal)",
+          "pass": false,
+          "detail": "autoservicio y enrolamiento asistido lo registran al crear la cuenta; el bootstrap del ADMIN (ADR-0005 §9) no: lo pide en el primer ingreso (requiresConsentUpdate)",
+          "test": "com.integrate.quality.security.ConsentAuditQualityTest",
+          "measuredAt": "2026-10-11T00:38:59.970770800Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-06",
+          "metric": "Intentos de alterar la bitácora bloqueados",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "UPDATE/DELETE/TRUNCATE con el rol de la aplicación (integrate_api)",
+          "test": "com.integrate.quality.security.ConsentAuditQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.177426700Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-06",
+          "metric": "Registros con consentimiento auditado completo",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "10 registros por POST /auth/register (fecha, IP, agente, versión de política)",
+          "test": "com.integrate.quality.security.ConsentAuditQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.535365900Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "No cumple"
+    },
+    {
+      "id": "RNF-07",
+      "iso": "Seguridad",
+      "process": "P1 Identidades",
+      "name": "RBAC y seguridad en endpoints",
+      "state": "Automatizada",
+      "evidence": "EndpointSecuritySweepQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-07",
+          "metric": "Endpoints de rol que rechazan al rol equivocado",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 % (403)",
+          "pass": true,
+          "detail": "30 endpoints de ADMIN/HOST/LINK_MANAGER/TOURIST",
+          "test": "com.integrate.quality.security.EndpointSecuritySweepQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.910888Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-07",
+          "metric": "Endpoints protegidos que rechazan acceso sin token válido",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 % (401)",
+          "pass": true,
+          "detail": "32 endpoints protegidos de 48 rutas; token alterado = claims elevados a ROLE_ADMIN sin re-firmar",
+          "test": "com.integrate.quality.security.EndpointSecuritySweepQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.759716100Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-02",
+      "iso": "Eficiencia de desempeño",
+      "process": "P2 Reserva",
+      "name": "Bloqueo transaccional < 200 ms",
+      "state": "Automatizada",
+      "evidence": "BookingLockLatencyQualityTest, qa/k6/booking-lock.js",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-02",
+          "metric": "Respuestas inesperadas bajo concurrencia (deadlocks o 5xx)",
+          "value": 0,
+          "unit": "respuestas",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "solo se aceptan 201, 409 (sin cupos) y 503 (lock_timeout con Retry-After)",
+          "test": "com.integrate.quality.reliability.OverbookingStressQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.051582900Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-02",
+          "metric": "Tiempo de bloqueo transaccional de aforo (p95)",
+          "value": 72.168,
+          "unit": "ms",
+          "threshold": "p95 <= 200 ms",
+          "pass": true,
+          "detail": "100 bloqueos, 10 concurrentes sobre 5 franjas; p50 = 36,6 ms; en proceso (indicativo, ver k6)",
+          "test": "com.integrate.quality.performance.BookingLockLatencyQualityTest",
+          "measuredAt": "2026-10-11T00:40:18.872336400Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-02",
+          "metric": "Transacciones de bloqueo por minuto sostenidas",
+          "value": 14247.575,
+          "unit": "tx/min",
+          "threshold": ">= 100 tx/min",
+          "pass": true,
+          "detail": "100 de 100 creadas en 0,42 s",
+          "test": "com.integrate.quality.performance.BookingLockLatencyQualityTest",
+          "measuredAt": "2026-10-11T00:40:18.873991300Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-02",
+          "metric": "Tiempo de bloqueo de aforo HTTP sostenido (p95, k6)",
+          "value": 26.26960465,
+          "unit": "ms",
+          "threshold": "p95 <= 200 ms",
+          "pass": true,
+          "detail": "300 bloqueos a 5 tx/s (300 tx/min, el triple del mínimo); media 22,2 ms",
+          "source": "Carga (k6)"
+        },
+        {
+          "rnf": "RNF-02",
+          "metric": "Ráfaga de 100 bloqueos simultáneos (p95, k6)",
+          "value": 743.2658129499999,
+          "unit": "ms",
+          "threshold": "informativo (pool de 10 conexiones)",
+          "pass": true,
+          "detail": "100 usuarios virtuales a la vez; media 513,4 ms, máx. 783,1 ms; sin 5xx: 100 %",
+          "source": "Carga (k6)"
+        },
+        {
+          "rnf": "RNF-02",
+          "metric": "Transacciones de bloqueo por minuto (k6)",
+          "value": 300,
+          "unit": "tx/min",
+          "threshold": ">= 100 tx/min",
+          "pass": true,
+          "detail": "escenario sostenido de 60 s",
+          "source": "Carga (k6)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-08",
+      "iso": "Eficiencia de desempeño",
+      "process": "P1 Identidades",
+      "name": "Latencia de emisión de JWT < 800 ms",
+      "state": "Automatizada",
+      "evidence": "LoginLatencyQualityTest, qa/k6/login.js",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-08",
+          "metric": "Tiempo de respuesta en autenticación (p95)",
+          "value": 87.539,
+          "unit": "ms",
+          "threshold": "p95 < 800 ms",
+          "pass": true,
+          "detail": "64 logins, 4 concurrentes; media = 67,9 ms; Argon2id m=19 MiB t=2; en proceso (indicativo)",
+          "test": "com.integrate.quality.performance.LoginLatencyQualityTest",
+          "measuredAt": "2026-10-11T00:40:23.977381100Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-08",
+          "metric": "Tiempo de respuesta en autenticación HTTP (p95, k6)",
+          "value": 55.736444,
+          "unit": "ms",
+          "threshold": "p95 < 800 ms",
+          "pass": true,
+          "detail": "241 logins a 4/s durante 60 s; media 45,8 ms, máx. 206 ms",
+          "source": "Carga (k6)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-09",
+      "iso": "Eficiencia de desempeño",
+      "process": "P3 Validación y split",
+      "name": "Peso del bundle PWA < 2,5 MB",
+      "state": "Automatizada",
+      "evidence": "frontend-pwa/scripts/check-bundle-budget.mjs",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-09",
+          "metric": "Peso del bundle inicial comprimido",
+          "value": 143.4,
+          "unit": "kB",
+          "threshold": "< 2560 kB (2,5 MB)",
+          "pass": true,
+          "detail": "6 recursos iniciales (gzip nivel 9); chunk más grande sin comprimir 253.1 kB",
+          "source": "PWA (build de producción)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-10",
+      "iso": "Eficiencia de desempeño",
+      "process": "P2 Reserva",
+      "name": "500 navegando + 100 checkout, CPU < 75 %",
+      "state": "Automatizada",
+      "evidence": "qa/k6/catalog-checkout-mix.js",
+      "note": "CPU medida en la máquina local, no en AWS",
+      "metrics": [
+        {
+          "rnf": "RNF-10",
+          "metric": "500 usuarios navegando: tiempo de respuesta (p95, k6)",
+          "value": 148.60565689999999,
+          "unit": "ms",
+          "threshold": "p95 < 1500 ms, < 1 % de errores",
+          "pass": true,
+          "detail": "42870 peticiones (569,1/s); errores HTTP 0,11 % (409 por cupos agotados)",
+          "source": "Carga (k6)"
+        },
+        {
+          "rnf": "RNF-10",
+          "metric": "100 checkouts simultáneos: bloqueo (p95, k6)",
+          "value": 304.9645445,
+          "unit": "ms",
+          "threshold": "p95 < 1500 ms, sin 5xx",
+          "pass": true,
+          "detail": "en paralelo con la navegación; sin 5xx inesperados: 100 %",
+          "source": "Carga (k6)"
+        },
+        {
+          "rnf": "RNF-10",
+          "metric": "Uso máximo de CPU del servidor durante 500 navegando + 100 checkout",
+          "value": 26,
+          "unit": "%",
+          "threshold": "< 75 %",
+          "pass": true,
+          "detail": "Proceso java del backend, muestreo cada 2 s durante catalog-checkout-mix.js; máximo 26 %, promedio 8,4 % de una máquina de 12 núcleos (k6 corre en la misma máquina, en Docker)",
+          "source": "Carga (k6) + monitor de CPU"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-11",
+      "iso": "Eficiencia de desempeño",
+      "process": "P2 Reserva",
+      "name": "Worker de expiración TTL < 1,5 s",
+      "state": "Automatizada",
+      "evidence": "ExpirationSweepQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-11",
+          "metric": "Efectividad en liberación de cupos (TTL 15 min)",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "400 de 400 cupos devueltos; 14 de 14 franjas con inventario completo",
+          "test": "com.integrate.quality.performance.ExpirationSweepQualityTest",
+          "measuredAt": "2026-10-11T00:40:22.135753800Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-11",
+          "metric": "Lecturas del catálogo fallidas durante el barrido",
+          "value": 0,
+          "unit": "lecturas",
+          "threshold": "= 0 (sin bloquear tablas de consulta)",
+          "pass": true,
+          "detail": "80 lecturas de disponibilidad en paralelo; p95 = 5,9 ms",
+          "test": "com.integrate.quality.performance.ExpirationSweepQualityTest",
+          "measuredAt": "2026-10-11T00:40:22.136854400Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-11",
+          "metric": "Tiempo de ejecución por barrido del worker TTL",
+          "value": 1172.617,
+          "unit": "ms",
+          "threshold": "< 1500 ms",
+          "pass": true,
+          "detail": "515 reservas vencidas en lotes de 100 (FOR UPDATE SKIP LOCKED)",
+          "test": "com.integrate.quality.performance.ExpirationSweepQualityTest",
+          "measuredAt": "2026-10-11T00:40:22.134624200Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-03",
+      "iso": "Capacidad de interacción",
+      "process": "P1 Identidades",
+      "name": "Accesibilidad WCAG 2.1 AA / NTC 5854",
+      "state": "Parcial",
+      "evidence": "accessibility.quality.test.tsx, styles/tokens.test.ts",
+      "note": "Áreas táctiles y lector de pantalla: auditoría manual T-2.15",
+      "metrics": [
+        {
+          "rnf": "RNF-03",
+          "metric": "Violaciones WCAG 2.1 A/AA detectadas por axe-core",
+          "value": 0,
+          "unit": "violaciones",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "7 vistas: Catálogo, Detalle de experiencia, Ingresar, Registro, Activar cuenta, Formulario de reserva, Enrolamiento asistido (Gestor)",
+          "source": "PWA (Vitest)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-12",
+      "iso": "Capacidad de interacción",
+      "process": "P1 Identidades",
+      "name": "Enrolamiento asistido < 3 min",
+      "state": "No automatizable",
+      "evidence": "—",
+      "note": "Prueba de usuario en campo con el Gestor de Enlace",
+      "metrics": [],
+      "result": "No automatizable"
+    },
+    {
+      "id": "RNF-13",
+      "iso": "Capacidad de interacción",
+      "process": "P2 Reserva",
+      "name": "Protección contra errores en checkout",
+      "state": "Automatizada",
+      "evidence": "checkoutGuards.quality.test.tsx",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-13",
+          "metric": "Formularios incompletos rechazados por la validación del cliente",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "7 variantes: sin EPS (titular y acompañante), sin nombre o celular de emergencia, celular inválido, sin documento, nombre corto",
+          "source": "PWA (Vitest)"
+        },
+        {
+          "rnf": "RNF-13",
+          "metric": "Envíos incompletos detenidos antes de llamar a la API",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "formulario real renderizado, un campo omitido por envío: eps1: detenido; eps2: detenido; emergencyName: detenido; emergencyPhone: detenido; doc1: detenido",
+          "source": "PWA (Vitest)"
+        },
+        {
+          "rnf": "RNF-13",
+          "metric": "Hitos del TTL anunciados al usuario",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "5 min, último minuto y vencido; texto visible y región aria-live",
+          "source": "PWA (Vitest)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-14",
+      "iso": "Capacidad de interacción",
+      "process": "P3 Validación y split",
+      "name": "Indicadores visuales de validación offline",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.10 (lector QR)",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-15",
+      "iso": "Capacidad de interacción",
+      "process": "P1 Identidades",
+      "name": "Legibilidad del consentimiento (IFSZ > 60)",
+      "state": "Automatizada",
+      "evidence": "consentReadability.quality.test.ts",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-15",
+          "metric": "Legibilidad Flesch-Szigriszt del consentimiento",
+          "value": 55.9975,
+          "unit": "puntos",
+          "threshold": "> 60",
+          "pass": false,
+          "detail": "56 palabras, 123 sílabas, 4 frases; por finalidad: PERSONAL_DATA=58.4, HEALTH_EMERGENCY=62.0, SENSITIVE_VICTIM=41.5",
+          "source": "PWA (Vitest)"
+        }
+      ],
+      "result": "No cumple"
+    },
+    {
+      "id": "RNF-16",
+      "iso": "Fiabilidad",
+      "process": "P2 Reserva",
+      "name": "Tasa cero de overbooking",
+      "state": "Automatizada",
+      "evidence": "OverbookingStressQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-16",
+          "metric": "Franjas con deriva entre inventario y reservas",
+          "value": 0,
+          "unit": "franjas",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "available_slots + reservados = total_slots y v_schedule_slot_reconciliation",
+          "test": "com.integrate.quality.reliability.OverbookingStressQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.050979100Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-16",
+          "metric": "Tasa de sobreventa de cupos (overbooking)",
+          "value": 0,
+          "unit": "%",
+          "threshold": "= 0,0 %",
+          "pass": true,
+          "detail": "150 solicitudes con 24 hilos contra 3 franjas (3+5+7 = 15 cupos); respuestas {409=140, 201=10}; cupos vendidos 15",
+          "test": "com.integrate.quality.reliability.OverbookingStressQualityTest",
+          "measuredAt": "2026-10-11T00:40:25.049867300Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-17",
+      "iso": "Fiabilidad",
+      "process": "P3 Validación y split",
+      "name": "Operación offline (IndexedDB)",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.8, T-2.9",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-18",
+      "iso": "Fiabilidad",
+      "process": "P3 Validación y split",
+      "name": "Prevención de doble canje offline",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.11",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-19",
+      "iso": "Fiabilidad",
+      "process": "P3 Validación y split",
+      "name": "Background Sync determinista",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.3, T-2.13",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-20",
+      "iso": "Fiabilidad",
+      "process": "P3 Validación y split",
+      "name": "Contingencia por falla del terminal",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.2, T-2.12",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-21",
+      "iso": "Adecuación funcional",
+      "process": "P3 Validación y split",
+      "name": "Exactitud de la dispersión 85/15",
+      "state": "Parcial",
+      "evidence": "SplitPaymentExactnessQualityTest",
+      "note": "Se verifica la custodia; la orden de giro es T-2.5",
+      "metrics": [
+        {
+          "rnf": "RNF-21",
+          "metric": "Exactitud en dispersión financiera 85/15 (custodia)",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 % (cero errores de liquidación)",
+          "pass": true,
+          "detail": "12 pagos confirmados con precios [80001, 33333, 12347] × 1-4 cupos; comunidad = CEIL(total × 85.00 %), plataforma = resto",
+          "test": "com.integrate.quality.functional.SplitPaymentExactnessQualityTest",
+          "measuredAt": "2026-10-11T00:40:09.698303Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-22",
+      "iso": "Adecuación funcional",
+      "process": "P3 Validación y split",
+      "name": "Política de cancelación 72 h",
+      "state": "Pendiente Fase 2",
+      "evidence": "—",
+      "note": "T-2.6",
+      "metrics": [],
+      "result": "Pendiente Fase 2"
+    },
+    {
+      "id": "RNF-23",
+      "iso": "Adecuación funcional",
+      "process": "P2 Reserva",
+      "name": "Voucher PDF/A completo",
+      "state": "Automatizada",
+      "evidence": "VoucherPdfConformanceQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-23",
+          "metric": "Campos de salud y emergencia presentes en el PDF",
+          "value": 0,
+          "unit": "%",
+          "threshold": "= 100 % (EPS y contacto de emergencia)",
+          "pass": false,
+          "detail": "EPS presente = false, contacto de emergencia presente = false",
+          "test": "com.integrate.quality.functional.VoucherPdfConformanceQualityTest",
+          "measuredAt": "2026-10-11T00:38:43.455638800Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-23",
+          "metric": "Compras aprobadas con voucher PDF/A conforme",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "3 compras; PDF/A-2b (XMP pdfaid), fuentes incrustadas, localizador, QR, cupos, titular y términos",
+          "test": "com.integrate.quality.functional.VoucherPdfConformanceQualityTest",
+          "measuredAt": "2026-10-11T00:40:10.427350500Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "No cumple"
+    },
+    {
+      "id": "RNF-24",
+      "iso": "Adecuación funcional",
+      "process": "P2 Reserva",
+      "name": "Restricción de la capacidad de carga",
+      "state": "Automatizada",
+      "evidence": "CapacityParametrizationQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-24",
+          "metric": "Franjas en base con más cupos que la capacidad de carga",
+          "value": 0,
+          "unit": "franjas",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "consulta sobre toda la base de prueba",
+          "test": "com.integrate.quality.functional.CapacityParametrizationQualityTest",
+          "measuredAt": "2026-10-11T00:40:08.541294200Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-24",
+          "metric": "Parametrizaciones que violan la capacidad de carga rechazadas",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 % (422)",
+          "pass": true,
+          "detail": "7 intentos (franjas de 9/12/30/31/0 cupos sobre capacidad 8, reducir capacidad bajo una franja abierta, capacidad 31); códigos [422, 422, 422, 422, 422, 422, 422]",
+          "test": "com.integrate.quality.functional.CapacityParametrizationQualityTest",
+          "measuredAt": "2026-10-11T00:40:08.539703Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-25",
+      "iso": "Adecuación funcional",
+      "process": "P2 Reserva",
+      "name": "Idempotencia de webhooks",
+      "state": "Automatizada",
+      "evidence": "WebhookIdempotencyQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-25",
+          "metric": "Efectos duplicados ante reintentos de webhook",
+          "value": 0,
+          "unit": "efectos",
+          "threshold": "= 0",
+          "pass": true,
+          "detail": "16 entregas (10 concurrentes, 5 reintentos, 1 evento nuevo de la misma transacción); efectos {confirmaciones=1, correos de voucher=1, pagos aprobados=1, dispersiones=1, vouchers=1}",
+          "test": "com.integrate.quality.functional.WebhookIdempotencyQualityTest",
+          "measuredAt": "2026-10-11T00:40:10.903390500Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-25",
+          "metric": "Entregas de webhook respondidas 200 (sin reintento infinito)",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "un 5xx haría que la pasarela siga reintentando",
+          "test": "com.integrate.quality.functional.WebhookIdempotencyQualityTest",
+          "measuredAt": "2026-10-11T00:40:10.904533400Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-26",
+      "iso": "Mantenibilidad",
+      "process": "P2 Reserva",
+      "name": "Desacoplamiento de workers",
+      "state": "Automatizada",
+      "evidence": "WorkerDecouplingQualityTest",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-26",
+          "metric": "Disponibilidad de la API con un worker fallando",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "45 llamadas a la API mientras el worker de expiración falló 40 veces seguidas (el planificador siguió ejecutándolo)",
+          "test": "com.integrate.quality.maintainability.WorkerDecouplingQualityTest",
+          "measuredAt": "2026-10-11T00:40:17.157682800Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        },
+        {
+          "rnf": "RNF-26",
+          "metric": "Reglas de desacoplamiento de workers cumplidas",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "4 reglas ArchUnit sobre 4 workers: [controladores no dependen de workers, @Scheduled solo en paquetes worker, workers apagables por propiedad, servicios no dependen de workers]",
+          "test": "com.integrate.quality.maintainability.WorkerDecouplingQualityTest",
+          "measuredAt": "2026-10-11T00:40:14.801540600Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-27",
+      "iso": "Mantenibilidad",
+      "process": "P1 Identidades",
+      "name": "Cobertura > 80 % en lógica crítica",
+      "state": "Automatizada",
+      "evidence": "JaCoCo (check en mvn verify), Vitest coverage",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-27",
+          "metric": "Cobertura de líneas backend (servicios y criptografía)",
+          "value": 92.94980259447264,
+          "unit": "%",
+          "threshold": "> 80 %",
+          "pass": true,
+          "detail": "14 paquetes; el más bajo common.crypto con 86,7 %; total del backend 91 %",
+          "source": "Backend (JaCoCo)"
+        },
+        {
+          "rnf": "RNF-27",
+          "metric": "Cobertura de líneas PWA (features y shared)",
+          "value": 93.14,
+          "unit": "%",
+          "threshold": "> 80 %",
+          "pass": true,
+          "detail": "sentencias 91,4 %, ramas 83,9 %, funciones 90,4 %",
+          "source": "PWA (Vitest + V8)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-28",
+      "iso": "Mantenibilidad",
+      "process": "P2 Reserva",
+      "name": "Estándares de código y OpenAPI",
+      "state": "Automatizada",
+      "evidence": "OpenApiCoverageQualityTest, npm run lint",
+      "note": "SonarQube no se usa: JaCoCo + ESLint (ADR-0019)",
+      "metrics": [
+        {
+          "rnf": "RNF-28",
+          "metric": "Endpoints implementados documentados en OpenAPI",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 %",
+          "pass": true,
+          "detail": "47 operaciones implementadas; sin documentar: []; documentadas pendientes de implementar: [POST /api/v1/offline/sync]",
+          "test": "com.integrate.quality.maintainability.OpenApiCoverageQualityTest",
+          "measuredAt": "2026-10-11T00:40:11.044018800Z",
+          "source": "Backend (JUnit + Testcontainers)"
+        }
+      ],
+      "result": "Cumple"
+    },
+    {
+      "id": "RNF-29",
+      "iso": "Mantenibilidad",
+      "process": "P3 Validación y split",
+      "name": "Logs JSON con correlation ID (MTTD < 30 min)",
+      "state": "Brecha",
+      "evidence": "—",
+      "note": "Hay traceId (TraceIdFilter) pero no salida JSON estructurada",
+      "metrics": [],
+      "result": "Brecha"
+    },
+    {
+      "id": "RNF-30",
+      "iso": "Mantenibilidad",
+      "process": "P1 Identidades",
+      "name": "Reusabilidad de componentes UI",
+      "state": "Automatizada",
+      "evidence": "componentReuse.quality.test.ts",
+      "note": "",
+      "metrics": [
+        {
+          "rnf": "RNF-30",
+          "metric": "Componentes base reutilizados en 3 o más módulos",
+          "value": 100,
+          "unit": "%",
+          "threshold": "= 100 % (>= 3 vistas o módulos cada uno)",
+          "pass": true,
+          "detail": "Button=16, TextField=6, PasswordField=3, Icon=28, ProblemNotice=13, Skeleton=10, StickyActionBar=9, BottomSheet=4",
+          "source": "PWA (Vitest)"
+        }
+      ],
+      "result": "Cumple"
+    }
+  ]
+}
