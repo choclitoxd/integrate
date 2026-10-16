@@ -58,6 +58,14 @@ describe('routes', () => {
     });
   });
 
+  it('no ofrece la pestaña «Gestor» a visitantes ni a turistas', () => {
+    const visitor = renderApp('/', catalogRoutes);
+    expect(screen.queryByRole('link', { name: 'Gestor' })).toBeNull();
+    visitor.unmount();
+    renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
+    expect(screen.queryByRole('link', { name: 'Gestor' })).toBeNull();
+  });
+
   it('niega el panel del gestor a un turista', () => {
     renderApp('/gestor', catalogRoutes, { roles: ['ROLE_TOURIST'] });
     expect(

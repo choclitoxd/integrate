@@ -1,17 +1,10 @@
-import { useId, useRef, useState, type SubmitEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 
 import { ApiError } from '@/shared/api';
 import { formatClockTime } from '@/shared/lib';
 import { useSession, useSessionStore } from '@/shared/session';
-import {
-  Button,
-  Icon,
-  PasswordField,
-  ProblemNotice,
-  StickyActionBar,
-  TextField,
-} from '@/shared/ui';
+import { Button, Icon, PasswordField, ProblemNotice, TextField } from '@/shared/ui';
 
 import { fieldErrorsOf, loginSchema, type FieldErrors } from '../forms';
 import { returnQuery, safeReturnPath } from '../returnPath';
@@ -57,7 +50,6 @@ export function LoginPage() {
   const session = useSession();
   const store = useSessionStore();
   const formRef = useRef<HTMLFormElement>(null);
-  const formId = useId();
   const [errors, setErrors] = useState<FieldErrors<Field>>({});
   const [serverError, setServerError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -102,7 +94,6 @@ export function LoginPage() {
 
       <form
         ref={formRef}
-        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="mt-6 grid gap-5"
@@ -124,6 +115,10 @@ export function LoginPage() {
           autoComplete="current-password"
           error={errors.password}
         />
+        {/* Acción justo bajo los campos: un formulario de dos campos no necesita barra fija. */}
+        <Button type="submit" disabled={submitting} className="w-full">
+          {submitting ? 'Ingresando…' : 'Ingresar'}
+        </Button>
       </form>
 
       <p className="mt-8 text-ink-muted">
@@ -135,12 +130,6 @@ export function LoginPage() {
           Crea una gratis
         </Link>
       </p>
-
-      <StickyActionBar>
-        <Button type="submit" form={formId} disabled={submitting}>
-          {submitting ? 'Ingresando…' : 'Ingresar'}
-        </Button>
-      </StickyActionBar>
     </>
   );
 }
