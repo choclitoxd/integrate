@@ -282,10 +282,10 @@
     "semantic_hash": "740614a44b2cf322ef29310e04c5f301"
   },
   "frontend-pwa/src/app/layouts/TouristLayout.tsx": {
-    "mtime": 1791572314.153309,
-    "seen": 1791668425.137532,
-    "ast_hash": "5b55e4a4d08c628f9405c871d2e866ab",
-    "semantic_hash": "5b55e4a4d08c628f9405c871d2e866ab"
+    "mtime": 1792111088.7010455,
+    "seen": 1792127660.4566505,
+    "ast_hash": "dd12789e9fbe59b3e09d371557d5f3db",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/app/pages/ConfigErrorScreen.tsx": {
     "mtime": 1791225915.9392135,
@@ -306,10 +306,10 @@
     "semantic_hash": "5db0b950896c79aaf6bde79f66eeef9e"
   },
   "frontend-pwa/src/app/routes.test.tsx": {
-    "mtime": 1791643777.673838,
-    "seen": 1791668425.137532,
-    "ast_hash": "46bb591af00c0ea4fce94c78a8243845",
-    "semantic_hash": "46bb591af00c0ea4fce94c78a8243845"
+    "mtime": 1792111088.748426,
+    "seen": 1792127660.4566505,
+    "ast_hash": "78c3f6834d6bb8dff1c82ef0db149d1c",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/app/routes.tsx": {
     "mtime": 1791684077.5136,
@@ -390,16 +390,16 @@
     "semantic_hash": "0301b25917502cc2c61d6db31292e445"
   },
   "frontend-pwa/src/shared/ui/index.ts": {
-    "mtime": 1791683803.810318,
-    "seen": 1791684488.66357,
-    "ast_hash": "d9ac048c99776486ca86c99a59896912",
+    "mtime": 1792126995.2426527,
+    "seen": 1792127660.4566505,
+    "ast_hash": "3ab5ee52beabbbeb8462aa8156b5eaf5",
     "semantic_hash": ""
   },
   "frontend-pwa/src/test/setup.ts": {
-    "mtime": 1791644267.6787982,
-    "seen": 1791668425.1380472,
-    "ast_hash": "cd4252d76a01917b33db94de6f0e8a10",
-    "semantic_hash": "cd4252d76a01917b33db94de6f0e8a10"
+    "mtime": 1792127115.2020085,
+    "seen": 1792127660.4566505,
+    "ast_hash": "a6617580c5ef8e94395843aaa5dac3f3",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/vite-env.d.ts": {
     "mtime": 1791225855.6175005,
@@ -2388,9 +2388,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/catalog.test.tsx": {
-    "mtime": 1792108325.0797784,
-    "seen": 1792108719.3744485,
-    "ast_hash": "b384b234970433fbebd8c65c835c01f2",
+    "mtime": 1792130650.5880654,
+    "seen": 1792130859.565109,
+    "ast_hash": "46ae6912e7cf4fc718370f42f05cffa6",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/components/ActiveFilters.tsx": {
@@ -2424,9 +2424,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/components/SearchBar.tsx": {
-    "mtime": 1792078868.3347242,
-    "seen": 1792097277.9221365,
-    "ast_hash": "225b9fc7ad6001801b4e0f8f2bed63b0",
+    "mtime": 1792125938.3002746,
+    "seen": 1792127660.4566505,
+    "ast_hash": "9baae1baa148f9b6cb8a58aa6264b944",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/components/SlotList.tsx": {
@@ -2434,12 +2434,6 @@
     "seen": 1791668425.137532,
     "ast_hash": "6411916657202ea7c5419f4859385988",
     "semantic_hash": "6411916657202ea7c5419f4859385988"
-  },
-  "frontend-pwa/src/features/catalog/components/WeekPicker.tsx": {
-    "mtime": 1791684042.599646,
-    "seen": 1791684488.66357,
-    "ast_hash": "396c79b3361d79c2d33eb874faf30034",
-    "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/filters.ts": {
     "mtime": 1791570453.363526,
@@ -2472,9 +2466,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/pages/SlotPickerPage.tsx": {
-    "mtime": 1791684042.6480117,
-    "seen": 1791684488.66357,
-    "ast_hash": "bdc7091bbb08ef4abf049c490c1f1c8b",
+    "mtime": 1792130570.3271928,
+    "seen": 1792130859.565109,
+    "ast_hash": "3632664053f0a2510c7862b95265c4dd",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/queries.ts": {
@@ -2484,16 +2478,16 @@
     "semantic_hash": "6681c0fdac6f19148f2eb058832ed5b6"
   },
   "frontend-pwa/src/features/catalog/slotSelection.test.ts": {
-    "mtime": 1791570453.4515133,
-    "seen": 1791668425.137532,
-    "ast_hash": "c84b41c1e8efb046de3508ff86524b45",
-    "semantic_hash": "c84b41c1e8efb046de3508ff86524b45"
+    "mtime": 1792130675.6659749,
+    "seen": 1792130859.565109,
+    "ast_hash": "e7656f2019be33fadfcdeff1a5f234d9",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/slotSelection.ts": {
-    "mtime": 1791593388.4936824,
-    "seen": 1791668425.137532,
-    "ast_hash": "66edc88dd8a161442a0d47db02e86235",
-    "semantic_hash": "66edc88dd8a161442a0d47db02e86235"
+    "mtime": 1792130487.1240003,
+    "seen": 1792130859.565109,
+    "ast_hash": "e135becaefa7530891691a95fe404a75",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/httpClientContext.test.ts": {
     "mtime": 1791569756.0027258,
@@ -2532,9 +2526,9 @@
     "semantic_hash": "9ecca5b05b8d0dd996b1df460a0f9ee8"
   },
   "frontend-pwa/src/shared/ui/Icon.tsx": {
-    "mtime": 1792107750.8794165,
-    "seen": 1792108719.3744485,
-    "ast_hash": "23b30ead501f2f26b83c9e9bf69e6f1b",
+    "mtime": 1792126994.771677,
+    "seen": 1792127660.4566505,
+    "ast_hash": "dd4f59afe79117a4d42d3a292e358368",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/ui/ProblemNotice.tsx": {
@@ -2700,16 +2694,16 @@
     "semantic_hash": "08b3115d8070300c8df89786e24d8f76"
   },
   "frontend-pwa/src/features/auth/pages/LoginPage.tsx": {
-    "mtime": 1791572745.8896928,
-    "seen": 1791668425.137532,
-    "ast_hash": "5d95c5e42827983001ea010dc8a40a8c",
-    "semantic_hash": "5d95c5e42827983001ea010dc8a40a8c"
+    "mtime": 1792111246.8129008,
+    "seen": 1792127660.4566505,
+    "ast_hash": "fae4af99736224c4b6122fc767aeb873",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/pages/RegisterPage.tsx": {
-    "mtime": 1791572478.899137,
-    "seen": 1791668425.137532,
-    "ast_hash": "efccf20a4b8cc9f70efb432a5daf13de",
-    "semantic_hash": "efccf20a4b8cc9f70efb432a5daf13de"
+    "mtime": 1792127185.4239817,
+    "seen": 1792127660.4566505,
+    "ast_hash": "750ac7f615886f065ececb8fdd8a405a",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/purposes.ts": {
     "mtime": 1791572139.447526,
@@ -2760,10 +2754,10 @@
     "semantic_hash": "743c97be5231a1bd37de6307d2126cf9"
   },
   "frontend-pwa/src/shared/ui/TextField.tsx": {
-    "mtime": 1791572479.3724113,
-    "seen": 1791668425.1380472,
-    "ast_hash": "10e7041e88646684b0d3663c63775448",
-    "semantic_hash": "10e7041e88646684b0d3663c63775448"
+    "mtime": 1792126951.0188472,
+    "seen": 1792127660.4566505,
+    "ast_hash": "07f56745b4c5037d31ee5f12a335c184",
+    "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0013-sesion-movil-autenticacion-consentimiento-pwa.md": {
     "mtime": 1791572822.7104475,
@@ -2862,10 +2856,10 @@
     "semantic_hash": "331a6f722a15925bbbbda5ecd9776c91"
   },
   "frontend-pwa/src/features/booking/components/TravelerCard.tsx": {
-    "mtime": 1791593388.2126968,
-    "seen": 1791668425.137532,
-    "ast_hash": "74c07f274c7efd9257b8450fce019b0b",
-    "semantic_hash": "74c07f274c7efd9257b8450fce019b0b"
+    "mtime": 1792127013.1152043,
+    "seen": 1792127660.4566505,
+    "ast_hash": "4cf5f443189e9dda5337d522372d5216",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/booking/eps.ts": {
     "mtime": 1791593255.1105273,
@@ -3060,10 +3054,10 @@
     "semantic_hash": "2479b088098df7182f3d198fd75d6d17"
   },
   "frontend-pwa/src/features/enrollment/enrollment.test.tsx": {
-    "mtime": 1791643897.5830207,
-    "seen": 1791668425.137532,
-    "ast_hash": "bd203c4360dfe8943cfef25194a3d765",
-    "semantic_hash": "bd203c4360dfe8943cfef25194a3d765"
+    "mtime": 1792127070.1400747,
+    "seen": 1792127660.4566505,
+    "ast_hash": "4e0ff663ea2d803047184e9fedfbf933",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/enrollment/forms.ts": {
     "mtime": 1791643587.1476152,
@@ -3078,10 +3072,10 @@
     "semantic_hash": "82395ddb13c707af2234d39083ba1391"
   },
   "frontend-pwa/src/features/enrollment/pages/EnrollmentPage.tsx": {
-    "mtime": 1791644267.3801174,
-    "seen": 1791668425.137532,
-    "ast_hash": "280be23fe8ba89ade2c15d771d362d88",
-    "semantic_hash": "280be23fe8ba89ade2c15d771d362d88"
+    "mtime": 1792127030.8510988,
+    "seen": 1792127660.4566505,
+    "ast_hash": "766740741a4b9f722ab87d2572cc074e",
+    "semantic_hash": ""
   },
   "frontend-pwa/src/features/enrollment/pages/HostsPage.tsx": {
     "mtime": 1791643745.5684173,
@@ -3306,9 +3300,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/desktopViews.test.tsx": {
-    "mtime": 1792039835.3651867,
-    "seen": 1792039958.275099,
-    "ast_hash": "b39d2dabed8564fe61a1c38901e1a485",
+    "mtime": 1792127052.2207842,
+    "seen": 1792127660.4566505,
+    "ast_hash": "3ee17a04b724078f27ad8c827d8ec10d",
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/desktopViews.ts": {
@@ -3318,9 +3312,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/layouts/DesktopShell.tsx": {
-    "mtime": 1792039812.6643424,
-    "seen": 1792039958.275099,
-    "ast_hash": "7db943220423c1beda5d6dcbdf603938",
+    "mtime": 1792111632.5827372,
+    "seen": 1792127660.4566505,
+    "ast_hash": "5168ba03597c2bf3901581d6b7ea5921",
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/layouts/MobileShell.tsx": {
@@ -3354,15 +3348,15 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/components/FilterFields.tsx": {
-    "mtime": 1791683872.5850446,
-    "seen": 1791684488.66357,
-    "ast_hash": "0f8e76dfe4bb7416c3b6b323339adad2",
+    "mtime": 1792127012.3782551,
+    "seen": 1792127660.4566505,
+    "ast_hash": "fb2df404430e569273f5f11300dcffab",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/components/SlotPickerParts.tsx": {
-    "mtime": 1791684042.5890718,
-    "seen": 1791684488.66357,
-    "ast_hash": "f661256f528c1c9e842da9e8992b8e05",
+    "mtime": 1792130640.5006063,
+    "seen": 1792130859.565109,
+    "ast_hash": "e3bb8473f7bbe524c14f7be819bb3d50",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/desktop.ts": {
@@ -3384,9 +3378,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/pages/desktop/SlotPickerDesktopPage.tsx": {
-    "mtime": 1791684285.0134668,
-    "seen": 1791684488.66357,
-    "ast_hash": "2c61505d6f50695743009daf00e0c28c",
+    "mtime": 1792130570.6550982,
+    "seen": 1792130859.565109,
+    "ast_hash": "4a984daf4eb802cbaf4f53084be6c69a",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/useCatalogFilters.ts": {
@@ -3396,9 +3390,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/catalog/useSlotPicker.ts": {
-    "mtime": 1791684077.5125995,
-    "seen": 1791684488.66357,
-    "ast_hash": "5e79cc6d03c48ea3905d503094546e93",
+    "mtime": 1792130487.2269187,
+    "seen": 1792130859.565109,
+    "ast_hash": "b78cb7e8513fc97d71b4a4277d058898",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/lib/formFactor.test.tsx": {
@@ -3426,9 +3420,9 @@
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0020-responsive-movil-y-vistas-escritorio-por-factor-de-forma.md": {
-    "mtime": 1792039894.7285652,
-    "seen": 1792039958.275099,
-    "ast_hash": "ca56de8f7823c2e5eabb1e43b93b22a5",
+    "mtime": 1792130830.899132,
+    "seen": 1792130859.565109,
+    "ast_hash": "669513c1258415d58f7b6cf3115bbe42",
     "semantic_hash": ""
   },
   "docs/guia_despliegue_busqueda_servicio.md": {
@@ -3501,6 +3495,36 @@
     "mtime": 1792108687.4067073,
     "seen": 1792108719.3744485,
     "ast_hash": "093bfcd19bba1a2fc721e4a6d62ff040",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/ui/Select.test.tsx": {
+    "mtime": 1792127307.5468917,
+    "seen": 1792127660.4566505,
+    "ast_hash": "023a15939787e5b9c0fd93d788393919",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/shared/ui/Select.tsx": {
+    "mtime": 1792127502.5267942,
+    "seen": 1792127660.4566505,
+    "ast_hash": "2739bc6f49877c213c526aa0e3abe6ea",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/test/select.ts": {
+    "mtime": 1792127051.7480516,
+    "seen": 1792127660.4566505,
+    "ast_hash": "a0d1680d09224d78e3f1b5229bf3d0da",
+    "semantic_hash": ""
+  },
+  "infra/postgres/seed/dev_test_data.sql": {
+    "mtime": 1792112135.0420945,
+    "seen": 1792127660.4566505,
+    "ast_hash": "3089d9ca9321681c348260ee3fef4572",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/features/catalog/components/DatePicker.tsx": {
+    "mtime": 1792130573.752964,
+    "seen": 1792130859.565109,
+    "ast_hash": "0f55bcc2038fa430e09dcfb8ae20d3d5",
     "semantic_hash": ""
   }
 }
