@@ -2,6 +2,8 @@ package com.integrate.modules.catalog.dto.request;
 
 import com.integrate.modules.catalog.entity.Experience.ExperienceContent;
 import com.integrate.modules.catalog.entity.PhysicalIntensity;
+import com.integrate.modules.catalog.entity.RouteType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -13,6 +15,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,12 +35,26 @@ public record ExperienceRequest(
         @DecimalMin("-180") @DecimalMax("180") @Digits(integer = 3, fraction = 6) BigDecimal longitude,
         @Min(1) @Max(30) int maxCapacityPerSlot,
         @Positive @Max(999_999_999_999L) long unitPriceCop,
-        @Size(max = 5) Set<@NotBlank String> categoryCodes) {
+        @Size(max = 5) Set<@NotBlank String> categoryCodes,
+        RouteType routeType,
+        @DecimalMin(value = "0", inclusive = false) @DecimalMax("500") @Digits(integer = 3, fraction = 2)
+        BigDecimal distanceKm,
+        @Min(15) @Max(4320) Integer roundTripMinutes,
+        @Size(max = 10) List<@Valid Stop> stops) {
+
+    /** Parada del recorrido (ADR-0022); el orden de la lista es el orden de visita. */
+    public record Stop(@NotBlank @Size(min = 2, max = 120) String name, @Size(max = 500) String description) {
+    }
 
     public ExperienceContent toContent() {
         return new ExperienceContent(title.strip(), description.strip(), safetyGuidelines.strip(), physicalIntensity,
                 durationMinutes, municipalityCode, vereda == null || vereda.isBlank() ? null : vereda.strip(),
-                meetingPoint.strip(), latitude, longitude, maxCapacityPerSlot, unitPriceCop);
+                meetingPoint.strip(), latitude, longitude, routeType, distanceKm, roundTripMinutes,
+                maxCapacityPerSlot, unitPriceCop);
+    }
+
+    public List<Stop> stopsOrEmpty() {
+        return stops == null ? List.of() : stops;
     }
 
     public Set<String> categoryCodesOrEmpty() {

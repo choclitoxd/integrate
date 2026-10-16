@@ -4,15 +4,18 @@ import com.integrate.modules.catalog.dto.response.ExperienceDetailResponse;
 import com.integrate.modules.catalog.dto.response.ExperienceSummaryResponse;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
 import com.integrate.modules.catalog.dto.response.PlaceResponse;
+import com.integrate.modules.catalog.dto.response.StopResponse;
 import com.integrate.modules.catalog.entity.CommunityAssociation;
 import com.integrate.modules.catalog.entity.Department;
 import com.integrate.modules.catalog.entity.Experience;
+import com.integrate.modules.catalog.entity.ExperienceStop;
 import com.integrate.modules.catalog.entity.HostProfile;
 import com.integrate.modules.catalog.entity.Municipality;
 import com.integrate.modules.catalog.repository.CommunityAssociationRepository;
 import com.integrate.modules.catalog.repository.DepartmentRepository;
 import com.integrate.modules.catalog.repository.ExperienceCategoryRepository;
 import com.integrate.modules.catalog.repository.ExperienceCategoryRepository.ExperienceCategoryCode;
+import com.integrate.modules.catalog.repository.ExperienceStopRepository;
 import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import java.util.Collection;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Component;
 class ExperienceViews {
 
     private final ExperienceCategoryRepository experienceCategoryRepository;
+    private final ExperienceStopRepository experienceStopRepository;
     private final MunicipalityRepository municipalityRepository;
     private final DepartmentRepository departmentRepository;
     private final HostProfileRepository hostProfileRepository;
@@ -41,8 +45,10 @@ class ExperienceViews {
 
     List<HostExperienceResponse> forHost(List<Experience> experiences) {
         Map<UUID, List<String>> categories = categoryCodes(experiences);
+        Map<UUID, List<StopResponse>> stops = stopsOf(experiences);
         return experiences.stream()
-                .map(e -> HostExperienceResponse.from(e, categories.getOrDefault(e.getId(), List.of())))
+                .map(e -> HostExperienceResponse.from(e, categories.getOrDefault(e.getId(), List.of()),
+                        stops.getOrDefault(e.getId(), List.of())))
                 .toList();
     }
 
@@ -55,6 +61,7 @@ class ExperienceViews {
             return List.of();
         }
         Map<UUID, List<String>> categories = categoryCodes(experiences);
+        Map<UUID, List<StopResponse>> stops = stopsOf(experiences);
         Map<String, Municipality> municipalities = byKey(municipalityRepository.findAllById(
                 experiences.stream().map(Experience::getMunicipalityCode).distinct().toList()), Municipality::getCode);
         Map<String, Department> departments = byKey(departmentRepository.findAllById(
@@ -71,7 +78,9 @@ class ExperienceViews {
             Department department = departments.get(municipality.getDepartmentCode());
             CommunityAssociation association = associations.get(hosts.get(e.getHostId()).getAssociationId());
             return new ExperienceSummaryResponse(e.getId(), e.getTitle(), e.getPhysicalIntensity(),
-                    e.getDurationMinutes(), ExperienceSummaryResponse.CURRENCY, e.unitPriceCopValue(),
+                    e.getDurationMinutes(), e.getRouteType(), e.getDistanceKm(), e.getRoundTripMinutes(),
+                    stops.getOrDefault(e.getId(), List.of()).size(), ExperienceSummaryResponse.CURRENCY,
+                    e.unitPriceCopValue(),
                     e.getMaxCapacityPerSlot(), new PlaceResponse(municipality.getCode(), municipality.getName()),
                     new PlaceResponse(department.getCode(), department.getName()), association.getLegalName(),
                     categories.getOrDefault(e.getId(), List.of()));
@@ -81,7 +90,18 @@ class ExperienceViews {
     ExperienceDetailResponse detail(Experience e) {
         return new ExperienceDetailResponse(summaries(List.of(e)).getFirst(), e.getDescription(),
                 e.getSafetyGuidelines(), e.getVereda(), e.getMeetingPoint(), e.getLatitude(), e.getLongitude(),
-                e.getTimezone());
+                e.getTimezone(), stopsOf(List.of(e)).getOrDefault(e.getId(), List.of()));
+    }
+
+    private Map<UUID, List<StopResponse>> stopsOf(Collection<Experience> experiences) {
+        if (experiences.isEmpty()) {
+            return Map.of();
+        }
+        return experienceStopRepository
+                .findByExperienceIdInOrderByExperienceIdAscPositionAsc(
+                        experiences.stream().map(Experience::getId).toList()).stream()
+                .collect(Collectors.groupingBy(ExperienceStop::getExperienceId,
+                        Collectors.mapping(StopResponse::from, Collectors.toList())));
     }
 
     private Map<UUID, List<String>> categoryCodes(Collection<Experience> experiences) {

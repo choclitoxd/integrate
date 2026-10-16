@@ -2022,12 +2022,16 @@ components:
     ExperienceSummary:
       type: object
       description: Tarjeta pública. Sin datos del anfitrión (R-05).
-      required: [id, title, physicalIntensity, durationMinutes, currency, unitPriceCop, maxCapacityPerSlot, municipality, department, associationName, categoryCodes]
+      required: [id, title, physicalIntensity, durationMinutes, stopsCount, currency, unitPriceCop, maxCapacityPerSlot, municipality, department, associationName, categoryCodes]
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
         physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
         durationMinutes: { type: integer }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'], description: Distancia total del recorrido en km (ADR-0022). }
+        roundTripMinutes: { type: [integer, 'null'], description: Tiempo total de ida y vuelta; nulo si durationMinutes ya lo cubre. }
+        stopsCount: { type: integer, minimum: 0 }
         currency: { type: string, const: COP }
         unitPriceCop: { $ref: '#/components/schemas/CopAmount' }
         maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30 }
@@ -2047,6 +2051,17 @@ components:
         latitude: { type: [number, 'null'] }
         longitude: { type: [number, 'null'] }
         timezone: { type: string, const: America/Bogota }
+        stops: { type: array, items: { $ref: '#/components/schemas/RouteStop' } }
+    RouteType:
+      type: string
+      description: LOOP (circular), OUT_AND_BACK (ida y vuelta por el mismo camino) o ONE_WAY (ADR-0022).
+      enum: [LOOP, OUT_AND_BACK, ONE_WAY]
+    RouteStop:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: [string, 'null'], maxLength: 500 }
     ExperienceRequest:
       type: object
       required: [title, description, safetyGuidelines, physicalIntensity, durationMinutes, municipalityCode, meetingPoint, maxCapacityPerSlot, unitPriceCop]
@@ -2064,6 +2079,10 @@ components:
         maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30, description: Capacidad de carga ambiental (RF-05). }
         unitPriceCop: { type: integer, format: int64, minimum: 1 }
         categoryCodes: { type: array, maxItems: 5, uniqueItems: true, items: { type: string } }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'], exclusiveMinimum: 0, maximum: 500, description: Distancia total en km (ADR-0022). }
+        roundTripMinutes: { type: [integer, 'null'], minimum: 15, maximum: 4320 }
+        stops: { type: array, maxItems: 10, items: { $ref: '#/components/schemas/RouteStop' }, description: Paradas en orden de visita. }
     HostExperience:
       type: object
       description: Experiencia vista por su anfitrión o por el administrador.
@@ -2080,6 +2099,10 @@ components:
         meetingPoint: { type: string }
         latitude: { type: [number, 'null'] }
         longitude: { type: [number, 'null'] }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'] }
+        roundTripMinutes: { type: [integer, 'null'] }
+        stops: { type: array, items: { $ref: '#/components/schemas/RouteStop' } }
         maxCapacityPerSlot: { type: integer }
         unitPriceCop: { type: integer, format: int64 }
         timezone: { type: string }

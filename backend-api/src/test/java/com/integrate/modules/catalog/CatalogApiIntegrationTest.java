@@ -190,6 +190,61 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.invalidParams[0].name").value("municipalityCode"));
     }
 
+    // ------------------------------------------------------------- datos de recorrido (ADR-0022)
+
+    @Test
+    void routeDetailsAreStoredReplacedAndExposedInCatalog() throws Exception {
+        String route = """
+                "routeType":"LOOP","distanceKm":8.5,"roundTripMinutes":300,
+                "stops":[{"name":"Mirador del río","description":"Descanso de 15 minutos"},{"name":"Casa de la memoria"}],""";
+        String created = JsonPath.read(mvc.perform(postJson("/api/v1/host/experiences", host.token(),
+                        experienceBody("Sendero con paradas", 12).replace("\"unitPriceCop\"", route + "\"unitPriceCop\"")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.routeType").value("LOOP"))
+                .andExpect(jsonPath("$.distanceKm").value(8.5))
+                .andExpect(jsonPath("$.roundTripMinutes").value(300))
+                .andExpect(jsonPath("$.stops[*].name").value(org.hamcrest.Matchers.contains("Mirador del río", "Casa de la memoria")))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        // Editar reemplaza las paradas; omitirlas las quita y deja el resto de datos como nulos.
+        mvc.perform(put("/api/v1/host/experiences/" + created).header(HttpHeaders.AUTHORIZATION, bearer(host.token()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(experienceBody("Sendero con paradas", 12)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stops").isEmpty())
+                .andExpect(jsonPath("$.distanceKm").value(org.hamcrest.Matchers.nullValue()));
+        mvc.perform(put("/api/v1/host/experiences/" + created).header(HttpHeaders.AUTHORIZATION, bearer(host.token()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(experienceBody("Sendero con paradas", 12).replace("\"unitPriceCop\"", route + "\"unitPriceCop\"")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stops.length()").value(2));
+        action(host.token(), "/api/v1/host/experiences/" + created + "/submit", null).andExpect(status().isOk());
+        action(adminToken, "/api/v1/admin/experiences/" + created + "/approve", null).andExpect(status().isOk());
+
+        mvc.perform(get("/api/v1/experiences/" + created))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.summary.routeType").value("LOOP"))
+                .andExpect(jsonPath("$.summary.distanceKm").value(8.5))
+                .andExpect(jsonPath("$.summary.roundTripMinutes").value(300))
+                .andExpect(jsonPath("$.summary.stopsCount").value(2))
+                .andExpect(jsonPath("$.stops[0].name").value("Mirador del río"));
+    }
+
+    @Test
+    void routeDetailsAreValidatedAndOptionalForExistingExperiences() throws Exception {
+        String bad = experienceBody("Ruta inválida", 10).replace("\"unitPriceCop\"",
+                "\"distanceKm\":0,\"roundTripMinutes\":5,\"stops\":[{\"name\":\"\"}],\"unitPriceCop\"");
+        mvc.perform(postJson("/api/v1/host/experiences", host.token(), bad))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.invalidParams[*].name", hasItem("distanceKm")))
+                .andExpect(jsonPath("$.invalidParams[*].name", hasItem("roundTripMinutes")))
+                .andExpect(jsonPath("$.invalidParams[*].name", hasItem("stops[0].name")));
+        // Sin datos de recorrido la experiencia sigue siendo válida (compatibilidad con las ya publicadas).
+        mvc.perform(postJson("/api/v1/host/experiences", host.token(), experienceBody("Ruta sin datos", 10)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.routeType").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.stops").isEmpty());
+    }
+
     // ---------------------------------------------------------------------- franjas
 
     @Test

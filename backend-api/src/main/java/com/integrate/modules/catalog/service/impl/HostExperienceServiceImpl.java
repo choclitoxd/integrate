@@ -11,12 +11,14 @@ import com.integrate.modules.catalog.entity.Category;
 import com.integrate.modules.catalog.entity.Experience;
 import com.integrate.modules.catalog.entity.ExperienceCategory;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
+import com.integrate.modules.catalog.entity.ExperienceStop;
 import com.integrate.modules.catalog.entity.HostProfile;
 import com.integrate.modules.catalog.entity.Schedule;
 import com.integrate.modules.catalog.entity.ScheduleStatus;
 import com.integrate.modules.catalog.repository.CategoryRepository;
 import com.integrate.modules.catalog.repository.ExperienceCategoryRepository;
 import com.integrate.modules.catalog.repository.ExperienceRepository;
+import com.integrate.modules.catalog.repository.ExperienceStopRepository;
 import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
@@ -51,6 +53,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     private final HostProfileRepository hostProfileRepository;
     private final ExperienceRepository experienceRepository;
     private final ExperienceCategoryRepository experienceCategoryRepository;
+    private final ExperienceStopRepository experienceStopRepository;
     private final CategoryRepository categoryRepository;
     private final MunicipalityRepository municipalityRepository;
     private final ScheduleRepository scheduleRepository;
@@ -65,6 +68,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
         List<Category> categories = validate(request);
         Experience experience = experienceRepository.saveAndFlush(Experience.draft(host.getId(), request.toContent()));
         replaceCategories(experience.getId(), categories);
+        replaceStops(experience.getId(), request.stopsOrEmpty());
         return views.forHost(experience);
     }
 
@@ -103,6 +107,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
         experience.edit(request.toContent());
         experienceRepository.flush();
         replaceCategories(experienceId, categories);
+        replaceStops(experienceId, request.stopsOrEmpty());
         return views.forHost(experience);
     }
 
@@ -241,6 +246,18 @@ public class HostExperienceServiceImpl implements HostExperienceService {
             throw CatalogErrors.invalid(invalid);
         }
         return categories;
+    }
+
+    private void replaceStops(UUID experienceId, List<ExperienceRequest.Stop> stops) {
+        experienceStopRepository.deleteByExperienceId(experienceId);
+        List<ExperienceStop> rows = new ArrayList<>();
+        for (int i = 0; i < stops.size(); i++) {
+            ExperienceRequest.Stop stop = stops.get(i);
+            String description = stop.description() == null || stop.description().isBlank()
+                    ? null : stop.description().strip();
+            rows.add(new ExperienceStop(experienceId, (short) (i + 1), stop.name().strip(), description));
+        }
+        experienceStopRepository.saveAll(rows);
     }
 
     private void replaceCategories(UUID experienceId, List<Category> categories) {

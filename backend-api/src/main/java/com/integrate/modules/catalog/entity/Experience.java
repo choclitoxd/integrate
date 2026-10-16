@@ -74,6 +74,16 @@ public class Experience {
     @Column(precision = 9, scale = 6)
     private BigDecimal longitude;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "route_type", length = 12)
+    private RouteType routeType;
+
+    @Column(name = "distance_km", precision = 5, scale = 2)
+    private BigDecimal distanceKm;
+
+    @Column(name = "round_trip_minutes")
+    private Integer roundTripMinutes;
+
     @Column(name = "max_capacity_per_slot", nullable = false)
     private short maxCapacityPerSlot;
 
@@ -142,6 +152,9 @@ public class Experience {
         this.meetingPoint = c.meetingPoint();
         this.latitude = c.latitude();
         this.longitude = c.longitude();
+        this.routeType = c.routeType();
+        this.distanceKm = c.distanceKm();
+        this.roundTripMinutes = c.roundTripMinutes();
         this.maxCapacityPerSlot = (short) c.maxCapacityPerSlot();
         this.unitPriceCop = BigDecimal.valueOf(c.unitPriceCop());
     }
@@ -150,6 +163,7 @@ public class Experience {
     public record ExperienceContent(String title, String description, String safetyGuidelines,
                                     PhysicalIntensity physicalIntensity, int durationMinutes, String municipalityCode,
                                     String vereda, String meetingPoint, BigDecimal latitude, BigDecimal longitude,
+                                    RouteType routeType, BigDecimal distanceKm, Integer roundTripMinutes,
                                     int maxCapacityPerSlot, long unitPriceCop) {
     }
 }
