@@ -7,10 +7,12 @@ import { ProblemNotice, Skeleton, StickyActionBar } from '@/shared/ui';
 import type { ExperienceAvailability } from '../api/types';
 import {
   DateSection,
+  NoFilterMatches,
   NoSchedules,
   ParticipantsBox,
   ReserveAction,
   SelectionTotal,
+  SlotFiltersBar,
   SlotsSection,
 } from '../components/SlotPickerParts';
 import { useAvailability } from '../queries';
@@ -37,11 +39,22 @@ function Picker({
         <ParticipantsBox picker={picker} availability={availability} />
       </div>
       <div className="mt-6">
-        <DateSection picker={picker} />
+        <SlotFiltersBar picker={picker} />
       </div>
-      <div className="mt-6">
-        <SlotsSection picker={picker} updatedAt={updatedAt} />
-      </div>
+      {picker.filters.noMatches ? (
+        <div className="mt-6">
+          <NoFilterMatches picker={picker} />
+        </div>
+      ) : (
+        <>
+          <div className="mt-4">
+            <DateSection picker={picker} bleed />
+          </div>
+          <div className="mt-6">
+            <SlotsSection picker={picker} updatedAt={updatedAt} />
+          </div>
+        </>
+      )}
 
       <StickyActionBar
         summary={<SelectionTotal picker={picker} availability={availability} />}

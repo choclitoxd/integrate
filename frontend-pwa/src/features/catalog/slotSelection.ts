@@ -63,6 +63,87 @@ export function firstUsefulDate(
   );
 }
 
+/* ---------- Filtros rápidos ---------- */
+
+export type DayPeriod = 'morning' | 'afternoon' | 'evening';
+
+export const DAY_PERIODS: readonly DayPeriod[] = ['morning', 'afternoon', 'evening'];
+
+export const PERIOD_LABELS: Readonly<Record<DayPeriod, string>> = {
+  morning: 'Mañana',
+  afternoon: 'Tarde',
+  evening: 'Noche',
+};
+
+/** Rango horario de cada período, para lectores de pantalla y ayudas. */
+export const PERIOD_HINTS: Readonly<Record<DayPeriod, string>> = {
+  morning: 'inician antes de las 12:00',
+  afternoon: 'inician entre las 12:00 y las 17:59',
+  evening: 'inician desde las 18:00',
+};
+
+/** Período por la hora local de inicio (`localStartTime` ya viene en hora de Colombia). */
+export function periodOf(schedule: ScheduleAvailability): DayPeriod {
+  const hour = Number(schedule.localStartTime.slice(11, 13));
+  if (hour < 12) return 'morning';
+  return hour < 18 ? 'afternoon' : 'evening';
+}
+
+/** Sábado o domingo: en la semana de lunes a domingo, desde el quinto día después del lunes. */
+export function isWeekend(date: string): boolean {
+  return date >= addDays(startOfWeek(date), 5);
+}
+
+export interface SlotFilters {
+  /** Vacío = cualquier hora; varios = cualquiera de ellos. */
+  readonly periods: readonly DayPeriod[];
+  readonly weekendOnly: boolean;
+}
+
+export const NO_FILTERS: SlotFilters = { periods: [], weekendOnly: false };
+
+export function hasFilters(filters: SlotFilters): boolean {
+  return filters.periods.length > 0 || filters.weekendOnly;
+}
+
+export function matchesFilters(schedule: ScheduleAvailability, filters: SlotFilters): boolean {
+  return (
+    (filters.periods.length === 0 || filters.periods.includes(periodOf(schedule))) &&
+    (!filters.weekendOnly || isWeekend(schedule.localDate))
+  );
+}
+
+/* ---------- Calendario del mes ---------- */
+
+/** "2026-10-17" → "2026-10-01". */
+export function monthStart(date: string): string {
+  return `${date.slice(0, 7)}-01`;
+}
+
+/** Primer día del mes desplazado `months` meses. */
+export function addMonths(firstOfMonth: string, months: number): string {
+  const year = Number(firstOfMonth.slice(0, 4));
+  const month = Number(firstOfMonth.slice(5, 7)) - 1 + months;
+  const y = year + Math.floor(month / 12);
+  const m = ((month % 12) + 12) % 12;
+  return `${String(y)}-${String(m + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * Celdas del mes en semanas de lunes a domingo: `null` rellena antes del día 1 y después del último,
+ * para que cada fecha caiga bajo su día de la semana.
+ */
+export function monthGrid(firstOfMonth: string): readonly (string | null)[] {
+  const cells: (string | null)[] = [];
+  for (let day = startOfWeek(firstOfMonth); day < firstOfMonth; day = addDays(day, 1)) {
+    cells.push(null);
+  }
+  const month = firstOfMonth.slice(0, 7);
+  for (let day = firstOfMonth; day.startsWith(month); day = addDays(day, 1)) cells.push(day);
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
 /** Lunes de la primera y la última semana navegables dentro de la ventana. */
 export function weekBounds(range: { readonly from: string; readonly to: string }) {
   return { first: startOfWeek(range.from), last: startOfWeek(range.to) };

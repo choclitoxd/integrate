@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { ApiError, NetworkError } from '@/shared/api';
-import { addDays, startOfWeek, todayInBogota } from '@/shared/lib';
+import { addDays, formatLongDate, startOfWeek, todayInBogota } from '@/shared/lib';
 import {
   availability,
   catalogRoutes,
@@ -13,6 +13,7 @@ import {
   summary,
 } from '@/test/fixtures';
 import { renderApp } from '@/test/renderApp';
+import { pickOption } from '@/test/select';
 
 const plain = (text: string | null) => (text ?? '').replace(/\s/g, ' ');
 
@@ -52,15 +53,18 @@ describe('catálogo (T-1.10a)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
     const sheet = screen.getByRole('dialog', { name: 'Filtrar experiencias' });
 
+    const user = userEvent.setup();
     const municipio = within(sheet).getByRole('combobox', { name: 'Municipio' });
     expect(municipio).toBeDisabled();
-    await within(sheet).findByRole('option', { name: 'Antioquia' });
-    await userEvent.selectOptions(
+    await pickOption(
+      user,
       within(sheet).getByRole('combobox', { name: 'Departamento' }),
-      '05',
+      'Antioquia',
     );
-    await within(sheet).findByRole('option', { name: 'San Carlos' });
-    await userEvent.selectOptions(municipio, '05649');
+    expect(within(sheet).getByRole('combobox', { name: 'Departamento' })).toHaveTextContent(
+      'Antioquia',
+    );
+    await pickOption(user, municipio, 'San Carlos');
     await userEvent.click(within(sheet).getByRole('radio', { name: 'Alta' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
 
@@ -273,6 +277,88 @@ describe('selector de franjas (T-1.10b)', () => {
     await userEvent.click(fullDay);
     expect(fullDay).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('radio')).toBeDisabled();
+  });
+
+  const dayButton = (date: string) =>
+    screen.getByRole('button', { name: (name) => name.startsWith(`${formatLongDate(date)}:`) });
+
+  it('al tocar el mes despliega el calendario y al elegir un día vuelve a su semana', async () => {
+    const later = addDays(nextMonday, 22); // otra semana, dentro de la ventana de 60 días
+    renderSlots([schedule('b', day1, '14', 4), schedule('z', later, '09', 4)]);
+    const toggle = await screen.findByRole('button', { name: /ver el mes completo/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('list', { name: 'Días de la semana' })).toBeNull();
+    expect(screen.getByRole('list', { name: /^Días de .+ de \d{4}$/ })).toBeVisible();
+    if (!screen.queryByRole('button', { name: (n) => n.startsWith(`${formatLongDate(later)}:`) })) {
+      await userEvent.click(screen.getByRole('button', { name: 'Mes siguiente' }));
+    }
+    await userEvent.click(dayButton(later));
+
+    // Vuelve a la semana del día elegido, con sus franjas debajo y el foco en el control del mes.
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
+    expect(screen.getByRole('list', { name: 'Días de la semana' })).toBeVisible();
+    expect(dayButton(later)).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('radio')).toBeEnabled();
+  });
+
+  it('filtra por período y fin de semana con conteos, y avisa cuando nada coincide', async () => {
+    const saturday = addDays(nextMonday, 5);
+    renderSlots([
+      schedule('m', day1, '07', 4),
+      schedule('t', day2, '14', 4),
+      schedule('s', saturday, '15', 4),
+    ]);
+    const morning = await screen.findByRole('button', { name: /^Mañana/ });
+    const afternoon = screen.getByRole('button', { name: /^Tarde/ });
+    const weekend = screen.getByRole('button', { name: /^Fin de semana/ });
+    expect(morning).toHaveTextContent('· 1');
+    expect(afternoon).toHaveTextContent('· 2');
+    expect(weekend).toHaveTextContent('· 1');
+    // Sin franjas de noche, ese filtro no se ofrece.
+    expect(screen.queryByRole('button', { name: /^Noche/ })).toBeNull();
+
+    await userEvent.click(afternoon);
+    expect(afternoon).toHaveAttribute('aria-pressed', 'true');
+    expect(dayButton(day2)).toHaveAttribute('aria-pressed', 'true');
+    expect(dayButton(day1)).toBeDisabled();
+    expect(screen.getAllByRole('radio')).toHaveLength(1);
+
+    await userEvent.click(weekend);
+    expect(dayButton(saturday)).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(afternoon);
+    await userEvent.click(morning);
+    expect(screen.getByText('Ninguna franja coincide con estos filtros.')).toBeVisible();
+    expect(screen.queryByRole('radio')).toBeNull();
+
+    const [clear] = screen.getAllByRole('button', { name: 'Quitar filtros' });
+    if (!clear) throw new Error('Sin botón para quitar filtros');
+    await userEvent.click(clear);
+    expect(screen.queryByText('Ninguna franja coincide con estos filtros.')).toBeNull();
+    for (const chip of screen.getAllByRole('button', { name: /^(Mañana|Tarde|Fin de semana)/ })) {
+      expect(chip).toHaveAttribute('aria-pressed', 'false');
+    }
+  });
+
+  it('no ofrece filtros que no cambiarían nada', async () => {
+    renderSlots([schedule('a', day1, '07', 4), schedule('c', day2, '08', 4)]);
+    await screen.findAllByRole('radio');
+    expect(screen.queryByRole('button', { name: /^Mañana/ })).toBeNull();
+    expect(screen.queryByText('Encuentra tu franja más rápido')).toBeNull();
+  });
+
+  it('lleva a la primera fecha con cupo cuando el turista se movió a otro día', async () => {
+    renderSlots([schedule('a', day1, '07', 0), schedule('c', day2, '07', 8)]);
+    await screen.findAllByRole('radio');
+    expect(screen.queryByRole('button', { name: 'Primera fecha con cupo' })).toBeNull();
+    await userEvent.click(dayButton(day1));
+    await userEvent.click(screen.getByRole('button', { name: 'Primera fecha con cupo' }));
+    expect(dayButton(day2)).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: 'Primera fecha con cupo' })).toBeNull();
   });
 
   it('informa cuando no hay franjas en la ventana', async () => {

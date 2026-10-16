@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type SubmitEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 
 import { ApiError, useHttpClient } from '@/shared/api';
@@ -8,8 +8,8 @@ import {
   Icon,
   PasswordField,
   ProblemNotice,
+  Select,
   Skeleton,
-  StickyActionBar,
   TextField,
 } from '@/shared/ui';
 
@@ -58,8 +58,6 @@ export function RegisterPage() {
   const http = useHttpClient();
   const policy = useCurrentPolicy();
   const formRef = useRef<HTMLFormElement>(null);
-  const formId = useId();
-  const docTypeId = useId();
 
   const [docType, setDocType] = useState<DocType>('CC');
   const [personalData, setPersonalData] = useState(false);
@@ -154,7 +152,6 @@ export function RegisterPage() {
 
       <form
         ref={formRef}
-        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="mt-6 grid gap-5"
@@ -188,26 +185,16 @@ export function RegisterPage() {
         />
 
         <div className="grid gap-3">
-          <div>
-            <label htmlFor={docTypeId} className="block font-semibold text-ink">
-              Tipo de documento
-            </label>
-            <select
-              id={docTypeId}
-              name="docType"
-              value={docType}
-              onChange={(event) => {
-                setDocType(event.target.value as DocType);
-              }}
-              className="mt-1.5 block min-h-12 w-full rounded-lg border-2 border-border bg-canvas px-3 text-base text-ink"
-            >
-              {DOC_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Tipo de documento"
+            name="docType"
+            size="lg"
+            value={docType}
+            options={DOC_TYPES}
+            onChange={(next) => {
+              setDocType(next as DocType);
+            }}
+          />
           <TextField
             label="Número de documento"
             name="docNumber"
@@ -277,6 +264,18 @@ export function RegisterPage() {
             Si no autorizas los datos de salud ahora, te los pediremos al reservar.
           </p>
         </fieldset>
+
+        {/* Acción justo bajo los campos y el consentimiento, igual que en "Ingresar". */}
+        <div>
+          <Button type="submit" disabled={submitting || !policy.data} className="w-full">
+            {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
+          </Button>
+          {policy.isError && (
+            <p className="mt-2 text-sm text-ink-muted">
+              No podemos crear cuentas sin la política de datos vigente.
+            </p>
+          )}
+        </div>
       </form>
 
       <p className="mt-8 text-ink-muted">
@@ -288,16 +287,6 @@ export function RegisterPage() {
           Ingresa
         </Link>
       </p>
-
-      <StickyActionBar
-        note={
-          policy.isError ? 'No podemos crear cuentas sin la política de datos vigente.' : undefined
-        }
-      >
-        <Button type="submit" form={formId} disabled={submitting || !policy.data}>
-          {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
-        </Button>
-      </StickyActionBar>
     </>
   );
 }

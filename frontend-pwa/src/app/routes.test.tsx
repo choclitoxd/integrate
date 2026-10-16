@@ -33,6 +33,16 @@ describe('routes', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Ingresa a tu cuenta' })).toBeVisible();
   });
 
+  it('conserva la navegación inferior en /ingresar con la pestaña activa', () => {
+    renderApp('/ingresar', catalogRoutes);
+    const nav = screen.getByRole('navigation', { name: 'Navegación principal' });
+    expect(nav).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Ingresar' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
   it('muestra el panel del gestor solo con ROLE_LINK_MANAGER', async () => {
     const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
     await userEvent.click(screen.getByRole('link', { name: 'Gestor' }));

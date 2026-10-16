@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet } from 'react-router';
 import { Icon, SkipLink } from '@/shared/ui';
 
 import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
-import { BackButton } from './ShellParts';
 
 /**
  * Shell de escritorio (ADR-0020 §4): navegación horizontal arriba y contenedor max-w-6xl. Las rutas
@@ -11,7 +10,7 @@ import { BackButton } from './ShellParts';
  * fija, el pie le deja espacio.
  */
 export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProps) {
-  const { flow, wide, backTo, loading } = useShellRoute();
+  const { flow, wide, loading } = useShellRoute();
   const column = wide ? 'max-w-6xl px-8' : 'max-w-md px-4';
   const reserveActionBar = flow && !wide;
 
@@ -52,9 +51,6 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
         tabIndex={-1}
         className={`mx-auto w-full flex-1 pt-6 ${column} ${reserveActionBar ? 'pb-36' : 'pb-12'}`}
       >
-        {backTo && (
-          <BackButton fallback={backTo} className="mb-4 -ml-1 text-brand hover:bg-brand-soft" />
-        )}
         {children ?? <Outlet />}
       </main>
 

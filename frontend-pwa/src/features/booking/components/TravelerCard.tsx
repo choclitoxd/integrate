@@ -1,7 +1,5 @@
-import { useId } from 'react';
-
 import { DOC_TYPES, NUMERIC_DOC_TYPES, type DocType } from '@/features/auth';
-import { TextField } from '@/shared/ui';
+import { Select, TextField } from '@/shared/ui';
 
 import type { TravelerDraft } from '../forms';
 
@@ -23,7 +21,6 @@ export function TravelerCard({
   errors,
   epsListId,
 }: TravelerCardProps) {
-  const selectId = useId();
   const holder = index === 0;
   const prefix = `participants.${String(index)}`;
   const set = (patch: Partial<TravelerDraft>) => {
@@ -47,26 +44,16 @@ export function TravelerCard({
         }}
         error={errors[`${prefix}.fullName`]}
       />
-      <div>
-        <label htmlFor={selectId} className="block font-semibold text-ink">
-          Tipo de documento
-        </label>
-        <select
-          id={selectId}
-          name={`${prefix}.docType`}
-          value={value.docType}
-          onChange={(event) => {
-            set({ docType: event.target.value as DocType });
-          }}
-          className="mt-1.5 block min-h-12 w-full rounded-lg border-2 border-border bg-canvas px-3 text-base text-ink"
-        >
-          {DOC_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        label="Tipo de documento"
+        name={`${prefix}.docType`}
+        size="lg"
+        value={value.docType}
+        options={DOC_TYPES}
+        onChange={(next) => {
+          set({ docType: next as DocType });
+        }}
+      />
       <TextField
         label="Número de documento"
         name={`${prefix}.docNumber`}

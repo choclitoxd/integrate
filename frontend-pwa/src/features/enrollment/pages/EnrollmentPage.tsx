@@ -10,6 +10,8 @@ import {
   buttonClassName,
   Icon,
   ProblemNotice,
+  Select,
+  type SelectOption,
   Skeleton,
   StickyActionBar,
   TextField,
@@ -50,8 +52,11 @@ function withoutErrors(errors: Errors, fields: readonly EnrollmentField[]): Erro
   );
 }
 
-const SELECT_CLASS =
-  'mt-1.5 block min-h-12 w-full rounded-lg border-2 bg-canvas px-3 text-base text-ink';
+const VICTIMIZATION_OPTIONS: readonly SelectOption[] = [
+  { value: '', label: 'Sin especificar' },
+  ...VICTIMIZATION_TYPES,
+  { value: VICTIMIZATION_OTHER, label: 'Otro (especificar)' },
+];
 
 /** Bloque de error bajo un control que no es TextField. */
 function FieldError({ id, children }: { id: string; children: ReactNode }) {
@@ -182,9 +187,7 @@ export function EnrollmentPage() {
   const policy = useCurrentPolicy();
   const online = useOnlineStatus();
   const formId = useId();
-  const docTypeId = useId();
   const victimErrorId = useId();
-  const victimizationId = useId();
   const victimizationErrorId = useId();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -345,26 +348,16 @@ export function EnrollmentPage() {
             error={errors.fullName}
           />
           <div className="grid gap-3">
-            <div>
-              <label htmlFor={docTypeId} className="block font-semibold text-ink">
-                Tipo de documento
-              </label>
-              <select
-                id={docTypeId}
-                name="docType"
-                value={draft.docType}
-                onChange={(event) => {
-                  update({ docType: event.target.value });
-                }}
-                className={`${SELECT_CLASS} border-border`}
-              >
-                {DOC_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Tipo de documento"
+              name="docType"
+              size="lg"
+              value={draft.docType}
+              options={DOC_TYPES}
+              onChange={(next) => {
+                update({ docType: next });
+              }}
+            />
             <TextField
               label="Número de documento"
               name="docNumber"
@@ -469,30 +462,18 @@ export function EnrollmentPage() {
                 error={errors.ruvRegistrationNumber}
               />
               <div>
-                <label htmlFor={victimizationId} className="block font-semibold text-ink">
-                  Hecho victimizante (opcional)
-                </label>
-                <select
-                  id={victimizationId}
+                <Select
+                  label="Hecho victimizante (opcional)"
                   name="victimizationType"
+                  size="lg"
                   value={draft.victimizationType}
-                  onChange={(event) => {
-                    update({ victimizationType: event.target.value, victimizationOther: '' });
+                  options={VICTIMIZATION_OPTIONS}
+                  invalid={Boolean(errors.victimizationType)}
+                  describedBy={errors.victimizationType ? victimizationErrorId : undefined}
+                  onChange={(next) => {
+                    update({ victimizationType: next, victimizationOther: '' });
                   }}
-                  aria-invalid={errors.victimizationType ? true : undefined}
-                  aria-describedby={errors.victimizationType ? victimizationErrorId : undefined}
-                  className={`${SELECT_CLASS} ${
-                    errors.victimizationType ? 'border-danger-border' : 'border-border'
-                  }`}
-                >
-                  <option value="">Sin especificar</option>
-                  {VICTIMIZATION_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                  <option value={VICTIMIZATION_OTHER}>Otro (especificar)</option>
-                </select>
+                />
                 {errors.victimizationType && (
                   <FieldError id={victimizationErrorId}>{errors.victimizationType}</FieldError>
                 )}

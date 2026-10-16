@@ -5,10 +5,12 @@ import { formatLongDate, formatLocalTime } from '@/shared/lib';
 import type { ExperienceAvailability } from '../../api/types';
 import {
   DateSection,
+  NoFilterMatches,
   NoSchedules,
   ParticipantsBox,
   ReserveAction,
   SelectionTotal,
+  SlotFiltersBar,
   SlotsSection,
 } from '../../components/SlotPickerParts';
 import { useSlotPicker } from '../../useSlotPicker';
@@ -34,11 +36,16 @@ function DesktopPicker({
         <div className="max-w-md">
           <ParticipantsBox picker={picker} availability={availability} />
         </div>
-        {/* La semana necesita 356 px para sus 7 columnas (WeekPicker); las franjas toman el resto. */}
-        <div className="grid grid-cols-[minmax(22.5rem,1fr)_minmax(0,1fr)] items-start gap-8">
-          <DateSection picker={picker} />
-          <SlotsSection picker={picker} updatedAt={updatedAt} />
-        </div>
+        <SlotFiltersBar picker={picker} />
+        {picker.filters.noMatches ? (
+          <NoFilterMatches picker={picker} />
+        ) : (
+          /* El calendario necesita 356 px para sus 7 columnas (DatePicker); las franjas toman el resto. */
+          <div className="grid grid-cols-[minmax(22.5rem,1fr)_minmax(0,1fr)] items-start gap-8">
+            <DateSection picker={picker} />
+            <SlotsSection picker={picker} updatedAt={updatedAt} />
+          </div>
+        )}
       </div>
 
       <aside

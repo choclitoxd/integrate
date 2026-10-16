@@ -98,7 +98,7 @@ export const routes: RouteObject[] = [
             ),
             handle: slotsHandle,
           },
-          { path: 'ingresar', element: <LoginPage />, handle: toCatalog },
+          { path: 'ingresar', element: <LoginPage /> },
           { path: 'registro', element: <RegisterPage />, handle: toCatalog },
           { path: 'activar', element: <ActivatePage />, handle: toCatalog },
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },

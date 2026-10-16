@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError, type RequestOptions } from '@/shared/api';
 import { renderApp } from '@/test/renderApp';
+import { pickOption } from '@/test/select';
 
 import { putToStorage, type DocumentUploadTicket } from './api';
 import { emptyDraft, formatFileSize, validateEnrollment, withVictimAnswer } from './forms';
@@ -219,8 +220,9 @@ describe('enrolamiento asistido (T-1.12)', () => {
     await fillIdentity(user);
     await user.click(screen.getByRole('radio', { name: 'Sí' }));
     await user.type(screen.getByLabelText('Número de registro RUV (opcional)'), 'RUV-2019-000123');
-    await user.selectOptions(
-      screen.getByLabelText('Hecho victimizante (opcional)'),
+    await pickOption(
+      user,
+      screen.getByRole('combobox', { name: 'Hecho victimizante (opcional)' }),
       'Desplazamiento forzado',
     );
     await user.upload(screen.getByLabelText(/Documento soporte/), pdf('ruv.pdf', 200_000));

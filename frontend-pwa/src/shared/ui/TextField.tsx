@@ -13,7 +13,10 @@ interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id
 }
 
 const INPUT_CLASS =
-  'min-h-12 w-full min-w-0 bg-transparent px-3 text-base text-ink placeholder:text-ink-subtle focus-visible:outline-none';
+  'min-h-12 w-full min-w-0 bg-transparent px-3 text-base text-ink placeholder:text-ink-subtle focus:outline-none focus-visible:outline-none focus-visible:shadow-none';
+
+const FIELD_WRAPPER_CLASS =
+  'relative mt-1.5 flex items-center rounded-lg border-2 bg-canvas transition duration-200 ease-in-out before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:opacity-0 before:shadow-[0_0.5rem_1.5rem_-0.75rem_color-mix(in_oklab,var(--color-brand)_55%,transparent)] before:transition-opacity before:duration-300 before:ease-in-out focus-within:-translate-y-1 focus-within:before:opacity-100 motion-reduce:focus-within:translate-y-0';
 
 /**
  * Campo de texto accesible: etiqueta visible, ayuda y error enlazados por aria-describedby, y
@@ -43,8 +46,8 @@ export function TextField({
         </p>
       )}
       <div
-        className={`mt-1.5 flex items-center rounded-lg border-2 bg-canvas has-focus-visible:outline-3 has-focus-visible:outline-focus has-focus-visible:shadow-[0_0_0_6px_var(--color-focus-halo)] ${
-          error ? 'border-danger-border' : 'border-border'
+        className={`${FIELD_WRAPPER_CLASS} ${
+          error ? 'border-danger-border' : 'border-border focus-within:border-brand'
         }`}
       >
         <input
@@ -71,7 +74,7 @@ export function TextField({
 
 type PasswordFieldProps = Omit<TextFieldProps, 'type' | 'trailing'>;
 
-/** Contraseña con "Mostrar/Ocultar" de 44 px: en campo se teclea con prisa y al sol. */
+/** Contraseña con botón de alternar visibilidad ("ojito" en verde) y objetivo táctil accesible de 44 px. */
 export function PasswordField(props: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
   return (
@@ -81,14 +84,15 @@ export function PasswordField(props: PasswordFieldProps) {
       trailing={
         <button
           type="button"
+          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           aria-pressed={visible}
           onClick={() => {
             setVisible((value) => !value);
           }}
-          className="mr-1 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md px-2 text-sm font-semibold text-brand hover:bg-brand-soft"
+          className="mr-1 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md p-2 text-brand focus:outline-none focus-visible:outline-none focus-visible:shadow-none"
         >
-          {visible ? 'Ocultar' : 'Mostrar'}
-          <span className="sr-only"> contraseña</span>
+          <Icon name={visible ? 'eyeOff' : 'eye'} size={22} className="text-brand" />
+          <span className="sr-only">{visible ? 'Ocultar' : 'Mostrar'} contraseña</span>
         </button>
       }
     />

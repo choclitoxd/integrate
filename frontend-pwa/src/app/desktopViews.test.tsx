@@ -6,6 +6,7 @@ import { addDays, startOfWeek, todayInBogota } from '@/shared/lib';
 import { availability, catalogRoutes, EXPERIENCE_ID, schedule, summary } from '@/test/fixtures';
 import { LAPTOP, NARROW_WINDOW, PHONE, stubMatchMedia, TABLET } from '@/test/matchMedia';
 import { renderApp } from '@/test/renderApp';
+import { pickOption } from '@/test/select';
 
 const plain = (text: string | null) => (text ?? '').replace(/\s/g, ' ');
 
@@ -24,10 +25,10 @@ describe('vistas por factor de forma (ADR-0020)', () => {
     expect(screen.queryByRole('button', { name: 'Filtros' })).not.toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
 
-    await within(aside).findByRole('option', { name: 'Antioquia' });
-    await userEvent.selectOptions(
+    await pickOption(
+      userEvent.setup(),
       within(aside).getByRole('combobox', { name: 'Departamento' }),
-      '05',
+      'Antioquia',
     );
     await userEvent.click(within(aside).getByRole('radio', { name: 'Alta' }));
     await userEvent.click(within(aside).getByRole('button', { name: 'Aplicar filtros' }));

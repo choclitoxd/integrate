@@ -43,7 +43,7 @@ export function SearchBar({ initialQuery, onSearch }: SearchBarProps) {
           setValue(event.target.value);
         }}
         placeholder="Buscar"
-        className="min-h-11 w-full min-w-0 rounded-l-lg border-2 border-r-0 border-border bg-canvas px-3 text-base text-ink placeholder:text-ink-subtle focus:outline-none focus-visible:outline-none focus-visible:shadow-none"
+        className="min-h-11 w-full min-w-0 rounded-l-lg border-2 border-r-0 border-border bg-canvas px-3 text-base text-ink placeholder:text-ink-subtle transition-colors focus:border-brand focus:outline-none focus-visible:outline-none focus-visible:shadow-none"
       />
       <button
         type="submit"

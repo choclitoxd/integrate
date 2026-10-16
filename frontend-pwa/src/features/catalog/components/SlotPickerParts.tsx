@@ -1,14 +1,14 @@
 import { Link } from 'react-router';
 
-import { formatClockTime, formatCop, formatLocalTime, pluralize } from '@/shared/lib';
-import { Button, buttonClassName } from '@/shared/ui';
+import { addDays, formatClockTime, formatCop, formatLocalTime, pluralize } from '@/shared/lib';
+import { Button, buttonClassName, Icon } from '@/shared/ui';
 
 import type { ExperienceAvailability } from '../api/types';
-import { MAX_PARTICIPANTS } from '../slotSelection';
+import { MAX_PARTICIPANTS, PERIOD_HINTS, PERIOD_LABELS } from '../slotSelection';
 import type { SlotPickerState } from '../useSlotPicker';
+import { DatePicker } from './DatePicker';
 import { ParticipantStepper } from './ParticipantStepper';
 import { SlotList } from './SlotList';
-import { WeekPicker } from './WeekPicker';
 
 /** Piezas del selector de franjas (T-1.10b) que comparten la vista móvil y la de escritorio. */
 
@@ -51,21 +51,124 @@ export function ParticipantsBox({
   );
 }
 
-export function DateSection({ picker }: { picker: SlotPickerState }) {
+export function DateSection({
+  picker,
+  bleed = false,
+}: {
+  picker: SlotPickerState;
+  bleed?: boolean;
+}) {
   return (
     <section aria-labelledby="fechas">
       <h2 id="fechas" className="sr-only">
         Fecha
       </h2>
-      <WeekPicker
+      <DatePicker
         {...picker.week}
         selectedDate={picker.date}
         onSelectDate={picker.selectDate}
         byDate={picker.byDate}
         participants={picker.participants}
         range={picker.range}
+        bleed={bleed}
       />
     </section>
+  );
+}
+
+const CHIP =
+  'inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-border bg-canvas px-4 font-semibold text-ink hover:bg-brand-soft aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-on-brand';
+
+/**
+ * Filtros rápidos sobre las franjas (período del día y fin de semana) y atajo a la primera fecha con
+ * cupo. Cada filtro dice cuántas franjas con cupo para el grupo encontraría. No se muestran si
+ * ninguno cambiaría el resultado (p. ej. todas las franjas son de mañana).
+ */
+export function SlotFiltersBar({ picker }: { picker: SlotPickerState }) {
+  const { filters } = picker;
+  // El atajo sobra si la primera fecha útil ya está elegida y a la vista en la semana.
+  const { weekStart } = picker.week;
+  const firstIsShown =
+    picker.firstDate !== undefined &&
+    picker.firstDate === picker.date &&
+    picker.firstDate >= weekStart &&
+    picker.firstDate < addDays(weekStart, 7);
+
+  return (
+    <div className="grid gap-3">
+      {filters.useful && (
+        <fieldset>
+          <legend className="font-semibold text-ink">Encuentra tu franja más rápido</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {filters.periodOptions.map(({ period, count }) => (
+              <button
+                key={period}
+                type="button"
+                aria-pressed={filters.value.periods.includes(period)}
+                onClick={() => {
+                  filters.togglePeriod(period);
+                }}
+                className={CHIP}
+              >
+                {PERIOD_LABELS[period]}
+                <span className="sr-only">, franjas que {PERIOD_HINTS[period]},</span>
+                <span className="font-normal tabular-nums opacity-90">· {count}</span>
+              </button>
+            ))}
+            {filters.weekendAvailable && (
+              <button
+                type="button"
+                aria-pressed={filters.value.weekendOnly}
+                onClick={filters.toggleWeekend}
+                className={CHIP}
+              >
+                Fin de semana
+                <span className="sr-only">, sábado y domingo,</span>
+                <span className="font-normal tabular-nums opacity-90">
+                  · {filters.weekendCount}
+                </span>
+              </button>
+            )}
+          </div>
+        </fieldset>
+      )}
+
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {picker.firstDate && !firstIsShown && (
+          <button
+            type="button"
+            onClick={picker.goToFirstDate}
+            className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand underline underline-offset-4"
+          >
+            <Icon name="calendar" size={20} />
+            Primera fecha con cupo
+          </button>
+        )}
+        {filters.active && (
+          <button
+            type="button"
+            onClick={filters.clear}
+            className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand underline underline-offset-4"
+          >
+            <Icon name="close" size={20} />
+            Quitar filtros
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Con los filtros activos no queda ninguna franja en la ventana de 60 días. */
+export function NoFilterMatches({ picker }: { picker: SlotPickerState }) {
+  return (
+    <div role="status" className="rounded-xl bg-surface px-4 py-6 text-center">
+      <p className="font-semibold text-ink">Ninguna franja coincide con estos filtros.</p>
+      <p className="mt-1 text-ink-muted">Prueba con otro horario o quita los filtros.</p>
+      <Button variant="secondary" className="mt-4" onClick={picker.filters.clear}>
+        Quitar filtros
+      </Button>
+    </div>
   );
 }
 
