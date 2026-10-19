@@ -53,6 +53,8 @@ export function FilterFields({ draft, onChange, intensityColumns = 4 }: FilterFi
         value={draft.departmentCode ?? ''}
         options={departmentOptions}
         disabled={!departments.data}
+        searchable
+        searchPlaceholder="Buscar departamento…"
         onChange={(code) => {
           onChange(setFilter(draft, 'departmentCode', code));
         }}
@@ -65,6 +67,8 @@ export function FilterFields({ draft, onChange, intensityColumns = 4 }: FilterFi
           options={municipalityOptions}
           disabled={!draft.departmentCode || !municipalities.data}
           describedBy={draft.departmentCode ? undefined : hintId}
+          searchable
+          searchPlaceholder="Buscar municipio…"
           onChange={(code) => {
             onChange(setFilter(draft, 'municipalityCode', code));
           }}
@@ -81,6 +85,8 @@ export function FilterFields({ draft, onChange, intensityColumns = 4 }: FilterFi
         value={draft.category ?? ''}
         options={categoryOptions}
         disabled={!categories.data}
+        searchable
+        searchPlaceholder="Buscar categoría…"
         onChange={(code) => {
           onChange(setFilter(draft, 'category', code));
         }}

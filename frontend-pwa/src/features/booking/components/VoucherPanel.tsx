@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { ApiError } from '@/shared/api';
 import { formatLongDate } from '@/shared/lib';
-import { Button, Icon, ProblemNotice, Skeleton, StickyActionBar } from '@/shared/ui';
+import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { Voucher } from '../api';
 import { groupShortCode } from '../qr/matrix';
@@ -28,8 +28,11 @@ function enterFullscreen() {
   if (root.requestFullscreen) void root.requestFullscreen().catch(() => undefined);
 }
 
-/** Voucher de una reserva confirmada (T-1.10e, ADR-0017). */
-export function VoucherPanel({ bookingId }: { bookingId: string }) {
+/**
+ * Voucher de una reserva confirmada (T-1.10e, ADR-0017). Con `used` (experiencia realizada, ADR-0023 §2) se muestra
+ * como comprobante: código y PDF, sin QR, porque ya no sirve para ingresar.
+ */
+export function VoucherPanel({ bookingId, used = false }: { bookingId: string; used?: boolean }) {
   const voucher = useVoucher(bookingId, true);
   const [fullscreen, setFullscreen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -108,7 +111,7 @@ export function VoucherPanel({ bookingId }: { bookingId: string }) {
   }
 
   const data = voucher.data;
-  const usable = data.status === 'ISSUED';
+  const usable = data.status === 'ISSUED' && !used;
   // Solo un voucher vigente con token re-derivado se muestra como QR (ADR-0017 §2).
   const qrToken = usable ? data.token : null;
   const pdfReady = data.pdfStatus === 'READY';
@@ -122,7 +125,7 @@ export function VoucherPanel({ bookingId }: { bookingId: string }) {
 
       {!usable && (
         <p className="mt-3 rounded-xl border-2 border-warning-border bg-warning-bg px-4 py-3 font-semibold text-warning-text">
-          {STATUS_NOTE[data.status]}
+          {data.status === 'ISSUED' ? STATUS_NOTE.CONSUMED : STATUS_NOTE[data.status]}
         </p>
       )}
 
@@ -130,6 +133,19 @@ export function VoucherPanel({ bookingId }: { bookingId: string }) {
         <div className="mx-auto mt-3 w-full max-w-72 rounded-lg bg-qr-paper p-2">
           <QrCode value={qrToken} label={`Código QR del voucher, ${validLabel(data)}`} />
         </div>
+      )}
+      {qrToken !== null && (
+        // Justo bajo el código que agranda, no en una barra fija al fondo de la pantalla.
+        <Button
+          className="mt-3 w-full"
+          onClick={() => {
+            enterFullscreen();
+            setFullscreen(true);
+          }}
+        >
+          <Icon name="search" />
+          Mostrar QR a pantalla completa
+        </Button>
       )}
       {usable && data.token === null && (
         <p className="mt-3 flex items-start gap-2 text-ink">
@@ -166,28 +182,15 @@ export function VoucherPanel({ bookingId }: { bookingId: string }) {
       )}
 
       {qrToken !== null && (
-        <>
-          <StickyActionBar>
-            <Button
-              onClick={() => {
-                enterFullscreen();
-                setFullscreen(true);
-              }}
-            >
-              <Icon name="search" />
-              Mostrar QR a pantalla completa
-            </Button>
-          </StickyActionBar>
-          <QrFullscreen
-            open={fullscreen}
-            onClose={() => {
-              setFullscreen(false);
-            }}
-            token={qrToken}
-            shortCode={data.shortCode}
-            validLabel={validLabel(data)}
-          />
-        </>
+        <QrFullscreen
+          open={fullscreen}
+          onClose={() => {
+            setFullscreen(false);
+          }}
+          token={qrToken}
+          shortCode={data.shortCode}
+          validLabel={validLabel(data)}
+        />
       )}
     </section>
   );

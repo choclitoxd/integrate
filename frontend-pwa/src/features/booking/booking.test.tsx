@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, NetworkError, type RequestOptions } from '@/shared/api';
 import { addDays, todayInBogota } from '@/shared/lib';
@@ -215,6 +215,44 @@ describe('formulario de reserva (T-1.10c)', () => {
     expect(
       screen.getByRole('link', { name: 'Elegir otra franja o ajustar el grupo' }),
     ).toHaveAttribute('href', `/experiencias/${EXPERIENCE_ID}/franjas`);
+  });
+
+  it('lleva a la vista el aviso cuando el servidor rechaza el envío', async () => {
+    const reveal = vi.spyOn(Element.prototype, 'scrollIntoView');
+    renderForm(
+      () =>
+        new ApiError(
+          {
+            type: 'about:blank',
+            title: 'x',
+            status: 409,
+            code: 'BOOKING_INSUFFICIENT_SLOTS',
+            availableSlots: 1,
+          },
+          null,
+        ),
+    );
+    await fillAll();
+    await submit();
+    const alert = (await screen.findByText('Solo quedan 1 cupo en esta franja.')).closest(
+      '[role="alert"]',
+    );
+    await waitFor(() => {
+      expect(reveal).toHaveBeenCalled();
+    });
+    expect(reveal.mock.contexts.at(-1)).toBe(alert);
+  });
+
+  it('lleva a la vista el error general (por ejemplo, sesión rechazada)', async () => {
+    const reveal = vi.spyOn(Element.prototype, 'scrollIntoView');
+    renderForm(() => new ApiError({ type: 'about:blank', title: 'x', status: 403 }, null));
+    await fillAll();
+    await submit();
+    const alert = await screen.findByRole('alert');
+    await waitFor(() => {
+      expect(reveal).toHaveBeenCalled();
+    });
+    expect(alert.parentElement).toBe(reveal.mock.contexts.at(-1));
   });
 
   it('pide HEALTH_EMERGENCY antes de enviar y continúa al otorgarla', async () => {

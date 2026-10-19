@@ -10,6 +10,7 @@ import { RequireSession } from './guards/RequireSession';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
 import { TouristLayout } from './layouts/TouristLayout';
+import { AccountExperiences } from './pages/AccountExperiences';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RouteErrorPage } from './pages/RouteErrorPage';
 import { RouteLoading } from './pages/RouteLoading';
@@ -107,7 +108,7 @@ export const routes: RouteObject[] = [
             path: 'cuenta',
             element: (
               <RequireSession>
-                <AccountPage />
+                <AccountPage experiences={<AccountExperiences />} />
               </RequireSession>
             ),
           },

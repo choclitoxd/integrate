@@ -79,7 +79,8 @@ export function QrFullscreen({ open, onClose, token, shortCode, validLabel }: Qr
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="inline-flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-subtle"
+              className="inline-flex size-11 items-center justify-center border-0 border-none bg-transparent text-ink hover:opacity-70 active:opacity-50 focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
             >
               <Icon name="close" size={24} />
             </button>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useSession, useSessionStore, type Role } from '@/shared/session';
@@ -15,8 +15,13 @@ const ROLE_LABEL: Readonly<Record<Role, string>> = {
   ROLE_ADMIN: 'Administrador',
 };
 
-/** Mi cuenta: datos básicos, autorizaciones de datos y cierre de sesión (T-1.11). */
-export function AccountPage() {
+/**
+ * Mi cuenta: datos básicos, experiencias, autorizaciones de datos y cierre de sesión (T-1.11, T-1.14b).
+ *
+ * @param experiences "Mis experiencias" (ADR-0023 §2). Lo compone `app/` con carga diferida: `booking` ya depende
+ *                    de `auth`, así que importarlo aquí crearía un ciclo y metería el QR en el paquete inicial.
+ */
+export function AccountPage({ experiences }: { experiences?: ReactNode } = {}) {
   const session = useSession();
   const store = useSessionStore();
   const navigate = useNavigate();
@@ -44,6 +49,8 @@ export function AccountPage() {
           {user.roles.map((role) => ROLE_LABEL[role]).join(' · ')}
         </p>
       </section>
+
+      {experiences}
 
       <section aria-labelledby="autorizaciones" className="mt-8">
         <h2

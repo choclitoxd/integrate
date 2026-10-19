@@ -1,6 +1,8 @@
 package com.integrate.modules.catalog.service;
 
 import com.integrate.modules.catalog.service.model.ScheduleSummary;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +14,10 @@ public interface ScheduleDirectory {
 
     /** Vacío si la franja no existe. */
     Optional<ScheduleSummary> describe(UUID scheduleId);
+
+    /**
+     * Varias franjas en un solo lote, para listados paginados (ADR-0023 §1): una consulta por tabla, sin N+1. Las
+     * franjas inexistentes no aparecen en el resultado.
+     */
+    Map<UUID, ScheduleSummary> describeAll(Collection<UUID> scheduleIds);
 }

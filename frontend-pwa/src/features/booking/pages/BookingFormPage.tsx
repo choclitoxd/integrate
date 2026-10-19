@@ -19,7 +19,6 @@ import {
   Icon,
   ProblemNotice,
   Skeleton,
-  StickyActionBar,
   TextField,
 } from '@/shared/ui';
 
@@ -99,8 +98,9 @@ export function BookingFormPage() {
   const http = useHttpClient();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const formId = useId();
   const epsListId = useId();
+  const conflictId = useId();
+  const failureId = useId();
   const formRef = useRef<HTMLFormElement>(null);
 
   const holderName = session.status === 'authenticated' ? session.user.fullName : '';
@@ -138,6 +138,18 @@ export function BookingFormPage() {
       window.removeEventListener('beforeunload', warn);
     };
   }, [dirty]);
+
+  // Si el servidor rechaza el envío, el aviso puede quedar fuera de pantalla (el de cupos va arriba del
+  // formulario y el de errores abajo, tapado por la barra fija): se lleva a la vista para que quien
+  // toca «Apartar cupos» siempre vea la respuesta.
+  useEffect(() => {
+    const target = conflict !== null ? conflictId : failure !== null ? failureId : null;
+    if (target === null) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document
+      .getElementById(target)
+      ?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }, [conflict, failure, conflictId, failureId]);
 
   const franjasPath = `/experiencias/${experienceId}/franjas`;
   // Cupos de la experiencia en caché: se refrescan tras un lock o un conflicto de cupos.
@@ -286,6 +298,7 @@ export function BookingFormPage() {
 
       {(slotProblem !== null || conflict !== null) && (
         <div
+          id={conflictId}
           role="alert"
           className="mt-4 rounded-xl border-2 border-warning-border bg-warning-bg px-4 py-3 text-warning-text"
         >
@@ -320,13 +333,7 @@ export function BookingFormPage() {
         cupos, se borrarán.
       </p>
 
-      <form
-        ref={formRef}
-        id={formId}
-        onSubmit={handleSubmit}
-        noValidate
-        className="mt-5 grid gap-6"
-      >
+      <form ref={formRef} onSubmit={handleSubmit} noValidate className="mt-5 grid gap-6">
         <datalist id={epsListId}>
           {EPS_SUGGESTIONS.map((eps) => (
             <option key={eps} value={eps} />
@@ -385,38 +392,39 @@ export function BookingFormPage() {
             {notice}
           </p>
         )}
-        {failure !== null &&
-          (failureMessage ? (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-xl border-2 border-danger-border bg-danger-bg px-4 py-3 font-semibold text-danger-text"
-            >
-              <Icon name="wifiOff" className="mt-0.5" />
-              <p>{failureMessage}</p>
-            </div>
-          ) : (
-            <ProblemNotice error={failure} />
-          ))}
-      </form>
+        {failure !== null && (
+          <div id={failureId}>
+            {failureMessage ? (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-xl border-2 border-danger-border bg-danger-bg px-4 py-3 font-semibold text-danger-text"
+              >
+                <Icon name="wifiOff" className="mt-0.5" />
+                <p>{failureMessage}</p>
+              </div>
+            ) : (
+              <ProblemNotice error={failure} />
+            )}
+          </div>
+        )}
 
-      <StickyActionBar
-        summary={
-          availability.data ? (
-            <p>
-              <span className="block text-xl font-bold text-ink tabular-nums">
-                {formatCop(availability.data.unitPriceCop * people)}
-              </span>
-              <span className="text-sm text-ink-muted">
+        {/* Acción justo bajo los datos, con el total encima: igual que en "Ingresar" y "Crear cuenta". */}
+        <div className="grid gap-3">
+          {availability.data && (
+            <p className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
+              <span className="text-ink-muted">
                 Total · {pluralize(people, 'persona', 'personas')}
               </span>
+              <span className="text-xl font-bold text-ink tabular-nums">
+                {formatCop(availability.data.unitPriceCop * people)}
+              </span>
             </p>
-          ) : undefined
-        }
-      >
-        <Button type="submit" form={formId} disabled={sending} className="px-5">
-          {sending ? 'Apartando…' : 'Apartar cupos'}
-        </Button>
-      </StickyActionBar>
+          )}
+          <Button type="submit" disabled={sending} className="w-full">
+            {sending ? 'Apartando…' : 'Apartar cupos'}
+          </Button>
+        </div>
+      </form>
 
       <ConsentDialog
         open={consentFor !== null}

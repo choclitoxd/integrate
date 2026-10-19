@@ -57,6 +57,46 @@ export function lockSlots(
   });
 }
 
+/** `MyBookingSummary` de `GET /me/bookings` (ADR-0023): tarjeta sin datos de los viajeros. */
+export interface MyBookingSummary {
+  readonly bookingId: string;
+  readonly status: BookingStatus;
+  readonly experienceId: string;
+  readonly experienceTitle: string;
+  readonly municipality: string | null;
+  readonly startTime: string;
+  readonly endTime: string;
+  readonly timezone: string;
+  readonly slots: number;
+  readonly totalAmountCop: number;
+  /** `CONFIRMED` o `EXECUTED`: el voucher se consulta en el detalle. */
+  readonly hasVoucher: boolean;
+}
+
+export interface Page<T> {
+  readonly items: readonly T[];
+  readonly page: number;
+  readonly size: number;
+  readonly totalElements: number;
+  readonly totalPages: number;
+}
+
+export type MyBookingsScope = 'upcoming' | 'past';
+
+export function listMyBookings(
+  http: HttpClient,
+  scope: MyBookingsScope,
+  page: number,
+  size: number,
+  signal?: AbortSignal,
+): Promise<Page<MyBookingSummary>> {
+  const query = new URLSearchParams({ scope, page: String(page), size: String(size) });
+  return http.request<Page<MyBookingSummary>>(
+    `/v1/me/bookings?${query.toString()}`,
+    signal ? { signal } : {},
+  );
+}
+
 export function getBooking(http: HttpClient, id: string, signal?: AbortSignal): Promise<Booking> {
   return http.request<Booking>(`/v1/bookings/${encodeURIComponent(id)}`, signal ? { signal } : {});
 }

@@ -1273,6 +1273,46 @@ paths:
                 traceId: c4b9-8f21-4d1a
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/me/bookings:
+    get:
+      tags: [Booking]
+      operationId: listMyBookings
+      summary: '"Mis experiencias": reservas del turista autenticado, próximas o pasadas (ADR-0023).'
+      description: |
+        Solo `ROLE_TOURIST` y siempre filtrado por el `sub` del JWT.
+        - `scope=upcoming` (por defecto): `CONFIRMED` o `PENDING` aún pagable cuya franja no terminó; la más
+          próxima primero.
+        - `scope=past`: realizadas (`EXECUTED`), con inasistencia (`NO_SHOW`), `CONFIRMED` cuya franja ya terminó,
+          canceladas, fallidas y expiradas; la más reciente primero.
+
+        `hasVoucher` es `true` para `CONFIRMED` y `EXECUTED`: el voucher se consulta en
+        `GET /bookings/{bookingId}/voucher`. Sin datos de los viajeros, EPS ni contacto de emergencia.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema: { type: string, enum: [upcoming, past], default: upcoming }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de reservas del turista.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/MyBookingSummary' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
   /api/v1/bookings/{bookingId}/voucher:
     get:
       tags: [Booking]
@@ -2305,6 +2345,25 @@ components:
           description: |
             Estado de la reserva tras el evento. Una aprobación tardía deja `paymentStatus = APPROVED` con la
             reserva en `EXPIRED` (o el estado que tuviera) y ordena el reembolso del 100% (`LATE_APPROVAL`).
+
+    MyBookingSummary:
+      type: object
+      required: [bookingId, status, experienceId, experienceTitle, startTime, endTime, timezone, slots, totalAmountCop, hasVoucher]
+      properties:
+        bookingId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT]
+        experienceId: { type: string, format: uuid }
+        experienceTitle: { type: string }
+        municipality: { type: [string, 'null'] }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        timezone: { type: string, example: America/Bogota }
+        slots: { type: integer, minimum: 1 }
+        totalAmountCop: { $ref: '#/components/schemas/CopAmount' }
+        hasVoucher: { type: boolean, description: true para CONFIRMED y EXECUTED. }
 
     VoucherResponse:
       type: object

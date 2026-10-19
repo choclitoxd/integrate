@@ -61,10 +61,16 @@ describe('catálogo (T-1.10a)', () => {
       within(sheet).getByRole('combobox', { name: 'Departamento' }),
       'Antioquia',
     );
-    expect(within(sheet).getByRole('combobox', { name: 'Departamento' })).toHaveTextContent(
-      'Antioquia',
-    );
-    await pickOption(user, municipio, 'San Carlos');
+    // Los filtros se buscan escribiendo en el propio campo: la elección es su valor, no su texto.
+    expect(within(sheet).getByRole('combobox', { name: 'Departamento' })).toHaveValue('Antioquia');
+    // Se escribe en el propio campo de Municipio: las opciones se filtran ahí mismo, sin tildes.
+    await waitFor(() => {
+      expect(municipio).toBeEnabled();
+    });
+    await user.type(municipio, 'CARLOS');
+    expect(within(sheet).getAllByRole('option')).toHaveLength(1);
+    await user.keyboard('{Enter}');
+    expect(municipio).toHaveValue('San Carlos');
     await userEvent.click(within(sheet).getByRole('radio', { name: 'Alta' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
 

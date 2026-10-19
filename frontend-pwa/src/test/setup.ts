@@ -17,6 +17,17 @@ if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
 
 // jsdom no implementa el scroll (ScrollRestoration y los avisos de error lo usan): no-op silencioso.
 window.scrollTo = () => undefined;
+
+// jsdom no implementa matchMedia (prefers-reduced-motion).
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  }),
+});
 // jsdom tampoco implementa scrollIntoView (el menú de Select mantiene visible la opción activa).
 Element.prototype.scrollIntoView = () => undefined;
 

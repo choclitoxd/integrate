@@ -336,9 +336,9 @@ export function BookingStatusPage() {
       ) : (
         <>
           <ResultMessage booking={data} />
-          {data.status === 'CONFIRMED' ? (
+          {data.status === 'CONFIRMED' || data.status === 'EXECUTED' ? (
             <>
-              <VoucherPanel bookingId={data.bookingId} />
+              <VoucherPanel bookingId={data.bookingId} used={data.status === 'EXECUTED'} />
               <TripSheet booking={data} />
             </>
           ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import { Icon } from './Icon';
 
@@ -20,6 +20,7 @@ interface BottomSheetProps {
  * Hoja inferior modal sobre <dialog> nativo (ADR-0012 §6): showModal() atrapa el foco, deja el
  * fondo inerte, cierra con Esc y devuelve el foco al disparador. El contenido solo se monta
  * abierto. `onClose` solo se llama cuando cierra el usuario (Esc, toque fuera, botón Cerrar).
+ * Al cerrar, anima el descenso hacia abajo (260 ms) de forma simétrica a la apertura.
  */
 export function BottomSheet({
   open,
@@ -32,32 +33,78 @@ export function BottomSheet({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closingFromProp = useRef(false);
   const titleId = useId();
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      setClosing(false);
+      dialog.showModal();
+    }
     if (!open && dialog.open) {
       // Cierre pedido por el padre: no es una decisión del usuario y no debe disparar onClose.
       closingFromProp.current = true;
+      setClosing(false);
       dialog.close();
     }
   }, [open]);
+
+  const requestClose = () => {
+    if (closing) return;
+    if (
+      import.meta.env.MODE === 'test' ||
+      (typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    ) {
+      onClose();
+      return;
+    }
+    setClosing(true);
+  };
+
+  const handleAnimationEnd = (event: React.AnimationEvent<HTMLDialogElement>) => {
+    if (closing && event.target === dialogRef.current) {
+      setClosing(false);
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(() => {
+      setClosing(false);
+      onClose();
+    }, 280);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [closing, onClose]);
 
   return (
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
+      onAnimationEnd={handleAnimationEnd}
       onClose={() => {
-        if (closingFromProp.current) closingFromProp.current = false;
-        else onClose();
+        if (closingFromProp.current) {
+          closingFromProp.current = false;
+        } else {
+          onClose();
+        }
       }}
       onCancel={(event) => {
-        if (!dismissible) event.preventDefault();
+        event.preventDefault();
+        if (dismissible) {
+          requestClose();
+        }
       }}
       // Cierre por toque fuera de la hoja donde el navegador lo soporta (light dismiss).
       {...{ closedby: dismissible ? 'any' : 'none' }}
-      className="sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl bg-surface-elevated p-0 text-ink not-open:hidden backdrop:bg-surface-inverse/60"
+      className={`sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl bg-surface-elevated p-0 text-ink not-open:hidden backdrop:bg-surface-inverse/60${
+        closing ? ' closing' : ''
+      }`}
     >
       {open && (
         <>
@@ -68,9 +115,10 @@ export function BottomSheet({
             {dismissible ? (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={requestClose}
                 aria-label="Cerrar"
-                className="inline-flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-subtle"
+                className="inline-flex size-11 items-center justify-center border-0 border-none bg-transparent text-ink hover:opacity-70 active:opacity-50 focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+                style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
               >
                 <Icon name="close" size={22} />
               </button>
@@ -78,7 +126,11 @@ export function BottomSheet({
               <span className="min-h-11" />
             )}
           </header>
-          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5">{children}</div>
+          {/* `flex-auto` (basis: content), no `flex-1` (basis: 0%): con el <dialog> de altura automática,
+              Safari/iOS toma la base 0% y deja el cuerpo casi sin altura (solo se veía el encabezado). */}
+          <div className="min-h-0 flex-auto overflow-y-auto overscroll-contain px-5 py-5">
+            {children}
+          </div>
           {footer && (
             <footer className="flex gap-3 border-t border-border-subtle px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               {footer}
