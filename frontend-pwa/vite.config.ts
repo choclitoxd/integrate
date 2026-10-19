@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react';
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
@@ -10,15 +11,22 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   const proxyTarget = env.VITE_DEV_API_PROXY_TARGET ?? 'http://localhost:8080';
+  // `npm run dev:https` (solo desarrollo): sirve la PWA por HTTPS con un certificado autofirmado para
+  // probarla desde un celular por la IP de la red local. La cookie de refresh es `Secure`
+  // (SEC-DIR-004, FE-DIR-001 D4) y un navegador no la guarda por HTTP fuera de `localhost`, así que
+  // sin HTTPS la sesión no sobrevive a una recarga. El backend y la cookie no cambian.
+  const devHttps = process.env.PWA_DEV_HTTPS === '1';
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), ...(devHttps ? [basicSsl()] : [])],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
     server: {
       port: 5173,
       strictPort: true,
+      // Con HTTPS de desarrollo también se publica en la red local (el celular lo abre por la IP del equipo).
+      ...(devHttps ? { host: true } : {}),
       proxy: {
         '/api': { target: proxyTarget, changeOrigin: true },
       },

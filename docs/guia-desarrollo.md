@@ -100,6 +100,23 @@ Vite sirve la PWA en <http://localhost:5173> con HMR y redirige `/api` al backen
 que no hace falta configurar CORS en local. Si el backend corre en otro puerto, defina
 `VITE_DEV_API_PROXY_TARGET` (por ejemplo `http://localhost:8081`).
 
+### Probar desde un celular (HTTPS de desarrollo)
+
+La cookie de sesión (`refresh_token`) es `Secure`: un navegador solo la guarda por HTTPS o por `localhost`.
+Si abre la PWA desde el celular por `http://<IP-del-equipo>:5173`, el inicio de sesión funciona pero **se pierde
+al recargar o reabrir** (la sesión no se restaura). Para probar en el celular con la sesión estable:
+
+```bash
+cd frontend-pwa
+npm run dev:https
+```
+
+El script imprime la dirección para el celular (`https://<IP-del-equipo>:5173`). Use un certificado autofirmado:
+la primera vez el navegador del celular avisa que no es de confianza; acéptelo para continuar. El celular y el
+equipo deben estar en la misma red Wi-Fi y el firewall de Windows debe permitir el puerto 5173. El backend, la
+cookie y los demás comandos no cambian; `npm run dev` sigue sirviendo por HTTP en `localhost`. Es solo para
+desarrollo: producción usa HTTPS real.
+
 Reglas obligatorias para cualquier cambio en la PWA: [FE-DIR-001](rules/frontend-rules.md) (mobile-first
 360–430 px, tokens de color AAA de `src/styles/tokens.ts`, áreas táctiles ≥ 44 px, fronteras de capas).
 
@@ -170,6 +187,7 @@ Extras: `npm run test:coverage` (cobertura) y `npm run quality:bundle` (presupue
 | Git | Ramas, Conventional Commits, momentos de push y PR según [GIT-WF-001](rules/git-workflow.md). |
 | Secretos | Lista de verificación pre-commit / pre-push de la [política de secretos](security/security_secrets_policy.md). |
 | Grafo de conocimiento | Tras modificar código: `graphify update .` (ver `CLAUDE.md`). |
+| Despliegue de demo | Neon + Koyeb + Cloudflare Pages + B2, paso a paso en la [guía de despliegue](despliegue/demo-gratuita.md) (ADR-0024). |
 
 ## 9. Problemas frecuentes
 

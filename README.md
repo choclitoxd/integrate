@@ -130,6 +130,7 @@ El índice completo está en **[docs/README.md](docs/README.md)**. Accesos direc
 | :--- | :--- |
 | Usar la aplicación | [Manual de usuario](docs/manual/README.md) |
 | Instalar y desarrollar | [Guía de desarrollo](docs/guia-desarrollo.md) · [Infraestructura local](infra/README.md) |
+| Publicar una demo | [Despliegue de demostración gratuito](docs/despliegue/demo-gratuita.md) |
 | Entender el producto | [Especificación técnica](docs/especificacion_tecnica.md) (RF-01…RF-20, RNF-01…RNF-30) |
 | Entender las decisiones | [Registro de ADR](docs/README.md#decisiones-de-arquitectura-adr) |
 | Integrarse con la API | [OpenAPI 3](docs/api/openapi.yaml) · [DTOs del contrato](docs/api/dtos_contrato_api.md) |

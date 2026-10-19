@@ -15,6 +15,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | :--- | :--- |
 | [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas y problemas frecuentes. |
 | [Infraestructura local](../infra/README.md) | Servicios de Docker Compose, perfiles y reinicio limpio. |
+| [Despliegue de demostración gratuito](despliegue/demo-gratuita.md) | Publicar la demo en Neon, Koyeb, Cloudflare Pages y Backblaze B2 sin tarjeta (ADR-0024). |
 | [Guía: búsqueda de experiencias](guia_despliegue_busqueda_servicio.md) | Despliegue local enfocado en el catálogo y sus filtros. |
 | [Pruebas de carga k6](../qa/k6/README.md) | Scripts de RNF-02, RNF-08 y RNF-10 y su ejecución en un entorno aislado. |
 
@@ -62,6 +63,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0020](architecture/adr/ADR-0020-responsive-movil-y-vistas-escritorio-por-factor-de-forma.md) | Responsive 320–480 px y vistas de escritorio por factor de forma | Aceptado |
 | [0021](architecture/adr/ADR-0021-recarga-en-caliente-entorno-desarrollo.md) | Recarga en caliente en desarrollo (DevTools + Vite HMR) | Propuesto |
 | [0022](architecture/adr/ADR-0022-datos-de-recorrido-distancia-paradas-ida-vuelta.md) | Distancia, paradas e ida y vuelta del recorrido | Aceptado |
+| [0024](architecture/adr/ADR-0024-despliegue-demo-gratuito-neon-koyeb-cloudflare.md) | Despliegue de demostración gratuito: Neon, Koyeb, Cloudflare Pages y B2 | Aceptado |
 
 ## Calidad
 

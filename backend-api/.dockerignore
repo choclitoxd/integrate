@@ -1,0 +1,13 @@
+# ADR-0024: el contexto de build solo necesita el wrapper, pom.xml y src/.
+target/
+.idea/
+.vscode/
+*.iml
+*.log
+# SEC-DIR-004: ningún archivo de entorno ni llave entra a la imagen.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks

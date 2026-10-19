@@ -125,6 +125,7 @@ Cada `integrate.notification.dispatch.interval` (15 s; apagado en `test`, donde 
 - **A. Transporte: SMTP genérico**, con el requisito de que las pruebas sean **gratuitas**. Los ambientes quedan así:
   - **Local y pruebas automáticas:** Mailpit, gratuito y ya incluido en el Docker Compose. Atrapa todos los correos sin entregarlos y los muestra en la UI (`http://localhost:8025`). Las pruebas de integración usan GreenMail en memoria.
   - **Prueba en un buzón real:** Gmail SMTP con contraseña de aplicación (`smtp.gmail.com:587` + STARTTLS), gratuito y con un límite de unos 500 correos al día. Requiere verificación en dos pasos en la cuenta. La contraseña de aplicación solo vive en `infra/env/.env.development` (ignorado por git, SEC-DIR-004) y la configura el desarrollador.
+  - **Demo con destinatarios reales (2026-10-16):** relé SMTP de Brevo (`smtp-relay.brevo.com:587` + STARTTLS), gratuito hasta 300 correos al día, con un remitente verificado en Brevo y sin dominio propio. Es solo configuración (las mismas variables `SMTP_*` y `MAIL_FROM`), sin cambios de código. El login y la SMTP key de Brevo viven en `infra/env/.env.development` (SEC-DIR-004).
   - **Producción:** un relé SMTP con remitente verificado (Amazon SES, Google Workspace u otro), definido en T-2.16.
 
   Se descartó la Gmail API: exige OAuth 2.0 y Google Workspace, y no se puede probar contra Mailpit.
