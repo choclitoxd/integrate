@@ -35,6 +35,10 @@ SELECT 'CREATE ROLE integrate_reporting LOGIN IN ROLE integrate_readonly'
  WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'integrate_reporting') \gexec
 ALTER ROLE integrate_reporting PASSWORD :'reporting_password';
 
+-- En PostgreSQL 16+ (y nubes como Neon donde el usuario no es superusuario nativo),
+-- se requiere ser miembro del rol para asignarlo como OWNER en CREATE DATABASE.
+GRANT integrate_owner TO CURRENT_USER;
+
 SELECT 'CREATE DATABASE integrate OWNER integrate_owner ENCODING ''UTF8'' TEMPLATE template0'
  WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'integrate') \gexec
 

@@ -15,7 +15,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | :--- | :--- |
 | [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas y problemas frecuentes. |
 | [Infraestructura local](../infra/README.md) | Servicios de Docker Compose, perfiles y reinicio limpio. |
-| [Despliegue de demostración gratuito](despliegue/demo-gratuita.md) | Publicar la demo en Neon, Koyeb, Cloudflare Pages y Backblaze B2 sin tarjeta (ADR-0024). |
+| [Despliegue de demostración gratuito](despliegue/demo-gratuita.md) | Publicar la demo sin tarjeta: backend en SnapDeploy (o en su PC con Cloudflare Tunnel), Neon, Cloudflare Pages y Backblaze B2 (ADR-0024 a ADR-0026). |
 | [Guía: búsqueda de experiencias](guia_despliegue_busqueda_servicio.md) | Despliegue local enfocado en el catálogo y sus filtros. |
 | [Pruebas de carga k6](../qa/k6/README.md) | Scripts de RNF-02, RNF-08 y RNF-10 y su ejecución en un entorno aislado. |
 
@@ -63,7 +63,9 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0020](architecture/adr/ADR-0020-responsive-movil-y-vistas-escritorio-por-factor-de-forma.md) | Responsive 320–480 px y vistas de escritorio por factor de forma | Aceptado |
 | [0021](architecture/adr/ADR-0021-recarga-en-caliente-entorno-desarrollo.md) | Recarga en caliente en desarrollo (DevTools + Vite HMR) | Propuesto |
 | [0022](architecture/adr/ADR-0022-datos-de-recorrido-distancia-paradas-ida-vuelta.md) | Distancia, paradas e ida y vuelta del recorrido | Aceptado |
-| [0024](architecture/adr/ADR-0024-despliegue-demo-gratuito-neon-koyeb-cloudflare.md) | Despliegue de demostración gratuito: Neon, Koyeb, Cloudflare Pages y B2 | Aceptado |
+| [0024](architecture/adr/ADR-0024-despliegue-demo-gratuito-neon-koyeb-cloudflare.md) | Despliegue de demostración gratuito: Neon, Cloudflare Pages y B2 (Koyeb reemplazado por ADR-0025) | Aceptado |
+| [0025](architecture/adr/ADR-0025-backend-demo-en-pc-propia-con-cloudflare-tunnel.md) | Backend de la demo en un PC propio publicado con Cloudflare Tunnel (`quick` / `named`); plan B de ADR-0026 | Aceptado |
+| [0026](architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) | Backend de la demo en SnapDeploy (plan gratuito) con proxy que traduce «despertando» a 503 | Aceptado |
 
 ## Calidad
 

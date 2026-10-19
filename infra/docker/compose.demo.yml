@@ -1,0 +1,76 @@
+# =============================================================================
+# Intégrate · Backend de la demo en el PC propio + Cloudflare Tunnel (ADR-0025)
+# -----------------------------------------------------------------------------
+# Ejecutar desde infra/docker/ (el .env.demo se crea a partir de infra/env/.env.example):
+#   docker compose --env-file ../env/.env.demo -f compose.demo.yml --profile quick up -d --build   # sin dominio
+#   docker compose --env-file ../env/.env.demo -f compose.demo.yml --profile named up -d --build   # con dominio
+#   docker compose --env-file ../env/.env.demo -f compose.demo.yml logs cloudflared-quick          # URL quick
+#   docker compose --env-file ../env/.env.demo -f compose.demo.yml --profile quick down            # detener
+#
+# La base es Neon, los archivos Backblaze B2 y el correo Brevo: aquí solo corren la API y el túnel.
+# SEC-DIR-004: este archivo NO contiene credenciales; todas llegan desde infra/env/.env.demo
+# (local, ignorado por Git). Sin --profile solo arranca la API, sin túnel.
+# =============================================================================
+name: integrate-demo
+
+services:
+  api:
+    build:
+      context: ../../backend-api
+    image: integrate-api:${API_IMAGE_TAG:-demo}
+    container_name: integrate-demo-api
+    restart: unless-stopped
+    # Fail-fast de la propia aplicación: si falta una variable obligatoria, el arranque aborta.
+    env_file:
+      - path: ../env/.env.demo
+        required: true
+    environment:
+      # Fijo: el túnel y el healthcheck apuntan al 8080 aunque el .env.demo defina otro SERVER_PORT.
+      SERVER_PORT: "8080"
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k}
+      TZ: UTC
+    # Solo loopback y solo para depurar: el túnel llega por la red de Compose, no por este puerto. El 8081 por
+    # defecto evita chocar con el backend de desarrollo (8080). La única vía pública es el túnel (ADR-0025 §2).
+    ports:
+      - "127.0.0.1:${DEMO_API_PORT:-8081}:8080"
+    mem_limit: 1g
+    healthcheck:
+      # La imagen no trae curl; bash abre un socket TCP al puerto de la API.
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+    security_opt:
+      - no-new-privileges:true
+
+  # --- Modo quick: sin dominio ni cuenta. La URL https://<palabras>.trycloudflare.com cambia en
+  #     cada reinicio del contenedor; léala con `logs cloudflared-quick` y póngala en API_ORIGIN (Pages).
+  cloudflared-quick:
+    image: cloudflare/cloudflared:2026.10.1
+    container_name: integrate-demo-tunnel
+    profiles: ["quick"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  # --- Modo named: con dominio en Cloudflare. El nombre de host fijo se configura una vez en
+  #     Zero Trust > Networks > Tunnels (Public hostname -> http://api:8080). TUNNEL_TOKEN es secreto.
+  cloudflared-named:
+    image: cloudflare/cloudflared:2026.10.1
+    container_name: integrate-demo-tunnel
+    profiles: ["named"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      # Interpolado desde --env-file; vacío en modo quick (este servicio no arranca) y cloudflared aborta si falta.
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true

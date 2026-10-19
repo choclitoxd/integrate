@@ -1,6 +1,6 @@
 # ADR-0024: Desplegar un entorno de demostración gratuito en Neon, Koyeb, Cloudflare Pages y Backblaze B2
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (§2 Koyeb y §5 Koyeb Secrets reemplazados por [ADR-0025](ADR-0025-backend-demo-en-pc-propia-con-cloudflare-tunnel.md), aprobado)
 - **Proyecto / Módulo:** Despliegue · backend-api (Spring Boot 4.1, Java 21) y frontend-pwa (Vite/React)
 - **Fecha:** 2026-10-18
 

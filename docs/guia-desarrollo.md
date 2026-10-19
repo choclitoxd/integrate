@@ -187,7 +187,7 @@ Extras: `npm run test:coverage` (cobertura) y `npm run quality:bundle` (presupue
 | Git | Ramas, Conventional Commits, momentos de push y PR según [GIT-WF-001](rules/git-workflow.md). |
 | Secretos | Lista de verificación pre-commit / pre-push de la [política de secretos](security/security_secrets_policy.md). |
 | Grafo de conocimiento | Tras modificar código: `graphify update .` (ver `CLAUDE.md`). |
-| Despliegue de demo | Neon + Koyeb + Cloudflare Pages + B2, paso a paso en la [guía de despliegue](despliegue/demo-gratuita.md) (ADR-0024). |
+| Despliegue de demo | Neon + backend en SnapDeploy (o su PC con Cloudflare Tunnel) + Cloudflare Pages + B2, paso a paso en la [guía de despliegue](despliegue/demo-gratuita.md) (ADR-0024 a ADR-0026). |
 
 ## 9. Problemas frecuentes
 
