@@ -54,10 +54,10 @@
     "semantic_hash": "da82b9ab6e6a6a1532b72e2d03a54fd3"
   },
   "infra/postgres/init/00_bootstrap.sql": {
-    "mtime": 1791164351.870744,
-    "seen": 1791177079.8928914,
-    "ast_hash": "ac4e0d63166394cdc2358f0a26840f6b",
-    "semantic_hash": "ac4e0d63166394cdc2358f0a26840f6b"
+    "mtime": 1792387021.5710585,
+    "seen": 1792390239.903371,
+    "ast_hash": "b64faf2f4951621b8fd4a96393af67b2",
+    "semantic_hash": ""
   },
   "docs/especificacion_tecnica.md": {
     "mtime": 1791573620.6094463,
@@ -3540,15 +3540,15 @@
     "semantic_hash": ""
   },
   "docs/README.md": {
-    "mtime": 1792380220.1131115,
-    "seen": 1792380258.4294577,
-    "ast_hash": "16744572f1d651d05e5a69ecfa7f4f8d",
+    "mtime": 1792392006.8445666,
+    "seen": 1792392056.71274,
+    "ast_hash": "a8d6d352075633ec5720d90c24c6402e",
     "semantic_hash": ""
   },
   "docs/guia-desarrollo.md": {
-    "mtime": 1792380220.1927607,
-    "seen": 1792380258.4294577,
-    "ast_hash": "c1172296b57647f8b714938b1df571d7",
+    "mtime": 1792392006.845567,
+    "seen": 1792392056.71274,
+    "ast_hash": "cfc6664ff3de7b2e45a5adef2f8df0d6",
     "semantic_hash": ""
   },
   "docs/manual/README.md": {
@@ -3768,9 +3768,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/functions/api/[[path]].ts": {
-    "mtime": 1792380035.2228513,
-    "seen": 1792380258.4294577,
-    "ast_hash": "16db46dadce669801cc0aa82d16def18",
+    "mtime": 1792394633.836188,
+    "seen": 1792394768.47351,
+    "ast_hash": "fd8711e6981d84c6d37f4221951eb8db",
     "semantic_hash": ""
   },
   "frontend-pwa/tsconfig.functions.json": {
@@ -3780,15 +3780,57 @@
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0024-despliegue-demo-gratuito-neon-koyeb-cloudflare.md": {
-    "mtime": 1792380220.3793495,
-    "seen": 1792380258.4294577,
-    "ast_hash": "d47227244d9fd966adee387a4b2ea42c",
+    "mtime": 1792389710.5972483,
+    "seen": 1792390239.903371,
+    "ast_hash": "792251e89c4514005672bf636b0419a0",
     "semantic_hash": ""
   },
   "docs/despliegue/demo-gratuita.md": {
-    "mtime": 1792380170.6858926,
-    "seen": 1792380258.4294577,
-    "ast_hash": "92dc49f3b5ecdebc5e75a7784699d2c9",
+    "mtime": 1792395091.945401,
+    "seen": 1792395125.8613832,
+    "ast_hash": "c2985df2e85292f9e270470c2db81ad5",
+    "semantic_hash": ""
+  },
+  "infra/postgres/seed/demo_privacy_policy.sql": {
+    "mtime": 1792380744.191139,
+    "seen": 1792390239.903371,
+    "ast_hash": "d69d8f7b3c079c215cfe0ecb7a07daaf",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0025-backend-demo-en-pc-propia-con-cloudflare-tunnel.md": {
+    "mtime": 1792392006.8425677,
+    "seen": 1792392056.71274,
+    "ast_hash": "d82c78f15d038d30fac7f29e928f19e9",
+    "semantic_hash": ""
+  },
+  "infra/docker/compose.demo.yml": {
+    "mtime": 1792390055.8563044,
+    "seen": 1792390239.903371,
+    "ast_hash": "41e30f28c93ad4cb2883b4c7a768f67b",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/test/pagesProxy.test.ts": {
+    "mtime": 1792394633.8371897,
+    "seen": 1792394768.47351,
+    "ast_hash": "b5884c9cbdc9536e44401a6d02fbe084",
+    "semantic_hash": ""
+  },
+  "docs/architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md": {
+    "mtime": 1792395091.9464104,
+    "seen": 1792395125.8613832,
+    "ast_hash": "844964602a7a57038ce4eedc70885bfd",
+    "semantic_hash": ""
+  },
+  "infra/scripts/check-b2.sh": {
+    "mtime": 1792393823.736687,
+    "seen": 1792394768.47351,
+    "ast_hash": "e5d7b4c28378363cd1630c39ea114070",
+    "semantic_hash": ""
+  },
+  "infra/scripts/snapdeploy.sh": {
+    "mtime": 1792395071.129625,
+    "seen": 1792395125.8613832,
+    "ast_hash": "123eecc7c2dd2149df8526b9cd314a79",
     "semantic_hash": ""
   }
 }
