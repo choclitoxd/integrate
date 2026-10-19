@@ -133,7 +133,7 @@ LocalStack, sobran: bórrelas). **No** defina `SPRING_PROFILES_ACTIVE=dev`: carg
 | `DATABASE_URL` | `jdbc:postgresql://ep-xxx.<region>.aws.neon.tech/integrate?sslmode=require` |
 | `DATABASE_USERNAME` / `DATABASE_PASSWORD` | `integrate_api` / su contraseña del paso 2 |
 | `FLYWAY_USER` / `FLYWAY_PASSWORD` | `integrate_owner` / su contraseña del paso 2 |
-| `DB_POOL_MAX_SIZE` | `5` |
+| `DB_POOL_MAX_SIZE`, `SERVER_TOMCAT_THREADS_MAX` | `4`, `16` (menos hilos y conexiones = menos memoria) |
 | `JWT_SIGNING_KEY`, `JWT_SIGNING_KEY_ID` | RSA PKCS#8 en Base64 · `session-demo-1` |
 | `VOUCHER_SIGNING_KEY`, `VOUCHER_SIGNING_KEY_ID` | RSA PKCS#8 en Base64 · `voucher-demo-2026-10` |
 | `SENSITIVE_DATA_KEY_V1`, `SENSITIVE_DATA_KEY_CURRENT_VERSION` | 32 bytes en Base64 · `1` |
@@ -148,7 +148,7 @@ LocalStack, sobran: bórrelas). **No** defina `SPRING_PROFILES_ACTIVE=dev`: carg
 | `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | Primer ADMIN (12–128 caracteres); bórrelas tras el primer arranque |
 | `TUNNEL_TOKEN` | Solo camino B, modo `named` (paso 6.B.2); en `quick` y en el camino A no se usa |
 
-`JAVA_TOOL_OPTIONS` ya viene configurado en el Compose (`-XX:MaxRAMPercentage=70 -XX:+UseSerialGC`); no
+`JAVA_TOOL_OPTIONS` ya viene ajustado en la imagen para 512 MB (ver «Memoria» más abajo); no
 defina `SERVER_PORT`, el Compose lo fija en 8080.
 
 > [!NOTE]
@@ -168,33 +168,37 @@ Su panel puede diferir de lo que sigue: oriéntese por los nombres, no por la po
 
 1. Regístrese **sin** tarjeta (si la pide, pare y use el camino B) y active 2FA si lo ofrece.
 2. **No cree el contenedor desde el botón «Deploy» del panel.** SnapDeploy da por fallido el despliegue si la
-   aplicación cae en el primer arranque, y Intégrate aborta sin sus variables (*fail-fast*): el contenedor ni
-   siquiera llega a crearse. Hay que crearlo **ya con las variables**, con el script, que lee su `.env.demo` y
-   llama a la API de SnapDeploy (`POST /containers` con imagen provisional `pending`; no construye nada aún):
+   aplicación cae en el primer arranque, y Intégrate aborta sin sus variables (*fail-fast*). Además, la pantalla de
+   variables detectadas no lista `DATABASE_URL` y pegar a mano las llaves RSA (2 272 caracteres) las corrompe.
+   Todo el flujo se hace con el script, que lee su `.env.demo` y llama a la API de SnapDeploy:
 
    ```bash
-   # 1) En SnapDeploy: API Keys -> crear un token personal con alcance «deploy» y vencimiento corto (p. ej. 7 días).
-   # 2) En ESTA terminal (nunca en un archivo ni en el chat):
-   export SNAPDEPLOY_TOKEN='sd_pat_...'
-   export SNAPDEPLOY_NAME='integrate-api'                  # nombre que tendrá el contenedor
+   # 1) En SnapDeploy: API Keys -> crear un token personal con alcance «deploy» y vencimiento corto (p. ej. 2 días).
+   # 2) Pegue el token en infra/env/.env.snapdeploy (local, ignorado por Git; no en el chat), p. ej.:
+   #      SNAPDEPLOY_TOKEN=sd_pat_...
+   #      SNAPDEPLOY_NAME=integrate-api                     # nombre que tendrá el contenedor
+   #    (o, sin archivo: export SNAPDEPLOY_TOKEN='sd_pat_...' y export SNAPDEPLOY_NAME='...' en esta terminal)
    bash infra/scripts/snapdeploy.sh env --dry-run          # lista los NOMBRES que enviará y avisa de lo que falte
-   bash infra/scripts/snapdeploy.sh create                 # crea el contenedor con todas las variables
+   bash infra/scripts/snapdeploy.sh create                 # crea el contenedor con todas las variables (marcador, sin build)
+   bash infra/scripts/snapdeploy.sh link                   # enlaza GitHub: rama main, root directory backend-api; lanza el build
+   bash infra/scripts/snapdeploy.sh deploys                # sigue el build (4-5 min); después: logs 120
    ```
 
-   El script omite las variables del túnel local (`TUNNEL_TOKEN`, etc.), las vacías y las que ya fija la imagen
-   (`JAVA_TOOL_OPTIONS`, `SERVER_PORT`), y se niega a enviar si quedan placeholders o faltan obligatorias. Nunca
-   imprime valores ni el token, y la API nunca los devuelve. SnapDeploy no ofrece gestor de secretos aparte: las
-   variables son visibles para quien entre a su cuenta (excepción de ADR-0026 §4: solo demo, sin datos reales,
-   llaves nuevas, 2FA).
-3. **Enlace el repositorio en el panel**: abra el contenedor `integrate-api` → enlazar repositorio de GitHub →
-   `<usuario>/<repositorio>`, la rama que contenga el código de la Fase 1 y el `Dockerfile` (hoy `feature/fase-1-mvp-transaccional`; `main` solo tiene la Fase 0 hasta que se fusione por PR), **root directory** `backend-api` (SnapDeploy usa el `Dockerfile` tal cual)
-   y despliegue. Puerto **8080** (la imagen lo declara con `EXPOSE`). Si SnapDeploy avisa de un *add-on* de base de
-   datos, **no lo compre**: la base es Neon y ya está en `DATABASE_URL`.
+   `link` envía `rootDirectory` a la API (`POST /api/mobile/github/link`); aunque su referencia no lo documenta,
+   SnapDeploy lo acepta (verificado: construyó el `Dockerfile` de `backend-api/` y el contenedor quedó `RUNNING`
+   en el puerto 8080, detectado por el `EXPOSE`). El script omite las variables del túnel local (`TUNNEL_TOKEN`,
+   etc.), las vacías y las que ya fija la imagen, y se niega a enviar si quedan placeholders o faltan
+   obligatorias. Nunca imprime valores ni el token. SnapDeploy no ofrece gestor de secretos aparte: las variables
+   son visibles para quien entre a su cuenta (excepción de ADR-0026 §4: solo demo, sin datos reales, llaves
+   nuevas, 2FA).
+3. **Un contenedor «marcador» (creado con `create` y sin repositorio) no se puede editar en el panel** (muestra
+   «not linked to a GitHub repository»): se enlaza con `link`. Si SnapDeploy avisa de un *add-on* de base de datos,
+   **no lo compre**: la base es Neon y ya está en `DATABASE_URL`.
 
    Para cambiar variables después (p. ej. al rotar un secreto): edite el `.env.demo` y ejecute
    `bash infra/scripts/snapdeploy.sh env` (reemplaza **todas** las del contenedor; reinicio rodante, sin reconstruir).
-   Revoque el token en *API Keys* al terminar.
-4. Siga el arranque con `bash infra/scripts/snapdeploy.sh logs 120` y espere `Started IntegrateApplication`. Anote la URL pública: es el `API_ORIGIN` del paso 8.
+   No las edite en el panel. Revoque el token en *API Keys* y borre `infra/env/.env.snapdeploy` al terminar.
+4. Siga el arranque con `bash infra/scripts/snapdeploy.sh logs 120` y espere `Started IntegrateApplication`. Anote la URL pública (`https://<nombre>.containers.snapdeploy.app`): es el `API_ORIGIN` del paso 8. El arranque con 0,25 vCPU tardó ≈ 90 s en la prueba real.
 
 **Solo si el *root directory* fallara en la práctica:** publique la imagen usted mismo en GitHub
 Container Registry (paquete público; la imagen no contiene secretos) y cree el contenedor desde esa imagen:
@@ -217,6 +221,17 @@ comprueban con un despliegue real: hágalo en el primero. Si la 1 falla, abandon
 | 1 | El arranque con 0,25 vCPU termina y la plataforma lo da por sano | Flyway aplica las 14 migraciones, aparece `Started IntegrateApplication` y el contenedor queda activo sin reinicios. Anote cuánto tardó. |
 | 2 | La plataforma enruta al puerto 8080 | `https://<url>/api/v1/experiences` responde JSON (no HTML). |
 | 3 | Brevo acepta el envío desde esa red | «Olvidé mi contraseña» con un correo real y llega (revise spam). |
+
+#### Memoria: 512 MB es justo (verificado)
+
+La tarea del plan Free tiene **512 MB y 0,25 vCPU** para toda la JVM. Con el `MaxRAMPercentage=70` original, la plataforma
+mataba el proceso **sin dejar ningún mensaje** (el log simplemente se corta) y volvía a arrancarlo en bucle. Se reprodujo y
+midió en local (`docker run --memory=512m --cpus=0.25`) y la configuración que quedó como valor por defecto de la imagen
+(`-Xmx144m`, metaspace ≤ 144 MB, caché de código 40 MB, `TieredStopAtLevel=1`) usa 348-413 MiB durante el recorrido completo
+y en vivo aguantó la suite de 108 pruebas sin reiniciarse. **No** baje el metaspace de 144 MB (con 96 MB la JVM termina con
+`OutOfMemoryError: Metaspace`) ni suba el heap sin medir. Síntomas de falta de memoria: 502 de Cloudflare, el log termina de
+golpe y aparece un nuevo `Started IntegrateApplication` minutos después. Si el negocio crece, el siguiente escalón es
+*Always-On Medium* (2 GB).
 
 #### Despertar la API y consumo de horas
 
@@ -349,6 +364,7 @@ El PC aloja el backend y las llaves: use cifrado de disco (BitLocker), bloquee l
 - **URL efímera en `quick`:** cada reinicio del contenedor del túnel cambia la URL y exige el paso 8.
 - **Tareas programadas:** la expiración de bloqueos (TTL 15 min), el outbox de correo y el barrido de
   vouchers corren mientras el backend esté activo; si el PC se apaga, se ponen al día al volver.
+- **Límite de tasa:** SnapDeploy corta a 100 peticiones/min por IP; el proxy de Pages concentra a todos los usuarios en pocas IPs de Cloudflare. Apto para una demo con pocos usuarios, no para carga.
 - **Neon** suspende la base a los ~5 minutos sin uso; la primera consulta tarda un par de segundos.
 - **IP del cliente:** el backend registra la IP con `getRemoteAddr()` (ADR-0005 §4), que detrás de
   `cloudflared` es la del túnel, no la del usuario. El proxy envía `X-Forwarded-For`, pero el backend no
@@ -361,8 +377,11 @@ El PC aloja el backend y las llaves: use cifrado de disco (BitLocker), bloquee l
 
 | Síntoma | Causa probable y solución |
 | :--- | :--- |
+| SnapDeploy: la pantalla de variables detectadas no lista `DATABASE_URL` y el arranque falla con `Could not resolve placeholder 'DATABASE_URL'` | SnapDeploy trata `DATABASE_URL` como variable de add-on y no la ofrece. Con una base externa (Neon) hay que **añadirla a mano** (`+ Add Variable`, Key `DATABASE_URL`, Value la URL JDBC del `.env.demo`) o cargarla con `snapdeploy.sh env`. No compre el add-on. |
 | La API en SnapDeploy responde 401 a todo y `/login` muestra «Please sign in» | Está desplegada una rama sin la seguridad de Intégrate (p. ej. `main`, que solo tiene la Fase 0). Cambie la rama de despliegue del contenedor y redespliegue. |
 | `/api/*` responde 502 «API_ORIGIN no está configurada» | Falta `API_ORIGIN` en Pages o no empieza por `https://`. Redespliegue tras añadirla. |
+| `/api/*` responde 502 de Cloudflare de forma intermitente y el log del contenedor se corta sin error | Falta de memoria: la plataforma mata la JVM. Compruebe que `JAVA_TOOL_OPTIONS` sea el de la imagen (sección «Memoria») y que no haya sobrescrito `MaxRAMPercentage`. Tras corregir, `snapdeploy.sh env`. |
+| `/api/*` responde 429 | SnapDeploy limita a **100 peticiones por minuto por IP** al mismo contenedor y bloquea 10 min. Todo el tráfico que pasa por el proxy de Pages sale por IPs de Cloudflare compartidas: no haga pruebas de carga contra la demo. |
 | `/api/*` responde 503 «El backend está dormido» | Camino A: ábralo en el navegador con la URL que indica el mensaje, espere ~1 minuto más el arranque de la JVM y reintente. No lo "mantenga caliente" con peticiones periódicas: no lo despiertan y consumen horas una vez despierto. |
 | El contenedor de SnapDeploy no despierta o dice que se agotaron las horas | Se consumieron las 100 h del mes: espere al siguiente ciclo o use el camino B. |
 | `/api/*` responde 502 «El backend no respondió» | PC apagado o Docker cerrado; o (modo `quick`) la URL cambió y `API_ORIGIN` quedó vieja. Revise `ps`, `logs cloudflared-quick` y el paso 8. |

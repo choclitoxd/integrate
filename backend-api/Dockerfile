@@ -29,7 +29,9 @@ COPY --from=build --chown=integrate:integrate /workspace/app.jar app.jar
 USER integrate
 
 # Instancia Free de Koyeb: 512 MB. Sobrescribible desde el servicio.
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k" \
+# Ajuste verificado para 512 MB / 0,25 vCPU (SnapDeploy Free): con MaxRAMPercentage=70 la tarea moría sin dejar logs.
+# Medido en local con --memory=512m --cpus=0.25: 348-413 MiB durante el recorrido completo, sin OOM.
+ENV JAVA_TOOL_OPTIONS="-Xmx144m -XX:MaxMetaspaceSize=144m -Xss228k -XX:ReservedCodeCacheSize=40m -XX:MaxDirectMemorySize=32m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30" \
     SERVER_PORT=8080
 EXPOSE 8080
 
