@@ -3786,9 +3786,9 @@
     "semantic_hash": ""
   },
   "docs/despliegue/demo-gratuita.md": {
-    "mtime": 1792394731.8362887,
-    "seen": 1792394768.47351,
-    "ast_hash": "f57a98b34bf7b42d3cb9be23f18e8e05",
+    "mtime": 1792395091.945401,
+    "seen": 1792395125.8613832,
+    "ast_hash": "c2985df2e85292f9e270470c2db81ad5",
     "semantic_hash": ""
   },
   "infra/postgres/seed/demo_privacy_policy.sql": {
@@ -3816,15 +3816,21 @@
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md": {
-    "mtime": 1792394704.141709,
-    "seen": 1792394768.47351,
-    "ast_hash": "f6aba104630659b130b896492560f097",
+    "mtime": 1792395091.9464104,
+    "seen": 1792395125.8613832,
+    "ast_hash": "844964602a7a57038ce4eedc70885bfd",
     "semantic_hash": ""
   },
   "infra/scripts/check-b2.sh": {
     "mtime": 1792393823.736687,
     "seen": 1792394768.47351,
     "ast_hash": "e5d7b4c28378363cd1630c39ea114070",
+    "semantic_hash": ""
+  },
+  "infra/scripts/snapdeploy.sh": {
+    "mtime": 1792395071.129625,
+    "seen": 1792395125.8613832,
+    "ast_hash": "123eecc7c2dd2149df8526b9cd314a79",
     "semantic_hash": ""
   }
 }

@@ -3786,9 +3786,9 @@
     "semantic_hash": ""
   },
   "docs/despliegue/demo-gratuita.md": {
-    "mtime": 1792395091.945401,
-    "seen": 1792395125.8613832,
-    "ast_hash": "c2985df2e85292f9e270470c2db81ad5",
+    "mtime": 1792397779.0863652,
+    "seen": 1792397809.3320403,
+    "ast_hash": "a19f19f3f3a0cc0c778fdfa777d61d4b",
     "semantic_hash": ""
   },
   "infra/postgres/seed/demo_privacy_policy.sql": {
@@ -3828,9 +3828,9 @@
     "semantic_hash": ""
   },
   "infra/scripts/snapdeploy.sh": {
-    "mtime": 1792395071.129625,
-    "seen": 1792395125.8613832,
-    "ast_hash": "123eecc7c2dd2149df8526b9cd314a79",
+    "mtime": 1792397746.0087433,
+    "seen": 1792397809.3320403,
+    "ast_hash": "79c079154426a509581944d92356eaa1",
     "semantic_hash": ""
   }
 }

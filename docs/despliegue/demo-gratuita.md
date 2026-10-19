@@ -167,30 +167,34 @@ su URL en un navegador**: las llamadas automáticas, incluido el proxy de Pages,
 Su panel puede diferir de lo que sigue: oriéntese por los nombres, no por la posición.
 
 1. Regístrese **sin** tarjeta (si la pide, pare y use el camino B) y active 2FA si lo ofrece.
-2. Cree un contenedor desde GitHub: repositorio de Intégrate, rama `main`, **root directory** `backend-api`
-   (SnapDeploy usa el `Dockerfile` del repositorio tal cual). Tamaño **Small** (el gratuito) y puerto **8080**:
-   si el panel detecta otro puerto, corríjalo a 8080 (la imagen fija `SERVER_PORT=8080`).
-3. **Variables de entorno, todas de una vez** (sin crearlas una por una): en el formulario deje las variables
-   vacías y despliegue; el primer arranque fallará por falta de configuración, es normal. Luego cárguelas con el
-   script, que lee su `.env.demo` y llama a la API de SnapDeploy (`PUT /containers/{id}/env`):
+2. **No cree el contenedor desde el botón «Deploy» del panel.** SnapDeploy da por fallido el despliegue si la
+   aplicación cae en el primer arranque, y Intégrate aborta sin sus variables (*fail-fast*): el contenedor ni
+   siquiera llega a crearse. Hay que crearlo **ya con las variables**, con el script, que lee su `.env.demo` y
+   llama a la API de SnapDeploy (`POST /containers` con imagen provisional `pending`; no construye nada aún):
 
    ```bash
    # 1) En SnapDeploy: API Keys -> crear un token personal con alcance «deploy» y vencimiento corto (p. ej. 7 días).
    # 2) En ESTA terminal (nunca en un archivo ni en el chat):
    export SNAPDEPLOY_TOKEN='sd_pat_...'
-   export SNAPDEPLOY_NAME='<nombre-del-contenedor>'        # si no se llama integrate-api
+   export SNAPDEPLOY_NAME='integrate-api'                  # nombre que tendrá el contenedor
    bash infra/scripts/snapdeploy.sh env --dry-run          # lista los NOMBRES que enviará y avisa de lo que falte
-   bash infra/scripts/snapdeploy.sh env                    # envía todo; reinicio rodante, sin reconstruir
-   bash infra/scripts/snapdeploy.sh logs                   # siga el arranque
+   bash infra/scripts/snapdeploy.sh create                 # crea el contenedor con todas las variables
    ```
 
    El script omite las variables del túnel local (`TUNNEL_TOKEN`, etc.), las vacías y las que ya fija la imagen
    (`JAVA_TOOL_OPTIONS`, `SERVER_PORT`), y se niega a enviar si quedan placeholders o faltan obligatorias. Nunca
-   imprime valores ni el token, y la API nunca los devuelve. **Reemplaza todas** las variables del contenedor: el
-   `.env.demo` es la fuente de verdad. SnapDeploy no ofrece gestor de secretos aparte: las variables son visibles
-   para quien entre a su cuenta (excepción de ADR-0026 §4: solo demo, sin datos reales, llaves nuevas, 2FA).
-   Revoque el token al terminar (*API Keys*).
-4. Espere en los logs `Started IntegrateApplication`. Anote la URL pública: es el `API_ORIGIN` del paso 8.
+   imprime valores ni el token, y la API nunca los devuelve. SnapDeploy no ofrece gestor de secretos aparte: las
+   variables son visibles para quien entre a su cuenta (excepción de ADR-0026 §4: solo demo, sin datos reales,
+   llaves nuevas, 2FA).
+3. **Enlace el repositorio en el panel**: abra el contenedor `integrate-api` → enlazar repositorio de GitHub →
+   `<usuario>/<repositorio>`, la rama que contenga el código de la Fase 1 y el `Dockerfile` (hoy `feature/fase-1-mvp-transaccional`; `main` solo tiene la Fase 0 hasta que se fusione por PR), **root directory** `backend-api` (SnapDeploy usa el `Dockerfile` tal cual)
+   y despliegue. Puerto **8080** (la imagen lo declara con `EXPOSE`). Si SnapDeploy avisa de un *add-on* de base de
+   datos, **no lo compre**: la base es Neon y ya está en `DATABASE_URL`.
+
+   Para cambiar variables después (p. ej. al rotar un secreto): edite el `.env.demo` y ejecute
+   `bash infra/scripts/snapdeploy.sh env` (reemplaza **todas** las del contenedor; reinicio rodante, sin reconstruir).
+   Revoque el token en *API Keys* al terminar.
+4. Siga el arranque con `bash infra/scripts/snapdeploy.sh logs 120` y espere `Started IntegrateApplication`. Anote la URL pública: es el `API_ORIGIN` del paso 8.
 
 **Solo si el *root directory* fallara en la práctica:** publique la imagen usted mismo en GitHub
 Container Registry (paquete público; la imagen no contiene secretos) y cree el contenedor desde esa imagen:
@@ -357,6 +361,7 @@ El PC aloja el backend y las llaves: use cifrado de disco (BitLocker), bloquee l
 
 | Síntoma | Causa probable y solución |
 | :--- | :--- |
+| La API en SnapDeploy responde 401 a todo y `/login` muestra «Please sign in» | Está desplegada una rama sin la seguridad de Intégrate (p. ej. `main`, que solo tiene la Fase 0). Cambie la rama de despliegue del contenedor y redespliegue. |
 | `/api/*` responde 502 «API_ORIGIN no está configurada» | Falta `API_ORIGIN` en Pages o no empieza por `https://`. Redespliegue tras añadirla. |
 | `/api/*` responde 503 «El backend está dormido» | Camino A: ábralo en el navegador con la URL que indica el mensaje, espere ~1 minuto más el arranque de la JVM y reintente. No lo "mantenga caliente" con peticiones periódicas: no lo despiertan y consumen horas una vez despierto. |
 | El contenedor de SnapDeploy no despierta o dice que se agotaron las horas | Se consumieron las 100 h del mes: espere al siguiente ciclo o use el camino B. |
