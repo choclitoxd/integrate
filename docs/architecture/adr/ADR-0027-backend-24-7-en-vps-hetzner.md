@@ -17,7 +17,7 @@ Alojar la API en **un VPS de Hetzner Cloud** (plan CPX12 elegido por el desarrol
 - **Seguridad del servidor:** acceso solo por llave SSH, sin contraseña ni root; cortafuegos que cierra todo el tráfico de entrada; actualizaciones de seguridad automáticas; contenedor sin privilegios (usuario 10001); variables en un archivo `.env` con permisos 600 fuera de Git.
 - **Memoria de la JVM:** se amplía el margen respecto al ajuste de 512 MB de ADR-0026 (por ejemplo Xmx de 1 GB) y se verifica con las pruebas de ciclo de vida existentes.
 - **Operación:** se agrega un monitor de disponibilidad externo gratuito sobre `/actuator/health` para alertar si cae.
-- **SnapDeploy** queda como plan B de contingencia, sin retirar su script.
+- **SnapDeploy se retira (enmienda 2026-10-27, decisión del desarrollador):** el backend de la demo corre **solo en Hetzner**. El contenedor de SnapDeploy queda detenido y sin uso; el script `infra/scripts/snapdeploy.sh` se conserva únicamente como referencia histórica. Dos backends sobre la misma base duplicarían los procesos de fondo (correos y expiración de reservas).
 
 ## Alternativas Descartadas
 - **Seguir en SnapDeploy Free:** duerme a los 15 min; incumple el 24/7.

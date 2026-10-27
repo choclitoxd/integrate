@@ -1,6 +1,6 @@
 # ADR-0026: Desplegar el backend de la demo en SnapDeploy (plan gratuito)
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0027](ADR-0027-backend-24-7-en-vps-hetzner.md) (2026-10-27): el backend corre solo en Hetzner; SnapDeploy ya no se usa
 - **Proyecto / Módulo:** Despliegue · backend-api, frontend-pwa/functions · alternativa a ADR-0025 §1–§2
 - **Fecha:** 2026-10-19
 
