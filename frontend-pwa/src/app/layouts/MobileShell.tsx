@@ -45,9 +45,17 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
 
         {/* Con la navegación inferior (no en los flujos) el pie deja espacio para no quedar tapado. */}
         <footer className={`px-4 pt-2 ${flow ? 'pb-8' : 'pb-24'}`}>
-          <p className="border-t border-border-subtle pt-4 text-sm text-ink-muted">
-            Intégrate · Turismo comunitario en Colombia
-          </p>
+          <div className="flex flex-col gap-1 border-t border-border-subtle pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-ink-muted">Intégrate · Turismo comunitario en Colombia</p>
+            <a
+              href="/manual/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center font-semibold text-brand underline underline-offset-4 hover:text-brand-hover focus-visible:outline-3 focus-visible:outline-focus"
+            >
+              Manual de usuario ↗<span className="sr-only"> (se abre en una nueva pestaña)</span>
+            </a>
+          </div>
         </footer>
 
         {!flow && (

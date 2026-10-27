@@ -66,6 +66,8 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0024](architecture/adr/ADR-0024-despliegue-demo-gratuito-neon-koyeb-cloudflare.md) | Despliegue de demostración gratuito: Neon, Cloudflare Pages y B2 (Koyeb reemplazado por ADR-0025) | Aceptado |
 | [0025](architecture/adr/ADR-0025-backend-demo-en-pc-propia-con-cloudflare-tunnel.md) | Backend de la demo en un PC propio publicado con Cloudflare Tunnel (`quick` / `named`); plan B de ADR-0026 | Aceptado |
 | [0026](architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) | Backend de la demo en SnapDeploy (plan gratuito) con proxy que traduce «despertando» a 503 | Aceptado |
+| [0027](architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md) | Alojar el backend 24/7 en un VPS de Hetzner Cloud | Propuesto |
+| [0028](architecture/adr/ADR-0028-publicacion-manual-usuario-en-pwa.md) | Publicar el manual de usuario como activo estático en la PWA (Cloudflare Pages y Local) | Aceptado |
 
 ## Calidad
 

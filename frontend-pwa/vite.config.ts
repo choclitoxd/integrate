@@ -17,8 +17,25 @@ export default defineConfig(({ mode }) => {
   // sin HTTPS la sesión no sobrevive a una recarga. El backend y la cookie no cambian.
   const devHttps = process.env.PWA_DEV_HTTPS === '1';
 
+  const serveManualPlugin = {
+    name: 'serve-manual',
+    configureServer(server: {
+      middlewares: {
+        use: (fn: (req: { url?: string }, res: unknown, next: () => void) => void) => void;
+      };
+    }) {
+      server.middlewares.use((req, _res, next) => {
+        const path = req.url?.split('?')[0];
+        if (path === '/manual' || path === '/manual/') {
+          req.url = '/manual/index.html';
+        }
+        next();
+      });
+    },
+  };
+
   return {
-    plugins: [react(), tailwindcss(), ...(devHttps ? [basicSsl()] : [])],
+    plugins: [react(), tailwindcss(), serveManualPlugin, ...(devHttps ? [basicSsl()] : [])],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },

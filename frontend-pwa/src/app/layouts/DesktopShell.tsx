@@ -54,8 +54,16 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
       </main>
 
       <footer className="border-t border-border-subtle bg-surface">
-        <div className="mx-auto w-full max-w-6xl px-8 pt-4 pb-4">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-8 pt-4 pb-4">
           <p className="text-sm text-ink-muted">Intégrate · Turismo comunitario en Colombia</p>
+          <a
+            href="/manual/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center font-semibold text-brand underline underline-offset-4 hover:text-brand-hover focus-visible:outline-3 focus-visible:outline-focus"
+          >
+            Manual de usuario ↗<span className="sr-only"> (se abre en una nueva pestaña)</span>
+          </a>
         </div>
       </footer>
     </div>
