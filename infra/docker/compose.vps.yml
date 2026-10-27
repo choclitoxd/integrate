@@ -1,0 +1,46 @@
+# =============================================================================
+# Intégrate · Backend 24/7 en un VPS (ADR-0027): API + Caddy (HTTPS automático)
+# -----------------------------------------------------------------------------
+# Se ejecuta en el servidor, en ~/integrate, junto a:
+#   .env       variables de la API + API_HOST (permisos 600, NUNCA en Git; ver infra/env/.env.example)
+#   Caddyfile  proxy inverso (este directorio)
+# Uso:  docker compose -f compose.vps.yml up -d
+# La imagen se construye con `docker build -t integrate-api:vps backend-api` y se envía con docker save | ssh docker load.
+# La base de datos sigue en Neon (ADR-0024). Solo Caddy publica puertos (80/443).
+# =============================================================================
+services:
+  api:
+    image: integrate-api:${API_IMAGE_TAG:-vps}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms128m -Xmx768m -XX:MaxMetaspaceSize=192m -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=64m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError}
+    expose:
+      - "8080"
+    mem_limit: 1400m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_HOST: ${API_HOST:?defina API_HOST (por ejemplo 1-2-3-4.sslip.io)}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,6 +1,6 @@
 # ADR-0027: Alojar el backend 24/7 en un VPS de Hetzner Cloud
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-10-27)
 - **Proyecto / Módulo:** Infraestructura / Despliegue
 - **Fecha:** 2026-10-26
 
@@ -10,10 +10,10 @@ El docente exige que la aplicación esté disponible 24/7. El plan gratuito de S
 Restricciones: costo bajo y predecible, sin Vercel ni Render, reutilizar lo ya construido (`Dockerfile`, `compose.demo.yml`, proxy de Cloudflare Pages, Brevo, Backblaze B2) y no volcar secretos en Git ni en el chat.
 
 ## Decisión
-Alojar la API en **un VPS de Hetzner Cloud** (tipo CX22 o equivalente, 2 vCPU y 4 GB de RAM, Ubuntu LTS, unos 5 USD/mes), ejecutada con Docker Compose y reiniciada automáticamente (`restart: unless-stopped`).
+Alojar la API en **un VPS de Hetzner Cloud** (plan CPX12 elegido por el desarrollador: 1 vCPU y 2 GB de RAM, Ubuntu 24.04 LTS, Falkenstein, unos 13,49 €/mes con IVA; con 2 GB de swap como colchón), ejecutada con Docker Compose y reiniciada automáticamente (`restart: unless-stopped`).
 
 - **Base de datos:** se mantiene Neon como punto de partida (sin migrar datos). Si la suspensión de Neon afecta la experiencia, se pasa a un PostgreSQL 16 en la misma VM mediante un ADR posterior.
-- **Exposición:** Cloudflare Tunnel (`cloudflared`) hacia el contenedor, sin abrir puertos de entrada. La Pages Function `/api/*` sigue haciendo de proxy con `API_ORIGIN` apuntando al túnel con nombre.
+- **Exposición (enmienda 2026-10-27):** la cuenta de Cloudflare no tiene dominio, y un túnel con nombre no puede dar una URL fija sin él. Se usa **Caddy** como proxy inverso con certificado Let's Encrypt automático sobre un nombre gratuito de **sslip.io** derivado de la IP del servidor (`<ip-con-guiones>.sslip.io`). Solo se abren los puertos 22, 80 y 443, con cortafuegos de Hetzner y `ufw`. La Pages Function `/api/*` sigue haciendo de proxy con `API_ORIGIN` apuntando a esa URL. Si más adelante hay dominio propio, basta cambiar el nombre en el Caddyfile.
 - **Seguridad del servidor:** acceso solo por llave SSH, sin contraseña ni root; cortafuegos que cierra todo el tráfico de entrada; actualizaciones de seguridad automáticas; contenedor sin privilegios (usuario 10001); variables en un archivo `.env` con permisos 600 fuera de Git.
 - **Memoria de la JVM:** se amplía el margen respecto al ajuste de 512 MB de ADR-0026 (por ejemplo Xmx de 1 GB) y se verifica con las pruebas de ciclo de vida existentes.
 - **Operación:** se agrega un monitor de disponibilidad externo gratuito sobre `/actuator/health` para alertar si cae.
