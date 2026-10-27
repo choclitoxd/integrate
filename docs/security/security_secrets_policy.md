@@ -92,7 +92,7 @@ name: Security Secret Scan
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, pruebas ]
 
 jobs:
   gitleaks:
