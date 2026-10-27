@@ -22,6 +22,11 @@ credentials.json
 id_ed25519*
 id_ecdsa*
 id_dsa*
+# Llaves SSH sueltas en la raíz del repo (nunca deben subirse; muévalas a ~/.ssh)
+/integrate
+/integrate.pub
+/pepe18xd
+/pepe18xd.pub
 *.kdbx
 token.json
 auth.json
