@@ -10,15 +10,27 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * mensajes de error. Cada adaptador solo se activa si su secreto está configurado; el proveedor activo debe estarlo
  * o el arranque aborta.
  *
- * @param provider proveedor de los cobros nuevos ({@code MOCK} en {@code dev}/{@code test}, {@code WOMPI} en despliegue)
+ * @param provider  proveedor de los cobros nuevos ({@code MOCK} en {@code dev}/{@code test}, {@code WOMPI} en despliegue)
+ * @param simulator simulador de la pasarela Mock (ADR-0029): solo puede encenderse con {@code provider = MOCK}
  */
 @ConfigurationProperties("integrate.payments")
-public record PaymentProperties(PaymentProvider provider, Mock mock, Wompi wompi) {
+public record PaymentProperties(PaymentProvider provider, Mock mock, Wompi wompi, Simulator simulator) {
 
     public PaymentProperties {
         Objects.requireNonNull(provider, "integrate.payments.provider (PAYMENT_PROVIDER) is required");
         mock = mock == null ? new Mock(null, null) : mock;
         wompi = wompi == null ? new Wompi(null, null, null, null, null) : wompi;
+        simulator = simulator == null ? new Simulator(false) : simulator;
+        if (simulator.enabled() && provider != PaymentProvider.MOCK) {
+            throw new IllegalStateException("integrate.payments.simulator.enabled (PAYMENT_SIMULATOR_ENABLED) "
+                    + "requires integrate.payments.provider=MOCK: the simulator must never run next to a real gateway");
+        }
+    }
+
+    /**
+     * @param enabled expone {@code POST /api/v1/dev/payments/{paymentId}/simulate} ({@code PAYMENT_SIMULATOR_ENABLED})
+     */
+    public record Simulator(boolean enabled) {
     }
 
     /**

@@ -130,6 +130,7 @@ function Checkout({
   const [checkout, setCheckout] = useState<PaymentCheckout | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [simulatorMissing, setSimulatorMissing] = useState(false);
   const { verifying, timedOut } = verify;
 
   // Al vencer en el cliente se reconsulta; el servidor confirma el estado (EXPIRED).
@@ -165,7 +166,9 @@ function Checkout({
       await simulatePayment(http, checkout.paymentId, status);
       verify.start();
     } catch (failure) {
-      setError(failure);
+      // 404: el servidor no tiene encendido el simulador (ADR-0029 §3); no es "no encontrado".
+      if (failure instanceof ApiError && failure.status === 404) setSimulatorMissing(true);
+      else setError(failure);
     } finally {
       setBusy(false);
     }
@@ -207,6 +210,19 @@ function Checkout({
           />
           {mock && <MockGatewayPanel busy={busy} onSimulate={(status) => void simulate(status)} />}
         </>
+      )}
+
+      {simulatorMissing && (
+        <div
+          role="alert"
+          className="mt-4 flex items-start gap-2 rounded-xl border-2 border-danger-border bg-danger-bg px-4 py-3 font-semibold text-danger-text"
+        >
+          <Icon name="alert" className="mt-0.5" />
+          <p>
+            La pasarela de pruebas no está activa en este servidor. Avisa al equipo de Intégrate;
+            tus cupos se liberan solos si no se paga a tiempo.
+          </p>
+        </div>
       )}
 
       {error !== null && (

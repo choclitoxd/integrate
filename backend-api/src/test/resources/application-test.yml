@@ -21,6 +21,11 @@ integrate:
       # Las pruebas invocan el despachador directamente contra GreenMail (ADR-0011 §8).
       enabled: false
 
+  payments:
+    simulator:
+      # La PWA y las pruebas confirman pagos Mock sin firmar el webhook (ADR-0029).
+      enabled: true
+
 logging:
   level:
     com.integrate: INFO

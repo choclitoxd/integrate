@@ -6,7 +6,7 @@ import com.integrate.modules.payment.service.PaymentWebhookService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Simulador de la pasarela Mock (ADR-0009 §1, punto C): completa el flujo de pago desde la PWA o a mano sin firmar un
- * webhook. Solo existe en los perfiles {@code dev} y {@code test}; nunca en despliegue.
+ * webhook. Solo existe con {@code integrate.payments.simulator.enabled=true} (ADR-0029), que exige el proveedor
+ * {@code MOCK}: encendido en {@code dev}, {@code test} y la demo; nunca junto a una pasarela real.
  */
 @RestController
-@Profile({"dev", "test"})
+@ConditionalOnProperty(prefix = "integrate.payments.simulator", name = "enabled", havingValue = "true")
 @PreAuthorize("hasRole('TOURIST')")
 @RequiredArgsConstructor
 public class DevPaymentSimulatorController {

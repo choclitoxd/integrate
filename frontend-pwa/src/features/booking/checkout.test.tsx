@@ -61,6 +61,8 @@ interface Scenario {
   afterSimulate?: Status;
   /** Respuestas sucesivas de GET /bookings/bk-1 (la última se repite). */
   statuses?: Status[];
+  /** El servidor no tiene el simulador encendido (ADR-0029): la simulación responde 404. */
+  simulatorOff?: boolean;
 }
 
 function renderCheckout({
@@ -69,6 +71,7 @@ function renderCheckout({
   payment = () => mockCheckout,
   afterSimulate = 'CONFIRMED',
   statuses = ['PENDING'],
+  simulatorOff = false,
 }: Scenario = {}) {
   let status: Status = statuses[0] ?? 'PENDING';
   let reads = 0;
@@ -88,6 +91,12 @@ function renderCheckout({
       },
       '/v1/dev/payments/pay-1/simulate': (_url: URL, request: RequestOptions) => {
         simulated.push(request.body);
+        if (simulatorOff) {
+          return new ApiError(
+            { type: 'about:blank', title: 'Not Found', status: 404, code: 'RESOURCE_NOT_FOUND' },
+            null,
+          );
+        }
         statuses = [afterSimulate];
         reads = 0;
         return { received: true };
@@ -153,6 +162,18 @@ describe('cuenta regresiva (ADR-0016 §2)', () => {
 });
 
 describe('checkout (T-1.10d)', () => {
+  it('sin simulador en el servidor explica el motivo en vez de "no encontrado" (ADR-0029 §3)', async () => {
+    const { simulated } = renderCheckout({ simulatorOff: true });
+    await userEvent.click(await screen.findByRole('button', { name: 'Pagar' }));
+    const panel = await screen.findByRole('region', { name: /Pasarela de pruebas/ });
+    await userEvent.click(within(panel).getByRole('button', { name: 'Simular pago aprobado' }));
+    expect(simulated).toEqual([{ status: 'APPROVED' }]);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La pasarela de pruebas no está activa en este servidor.',
+    );
+    expect(screen.queryByText(/No encontramos lo que buscas/)).not.toBeInTheDocument();
+  });
+
   it('muestra el desglose y paga con el método elegido por la pasarela de pruebas', async () => {
     const { paid, simulated } = renderCheckout();
     expect(await screen.findByRole('heading', { level: 1, name: 'Paga tu reserva' })).toBeVisible();

@@ -30,6 +30,12 @@ spring:
       hibernate:
         format_sql: true
 
+integrate:
+  payments:
+    simulator:
+      # Panel "Pasarela de pruebas" de la PWA (ADR-0029). Con PAYMENT_PROVIDER=WOMPI, ponga PAYMENT_SIMULATOR_ENABLED=false.
+      enabled: ${PAYMENT_SIMULATOR_ENABLED:true}
+
 logging:
   level:
     com.integrate: DEBUG

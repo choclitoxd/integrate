@@ -122,7 +122,7 @@ class WompiPaymentGatewayAdapterTest {
 
     private WompiPaymentGatewayAdapter adapter(String integritySecret, String previousEventsSecret) {
         PaymentProperties properties = new PaymentProperties(PaymentProvider.WOMPI, null,
-                new PaymentProperties.Wompi("pub_test_x", integritySecret, EVENTS, previousEventsSecret, null));
+                new PaymentProperties.Wompi("pub_test_x", integritySecret, EVENTS, previousEventsSecret, null), null);
         return new WompiPaymentGatewayAdapter(properties, json, clock);
     }
 
