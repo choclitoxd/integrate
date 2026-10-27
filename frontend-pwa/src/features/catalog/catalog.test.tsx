@@ -7,6 +7,7 @@ import { addDays, formatLongDate, startOfWeek, todayInBogota } from '@/shared/li
 import {
   availability,
   catalogRoutes,
+  detail,
   EXPERIENCE_ID,
   page,
   schedule,
@@ -172,6 +173,21 @@ describe('detalle (T-1.10a)', () => {
     // Vista de flujo: "Atrás" en lugar de la navegación inferior.
     expect(screen.getByRole('button', { name: 'Atrás' })).toBeVisible();
     expect(screen.queryByRole('navigation', { name: 'Navegación principal' })).toBeNull();
+  });
+
+  it('con coordenadas dudosas (ADR-0030) oculta las coordenadas y el enlace busca por la dirección', async () => {
+    renderApp(`/experiencias/${EXPERIENCE_ID}`, {
+      ...catalogRoutes,
+      [`/v1/experiences/${EXPERIENCE_ID}`]: { ...detail, meetingPointCoordinatesTrusted: false },
+    });
+    expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
+    expect(screen.queryByText('Coordenadas')).toBeNull();
+    const href =
+      screen.getByRole('link', { name: /Abrir en Google Maps/ }).getAttribute('href') ?? '';
+    const query = new URL(href).searchParams.get('query') ?? '';
+    expect(query.startsWith('Parque principal de San Carlos, ')).toBe(true);
+    expect(query.endsWith(', Colombia')).toBe(true);
+    expect(query).not.toContain('6.187');
   });
 
   it('responde con una vista propia si la experiencia no está disponible', async () => {

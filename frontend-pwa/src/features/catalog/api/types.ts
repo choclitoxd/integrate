@@ -57,6 +57,11 @@ export interface ExperienceDetail {
   readonly longitude: number | null;
   readonly timezone: 'America/Bogota';
   readonly stops: readonly RouteStop[];
+  /**
+   * `false` si la verificación del punto de encuentro quedó en REVIEW o MISMATCH (ADR-0030): las coordenadas no
+   * coinciden con la dirección escrita y el mapa se centra por la dirección. Ausente en servidores anteriores.
+   */
+  readonly meetingPointCoordinatesTrusted?: boolean;
 }
 
 /** Parada del recorrido, en orden de visita. */

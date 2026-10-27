@@ -85,7 +85,7 @@ def crear_experiencia(p, assoc):
     body = {'title': 'Caminata ecológica y cata de café', 'description': 'Recorrido guiado a pie por senderos cafeteros de la zona, con explicación del proceso del café, '
             'paradas para observar aves y una cata final con productores locales. Experiencia de ejemplo: puede editarla desde su cuenta.',
             'safetyGuidelines': 'Use calzado cerrado y ropa cómoda, lleve agua y protector solar. El guía acompaña todo el recorrido; no se separe del grupo.',
-            'physicalIntensity': 'LOW', 'durationMinutes': 180, 'municipalityCode': assoc['municipalityCode'], 'meetingPoint': 'Plaza de Bolívar, Armenia', 'latitude': 4.533889, 'longitude': -75.681111,
+            'physicalIntensity': 'LOW', 'durationMinutes': 180, 'municipalityCode': assoc['municipalityCode'], 'meetingPoint': 'Plaza de Bolívar, Armenia', 'latitude': 4.532573, 'longitude': -75.673041,
             'maxCapacityPerSlot': 8, 'unitPriceCop': 60000, 'categoryCodes': [c['code'] for c in (cats or [])][:1],
             'routeType': 'LOOP', 'distanceKm': 3.5, 'roundTripMinutes': 180,
             'stops': [{'name': 'Mirador del cafetal', 'description': 'Vista del paisaje cafetero'}, {'name': 'Beneficiadero', 'description': 'Proceso del café'}, {'name': 'Cata final', 'description': None}]}

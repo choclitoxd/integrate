@@ -5,8 +5,16 @@ import { placeLabel } from '../labels';
 import { useCategories } from '../queries';
 import { MeetingPointMap } from './MeetingPointMap';
 
-function MapLinks({ latitude, longitude }: { latitude: number; longitude: number }) {
-  const coords = `${String(latitude)},${String(longitude)}`;
+function MapLinks({
+  latitude,
+  longitude,
+  addressQuery,
+}: {
+  latitude: number;
+  longitude: number;
+  addressQuery: string | undefined;
+}) {
+  const coords = addressQuery ?? `${String(latitude)},${String(longitude)}`;
   return (
     <div className="mt-4">
       {/*
@@ -66,7 +74,18 @@ export function DetailHeader({ detail }: { detail: ExperienceDetail }) {
 }
 
 /** Descripción, punto de encuentro y recomendaciones de seguridad. */
+/**
+ * Dirección escrita para ubicar el punto cuando las coordenadas no coinciden con ella (ADR-0030 §5); `undefined`
+ * si las coordenadas son de fiar o el servidor no informa la verificación.
+ */
+function untrustedAddress(detail: ExperienceDetail): string | undefined {
+  if (detail.meetingPointCoordinatesTrusted !== false) return undefined;
+  const { municipality, department } = detail.summary;
+  return [detail.meetingPoint, municipality.name, department.name, 'Colombia'].join(', ');
+}
+
 export function DetailSections({ detail }: { detail: ExperienceDetail }) {
+  const addressQuery = untrustedAddress(detail);
   return (
     <>
       <section aria-labelledby="sobre" className="mt-8">
@@ -120,15 +139,17 @@ export function DetailSections({ detail }: { detail: ExperienceDetail }) {
                 {placeLabel(detail.summary)}
               </dd>
             </div>
-            {detail.latitude !== null && detail.longitude !== null && (
-              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
-                <Icon name="crosshair" size={24} className="row-span-2 text-brand" />
-                <dt className="text-sm text-ink-muted">Coordenadas</dt>
-                <dd className="font-semibold text-ink tabular-nums">
-                  {detail.latitude.toFixed(5)}, {detail.longitude.toFixed(5)}
-                </dd>
-              </div>
-            )}
+            {detail.latitude !== null &&
+              detail.longitude !== null &&
+              addressQuery === undefined && (
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
+                  <Icon name="crosshair" size={24} className="row-span-2 text-brand" />
+                  <dt className="text-sm text-ink-muted">Coordenadas</dt>
+                  <dd className="font-semibold text-ink tabular-nums">
+                    {detail.latitude.toFixed(5)}, {detail.longitude.toFixed(5)}
+                  </dd>
+                </div>
+              )}
           </dl>
           {detail.latitude !== null && detail.longitude !== null && (
             <>
@@ -136,8 +157,13 @@ export function DetailSections({ detail }: { detail: ExperienceDetail }) {
                 latitude={detail.latitude}
                 longitude={detail.longitude}
                 title={detail.summary.title}
+                {...(addressQuery === undefined ? {} : { addressQuery })}
               />
-              <MapLinks latitude={detail.latitude} longitude={detail.longitude} />
+              <MapLinks
+                latitude={detail.latitude}
+                longitude={detail.longitude}
+                addressQuery={addressQuery}
+              />
             </>
           )}
         </div>

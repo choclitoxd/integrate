@@ -3,6 +3,11 @@ interface MeetingPointMapProps {
   readonly longitude: number;
   /** Nombre de la experiencia, para el título accesible del mapa. */
   readonly title: string;
+  /**
+   * Dirección escrita del punto de encuentro. Si se da, las coordenadas no coinciden con ella (ADR-0030 §5) y el
+   * mapa se centra por la dirección: solo la Embed API de Google busca por texto; sin llave no se dibuja mapa.
+   */
+  readonly addressQuery?: string;
 }
 
 /** El contrato admite coordenadas nulas pero no valida el rango; un valor fuera de rango no se dibuja. */
@@ -19,12 +24,23 @@ const HALF_SPAN = 0.005;
  * pide llave. La incrustación antigua de Google sin llave dejó de servirse (404 con
  * `X-Frame-Options: SAMEORIGIN`).
  */
-function embedSrc(latitude: number, longitude: number): string {
-  const point = `${String(latitude)},${String(longitude)}`;
+function embedSrc(
+  latitude: number,
+  longitude: number,
+  addressQuery: string | undefined,
+): { src: string; sandbox: string | undefined } | null {
+  const point = addressQuery ?? `${String(latitude)},${String(longitude)}`;
   const key = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY?.trim();
   if (key) {
-    return `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key)}&q=${encodeURIComponent(point)}&zoom=15&language=es`;
+    // La Embed API de Google no dibuja dentro de un marco con `sandbox` (se probó con allow-forms,
+    // allow-modals y allow-presentation): es su propio dominio y la llave va atada al dominio del sitio.
+    return {
+      src: `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key)}&q=${encodeURIComponent(point)}&zoom=15&language=es`,
+      sandbox: undefined,
+    };
   }
+  // OpenStreetMap no busca por texto: con coordenadas dudosas es mejor no dibujar un marcador equivocado.
+  if (addressQuery !== undefined) return null;
   const bbox = [
     longitude - HALF_SPAN,
     latitude - HALF_SPAN,
@@ -33,7 +49,10 @@ function embedSrc(latitude: number, longitude: number): string {
   ]
     .map((value) => value.toFixed(6))
     .join(',');
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(point)}`;
+  return {
+    src: `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(point)}`,
+    sandbox: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
+  };
 }
 
 /**
@@ -41,17 +60,25 @@ function embedSrc(latitude: number, longitude: number): string {
  * que la sección entra en pantalla. Sin conexión el marco queda vacío; el botón "Abrir en Google
  * Maps" de al lado sigue disponible (RNF-04).
  */
-export function MeetingPointMap({ latitude, longitude, title }: MeetingPointMapProps) {
+export function MeetingPointMap({
+  latitude,
+  longitude,
+  title,
+  addressQuery,
+}: MeetingPointMapProps) {
   if (!inRange(latitude, longitude)) return null;
 
+  const embed = embedSrc(latitude, longitude, addressQuery);
+  if (embed === null) return null;
+  const { src, sandbox } = embed;
   return (
     <div className="mt-4 overflow-hidden rounded-lg border border-border-subtle bg-canvas">
       <iframe
         title={`Mapa del punto de encuentro de ${title}`}
-        src={embedSrc(latitude, longitude)}
+        src={src}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        sandbox={sandbox}
         className="block h-64 w-full border-0 lg:h-80"
       />
     </div>
