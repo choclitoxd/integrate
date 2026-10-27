@@ -1,10 +1,26 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MeetingPointMap } from './MeetingPointMap';
 
 describe('MeetingPointMap', () => {
-  it('incrusta OpenStreetMap centrado en el punto, con título accesible', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('con llave de Google en el despliegue usa la Embed API', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_KEY', 'AIza-de-prueba');
+    render(<MeetingPointMap latitude={6.187} longitude={-74.995} title="Ruta E2E" />);
+    const src = new URL(
+      screen.getByTitle('Mapa del punto de encuentro de Ruta E2E').getAttribute('src') ?? '',
+    );
+    expect(src.origin + src.pathname).toBe('https://www.google.com/maps/embed/v1/place');
+    expect(src.searchParams.get('key')).toBe('AIza-de-prueba');
+    expect(src.searchParams.get('q')).toBe('6.187,-74.995');
+  });
+
+  it('sin llave incrusta OpenStreetMap centrado en el punto, con título accesible', () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_KEY', '');
     render(<MeetingPointMap latitude={6.187} longitude={-74.995} title="Ruta E2E" />);
     const map = screen.getByTitle('Mapa del punto de encuentro de Ruta E2E');
     const src = new URL(map.getAttribute('src') ?? '');

@@ -13,6 +13,7 @@ MSYS_NO_PATHCONV=1 VITE_API_BASE_URL=/api npm run build
 
 - `MSYS_NO_PATHCONV=1` es obligatorio en **Git Bash (Windows)**. Sin él, `/api` se convierte en `C:/Program Files/Git/api` y la app muestra «VITE_API_BASE_URL debe ser una ruta…».
 - Sin la variable, la app muestra «Configuración incompleta» en producción. Esto ya pasó: el sitio quedó roto tras un redespliegue.
+- **Mapa con Google (opcional):** si hay una llave de *Maps Embed API*, se pasa en el mismo comando: `MSYS_NO_PATHCONV=1 VITE_API_BASE_URL=/api VITE_GOOGLE_MAPS_EMBED_KEY=<llave> npm run build`. La llave queda visible en el bundle, así que debe restringirse en Google Cloud por referencia HTTP (`https://integrate-demo.pages.dev/*`) y solo a esa API. Si la API no está activada en su proyecto, el mapa sale con error: antes de compilar con ella, pruebe `https://www.google.com/maps/embed/v1/place?key=<llave>&q=4.53,-75.68` (debe responder 200). Sin la variable, el mapa usa OpenStreetMap.
 - Antes de subir, confirma que el bundle no tiene la ruta de Git:
 
 ```bash

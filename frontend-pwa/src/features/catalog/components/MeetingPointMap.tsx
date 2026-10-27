@@ -10,19 +10,21 @@ function inRange(latitude: number, longitude: number): boolean {
   return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
 }
 
-/** Medio lado de la ventana del mapa, en grados (~550 m): se ve el pueblo, no solo una esquina. */
+/** Medio lado de la ventana del mapa de OpenStreetMap, en grados (~550 m). */
 const HALF_SPAN = 0.005;
 
 /**
- * Mapa del punto de encuentro con su marcador (OpenStreetMap, modo de incrustación sin llave de API
- * ni librería). Antes usaba la incrustación sin llave de Google Maps, que Google dejó de servir
- * (responde 404 con `X-Frame-Options: SAMEORIGIN`). Se carga diferido: no cuesta datos hasta que la
- * sección entra en pantalla. Sin conexión el marco queda vacío; el botón "Abrir en Google Maps" de
- * al lado sigue disponible (RNF-04).
+ * Dirección del marco: Google Maps (Embed API) si el despliegue trae una llave pública en
+ * `VITE_GOOGLE_MAPS_EMBED_KEY` (restringida por dominio en Google Cloud); si no, OpenStreetMap, que no
+ * pide llave. La incrustación antigua de Google sin llave dejó de servirse (404 con
+ * `X-Frame-Options: SAMEORIGIN`).
  */
-export function MeetingPointMap({ latitude, longitude, title }: MeetingPointMapProps) {
-  if (!inRange(latitude, longitude)) return null;
-
+function embedSrc(latitude: number, longitude: number): string {
+  const point = `${String(latitude)},${String(longitude)}`;
+  const key = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY?.trim();
+  if (key) {
+    return `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key)}&q=${encodeURIComponent(point)}&zoom=15&language=es`;
+  }
   const bbox = [
     longitude - HALF_SPAN,
     latitude - HALF_SPAN,
@@ -31,13 +33,22 @@ export function MeetingPointMap({ latitude, longitude, title }: MeetingPointMapP
   ]
     .map((value) => value.toFixed(6))
     .join(',');
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${String(latitude)},${String(longitude)}`)}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(point)}`;
+}
+
+/**
+ * Mapa del punto de encuentro con su marcador, sin librería. Se carga diferido: no cuesta datos hasta
+ * que la sección entra en pantalla. Sin conexión el marco queda vacío; el botón "Abrir en Google
+ * Maps" de al lado sigue disponible (RNF-04).
+ */
+export function MeetingPointMap({ latitude, longitude, title }: MeetingPointMapProps) {
+  if (!inRange(latitude, longitude)) return null;
 
   return (
     <div className="mt-4 overflow-hidden rounded-lg border border-border-subtle bg-canvas">
       <iframe
         title={`Mapa del punto de encuentro de ${title}`}
-        src={src}
+        src={embedSrc(latitude, longitude)}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
