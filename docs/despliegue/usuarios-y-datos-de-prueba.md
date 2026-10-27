@@ -12,11 +12,11 @@ Cómo se inicializa la base de la demo desplegada (Neon + SnapDeploy + Cloudflar
 
 ## 2. Cuentas de prueba (testers) · todos los roles
 
-Se crean con `python infra/scripts/crear-testers.py`. Las contraseñas se generan al azar y se escriben solo en `infra/env/.env.testers.txt`, que no se sube a Git. Los correos `@integrate-demo.test` son ficticios: no reciben mensajes y no sirven para recuperar la contraseña.
+Se crean con `python infra/scripts/crear-testers.py`. Las contraseñas se generan al azar y se escriben solo en `infra/env/.env.testers.txt`, que no se sube a Git. Los correos `@integrate-demo.test` son ficticios: no reciben mensajes, así que no sirven para recuperar la contraseña. Si un tester la olvida, el equipo la restablece. La contraseña de `tester2` fue cambiada durante la prueba de recuperación: la vigente está en `.env.testers.txt`.
 
 | Rol | Cuentas | Qué permite probar |
 | :--- | :--- | :--- |
-| **TOURIST** (turista) | `tester1` a `tester5@integrate-demo.test` | Catálogo, reserva de una franja, pago en modo MOCK, «Mis experiencias», historial, voucher en PDF y cancelación. |
+| **TOURIST** (turista) | `tester1` a `tester5@integrate-demo.test` | Catálogo, reserva de una franja, pago en modo MOCK con «Simular pago aprobado», «Mis experiencias», voucher en PDF y cancelación. |
 | **HOST** (anfitrión) | `tester.anfitrion@integrate-demo.test` | Crear experiencias, enviarlas a revisión, gestionar franjas y cupos, ver sus reservas. |
 | **LINK_MANAGER** (gestor de enlace) | `tester.gestor@integrate-demo.test` | Gestionar la asociación y a sus anfitriones; ver la dispersión del 85 %. |
 | **ADMIN** (administrador) | `tester.admin@integrate-demo.test` | Aprobar experiencias, crear asociaciones, asignar roles, auditoría y reportes. Acceso total. |
@@ -34,12 +34,28 @@ Las personas reales se capturan con el formulario `infra/forms/formulario-usuari
 
 El rol **ADMIN** de una persona real solo se concede cuando su correo es permanente; no se otorga a correos desechables.
 
+## 3b. Cuentas reales creadas (estado al 2026-10-27)
+
+Ninguna contraseña de estas cuentas está guardada en el proyecto: la clave temporal se genera al azar y solo sirve para crear la cuenta. Para entrar, cada persona pide un enlace nuevo desde **«¿Olvidaste tu contraseña?»** en `/ingresar`. El enlace vale 15 minutos y de un solo uso (ADR-0014); los enlaces anteriores ya vencieron.
+
+| Rol | Estado |
+| :--- | :--- |
+| Gestor de enlace | Cuenta creada. Debe pedir un enlace nuevo para entrar. |
+| Anfitrión | Cuenta creada. Debe pedir un enlace nuevo para entrar. Tiene aprobada la experiencia «Caminata ecológica y cata de café» con 3 franjas. |
+| Administrador (persona real) | Pendiente: el correo entregado era desechable; se creará cuando envíe uno permanente. |
+
+Nombres y correos de estas personas no se publican en el repositorio (es público): están solo en los archivos locales indicados abajo.
+
+Los datos completos de cada persona están en `infra/env/.env.usuarios-reales.json` (y `…parte1.json`), ignorados por Git.
+
 ## 4. Flujo completo para probar
 
-1. El turista (`tester1`) abre la experiencia de ejemplo, elige una franja, reserva y paga en modo MOCK.
-2. Descarga el voucher y lo ve en «Mis experiencias».
-3. El anfitrión ve la reserva; el gestor de enlace ve la dispersión del 85 %.
-4. El ADMIN revisa la auditoría y puede aprobar nuevas experiencias.
+1. **Turista (`tester1`):** elige «Caminata ecológica y cata de café», una franja y pulsa «Reservar». Llena los datos (documento, EPS y contacto de emergencia), acepta el consentimiento de datos de salud y pulsa «Apartar cupos».
+2. **Pago:** en «Paga tu reserva» pulsa «Pagar» y luego «Simular pago aprobado» (panel «Pasarela de pruebas», ADR-0029). La reserva queda confirmada con su voucher, que se descarga en PDF/A y aparece en «Mis experiencias».
+3. **Cupos:** los cupos apartados sin pagar se liberan a los 15 minutos (worker de expiración).
+4. **Anfitrión y gestor:** el anfitrión ve la reserva; el gestor de enlace ve la dispersión del 85 % y su jornada.
+5. **ADMIN:** revisa la auditoría y aprueba experiencias nuevas.
+6. **Recuperación de contraseña (ADR-0014):** «¿Olvidaste tu contraseña?» envía un enlace de un solo uso al correo de la cuenta. Con los correos `@integrate-demo.test` no se puede completar la prueba: se necesita una cuenta con correo real.
 
 ## 5. Limpieza al terminar
 
