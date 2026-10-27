@@ -74,6 +74,17 @@ Las cuentas de anfitrión con correo sintético no pueden usar este flujo. Recup
   - En `/ingresar`, el enlace "¿Olvidaste tu contraseña?" junto al campo de contraseña.
 - **Restricciones:** se usan `createHttpClient`, `ProblemNotice` y los componentes de `shared/ui` existentes. Sin tokens de color nuevos. Acción primaria en `StickyActionBar`. Los 5 comandos del Quality Gate deben pasar en verde.
 
+#### Enmienda (aceptada el 2026-10-27)
+
+Motivo: la auditoría del 2026-10-27 (hallazgo C1) confirmó que T-1.13b no está hecha y que el enlace del correo lleva a «Página no encontrada»; además, desde que se escribió este ADR, FE-DIR-001 (Directiva 1.4) prohíbe las barras fijas y `StickyActionBar` ya no existe en `shared/ui`.
+
+- **Acción primaria:** el botón («Enviar enlace», «Guardar contraseña») va **dentro del contenido, justo después del campo**, con `Button` de `shared/ui`. Se elimina la referencia a `StickyActionBar`.
+- **Componentes:** el campo de contraseña reutiliza el mismo control de mostrar u ocultar de `/registro` e `/ingresar`; el correo, `TextField`.
+- **Vistas de escritorio:** estas dos rutas usan el diseño móvil centrado del `DesktopShell`; no se crean vistas dedicadas (ADR-0020).
+- **Sesión:** las dos rutas son públicas y también funcionan con sesión iniciada. Si hay sesión y el restablecimiento devuelve 204, se cierra la sesión local antes de ir a `/ingresar`.
+- **Sin cambios de backend:** los endpoints, el TTL de 15 minutos y el enlace `/restablecer-contrasena#token=` se mantienen. Los enlaces enviados a personas reales antes de esta implementación ya vencieron; deberán pedir uno nuevo desde `/recuperar-contrasena`.
+- **Pruebas:** Vitest para leer y borrar el fragmento, el mensaje neutral tras el 202, el 204 que lleva a `/ingresar` con el aviso, el 401 con la acción de pedir otro enlace, el 422 de la política de contraseña y el enlace «¿Olvidaste tu contraseña?» en `/ingresar`; axe sin errores a 360 px.
+
 ### 6. Errores nuevos
 
 | Código | HTTP | Cuándo |

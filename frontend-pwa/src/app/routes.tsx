@@ -1,6 +1,13 @@
 import type { RouteObject } from 'react-router';
 
-import { AccountPage, ActivatePage, LoginPage, RegisterPage } from '@/features/auth';
+import {
+  AccountPage,
+  ActivatePage,
+  ForgotPasswordPage,
+  LoginPage,
+  RegisterPage,
+  ResetPasswordPage,
+} from '@/features/auth';
 import { CatalogPage, ExperienceDetailPage, SlotPickerPage } from '@/features/catalog';
 import { ManagerHomePage } from '@/features/home';
 import { AdaptiveView } from '@/shared/ui';
@@ -15,6 +22,7 @@ import { RouteErrorPage } from './pages/RouteErrorPage';
 import { RouteLoading } from './pages/RouteLoading';
 
 const toCatalog: ShellHandle = { flow: true, back: () => '/' };
+const toLogin: ShellHandle = { flow: true, back: () => '/ingresar' };
 /** Una reserva propia: sin historial (enlace directo), "Atrás" lleva a la lista de sus experiencias. */
 const toMyExperiences: ShellHandle = { flow: true, back: () => '/mis-experiencias' };
 const catalogHandle: ShellHandle = { wide: true };
@@ -113,6 +121,8 @@ export const routes: RouteObject[] = [
           { path: 'ingresar', element: <LoginPage /> },
           { path: 'registro', element: <RegisterPage />, handle: toCatalog },
           { path: 'activar', element: <ActivatePage />, handle: toCatalog },
+          { path: 'recuperar-contrasena', element: <ForgotPasswordPage />, handle: toLogin },
+          { path: 'restablecer-contrasena', element: <ResetPasswordPage />, handle: toLogin },
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },
           { path: 'mis-experiencias', lazy: myExperiences },
           { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toMyExperiences },

@@ -1,5 +1,5 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { ApiError } from '@/shared/api';
 import { formatClockTime } from '@/shared/lib';
@@ -46,6 +46,9 @@ function LoginError({ error }: { error: unknown }) {
 export function LoginPage() {
   const [params] = useSearchParams();
   const destination = safeReturnPath(params.get('volver'));
+  // Aviso de otra pantalla (p. ej. "Tu contraseña cambió"), por estado de navegación y no por URL.
+  const { state } = useLocation() as { state: { notice?: unknown } | null };
+  const notice = typeof state?.notice === 'string' ? state.notice : null;
   const navigate = useNavigate();
   const session = useSession();
   const store = useSessionStore();
@@ -98,6 +101,15 @@ export function LoginPage() {
         noValidate
         className="mt-6 grid gap-5"
       >
+        {notice !== null && serverError === null && (
+          <p
+            role="status"
+            className="flex items-start gap-2 rounded-xl border-2 border-success-border bg-success-bg px-4 py-3 font-semibold text-success-text"
+          >
+            <Icon name="check" className="mt-0.5" />
+            <span>{notice}</span>
+          </p>
+        )}
         {serverError !== null && <LoginError error={serverError} />}
         <TextField
           label="Correo"
@@ -109,12 +121,20 @@ export function LoginPage() {
           spellCheck={false}
           error={errors.email}
         />
-        <PasswordField
-          label="Contraseña"
-          name="password"
-          autoComplete="current-password"
-          error={errors.password}
-        />
+        <div className="grid gap-1">
+          <PasswordField
+            label="Contraseña"
+            name="password"
+            autoComplete="current-password"
+            error={errors.password}
+          />
+          <Link
+            to="/recuperar-contrasena"
+            className="inline-flex min-h-11 items-center justify-self-start font-semibold text-brand underline underline-offset-4"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
         {/* Acción justo bajo los campos: un formulario de dos campos no necesita barra fija. */}
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Ingresando…' : 'Ingresar'}
