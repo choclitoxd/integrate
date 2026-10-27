@@ -5,6 +5,8 @@ import { Icon } from './Icon';
 export interface SelectOption {
   readonly value: string;
   readonly label: string;
+  /** Texto del botón cerrado cuando es más corto que el de la lista ("+57" frente a "Colombia (+57)"). */
+  readonly shortLabel?: string;
 }
 
 interface SelectProps {
@@ -27,6 +29,10 @@ interface SelectProps {
   readonly searchable?: boolean;
   /** Texto de ayuda del campo cuando se borra lo escrito (solo con `searchable`). */
   readonly searchPlaceholder?: string;
+  /** El rótulo se anuncia a lectores de pantalla pero no se dibuja (el campo ya va rotulado al lado). */
+  readonly hideLabel?: boolean;
+  /** `wide`: el menú es más ancho que un campo angosto (p. ej. el de indicativo) para leer las opciones. */
+  readonly menuWidth?: 'field' | 'wide';
 }
 
 /** Altura máxima del menú: con menos espacio libre debajo se abre hacia arriba, y se acorta si hace falta. */
@@ -72,6 +78,8 @@ export function Select({
   size = 'md',
   searchable = false,
   searchPlaceholder,
+  hideLabel = false,
+  menuWidth = 'field',
 }: SelectProps) {
   const baseId = useId();
   const labelId = `${baseId}-label`;
@@ -285,7 +293,7 @@ export function Select({
 
   return (
     <div ref={rootRef}>
-      <span id={labelId} className="block font-semibold text-ink">
+      <span id={labelId} className={hideLabel ? 'sr-only' : 'block font-semibold text-ink'}>
         {label}
       </span>
       {/* El menú se posiciona respecto de este contenedor (solo el campo), no de la etiqueta. */}
@@ -395,7 +403,9 @@ export function Select({
             }}
             className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 bg-canvas px-3 text-left text-base text-ink hover:bg-surface-subtle aria-expanded:border-brand disabled:border-border-subtle disabled:bg-surface-subtle disabled:text-ink-muted ${sizeClass} ${borderClass}`}
           >
-            <span className="min-w-0 truncate">{selectedLabel}</span>
+            <span className="min-w-0 truncate">
+              {options[selectedIndex]?.shortLabel ?? selectedLabel}
+            </span>
             <Icon
               name="chevronDown"
               size={20}
@@ -412,7 +422,9 @@ export function Select({
               event.preventDefault();
             }}
             style={{ maxHeight: menuMaxHeight }}
-            className={`absolute inset-x-0 z-30 overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-surface-elevated p-1.5 shadow-lg ${
+            className={`absolute z-30 overflow-y-auto ${
+              menuWidth === 'wide' ? 'left-0 w-[min(18rem,calc(100vw-3rem))]' : 'inset-x-0'
+            } overscroll-contain rounded-lg border-2 border-border bg-surface-elevated p-1.5 shadow-lg ${
               openUp ? 'bottom-full mb-1' : 'top-full mt-1'
             }`}
           >

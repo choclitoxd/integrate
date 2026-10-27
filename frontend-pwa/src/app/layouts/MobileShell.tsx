@@ -7,7 +7,8 @@ import { BackButton } from './ShellParts';
 
 /**
  * Shell móvil: columna max-w-md con barra superior, <main> enfocable, pie de créditos y
- * navegación inferior fija en la zona del pulgar (FE-DIR-001, Directiva 1).
+ * navegación inferior fija en la zona del pulgar (FE-DIR-001, Directiva 1). Las acciones de cada
+ * vista van dentro del contenido, no en una barra fija: la única barra fija es esta navegación.
  */
 export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps) {
   const { flow, backTo, loading } = useShellRoute();
@@ -38,15 +39,12 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
           )}
         </header>
 
-        <main
-          id={MAIN_CONTENT_ID}
-          tabIndex={-1}
-          className={`flex-1 px-4 pt-6 ${flow ? 'pb-36' : 'pb-8'}`}
-        >
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 px-4 pt-6 pb-8">
           {children ?? <Outlet />}
         </main>
 
-        <footer className={`px-4 pt-2 ${flow ? 'pb-36' : 'pb-24'}`}>
+        {/* Con la navegación inferior (no en los flujos) el pie deja espacio para no quedar tapado. */}
+        <footer className={`px-4 pt-2 ${flow ? 'pb-8' : 'pb-24'}`}>
           <p className="border-t border-border-subtle pt-4 text-sm text-ink-muted">
             Intégrate · Turismo comunitario en Colombia
           </p>
@@ -56,11 +54,11 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
           <nav aria-label={navLabel} className="fixed inset-x-0 bottom-0 z-30">
             <ul className="mx-auto flex w-full max-w-md gap-2 border-t-2 border-border-strong bg-surface-elevated px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
               {navItems.map((item) => (
-                <li key={item.to} className="flex-1">
+                <li key={item.to} className="flex-auto">
                   <NavLink
                     to={item.to}
                     end
-                    className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg px-2 text-sm font-semibold text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand"
+                    className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-center text-sm font-semibold text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand"
                   >
                     <Icon name={item.icon} size={22} />
                     {item.label}

@@ -10,12 +10,13 @@ import { RequireSession } from './guards/RequireSession';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
 import { TouristLayout } from './layouts/TouristLayout';
-import { AccountExperiences } from './pages/AccountExperiences';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RouteErrorPage } from './pages/RouteErrorPage';
 import { RouteLoading } from './pages/RouteLoading';
 
 const toCatalog: ShellHandle = { flow: true, back: () => '/' };
+/** Una reserva propia: sin historial (enlace directo), "Atrás" lleva a la lista de sus experiencias. */
+const toMyExperiences: ShellHandle = { flow: true, back: () => '/mis-experiencias' };
 const catalogHandle: ShellHandle = { wide: true };
 const detailHandle: ShellHandle = { ...toCatalog, wide: true };
 const slotsHandle: ShellHandle = {
@@ -36,6 +37,16 @@ const bookingForm = async () => {
     element: (
       <RequireSession roles={['ROLE_TOURIST']}>
         <BookingFormPage />
+      </RequireSession>
+    ),
+  };
+};
+const myExperiences = async () => {
+  const { MyExperiencesPage } = await import('@/features/booking');
+  return {
+    element: (
+      <RequireSession roles={['ROLE_TOURIST']}>
+        <MyExperiencesPage />
       </RequireSession>
     ),
   };
@@ -103,12 +114,13 @@ export const routes: RouteObject[] = [
           { path: 'registro', element: <RegisterPage />, handle: toCatalog },
           { path: 'activar', element: <ActivatePage />, handle: toCatalog },
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },
-          { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toCatalog },
+          { path: 'mis-experiencias', lazy: myExperiences },
+          { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toMyExperiences },
           {
             path: 'cuenta',
             element: (
               <RequireSession>
-                <AccountPage experiences={<AccountExperiences />} />
+                <AccountPage />
               </RequireSession>
             ),
           },

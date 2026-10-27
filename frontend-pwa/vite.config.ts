@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       css: false,
       restoreMocks: true,
+      // Con ~30 archivos de jsdom en paralelo, una prueba de formulario que tarda 2 s sola pasa de los
+      // 5 s por defecto bajo carga y falla sin que haya un error real.
+      testTimeout: 15_000,
       // ADR-0019 §4 (RNF-27): cobertura de la lógica de features y de la capa compartida.
       coverage: {
         provider: 'v8',

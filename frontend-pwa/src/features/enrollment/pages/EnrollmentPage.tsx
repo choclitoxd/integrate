@@ -10,10 +10,10 @@ import {
   buttonClassName,
   Icon,
   ProblemNotice,
+  PhoneField,
   Select,
   type SelectOption,
   Skeleton,
-  StickyActionBar,
   TextField,
 } from '@/shared/ui';
 
@@ -186,7 +186,6 @@ export function EnrollmentPage() {
   const queryClient = useQueryClient();
   const policy = useCurrentPolicy();
   const online = useOnlineStatus();
-  const formId = useId();
   const victimErrorId = useId();
   const victimizationErrorId = useId();
   const formRef = useRef<HTMLFormElement>(null);
@@ -325,7 +324,6 @@ export function EnrollmentPage() {
 
       <form
         ref={formRef}
-        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="mt-6 grid gap-8"
@@ -372,16 +370,12 @@ export function EnrollmentPage() {
               error={errors.docNumber}
             />
           </div>
-          <TextField
+          <PhoneField
             label="Celular"
-            hint="Con indicativo del país, por ejemplo +57 300 123 4567."
             name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="off"
             value={draft.phone}
-            onChange={(event) => {
-              update({ phone: event.target.value });
+            onChange={(next) => {
+              update({ phone: next });
             }}
             error={errors.phone}
           />
@@ -559,21 +553,21 @@ export function EnrollmentPage() {
             error={errors.consentForm}
           />
         </section>
-      </form>
 
-      <StickyActionBar
-        note={
-          !online
-            ? 'El enrolamiento necesita conexión. Tus datos siguen aquí.'
-            : policy.isError
-              ? 'No se puede enrolar sin la política de datos vigente.'
-              : undefined
-        }
-      >
-        <Button type="submit" form={formId} disabled={submitting || !online || !policy.data}>
-          {submitting ? 'Registrando…' : 'Registrar anfitrión'}
-        </Button>
-      </StickyActionBar>
+        {/* Acción al terminar el último paso (autorización de datos), no en una barra fija al fondo. */}
+        <div>
+          <Button type="submit" disabled={submitting || !online || !policy.data} className="w-full">
+            {submitting ? 'Registrando…' : 'Registrar anfitrión'}
+          </Button>
+          {(!online || policy.isError) && (
+            <p className="mt-2 text-sm text-ink-muted">
+              {!online
+                ? 'El enrolamiento necesita conexión. Tus datos siguen aquí.'
+                : 'No se puede enrolar sin la política de datos vigente.'}
+            </p>
+          )}
+        </div>
+      </form>
 
       <BottomSheet
         open={blocker.state === 'blocked'}

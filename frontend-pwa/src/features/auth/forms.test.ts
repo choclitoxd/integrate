@@ -41,6 +41,22 @@ describe('formularios de autenticación', () => {
     expect(errors.password).toMatch(/12 caracteres/);
   });
 
+  it('exige el largo del país del celular y dice cuántos dígitos lleva', () => {
+    const phoneError = (phone: string) => {
+      const result = registerSchema.safeParse({ ...valid, phone });
+      return result.success ? null : fieldErrorsOf(result.error.issues).phone;
+    };
+    expect(phoneError('+57 3001234567')).toBeNull();
+    expect(phoneError('+57 300123456')).toBe(
+      'Escribe un celular de 10 dígitos para Colombia (+57).',
+    );
+    expect(phoneError('+57 ')).toMatch(/10 dígitos para Colombia/);
+    expect(phoneError('+593 991234567')).toBeNull();
+    expect(phoneError('+593 9912345678')).toMatch(/9 dígitos para Ecuador/);
+    // Un indicativo fuera de la lista solo cumple el formato E.164 del backend.
+    expect(phoneError('+86 13800138000')).toBeNull();
+    expect(phoneError('12345')).toMatch(/celular válido/);
+  });
   it('exige solo dígitos en cédula y tarjeta de identidad, pero no en pasaporte', () => {
     expect(registerSchema.safeParse({ ...valid, docNumber: 'AB12345' }).success).toBe(false);
     expect(

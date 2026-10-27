@@ -2,6 +2,7 @@ import { z } from 'zod/mini';
 import type { $ZodIssue } from 'zod/v4/core';
 
 import type { InvalidParam } from '@/shared/api';
+import { GENERIC_PHONE_MESSAGE, phoneProblem } from '@/shared/lib';
 
 /**
  * Esquemas de formulario escritos desde las restricciones de `openapi.yaml` (ADR-0013 §4).
@@ -10,7 +11,6 @@ import type { InvalidParam } from '@/shared/api';
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const DOC_NUMBER = /^[A-Za-z0-9]{4,20}$/;
-const E164 = /^\+[1-9][0-9]{7,14}$/;
 
 const email = z
   .string()
@@ -49,6 +49,20 @@ export function normalizePhone(raw: string): string {
   return compact;
 }
 
+/**
+ * Celular del registro, del enrolamiento y del contacto de emergencia: se normaliza a E.164 y se
+ * exige el largo del país elegido (10 dígitos en Colombia, 9 en Ecuador…); un indicativo que no está
+ * en la lista solo debe cumplir el formato E.164 del backend.
+ */
+export const phoneSchema = z.pipe(
+  z.pipe(z.string(), z.transform(normalizePhone)),
+  z.string().check(
+    z.refine((value) => phoneProblem(value) === null, {
+      error: (issue) => phoneProblem(String(issue.input)) ?? GENERIC_PHONE_MESSAGE,
+    }),
+  ),
+);
+
 export const registerSchema = z
   .object({
     fullName: z
@@ -68,10 +82,7 @@ export const registerSchema = z
           'El número de documento lleva entre 4 y 20 letras o dígitos, sin espacios.',
         ),
       ),
-    phone: z.pipe(
-      z.pipe(z.string(), z.transform(normalizePhone)),
-      z.string().check(z.regex(E164, 'Escribe un celular válido, por ejemplo +57 300 123 4567.')),
-    ),
+    phone: phoneSchema,
     email,
     password: z
       .string()

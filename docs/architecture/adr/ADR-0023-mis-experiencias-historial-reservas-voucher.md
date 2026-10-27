@@ -55,6 +55,17 @@ Huecos:
 - **Datos:** `features/booking` expone `useMyBookings(scope)` (TanStack Query, `useInfiniteQuery` con `createHttpClient`) y el componente `MyBookingsSection` por su `index.ts`. `features/auth` (AccountPage) lo importa por el barril, como exige la Directiva 3.
 - **Escritorio** (ADR-0020): sin vista dedicada. La sección usa el mismo layout móvil centrado en `max-w-md`, como el resto de Mi cuenta.
 
+### 2.1 Enmienda (2026-10-27): "Mis experiencias" como pantalla propia en la barra
+
+A pedido del desarrollador, la sección sale de Mi cuenta y pasa a una **pantalla propia con su pestaña en la barra de navegación**. Esto revierte la alternativa descartada más abajo ("Página nueva…"): el nivel de navegación extra se evita porque la pantalla es un destino de la barra, a un toque desde cualquier vista.
+
+- **Ruta:** `/mis-experiencias` (con `?tab=realizadas`), solo con `ROLE_TOURIST` (`RequireSession`). Un gestor sin ese rol recibe el aviso de acceso, como en `/gestor` para un turista. Antes la sección aparecía en la cuenta de cualquier rol y para un gestor el backend respondía 403.
+- **Barra:** `Explorar · Mis experiencias · [Gestor] · Mi cuenta`. La pestaña (ícono de boleto) solo existe con sesión de turista; un visitante no la ve.
+- **Mi cuenta** (`/cuenta`) vuelve a ser perfil, autorizaciones de datos y cierre de sesión, sin la sección ni la prop `experiences`.
+- **Pantalla:** `features/booking/pages/MyExperiencesPage` (título `h1` "Mis experiencias" + `MyBookingsSection`, ya sin su `h2` repetido; la región conserva el nombre accesible). Se carga con `lazy()` desde `app/routes.tsx`, así que el QR sigue fuera del paquete inicial; ya no hace falta el compositor `app/pages/AccountExperiences`.
+- **Navegación de vuelta:** "Atrás" desde `/reservas/:bookingId` vuelve a la pestaña que estaba abierta (`/mis-experiencias?tab=realizadas`) y, sin historial (enlace directo), lleva a `/mis-experiencias` en lugar de al catálogo.
+- **Escritorio:** igual que Mi cuenta, columna centrada `max-w-md` dentro de `DesktopShell`; su pestaña va en el menú superior.
+
 ### 3. Fronteras
 
 - `booking` no depende de `voucher` (regla ArchUnit `nothingDependsOnVoucher`). Por eso `hasVoucher` se deriva del estado y el voucher se sigue pidiendo en el detalle (`GET /bookings/{id}/voucher`).
@@ -81,7 +92,7 @@ Huecos:
 
 ## Alternativas Descartadas
 
-- **Página nueva `/cuenta/experiencias`:** agrega un nivel de navegación. Una sección dentro de Mi cuenta deja las experiencias a un toque, que es lo pedido.
+- **Página nueva `/cuenta/experiencias`:** agrega un nivel de navegación. Una sección dentro de Mi cuenta deja las experiencias a un toque, que es lo pedido. *(Revertido por la enmienda 2.1: una pestaña de la barra, `/mis-experiencias`, da el mismo acceso a un toque sin dejar la sección enterrada en la cuenta.)*
 - **Mostrar el QR directamente en la tarjeta de la lista:** cargaría el voucher de cada reserva (una petición por tarjeta) y pondría varios QR en pantalla. El QR debe verse solo, a pantalla completa y con el brillo alto (ADR-0017).
 - **Componer el listado en el navegador** (lista de ids + `GET /bookings/{id}` + catálogo por cada una): N+1 peticiones en redes rurales lentas.
 - **Incluir el estado del voucher en el listado:** obligaría a `booking` a depender de `voucher` o a una lectura SQL cruzada adicional. El estado de la reserva basta para decidir si hay voucher.

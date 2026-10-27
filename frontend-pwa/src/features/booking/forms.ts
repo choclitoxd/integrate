@@ -1,7 +1,7 @@
 import { z } from 'zod/mini';
 import type { $ZodIssue } from 'zod/v4/core';
 
-import { normalizePhone, NUMERIC_DOC_TYPES } from '@/features/auth';
+import { NUMERIC_DOC_TYPES, phoneSchema } from '@/features/auth';
 import type { InvalidParam } from '@/shared/api';
 
 import type { BookingLockRequest } from './api';
@@ -12,7 +12,6 @@ import type { BookingLockRequest } from './api';
  */
 
 const DOC_NUMBER = /^[A-Za-z0-9]{4,20}$/;
-const E164 = /^\+[1-9][0-9]{7,14}$/;
 
 const fullName = z
   .string()
@@ -48,10 +47,7 @@ export const bookingFormSchema = z
   .object({
     participants: z.array(participant),
     emergencyName: fullName,
-    emergencyPhone: z.pipe(
-      z.pipe(z.string(), z.transform(normalizePhone)),
-      z.string().check(z.regex(E164, 'Escribe un celular válido, por ejemplo +57 300 123 4567.')),
-    ),
+    emergencyPhone: phoneSchema,
   })
   .check(
     z.superRefine((form, ctx) => {

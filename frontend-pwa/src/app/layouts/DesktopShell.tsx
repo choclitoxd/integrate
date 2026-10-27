@@ -6,13 +6,12 @@ import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
 
 /**
  * Shell de escritorio (ADR-0020 §4): navegación horizontal arriba y contenedor max-w-6xl. Las rutas
- * sin vista de escritorio (`wide`) se muestran en su columna móvil centrada; si traen barra de acción
- * fija, el pie le deja espacio.
+ * sin vista de escritorio (`wide`) se muestran en su columna móvil centrada. Las acciones van dentro
+ * del contenido (o en el panel lateral de las vistas dedicadas), nunca en una barra fija al fondo.
  */
 export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProps) {
-  const { flow, wide, loading } = useShellRoute();
+  const { wide, loading } = useShellRoute();
   const column = wide ? 'max-w-6xl px-8' : 'max-w-md px-4';
-  const reserveActionBar = flow && !wide;
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
@@ -49,15 +48,13 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
       <main
         id={MAIN_CONTENT_ID}
         tabIndex={-1}
-        className={`mx-auto w-full flex-1 pt-6 ${column} ${reserveActionBar ? 'pb-36' : 'pb-12'}`}
+        className={`mx-auto w-full flex-1 pt-6 pb-12 ${column}`}
       >
         {children ?? <Outlet />}
       </main>
 
       <footer className="border-t border-border-subtle bg-surface">
-        <div
-          className={`mx-auto w-full max-w-6xl px-8 pt-4 ${reserveActionBar ? 'pb-36' : 'pb-4'}`}
-        >
+        <div className="mx-auto w-full max-w-6xl px-8 pt-4 pb-4">
           <p className="text-sm text-ink-muted">Intégrate · Turismo comunitario en Colombia</p>
         </div>
       </footer>

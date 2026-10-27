@@ -14,5 +14,6 @@ export {
   fieldErrorsOf,
   normalizePhone,
   NUMERIC_DOC_TYPES,
+  phoneSchema,
   type FieldErrors,
 } from './forms';

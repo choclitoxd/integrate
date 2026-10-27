@@ -59,11 +59,66 @@ function myBookings(byScope: Record<string, (page: number) => unknown>) {
     );
 }
 
-function renderAccount(routes: FakeRoutes, path = '/cuenta') {
+function renderAccount(routes: FakeRoutes, path = '/mis-experiencias') {
   return renderApp(path, { '/v1/me/consents': consents, ...routes }, { roles: ['ROLE_TOURIST'] });
 }
 
-describe('Mis experiencias en Mi cuenta (T-1.14b, ADR-0023)', () => {
+describe('Mis experiencias, pantalla propia (T-1.14b, ADR-0023)', () => {
+  it('es una pantalla propia con su título, y Mi cuenta ya no la incluye', async () => {
+    const mine = renderAccount({
+      '/v1/me/bookings': myBookings({ upcoming: () => pageOf([summary()]) }),
+    });
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Mis experiencias' }),
+    ).toBeVisible();
+    expect(await screen.findByRole('link', { name: /Sendero de la memoria/ })).toBeVisible();
+    mine.unmount();
+
+    renderAccount({}, '/cuenta');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mi cuenta' })).toBeVisible();
+    expect(screen.queryByRole('region', { name: 'Mis experiencias' })).toBeNull();
+    expect(screen.queryByRole('tab')).toBeNull();
+  });
+
+  it('solo un turista la ve: un gestor sin ese rol recibe el aviso de acceso', async () => {
+    renderApp(
+      '/mis-experiencias',
+      { '/v1/me/consents': consents },
+      { roles: ['ROLE_LINK_MANAGER'] },
+    );
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Esta sección no está disponible para tu cuenta',
+      }),
+    ).toBeVisible();
+    expect(screen.queryByRole('tab')).toBeNull();
+  });
+
+  it('desde un enlace directo a una reserva, "Atrás" lleva a Mis experiencias', async () => {
+    const { router } = renderAccount(
+      {
+        '/v1/bookings/bk-1': {
+          bookingId: 'bk-1',
+          status: 'EXPIRED',
+          scheduleId: 's-1',
+          experienceId: EXPERIENCE_ID,
+          lockedSlots: 1,
+          unitPriceCop: 80000,
+          totalAmountCop: 80000,
+          currency: 'COP',
+          createdAt: '2026-10-09T20:00:00Z',
+          expiresAt: '2026-10-09T20:15:00Z',
+          ttlSecondsRemaining: 0,
+        },
+        '/v1/me/bookings': myBookings({ upcoming: () => pageOf([]) }),
+      },
+      '/reservas/bk-1',
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Atrás' }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/mis-experiencias');
+    });
+  });
   it('lista las próximas con acceso al voucher y abre el detalle con el QR', async () => {
     const { router } = renderAccount({
       '/v1/me/bookings': myBookings({
@@ -195,7 +250,7 @@ describe('Mis experiencias en Mi cuenta (T-1.14b, ADR-0023)', () => {
                 ),
         }),
       },
-      '/cuenta?tab=realizadas',
+      '/mis-experiencias?tab=realizadas',
     );
     const panel = await screen.findByRole('tabpanel');
     expect(await within(panel).findByRole('link', { name: /Primera/ })).toBeVisible();

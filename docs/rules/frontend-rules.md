@@ -25,7 +25,7 @@ Todo código generado para el frontend debe ceñirse estrictamente a las 7 direc
 3. **Objetivos Táctiles (Target Size - WCAG 2.5.5 / 2.5.8):**
    - Todo botón, enlace, input o control interactivo debe tener un área táctil mínima de **$\ge 44 \times 44\text{ px}$** (`min-h-11 min-w-11` o con padding compensatorio).
    - Separación mínima entre elementos táctiles interactivos de $\ge 8\text{ px}$ para evitar pulsaciones erróneas en campo.
-4. **Zona del Pulgar (Thumb Zone):** En la vista móvil, las acciones transaccionales primarias (ej. botón "Reservar", "Confirmar Asistencia", "Escanear QR") deben ubicarse en la parte inferior accesible con una sola mano mediante barras fijas (*sticky bottom bar* o `bottom-0`). En la vista de escritorio van en un panel lateral fijo (*sticky aside*) visible sin scroll.
+4. **Ubicación de la acción principal (enmendada, ADR-0020):** las acciones transaccionales primarias (ej. "Pagar", "Reservar", "Crear cuenta", "Mostrar QR") van **dentro del contenido, justo después de los datos que confirman**, a ancho completo (≥ 44 px de alto) y con el total o el resumen encima cuando lo hay. Quedan **prohibidas las barras fijas de acción al fondo de la pantalla** (`fixed … bottom-0`): en celular quedan lejos de los datos y en computador flotan bajo el pie de página. La única pieza fija inferior permitida es la navegación del shell móvil, y las hojas y diálogos modales. En las vistas de escritorio dedicadas, la acción puede ir además en un panel lateral fijo (*sticky aside*). La prueba `src/app/noFixedActionBars.test.ts` hace cumplir esta regla.
 
 ---
 

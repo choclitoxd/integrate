@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { pluralize } from '@/shared/lib';
+import { formatPhoneDisplay, pluralize } from '@/shared/lib';
 import { buttonClassName, Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { ManagedHost } from '../api';
@@ -13,10 +13,6 @@ const NOT_ACTIVE = {
 };
 
 /** "+573001234567" → "+57 300 123 4567"; otros países quedan como llegan. */
-function formatPhone(phone: string): string {
-  const match = /^\+57(\d{3})(\d{3})(\d{4})$/.exec(phone);
-  return match ? `+57 ${match[1] ?? ''} ${match[2] ?? ''} ${match[3] ?? ''}` : phone;
-}
 
 function HostCard({ host }: { host: ManagedHost }) {
   const pending = host.credentialStatus === 'PENDING_RESET';
@@ -48,7 +44,7 @@ function HostCard({ host }: { host: ManagedHost }) {
         </div>
         <div className="flex gap-2">
           <dt className="sr-only">Celular</dt>
-          <dd>{formatPhone(host.phone)}</dd>
+          <dd>{formatPhoneDisplay(host.phone)}</dd>
         </div>
         <div className="flex gap-2">
           <dt className="sr-only">Correo</dt>

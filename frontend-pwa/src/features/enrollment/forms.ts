@@ -1,11 +1,6 @@
 import { z } from 'zod/mini';
 
-import {
-  fieldErrorsOf,
-  normalizePhone,
-  NUMERIC_DOC_TYPES,
-  type FieldErrors,
-} from '@/features/auth';
+import { fieldErrorsOf, NUMERIC_DOC_TYPES, phoneSchema, type FieldErrors } from '@/features/auth';
 import type { InvalidParam } from '@/shared/api';
 
 import type { AssistedRegistrationRequest } from './api';
@@ -16,7 +11,6 @@ import type { AssistedRegistrationRequest } from './api';
  */
 
 const DOC_NUMBER = /^[A-Za-z0-9]{4,20}$/;
-const E164 = /^\+[1-9][0-9]{7,14}$/;
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const MAX_PDF_BYTES = 5 * 1024 * 1024;
@@ -157,10 +151,7 @@ const enrollmentSchema = z
           'El número de documento lleva entre 4 y 20 letras o dígitos, sin espacios.',
         ),
       ),
-    phone: z.pipe(
-      z.pipe(z.string(), z.transform(normalizePhone)),
-      z.string().check(z.regex(E164, 'Escribe un celular válido, por ejemplo +57 300 123 4567.')),
-    ),
+    phone: phoneSchema,
     email: z.string().check(
       z.trim(),
       z.maxLength(254, 'El correo es demasiado largo.'),

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { ApiError, useHttpClient } from '@/shared/api';
@@ -8,7 +8,6 @@ import {
   Icon,
   PasswordField,
   ProblemNotice,
-  StickyActionBar,
   TextField,
 } from '@/shared/ui';
 
@@ -27,7 +26,6 @@ export function ActivatePage() {
   const http = useHttpClient();
   const formRef = useRef<HTMLFormElement>(null);
   const doneRef = useRef<HTMLHeadingElement>(null);
-  const formId = useId();
   const [errors, setErrors] = useState<FieldErrors<Field>>({});
   const [serverError, setServerError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -102,7 +100,6 @@ export function ActivatePage() {
 
       <form
         ref={formRef}
-        id={formId}
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="mt-6 grid gap-5"
@@ -153,13 +150,11 @@ export function ActivatePage() {
           autoComplete="new-password"
           error={errors.confirmation}
         />
-      </form>
-
-      <StickyActionBar>
-        <Button type="submit" form={formId} disabled={submitting}>
+        {/* Acción justo bajo los campos, igual que en "Ingresar" y "Crear cuenta". */}
+        <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Activando…' : 'Activar cuenta'}
         </Button>
-      </StickyActionBar>
+      </form>
     </>
   );
 }

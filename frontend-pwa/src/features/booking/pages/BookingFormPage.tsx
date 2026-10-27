@@ -17,6 +17,7 @@ import {
   Button,
   buttonClassName,
   Icon,
+  PhoneField,
   ProblemNotice,
   Skeleton,
   TextField,
@@ -372,16 +373,13 @@ export function BookingFormPage() {
             }}
             error={errors.emergencyName}
           />
-          <TextField
+          <PhoneField
             label="Celular"
             name="emergencyPhone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="off"
             value={emergencyPhone}
-            onChange={(event) => {
+            onChange={(next) => {
               touch();
-              setEmergencyPhone(event.target.value);
+              setEmergencyPhone(next);
             }}
             error={errors.emergencyPhone}
           />

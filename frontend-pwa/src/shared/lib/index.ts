@@ -17,3 +17,16 @@ export {
   weekdayInitial,
 } from './format';
 export { DESKTOP_MEDIA_QUERY, useFormFactor, type FormFactor } from './formFactor';
+export {
+  countryByDial,
+  DEFAULT_PHONE_COUNTRY,
+  formatPhoneDisplay,
+  GENERIC_PHONE_MESSAGE,
+  joinPhone,
+  lengthText,
+  nationalDigits,
+  PHONE_COUNTRIES,
+  phoneProblem,
+  splitPhone,
+  type PhoneCountry,
+} from './phone';

@@ -83,6 +83,25 @@ describe('routes', () => {
     ).toBeVisible();
   });
 
+  it('un turista ve "Mis experiencias" en la barra; un visitante o un gestor sin ese rol, no', () => {
+    const visitor = renderApp('/', catalogRoutes);
+    expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
+    visitor.unmount();
+    const manager = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
+    expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
+    manager.unmount();
+
+    renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
+    const nav = screen.getByRole('navigation', { name: 'Navegación principal' });
+    const links = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(links).toEqual(['Explorar', 'Mis experiencias', 'Mi cuenta']);
+    expect(within(nav).getByRole('link', { name: 'Mis experiencias' })).toHaveAttribute(
+      'href',
+      '/mis-experiencias',
+    );
+  });
   it('cambia "Ingresar" por "Mi cuenta" con sesión', () => {
     renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
     expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/cuenta');

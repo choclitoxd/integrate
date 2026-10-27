@@ -159,7 +159,7 @@ function BookingList({
   );
 }
 
-/** "Mis experiencias" de Mi cuenta (T-1.14b, ADR-0023 §2): próximas y realizadas, con acceso al voucher. */
+/** Contenido de "Mis experiencias" (T-1.14b, ADR-0023 §2): próximas y realizadas, con acceso al voucher. */
 export function MyBookingsSection() {
   const [params, setParams] = useSearchParams();
   const active = TABS.find((tab) => tab.key === params.get('tab')) ?? UPCOMING_TAB;
@@ -200,11 +200,9 @@ export function MyBookingsSection() {
   }
 
   return (
-    <section aria-labelledby={`${baseId}-titulo`} className="mt-8">
-      <h2 id={`${baseId}-titulo`} className="text-xl font-bold text-ink">
-        Mis experiencias
-      </h2>
-      <div role="tablist" aria-label="Mis experiencias" className="mt-3 grid grid-cols-2 gap-2">
+    // El título visible (h1) lo pone la página; la región conserva su nombre para lectores de pantalla.
+    <section aria-label="Mis experiencias" className="mt-5">
+      <div role="tablist" aria-label="Próximas y realizadas" className="grid grid-cols-2 gap-2">
         {TABS.map((tab, index) => {
           const selected = tab.key === active.key;
           return (

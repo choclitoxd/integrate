@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router';
 
 import { ApiError } from '@/shared/api';
 import { formatCop } from '@/shared/lib';
-import { buttonClassName, Icon, ProblemNotice, Skeleton, StickyActionBar } from '@/shared/ui';
+import { buttonClassName, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { ExperienceDetail } from '../api/types';
 import { DetailHeader, DetailSections } from '../components/ExperienceDetailParts';
@@ -80,26 +80,24 @@ function DetailContent({ detail }: { detail: ExperienceDetail }) {
         <ExperienceFacts experience={summary} variant="full" />
       </div>
 
-      <DetailSections detail={detail} />
-
-      <StickyActionBar
-        summary={
-          <p>
-            <span className="block text-xl font-bold text-ink tabular-nums">
-              {formatCop(summary.unitPriceCop)}
-            </span>
-            <span className="text-sm text-ink-muted">por persona</span>
-          </p>
-        }
-      >
+      {/* La acción va con los datos de la ficha, donde se decide; no al final de una página larga. */}
+      <div className="mt-4 grid gap-3">
+        <p className="flex items-baseline justify-between gap-3 px-1">
+          <span className="text-ink-muted">Precio por persona</span>
+          <span className="text-2xl font-bold text-ink tabular-nums">
+            {formatCop(summary.unitPriceCop)}
+          </span>
+        </p>
         <Link
           to={`/experiencias/${summary.id}/franjas`}
-          className={buttonClassName('primary', 'px-6')}
+          className={buttonClassName('primary', 'w-full')}
         >
           <Icon name="calendar" />
           Ver fechas
         </Link>
-      </StickyActionBar>
+      </div>
+
+      <DetailSections detail={detail} />
     </>
   );
 }

@@ -10,6 +10,10 @@ export function TouristLayout() {
   const session = useSession();
   const navItems: readonly NavItem[] = [
     { to: '/', label: 'Explorar', icon: 'compass' },
+    // Las reservas son del turista: a un visitante o a un gestor sin ese rol le llevaría a un muro.
+    ...(hasRole(session, 'ROLE_TOURIST')
+      ? [{ to: '/mis-experiencias', label: 'Mis experiencias', icon: 'ticket' } as const]
+      : []),
     ...(hasRole(session, 'ROLE_LINK_MANAGER')
       ? [{ to: '/gestor', label: 'Gestor', icon: 'route' } as const]
       : []),

@@ -25,7 +25,6 @@ const BASE_COMPONENTS = [
   'Icon',
   'ProblemNotice',
   'Skeleton',
-  'StickyActionBar',
   'BottomSheet',
 ];
 

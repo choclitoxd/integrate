@@ -7,6 +7,7 @@ import {
   Button,
   Icon,
   PasswordField,
+  PhoneField,
   ProblemNotice,
   Select,
   Skeleton,
@@ -60,6 +61,7 @@ export function RegisterPage() {
   const formRef = useRef<HTMLFormElement>(null);
 
   const [docType, setDocType] = useState<DocType>('CC');
+  const [phone, setPhone] = useState('+57 ');
   const [personalData, setPersonalData] = useState(false);
   const [healthEmergency, setHealthEmergency] = useState(false);
   const [errors, setErrors] = useState<FieldErrors<Field>>({});
@@ -83,7 +85,7 @@ export function RegisterPage() {
       fullName: data.get('fullName'),
       docType,
       docNumber: data.get('docNumber'),
-      phone: data.get('phone'),
+      phone,
       email: data.get('email'),
       password: data.get('password'),
       personalData,
@@ -206,14 +208,12 @@ export function RegisterPage() {
           />
         </div>
 
-        <TextField
+        <PhoneField
           label="Celular"
-          hint="Con indicativo del país. Te escribiremos solo por tus reservas."
+          hint="Te escribiremos solo por tus reservas."
           name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          defaultValue="+57 "
+          value={phone}
+          onChange={setPhone}
           error={errors.phone}
         />
         <TextField

@@ -2,7 +2,7 @@ import { useId, type ReactNode } from 'react';
 import { useParams } from 'react-router';
 
 import { ApiError } from '@/shared/api';
-import { ProblemNotice, Skeleton, StickyActionBar } from '@/shared/ui';
+import { ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { ExperienceAvailability } from '../api/types';
 import {
@@ -53,24 +53,24 @@ function Picker({
           <div className="mt-6">
             <SlotsSection picker={picker} updatedAt={updatedAt} />
           </div>
+
+          {/* Acción justo bajo las franjas, con el total encima: no en una barra fija al fondo. */}
+          <div className="mt-6 grid gap-3 rounded-xl bg-surface px-4 py-4">
+            <SelectionTotal picker={picker} availability={availability} />
+            <ReserveAction
+              picker={picker}
+              availability={availability}
+              noteId={noteId}
+              className="w-full"
+            />
+            {!picker.valid && (
+              <p id={noteId} className="text-sm text-ink-muted">
+                Selecciona día y horario para ver el total.
+              </p>
+            )}
+          </div>
         </>
       )}
-
-      <StickyActionBar
-        summary={<SelectionTotal picker={picker} availability={availability} />}
-        note={
-          picker.valid ? undefined : (
-            <span id={noteId}>Selecciona día y horario para ver el total.</span>
-          )
-        }
-      >
-        <ReserveAction
-          picker={picker}
-          availability={availability}
-          noteId={noteId}
-          className="px-6"
-        />
-      </StickyActionBar>
     </>
   );
 }

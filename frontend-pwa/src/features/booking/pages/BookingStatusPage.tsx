@@ -4,14 +4,7 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { useAvailability, useExperience } from '@/features/catalog';
 import { ApiError, useHttpClient } from '@/shared/api';
 import { formatCop, formatLocalTime, formatLongDate, pluralize } from '@/shared/lib';
-import {
-  Button,
-  buttonClassName,
-  Icon,
-  ProblemNotice,
-  Skeleton,
-  StickyActionBar,
-} from '@/shared/ui';
+import { Button, buttonClassName, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import {
   simulatePayment,
@@ -222,21 +215,19 @@ function Checkout({
         </div>
       )}
 
+      {/* Acción justo bajo el método de pago, con el total encima: no en una barra fija al fondo. */}
       {!verifying && !mock && (
-        <StickyActionBar
-          summary={
-            <p>
-              <span className="block text-xl font-bold text-ink tabular-nums">
-                {formatCop(booking.totalAmountCop)}
-              </span>
-              <span className="text-sm text-ink-muted">Total en COP</span>
-            </p>
-          }
-        >
-          <Button disabled={busy || expired} onClick={() => void pay()} className="px-6">
+        <div className="mt-6 grid gap-3">
+          <p className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
+            <span className="text-ink-muted">Total en COP</span>
+            <span className="text-xl font-bold text-ink tabular-nums">
+              {formatCop(booking.totalAmountCop)}
+            </span>
+          </p>
+          <Button disabled={busy || expired} onClick={() => void pay()} className="w-full">
             {busy ? 'Abriendo pasarela…' : 'Pagar'}
           </Button>
-        </StickyActionBar>
+        </div>
       )}
     </>
   );
