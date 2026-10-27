@@ -5,7 +5,7 @@
 # Uso (desde la raíz del repo):
 #   export SNAPDEPLOY_TOKEN='sd_pat_...'     # token personal con alcance "deploy" (API Keys), SOLO en esta terminal
 #   bash infra/scripts/snapdeploy.sh create            # crea el contenedor YA con las variables (sin construir aún)
-#   bash infra/scripts/snapdeploy.sh link              # enlaza el repo de GitHub (rama main, root directory backend-api) y lanza el 1.er build
+#   bash infra/scripts/snapdeploy.sh link [--branch <rama>]  # enlaza el repo de GitHub (rama main por defecto; ADR-0031: `pruebas`), root directory backend-api, y lanza el build
 #   bash infra/scripts/snapdeploy.sh env --dry-run     # muestra qué variables se enviarían (solo nombres)
 #   bash infra/scripts/snapdeploy.sh env               # reemplaza TODAS las variables de un contenedor existente
 #   bash infra/scripts/snapdeploy.sh wake              # despierta el contenedor sin abrir el navegador
@@ -145,6 +145,8 @@ u=json.load(sys.stdin).get('usage',{}); print('horas usadas:',u.get('hoursUsed')
     CID=$(container_id) || exit 1
     REPO="${SNAPDEPLOY_REPO:-$(git remote get-url origin 2>/dev/null | sed -E 's#^(https://github.com/|git@github.com:)##; s#\.git$##')}"
     BRANCH="${SNAPDEPLOY_BRANCH:-main}"; ROOT="${SNAPDEPLOY_ROOT:-backend-api}"
+    # `link --branch pruebas` (ADR-0031): el entorno de pruebas sigue su propia rama y no se reconstruye con cada push a main.
+    if [ "${1:-}" = "--branch" ]; then BRANCH="${2:-}"; [ -n "$BRANCH" ] || { echo "Falta el nombre de la rama: link --branch <rama>"; exit 2; }; fi
     [ -n "$REPO" ] || { echo "No pude deducir el repositorio: defina SNAPDEPLOY_REPO=usuario/repo"; exit 2; }
     echo "Enlazando $REPO (rama $BRANCH, root directory $ROOT) al contenedor '$NAME'..."
     api POST /api/mobile/github/link "$(REPO="$REPO" BRANCH="$BRANCH" ROOT="$ROOT" CID="$CID" pyj "
@@ -155,7 +157,9 @@ print(json.dumps({'containerId':os.environ['CID'],'repoFullName':os.environ['REP
 import sys,json
 d=json.load(sys.stdin); print('OK: enlazado. Build lanzado:',d.get('buildTriggered'),'| deploymentId:',d.get('deploymentId'))"
         echo "Siga el build con: deploys   (tarda 4-5 min) y luego: logs";;
-      *) echo "HTTP $HTTP al enlazar:"; printf '%s' "$BODY" | cut -c1-300; exit 1;; esac ;;
+      *) echo "HTTP $HTTP al enlazar:"; printf '%s' "$BODY" | cut -c1-300
+         case "$BODY" in *"already has a linked repository"*) echo "Para cambiar de rama hay que desenlazar primero, y SnapDeploy no lo permite con llaves de API: en su panel (web o móvil) abra el contenedor, desenlace el repositorio y vuelva a ejecutar este comando.";; esac
+         exit 1;; esac ;;
   vars)
     CID=$(container_id) || exit 1
     api GET "/api/mobile/containers/$CID"
