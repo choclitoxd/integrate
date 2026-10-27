@@ -10,16 +10,28 @@ function inRange(latitude: number, longitude: number): boolean {
   return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
 }
 
+/** Medio lado de la ventana del mapa, en grados (~550 m): se ve el pueblo, no solo una esquina. */
+const HALF_SPAN = 0.005;
+
 /**
- * Mapa del punto de encuentro con su marcador (Google Maps, modo de incrustación sin llave de API
- * ni librería). Se carga diferido: no cuesta datos hasta que la sección entra en pantalla. Sin
- * conexión el marco queda vacío; el botón "Abrir en Google Maps" de al lado sigue disponible
- * (RNF-04).
+ * Mapa del punto de encuentro con su marcador (OpenStreetMap, modo de incrustación sin llave de API
+ * ni librería). Antes usaba la incrustación sin llave de Google Maps, que Google dejó de servir
+ * (responde 404 con `X-Frame-Options: SAMEORIGIN`). Se carga diferido: no cuesta datos hasta que la
+ * sección entra en pantalla. Sin conexión el marco queda vacío; el botón "Abrir en Google Maps" de
+ * al lado sigue disponible (RNF-04).
  */
 export function MeetingPointMap({ latitude, longitude, title }: MeetingPointMapProps) {
   if (!inRange(latitude, longitude)) return null;
 
-  const src = `https://maps.google.com/maps?q=${encodeURIComponent(`${String(latitude)},${String(longitude)}`)}&z=15&hl=es&output=embed`;
+  const bbox = [
+    longitude - HALF_SPAN,
+    latitude - HALF_SPAN,
+    longitude + HALF_SPAN,
+    latitude + HALF_SPAN,
+  ]
+    .map((value) => value.toFixed(6))
+    .join(',');
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${String(latitude)},${String(longitude)}`)}`;
 
   return (
     <div className="mt-4 overflow-hidden rounded-lg border border-border-subtle bg-canvas">

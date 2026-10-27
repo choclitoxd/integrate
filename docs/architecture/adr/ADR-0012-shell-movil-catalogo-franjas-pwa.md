@@ -118,3 +118,8 @@ flowchart TB
     DET -->|Ver fechas| FR["/experiencias/:id/franjas<br/>GET /experiences/{id}/availability (60 días, refetch 30 s)"]
     FR -.->|"franja + personas (T-1.10c, tras T-1.11)"| RES["/reservas/nueva"]
 ```
+
+
+## Enmienda (2026-10-27): proveedor del mapa incrustado
+
+El detalle de la experiencia incrusta un mapa del punto de encuentro (`MeetingPointMap`), a diferencia de lo decidido en §8. La incrustación sin llave de Google Maps (`maps.google.com/maps?output=embed`) dejó de funcionar: Google la redirige a una URL que responde 404 con `X-Frame-Options: SAMEORIGIN`, así que el marco quedaba en blanco. Se cambia a la incrustación de **OpenStreetMap** (`openstreetmap.org/export/embed.html`, sin llave y permitida en marcos), con una ventana de unos 550 m alrededor del punto. El botón «Abrir en Google Maps» se mantiene como alternativa. Las experiencias sin coordenadas no muestran mapa (la de ejemplo de la demo se creó sin ellas y se corrigió).
