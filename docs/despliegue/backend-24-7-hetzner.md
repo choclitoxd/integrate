@@ -46,4 +46,4 @@ docker compose -f compose.vps.yml logs -f api
 
 - Un solo servidor y sin alta disponibilidad: si cae, cae el backend. Conviene un monitor externo gratuito sobre `/api/v1/privacy-policies/current`.
 - `sslip.io` es un servicio de terceros: si dejara de resolver, hay que cambiar `API_HOST` por un dominio propio.
-- **Hetzner es el único backend.** SnapDeploy está retirado (ADR-0027): no debe haber dos backends escribiendo en la misma base de Neon (los procesos de fondo se duplicarían). Si el contenedor de SnapDeploy sigue existiendo, debe permanecer detenido y desconectado del repositorio, porque cada push a `main` lo reconstruye y lo despierta.
+- **Hetzner es la producción; SnapDeploy es el entorno de pruebas** (ADR-0027). Los dos **no deben compartir base de datos**: con la misma base de Neon los procesos de fondo se duplicarían y las pruebas ensuciarían los datos reales. El entorno de pruebas necesita su propia base (rama o base separada en Neon) y sus propias variables (`ENV_FILE` del script `snapdeploy.sh`); mientras no la tenga, el contenedor de SnapDeploy debe estar detenido, porque cada push a `main` lo reconstruye y lo despierta.

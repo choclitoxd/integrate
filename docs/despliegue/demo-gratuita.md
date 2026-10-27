@@ -1,6 +1,6 @@
 # Despliegue de demostración gratuito · Intégrate
 
-> **Histórico.** El backend ya no corre en SnapDeploy ni en un PC: corre **solo en Hetzner Cloud** ([ADR-0027](../architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md), guía [backend-24-7-hetzner.md](backend-24-7-hetzner.md)). Esta guía se conserva para las piezas que siguen vigentes (Neon, Cloudflare Pages, Backblaze B2 y Brevo).
+> **Vigencia.** La **producción 24/7** corre en Hetzner Cloud ([ADR-0027](../architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md), guía [backend-24-7-hetzner.md](backend-24-7-hetzner.md)). Esta guía describe SnapDeploy, que ahora es el **entorno de pruebas** (con su propia base de datos), y las piezas compartidas: Neon, Cloudflare Pages, Backblaze B2 y Brevo.
 
 Cómo publicar Intégrate en Internet sin costo y sin tarjeta de crédito, según
 [ADR-0026](../architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) (backend en SnapDeploy),
