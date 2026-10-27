@@ -21,6 +21,13 @@ integrate:
       # Las pruebas invocan el despachador directamente contra GreenMail (ADR-0011 §8).
       enabled: false
 
+  catalog:
+    meeting-point:
+      # Sin llamadas externas en las pruebas: toda verificación termina en UNVERIFIED salvo la que active su propia
+      # prueba con un geocodificador simulado (ADR-0030). Síncrona para que el resultado esté al volver del envío.
+      enabled: false
+      async: false
+
   payments:
     simulator:
       # La PWA y las pruebas confirman pagos Mock sin firmar el webhook (ADR-0029).

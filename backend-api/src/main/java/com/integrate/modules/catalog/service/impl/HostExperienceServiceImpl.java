@@ -40,6 +40,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +60,8 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     private final ScheduleRepository scheduleRepository;
     private final StatusReasonContext statusReason;
     private final ExperienceViews views;
+    private final MeetingPointCheckService meetingPointChecks;
+    private final TransactionTemplate transactions;
     private final Clock clock;
 
     @Override
@@ -104,8 +107,9 @@ public class HostExperienceServiceImpl implements HostExperienceService {
         if (wasRejected) {
             statusReason.set("Edited by host after rejection");
         }
-        experience.edit(request.toContent());
+        boolean pointChanged = experience.edit(request.toContent());
         experienceRepository.flush();
+        meetingPointChecks.onEdit(experience, pointChanged);
         replaceCategories(experienceId, categories);
         replaceStops(experienceId, request.stopsOrEmpty());
         return views.forHost(experience);
@@ -121,7 +125,23 @@ public class HostExperienceServiceImpl implements HostExperienceService {
         statusReason.set("Submitted for review by host");
         experience.transitionTo(ExperienceStatus.PENDING_REVIEW);
         experienceRepository.flush();
+        meetingPointChecks.onSubmit(experience);
         return views.forHost(experience);
+    }
+
+    /**
+     * Repite la verificación del punto de encuentro (ADR-0030 §2). No es transaccional: la consulta al geocodificador
+     * corre fuera de toda transacción y la respuesta ya trae el resultado.
+     */
+    @Override
+    public HostExperienceResponse checkMeetingPoint(UUID hostUserId, UUID experienceId) {
+        boolean started = Boolean.TRUE.equals(transactions.execute(status ->
+                meetingPointChecks.beginManualCheck(ownedExperience(requireHost(hostUserId), experienceId, true))));
+        if (started) {
+            meetingPointChecks.runVerification(experienceId);
+        }
+        return transactions.execute(status -> views.forHost(ownedExperience(requireHost(hostUserId), experienceId,
+                false)));
     }
 
     @Override

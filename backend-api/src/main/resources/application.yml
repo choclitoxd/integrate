@@ -125,6 +125,19 @@ integrate:
     # Simulador de la pasarela Mock (ADR-0029): apagado por defecto; solo con provider=MOCK (fail-fast).
     simulator:
       enabled: ${PAYMENT_SIMULATOR_ENABLED:false}
+  # --- Verificación del punto de encuentro (ADR-0030): Nominatim de OpenStreetMap, sin llaves.
+  catalog:
+    meeting-point:
+      enabled: ${MEETING_POINT_CHECK_ENABLED:true}
+      async: true
+      base-url: ${MEETING_POINT_GEOCODER_URL:https://nominatim.openstreetmap.org}
+      timeout: PT3S
+      min-interval: PT1.1S
+      cache-size: 500
+      cache-ttl: PT24H
+      match-meters: 250
+      review-meters: 1000
+      text-threshold: 0.5
   # --- Vouchers (ADR-0010 §9): llave RSA propia (PKCS#8 PEM en Base64, >= 2048 bits) sin default (fail-fast).
   voucher:
     signing-key: ${VOUCHER_SIGNING_KEY}

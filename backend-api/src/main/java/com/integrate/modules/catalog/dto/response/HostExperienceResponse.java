@@ -17,7 +17,7 @@ public record HostExperienceResponse(UUID id, UUID hostId, String title, String 
                                      List<StopResponse> stops,
                                      int maxCapacityPerSlot, long unitPriceCop, String timezone,
                                      List<String> categoryCodes, ExperienceStatus status, String rejectionReason,
-                                     Instant createdAt) {
+                                     Instant createdAt, MeetingPointCheckResponse meetingPointCheck) {
 
     public static HostExperienceResponse from(Experience e, List<String> categoryCodes, List<StopResponse> stops) {
         return new HostExperienceResponse(e.getId(), e.getHostId(), e.getTitle(), e.getDescription(),
@@ -25,6 +25,6 @@ public record HostExperienceResponse(UUID id, UUID hostId, String title, String 
                 e.getVereda(), e.getMeetingPoint(), e.getLatitude(), e.getLongitude(), e.getRouteType(),
                 e.getDistanceKm(), e.getRoundTripMinutes(), List.copyOf(stops), e.getMaxCapacityPerSlot(),
                 e.unitPriceCopValue(), e.getTimezone(), List.copyOf(categoryCodes), e.getStatus(),
-                e.getRejectionReason(), e.getCreatedAt());
+                e.getRejectionReason(), e.getCreatedAt(), MeetingPointCheckResponse.from(e));
     }
 }

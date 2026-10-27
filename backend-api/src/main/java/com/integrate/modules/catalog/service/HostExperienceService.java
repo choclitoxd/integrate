@@ -37,4 +37,7 @@ public interface HostExperienceService {
 
     /** Solo franjas futuras sin cupos vendidos (ADR-0006 §5). */
     ScheduleResponse cancelSchedule(UUID hostUserId, UUID scheduleId, String reason);
+
+    /** Repite la verificación del punto de encuentro y devuelve la experiencia con el resultado (ADR-0030). */
+    HostExperienceResponse checkMeetingPoint(UUID hostUserId, UUID experienceId);
 }

@@ -95,6 +95,8 @@ Extensiones según el caso: `lockedUntil` (423), `availableSlots` (409 por cupos
 | `RESOURCE_NOT_FOUND` | 404 | availability, lock |
 | `CATALOG_EXPERIENCE_NOT_APPROVED` | 409 | availability (panel ADMIN/LINK_MANAGER) |
 | `CATALOG_INVALID_STATUS_TRANSITION` | 409 | host (editar/enviar), admin (moderación, acreditación de gestores), register-assisted (gestor indicado no activo), activation-code (cuenta ya activa) |
+| `CATALOG_MEETING_POINT_MISMATCH` | 409 | admin (`approve` con la verificación del punto de encuentro en `MISMATCH`; confirmar o corregir las coordenadas, ADR-0030) |
+| `CATALOG_MEETING_POINT_NOT_VERIFIED` | 409 | admin (`approve` con la verificación en `VERIFICANDO`, `PENDIENTE` o `CORREGIDO`; reintentar en un momento, ADR-0030) |
 | `CATALOG_SCHEDULE_CONFLICT` | 409 | franjas (duplicado, cancelación con reservas) |
 | `CATALOG_HOST_PROFILE_EXISTS` | 409 | admin/host-profiles |
 | `CATALOG_ASSOCIATION_EXISTS` | 409 | admin/associations |

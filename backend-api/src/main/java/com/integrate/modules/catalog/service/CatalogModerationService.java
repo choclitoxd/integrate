@@ -27,4 +27,7 @@ public interface CatalogModerationService {
 
     /** Además cierra las franjas futuras abiertas. */
     HostExperienceResponse retire(UUID experienceId, String reason);
+
+    /** El administrador acepta un punto de encuentro dudoso (ADR-0030 §4). */
+    HostExperienceResponse confirmMeetingPoint(UUID experienceId);
 }

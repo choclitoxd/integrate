@@ -70,6 +70,12 @@ public class HostExperienceController {
         return service.submit(subject(jwt), id);
     }
 
+    /** Repite la verificación de la dirección contra las coordenadas (ADR-0030 §2). */
+    @PostMapping("/experiences/{id}/meeting-point/check")
+    public HostExperienceResponse checkMeetingPoint(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.checkMeetingPoint(subject(jwt), id);
+    }
+
     @PostMapping("/experiences/{id}/schedules")
     @ResponseStatus(HttpStatus.CREATED)
     public List<ScheduleResponse> createSchedules(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,

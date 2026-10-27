@@ -1,6 +1,7 @@
 package com.integrate.modules.catalog.entity;
 
 import com.integrate.common.persistence.PgDomains;
+import com.integrate.modules.catalog.meetingpoint.MeetingPointState;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -100,6 +101,23 @@ public class Experience {
     @Column(name = "rejection_reason", columnDefinition = "text")
     private String rejectionReason;
 
+    /** Estado del autómata de verificación del punto de encuentro (ADR-0030); lo cambia solo el autómata. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "meeting_point_check_status", nullable = false, length = 12)
+    private MeetingPointState meetingPointCheckStatus;
+
+    @Column(name = "meeting_point_check_distance_m")
+    private Integer meetingPointCheckDistanceM;
+
+    @Column(name = "meeting_point_suggested_lat", precision = 8, scale = 6)
+    private BigDecimal meetingPointSuggestedLat;
+
+    @Column(name = "meeting_point_suggested_lng", precision = 9, scale = 6)
+    private BigDecimal meetingPointSuggestedLng;
+
+    @Column(name = "meeting_point_checked_at")
+    private Instant meetingPointCheckedAt;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -111,16 +129,43 @@ public class Experience {
         experience.hostId = hostId;
         experience.timezone = TIMEZONE;
         experience.status = ExperienceStatus.DRAFT;
+        experience.meetingPointCheckStatus = MeetingPointState.PENDIENTE;
         experience.apply(content);
         return experience;
     }
 
-    /** Reemplaza los campos editables. Una propuesta rechazada vuelve a {@code DRAFT} al editarse. */
-    public void edit(ExperienceContent content) {
+    /**
+     * Reemplaza los campos editables. Una propuesta rechazada vuelve a {@code DRAFT} al editarse.
+     *
+     * @return {@code true} si cambió el punto de encuentro, sus coordenadas o su municipio (hay que verificar de nuevo)
+     */
+    public boolean edit(ExperienceContent content) {
+        boolean pointChanged = !java.util.Objects.equals(meetingPoint, content.meetingPoint())
+                || !java.util.Objects.equals(municipalityCode, content.municipalityCode())
+                || differs(latitude, content.latitude()) || differs(longitude, content.longitude());
         apply(content);
         if (status == ExperienceStatus.REJECTED) {
             status = ExperienceStatus.DRAFT;
         }
+        return pointChanged;
+    }
+
+    /** Mueve el estado de verificación; solo lo invoca el servicio con el resultado del autómata (ADR-0030). */
+    public void moveMeetingPointCheck(MeetingPointState target) {
+        this.meetingPointCheckStatus = target;
+    }
+
+    /** Guarda el resultado de una verificación terminada. */
+    public void recordMeetingPointCheck(Integer distanceMeters, BigDecimal suggestedLat, BigDecimal suggestedLng,
+                                        Instant checkedAt) {
+        this.meetingPointCheckDistanceM = distanceMeters;
+        this.meetingPointSuggestedLat = suggestedLat;
+        this.meetingPointSuggestedLng = suggestedLng;
+        this.meetingPointCheckedAt = checkedAt;
+    }
+
+    private static boolean differs(BigDecimal a, BigDecimal b) {
+        return a == null || b == null ? a != b : a.compareTo(b) != 0;
     }
 
     public void transitionTo(ExperienceStatus target) {

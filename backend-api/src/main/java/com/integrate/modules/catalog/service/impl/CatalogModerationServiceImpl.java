@@ -27,6 +27,7 @@ public class CatalogModerationServiceImpl implements CatalogModerationService {
     private final ScheduleRepository scheduleRepository;
     private final StatusReasonContext statusReason;
     private final ExperienceViews views;
+    private final MeetingPointCheckService meetingPointChecks;
     private final Clock clock;
 
     @Override
@@ -42,6 +43,15 @@ public class CatalogModerationServiceImpl implements CatalogModerationService {
     @Transactional
     public HostExperienceResponse approve(UUID experienceId) {
         Experience experience = transition(experienceId, ExperienceStatus.APPROVED, "approve", "Approved by admin");
+        return views.forHost(experience);
+    }
+
+    @Override
+    @Transactional
+    public HostExperienceResponse confirmMeetingPoint(UUID experienceId) {
+        Experience experience = lock(experienceId);
+        meetingPointChecks.confirm(experience);
+        experienceRepository.flush();
         return views.forHost(experience);
     }
 
@@ -98,6 +108,9 @@ public class CatalogModerationServiceImpl implements CatalogModerationService {
             throw CatalogErrors.invalidTransition(experience.getStatus(), action);
         }
         requireTransition(experience, target, action);
+        if (action.equals("approve")) {
+            meetingPointChecks.requireApprovable(experience);
+        }
         statusReason.set(reason);
         experience.transitionTo(target);
         experienceRepository.flush();

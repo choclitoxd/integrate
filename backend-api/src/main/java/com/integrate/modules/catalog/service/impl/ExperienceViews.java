@@ -90,7 +90,8 @@ class ExperienceViews {
     ExperienceDetailResponse detail(Experience e) {
         return new ExperienceDetailResponse(summaries(List.of(e)).getFirst(), e.getDescription(),
                 e.getSafetyGuidelines(), e.getVereda(), e.getMeetingPoint(), e.getLatitude(), e.getLongitude(),
-                e.getTimezone(), stopsOf(List.of(e)).getOrDefault(e.getId(), List.of()));
+                e.getTimezone(), stopsOf(List.of(e)).getOrDefault(e.getId(), List.of()),
+                e.getMeetingPointCheckStatus().coordinatesTrusted());
     }
 
     private Map<UUID, List<StopResponse>> stopsOf(Collection<Experience> experiences) {

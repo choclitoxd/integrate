@@ -5,6 +5,7 @@ import com.integrate.common.exception.ErrorCode;
 import com.integrate.common.payload.InvalidParam;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
 import com.integrate.modules.catalog.entity.ScheduleStatus;
+import com.integrate.modules.catalog.meetingpoint.MeetingPointState;
 import java.time.Instant;
 import java.util.List;
 
@@ -68,6 +69,26 @@ final class CatalogErrors {
     static BusinessRuleException documentInvalid(String field, String reason) {
         return new BusinessRuleException(ErrorCode.ENROLLMENT_DOCUMENT_INVALID, "The uploaded document is not valid.")
                 .with("invalidParams", List.of(new InvalidParam(field, reason)));
+    }
+
+    /** Punto de encuentro dudoso: el administrador debe confirmarlo o el anfitrión corregirlo (ADR-0030 §4). */
+    static BusinessRuleException meetingPointMismatch(MeetingPointState state) {
+        return new BusinessRuleException(ErrorCode.CATALOG_MEETING_POINT_MISMATCH,
+                "The meeting point does not match its coordinates; confirm it or correct the coordinates.")
+                .with("meetingPointCheckStatus", state.name());
+    }
+
+    /** Aún no hay resultado de la verificación del punto de encuentro (ADR-0030 §4). */
+    static BusinessRuleException meetingPointNotVerified(MeetingPointState state) {
+        return new BusinessRuleException(ErrorCode.CATALOG_MEETING_POINT_NOT_VERIFIED,
+                "The meeting point has not been verified yet; try again in a moment.")
+                .with("meetingPointCheckStatus", state.name());
+    }
+
+    static BusinessRuleException invalidMeetingPointAction(MeetingPointState from, String action) {
+        return new BusinessRuleException(ErrorCode.CATALOG_INVALID_STATUS_TRANSITION,
+                "Cannot " + action + " a meeting point in check status " + from)
+                .with("meetingPointCheckStatus", from.name());
     }
 
     static BusinessRuleException forbidden(String detail) {

@@ -42,6 +42,8 @@ public enum ErrorCode {
     CATALOG_SCHEDULE_CONFLICT(HttpStatus.CONFLICT, "schedule-conflict", "Schedule Conflict"),
     CATALOG_HOST_PROFILE_EXISTS(HttpStatus.CONFLICT, "host-profile-exists", "Host Profile Already Exists"),
     CATALOG_ASSOCIATION_EXISTS(HttpStatus.CONFLICT, "association-exists", "Association Already Exists"),
+    CATALOG_MEETING_POINT_MISMATCH(HttpStatus.CONFLICT, "meeting-point-mismatch", "Meeting Point Does Not Match"),
+    CATALOG_MEETING_POINT_NOT_VERIFIED(HttpStatus.CONFLICT, "meeting-point-not-verified", "Meeting Point Not Verified"),
     BOOKING_INSUFFICIENT_SLOTS(HttpStatus.CONFLICT, "insufficient-slots", "Insufficient Available Slots"),
     BOOKING_SCHEDULE_NOT_BOOKABLE(HttpStatus.CONFLICT, "schedule-not-bookable", "Schedule Not Bookable"),
     CONSENT_HEALTH_EMERGENCY_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "consent-required", "Consent Required"),

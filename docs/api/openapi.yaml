@@ -748,6 +748,27 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/InvalidStatusTransition' }
 
+  /api/v1/host/experiences/{id}/meeting-point/check:
+    post:
+      tags: [Host]
+      operationId: checkMyMeetingPoint
+      summary: Repite la verificación de la dirección del punto de encuentro contra sus coordenadas (ADR-0030).
+      description: |
+        Ejecuta el autómata de verificación (`ENVIAR` o `REINTENTAR`) y espera el resultado del geocodificador
+        (tiempo límite de unos segundos). Con el punto ya `CONFIRMADO` por el administrador no cambia nada.
+        Un servicio externo caído deja el estado en `UNVERIFIED`, nunca en error.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Experiencia con `meetingPointCheck` actualizado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
   /api/v1/host/experiences/{id}/schedules:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -978,13 +999,37 @@ paths:
                     properties:
                       items: { type: array, items: { $ref: '#/components/schemas/HostExperience' } }
 
+  /api/v1/admin/experiences/{id}/meeting-point/confirm:
+    post:
+      tags: [Admin]
+      operationId: confirmMeetingPoint
+      summary: Acepta un punto de encuentro dudoso (REVIEW o MISMATCH → CONFIRMADO) (ADR-0030 §4).
+      description: |
+        Queda en `catalog.meeting_point_check_history` con el administrador como actor. Desde cualquier otro estado
+        responde 409 `CATALOG_INVALID_STATUS_TRANSITION` con `meetingPointCheckStatus`.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Experiencia con el punto confirmado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+
   /api/v1/admin/experiences/{id}/{action}:
     post:
       tags: [Admin]
       operationId: moderateExperience
       summary: Moderación (RF-07, RF-08). approve y reinstate sin cuerpo; reject, suspend y retire exigen motivo.
       description: |
-        - `approve`: PENDING_REVIEW → APPROVED.
+        - `approve`: PENDING_REVIEW → APPROVED. Además exige que la verificación del punto de encuentro esté en
+          `MATCH`, `REVIEW`, `UNVERIFIED` o `CONFIRMADO` (ADR-0030): con `MISMATCH` responde 409
+          `CATALOG_MEETING_POINT_MISMATCH` y con `VERIFICANDO`, `PENDIENTE` o `CORREGIDO`, 409
+          `CATALOG_MEETING_POINT_NOT_VERIFIED`.
         - `reject`: PENDING_REVIEW → REJECTED (motivo obligatorio, se guarda para retroalimentación).
         - `suspend`: APPROVED → SUSPENDED; las franjas futuras OPEN pasan a CLOSED.
         - `reinstate`: SUSPENDED → APPROVED; las franjas futuras CLOSED vuelven a OPEN.
@@ -2092,6 +2137,11 @@ components:
         longitude: { type: [number, 'null'] }
         timezone: { type: string, const: America/Bogota }
         stops: { type: array, items: { $ref: '#/components/schemas/RouteStop' } }
+        meetingPointCoordinatesTrusted:
+          type: boolean
+          description: |
+            `false` si la verificación quedó en REVIEW o MISMATCH (ADR-0030): las coordenadas no coinciden con la
+            dirección y el cliente debe ubicar el punto por la dirección escrita.
     RouteType:
       type: string
       description: LOOP (circular), OUT_AND_BACK (ida y vuelta por el mismo camino) o ONE_WAY (ADR-0022).
@@ -2150,6 +2200,19 @@ components:
         status: { $ref: '#/components/schemas/ExperienceStatus' }
         rejectionReason: { type: [string, 'null'] }
         createdAt: { type: string, format: date-time }
+        meetingPointCheck: { $ref: '#/components/schemas/MeetingPointCheck' }
+    MeetingPointCheck:
+      type: object
+      description: |
+        Resultado del autómata de verificación del punto de encuentro (ADR-0030). La sugerencia nunca se aplica sola.
+        Solo `MATCH`, `REVIEW`, `UNVERIFIED` y `CONFIRMADO` permiten aprobar.
+      required: [status]
+      properties:
+        status: { type: string, enum: [PENDIENTE, VERIFICANDO, MATCH, REVIEW, MISMATCH, UNVERIFIED, CONFIRMADO, CORREGIDO] }
+        distanceMeters: { type: [integer, 'null'], description: Distancia entre lo declarado y la dirección geocodificada. }
+        suggestedLatitude: { type: [number, 'null'] }
+        suggestedLongitude: { type: [number, 'null'] }
+        checkedAt: { type: [string, 'null'], format: date-time }
     HostSchedule:
       type: object
       properties:

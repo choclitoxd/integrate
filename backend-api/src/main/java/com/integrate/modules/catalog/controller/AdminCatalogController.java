@@ -71,6 +71,12 @@ public class AdminCatalogController {
         return moderationService.approve(id);
     }
 
+    /** Acepta un punto de encuentro dudoso (REVIEW o MISMATCH); queda en el historial (ADR-0030 §4). */
+    @PostMapping("/experiences/{id}/meeting-point/confirm")
+    public HostExperienceResponse confirmMeetingPoint(@PathVariable UUID id) {
+        return moderationService.confirmMeetingPoint(id);
+    }
+
     @PostMapping("/experiences/{id}/reject")
     public HostExperienceResponse reject(@PathVariable UUID id, @Valid @RequestBody ReasonRequest request) {
         return moderationService.reject(id, request.reason());
