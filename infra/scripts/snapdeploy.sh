@@ -131,6 +131,10 @@ except Exception: print('OK (respuesta no interpretable)')"
     CID=$(container_id) || exit 1
     api POST "/api/mobile/containers/$CID/wake" >/dev/null
     case "$HTTP" in 200|202|204) echo "Despertando '$NAME'. Espere ~1 min más el arranque de la JVM y use: status";; 402) echo "HTTP 402: horas del mes agotadas."; exit 1;; *) echo "HTTP $HTTP al despertar."; exit 1;; esac ;;
+  stop)
+    CID=$(container_id) || exit 1
+    api POST "/api/mobile/containers/$CID/stop" >/dev/null
+    case "$HTTP" in 200|202|204) echo "Deteniendo '$NAME'.";; *) echo "HTTP $HTTP al detener."; exit 1;; esac ;;
   status)
     CID=$(container_id) || exit 1
     api GET "/api/mobile/containers/$CID"
