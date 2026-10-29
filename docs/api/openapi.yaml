@@ -1648,6 +1648,206 @@ paths:
         '409': { $ref: '#/components/responses/SyncBatchMismatch' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/offline/roster:
+    get:
+      tags: [Offline]
+      operationId: downloadOfflineRoster
+      summary: Descarga preventiva del padrón de la jornada (RF-16, ADR-0032).
+      description: |
+        Solo `ROLE_LINK_MANAGER` con acreditación `ACTIVE`. Devuelve los vouchers `ISSUED` de reservas `CONFIRMED`
+        cuya franja cae en `date` (America/Bogota) y cuya experiencia pertenece a la asociación del gestor, las
+        llaves públicas de firma necesarias y la lista inicial de revocación con su `watermark`. Nunca incluye la
+        EPS ni datos de salud. `X-Device-Id` es obligatorio: un dispositivo nuevo se registra a nombre del gestor;
+        uno ajeno responde 409 `OFFLINE_DEVICE_OWNED_BY_OTHER` y uno `REVOKED`/`LOST`, 403
+        `OFFLINE_DEVICE_NOT_AUTHORIZED`. Si supera el tope (2 000 vouchers) responde 422 `OFFLINE_ROSTER_TOO_LARGE`
+        y se repite por `scheduleId`. Cada descarga queda en `offline.roster_downloads` y en la auditoría.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_LINK_MANAGER]
+      parameters:
+        - name: X-Device-Id
+          in: header
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9._-]{4,100}$' }
+        - name: date
+          in: query
+          required: false
+          description: Jornada; por defecto hoy. No puede pasar de mañana.
+          schema: { type: string, format: date }
+        - name: scheduleId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Padrón de la jornada (`Cache-Control no-store`).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rosterDate, generatedAt, associationId, signingKeys, vouchers, revocations]
+                properties:
+                  rosterDate: { type: string, format: date }
+                  generatedAt: { type: string, format: date-time }
+                  associationId: { type: string, format: uuid }
+                  signingKeys:
+                    type: array
+                    items:
+                      type: object
+                      required: [kid, algorithm, publicKeyPem, status, validFrom]
+                      properties:
+                        kid: { type: string }
+                        algorithm: { type: string }
+                        publicKeyPem: { type: string }
+                        status: { type: string, enum: [ACTIVE, RETIRED] }
+                        validFrom: { type: string, format: date-time }
+                  vouchers:
+                    type: array
+                    items:
+                      type: object
+                      required: [voucherId, bookingId, scheduleId, experienceTitle, shortCode, tokenSha256,
+                                 signingKeyKid, holderName, holderDocument, slotsCount, participants, emergencyContact]
+                      properties:
+                        voucherId: { type: string, format: uuid }
+                        bookingId: { type: string, format: uuid }
+                        scheduleId: { type: string, format: uuid }
+                        experienceTitle: { type: string }
+                        shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$' }
+                        tokenSha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+                        signingKeyKid: { type: string }
+                        holderName: { type: string }
+                        holderDocument: { type: string, description: 'docType:docNumber' }
+                        slotsCount: { type: integer }
+                        participants:
+                          type: array
+                          items:
+                            type: object
+                            required: [fullName, docType, docNumber]
+                            properties:
+                              fullName: { type: string }
+                              docType: { type: string }
+                              docNumber: { type: string }
+                        emergencyContact:
+                          type: object
+                          required: [name, phone]
+                          properties:
+                            name: { type: string }
+                            phone: { type: string }
+                  revocations: { $ref: '#/components/schemas/OfflineRevocations' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/DeviceForbidden' }
+        '409':
+          description: El dispositivo pertenece a otro gestor (`OFFLINE_DEVICE_OWNED_BY_OTHER`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/offline/revocations:
+    get:
+      tags: [Offline]
+      operationId: downloadOfflineRevocations
+      summary: Lista delta de revocación de vouchers (RF-16, ADR-0032).
+      description: |
+        Solo `ROLE_LINK_MANAGER`. Devuelve los vouchers revocados de la asociación con `revoked_at >= since`
+        (el `>=` solapa a propósito: el almacén local se llena por `voucherId`, así que repetir una revocación es
+        inocuo y no se pierde ninguna confirmada fuera de orden). Sin `since` devuelve las aún relevantes (franja de
+        hoy en adelante). `watermark` es el mayor `revokedAt` devuelto, o `since` si no hay novedades.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_LINK_MANAGER]
+      parameters:
+        - name: X-Device-Id
+          in: header
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9._-]{4,100}$' }
+        - name: since
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Delta de revocación (`Cache-Control no-store`).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfflineRevocations' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/DeviceForbidden' }
+        '409':
+          description: El dispositivo pertenece a otro gestor (`OFFLINE_DEVICE_OWNED_BY_OTHER`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/offline/contingency/redeem:
+    post:
+      tags: [Offline]
+      operationId: redeemContingencyCode
+      summary: Canje manual por código alfanumérico cuando falla la cámara (RF-17, ADR-0032).
+      description: |
+        Solo `ROLE_LINK_MANAGER`, en línea. Bloquea la fila del voucher y aplica en orden: código inexistente o de
+        otra asociación → 404 `VOUCHER_NOT_FOUND` (idéntica en ambos casos); `REVOKED` → 409 `VOUCHER_REVOKED`;
+        `CONSUMED` → 409 `VOUCHER_ALREADY_REDEEMED` (con `redeemedAt`); `EXPIRED`/vencido → 422 `VOUCHER_EXPIRED`;
+        franja de otro día (America/Bogota) → 422 `VOUCHER_WRONG_DATE`; reserva no `CONFIRMED` → 409
+        `BOOKING_NOT_REDEEMABLE`. En otro caso el voucher pasa a `CONSUMED` y la reserva a `EXECUTED`. Los rechazos de
+        un voucher existente quedan en `offline.offline_validations` (append-only). `X-Device-Id` es opcional.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_LINK_MANAGER]
+      parameters:
+        - name: X-Device-Id
+          in: header
+          required: false
+          schema: { type: string, pattern: '^[A-Za-z0-9._-]{4,100}$' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shortCode]
+              properties:
+                shortCode: { type: string, pattern: '^[A-Za-z0-9]{8}$', description: Se normaliza a mayúsculas. }
+            example:
+              shortCode: K7QM4XPA
+      responses:
+        '200':
+          description: Canje aceptado (`Cache-Control no-store`).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [voucherId, bookingId, slotsCount, holderName, experienceTitle, redeemedAt]
+                properties:
+                  voucherId: { type: string, format: uuid }
+                  bookingId: { type: string, format: uuid }
+                  slotsCount: { type: integer }
+                  holderName: { type: string }
+                  experienceTitle: { type: string }
+                  redeemedAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/DeviceForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Voucher revocado, ya canjeado, reserva no canjeable o dispositivo ajeno.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1737,6 +1937,28 @@ components:
       format: int64
       minimum: 0
       description: Pesos colombianos sin centavos.
+
+    # ---------- Offline (ADR-0032) ----------
+    OfflineRevocations:
+      type: object
+      description: Lista delta de revocación y su marca de agua para la siguiente descarga.
+      required: [items, watermark]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [voucherId, shortCode, revokedAt]
+            properties:
+              voucherId: { type: string, format: uuid }
+              shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$' }
+              revokedAt: { type: string, format: date-time }
+              revocationReason: { type: string, nullable: true }
+        watermark:
+          type: string
+          format: date-time
+          nullable: true
+          description: Mayor `revokedAt` devuelto, o el `since` recibido; nulo si no hay ni uno ni otro.
 
     # ---------- Errores (RFC 9457) ----------
     ProblemDetails:

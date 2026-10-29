@@ -126,6 +126,11 @@ public class Booking {
         moveFrom(BookingStatus.PENDING, BookingStatus.PAYMENT_FAILED);
     }
 
+    /** Servicio prestado y canjeado en campo (ADR-0032 §4). */
+    public void execute() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.EXECUTED);
+    }
+
     /** Pago anulado sobre una reserva aún {@code PENDING} (F5, V10): sus cupos se devuelven. */
     public void voidPending() {
         moveFrom(BookingStatus.PENDING, BookingStatus.CANCELLED_REFUNDED);
