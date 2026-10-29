@@ -12,7 +12,7 @@ public record RosterResponse(LocalDate rosterDate, Instant generatedAt, UUID ass
     public record SigningKey(String kid, String algorithm, String publicKeyPem, String status, Instant validFrom) {
     }
 
-    public record Voucher(UUID voucherId, UUID bookingId, UUID scheduleId, String experienceTitle, String shortCode,
+    public record Voucher(UUID voucherId, UUID jti, UUID bookingId, UUID scheduleId, String experienceTitle, String shortCode,
                           String tokenSha256, String signingKeyKid, String holderName, String holderDocument,
                           int slotsCount, List<Participant> participants, EmergencyContact emergencyContact) {
     }

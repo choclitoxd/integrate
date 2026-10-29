@@ -100,7 +100,7 @@ class RosterServiceImpl implements RosterService {
     private RevocationsResponse revocationsOf(ManagerScope manager, Instant since, Instant scheduleNotBefore) {
         List<RevocationRow> rows = queries.revocations(manager.associationId(), since, scheduleNotBefore);
         Instant watermark = rows.stream().map(RevocationRow::revokedAt).max(Comparator.naturalOrder()).orElse(since);
-        return new RevocationsResponse(rows.stream().map(r -> new RevocationsResponse.Item(r.voucherId(),
+        return new RevocationsResponse(rows.stream().map(r -> new RevocationsResponse.Item(r.voucherId(), r.jti(),
                 r.shortCode(), r.revokedAt(), r.reason())).toList(), watermark);
     }
 
@@ -112,7 +112,7 @@ class RosterServiceImpl implements RosterService {
                 cipher.decrypt(row.contactPhoneEnc(), phoneAad, row.contactKeyVersion()));
         List<RosterResponse.Participant> people = participants.getOrDefault(row.bookingId(), List.of()).stream()
                 .map(p -> new RosterResponse.Participant(p.fullName(), p.docType(), p.docNumber())).toList();
-        return new RosterResponse.Voucher(row.voucherId(), row.bookingId(), row.scheduleId(), row.experienceTitle(),
+        return new RosterResponse.Voucher(row.voucherId(), row.jti(), row.bookingId(), row.scheduleId(), row.experienceTitle(),
                 row.shortCode(), row.tokenSha256(), row.signingKeyKid(), row.holderName(), row.holderDocument(),
                 row.slotsCount(), people, contact);
     }

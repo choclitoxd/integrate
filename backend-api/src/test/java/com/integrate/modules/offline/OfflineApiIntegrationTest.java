@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +80,12 @@ class OfflineApiIntegrationTest extends PostgresIntegrationTest {
     private String associationId;
     private String gestorEmail;
     private String device;
+
+    /** El reloj es compartido por todo el contexto de pruebas: no se deja adelantado para las demás clases. */
+    @AfterEach
+    void restoreClock() {
+        clock.set(START);
+    }
 
     @BeforeEach
     void setUp() throws Exception {

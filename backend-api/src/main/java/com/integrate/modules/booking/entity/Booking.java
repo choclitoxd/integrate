@@ -128,7 +128,20 @@ public class Booking {
 
     /** Servicio prestado y canjeado en campo (ADR-0032 §4). */
     public void execute() {
-        moveFrom(BookingStatus.CONFIRMED, BookingStatus.EXECUTED);
+        moveFrom(status == BookingStatus.NO_SHOW ? BookingStatus.NO_SHOW : BookingStatus.CONFIRMED,
+                BookingStatus.EXECUTED);
+    }
+
+    /** Canje en campo de una reserva ya cancelada (ADR-0033 §3); idempotente si ya está en conflicto. */
+    public void syncConflict() {
+        if (status == BookingStatus.SYNC_CONFLICT) {
+            return;
+        }
+        if (status != BookingStatus.CANCELLED_REFUNDED && status != BookingStatus.CANCELLED_NO_REFUND
+                && status != BookingStatus.CANCELLED_BY_PLATFORM) {
+            throw new IllegalStateException("Booking " + id + " is " + status + ", cannot move to SYNC_CONFLICT");
+        }
+        this.status = BookingStatus.SYNC_CONFLICT;
     }
 
     /** Pago anulado sobre una reserva aún {@code PENDING} (F5, V10): sus cupos se devuelven. */

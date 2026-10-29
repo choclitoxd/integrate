@@ -40,7 +40,7 @@ class OfflineScopes {
             queries.insertDeviceIfAbsent(identifier, manager.managerId(), platformOf(userAgent));
             device = queries.findDevice(identifier).orElseThrow();
         }
-        if (!device.managerId().equals(manager.managerId())) {
+        if (!manager.managerId().equals(device.managerId())) {
             throw new BusinessRuleException(ErrorCode.OFFLINE_DEVICE_OWNED_BY_OTHER);
         }
         if (!"ACTIVE".equals(device.status())) {

@@ -1708,10 +1708,11 @@ paths:
                     type: array
                     items:
                       type: object
-                      required: [voucherId, bookingId, scheduleId, experienceTitle, shortCode, tokenSha256,
+                      required: [voucherId, jti, bookingId, scheduleId, experienceTitle, shortCode, tokenSha256,
                                  signingKeyKid, holderName, holderDocument, slotsCount, participants, emergencyContact]
                       properties:
                         voucherId: { type: string, format: uuid }
+                        jti: { type: string, format: uuid, description: Identificador que la PWA lee del QR y envía como `voucherId` en `/offline/sync`. }
                         bookingId: { type: string, format: uuid }
                         scheduleId: { type: string, format: uuid }
                         experienceTitle: { type: string }
@@ -1948,9 +1949,10 @@ components:
           type: array
           items:
             type: object
-            required: [voucherId, shortCode, revokedAt]
+            required: [voucherId, jti, shortCode, revokedAt]
             properties:
               voucherId: { type: string, format: uuid }
+              jti: { type: string, format: uuid }
               shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$' }
               revokedAt: { type: string, format: date-time }
               revocationReason: { type: string, nullable: true }

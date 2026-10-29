@@ -11,6 +11,6 @@ import java.util.UUID;
  */
 public record RevocationsResponse(List<Item> items, Instant watermark) {
 
-    public record Item(UUID voucherId, String shortCode, Instant revokedAt, String revocationReason) {
+    public record Item(UUID voucherId, UUID jti, String shortCode, Instant revokedAt, String revocationReason) {
     }
 }

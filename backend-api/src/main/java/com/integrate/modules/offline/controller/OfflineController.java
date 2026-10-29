@@ -1,12 +1,15 @@
 package com.integrate.modules.offline.controller;
 
 import com.integrate.common.exception.BusinessRuleException;
+import com.integrate.modules.offline.dto.request.OfflineSyncBatchRequest;
 import com.integrate.modules.offline.dto.request.RedeemRequest;
+import com.integrate.modules.offline.dto.response.OfflineSyncBatchResponse;
 import com.integrate.modules.offline.dto.response.RedeemResponse;
 import com.integrate.modules.offline.dto.response.RevocationsResponse;
 import com.integrate.modules.offline.dto.response.RosterResponse;
 import com.integrate.modules.offline.service.ContingencyService;
 import com.integrate.modules.offline.service.RosterService;
+import com.integrate.modules.offline.service.SyncBatchService;
 import com.integrate.modules.offline.service.model.RedeemOutcome;
 import jakarta.validation.Valid;
 import java.time.Instant;
@@ -42,6 +45,7 @@ public class OfflineController {
 
     private final RosterService rosterService;
     private final ContingencyService contingencyService;
+    private final SyncBatchService syncBatchService;
 
     @GetMapping("/roster")
     public ResponseEntity<RosterResponse> roster(@AuthenticationPrincipal Jwt jwt,
@@ -83,6 +87,16 @@ public class OfflineController {
             throw error;
         }
         return noStore(outcome.accepted());
+    }
+
+    /** Gestor y anfitrión sincronizan lo capturado sin conexión (ADR-0033); el contrato fija 200 siempre que el lote sea válido. */
+    @PostMapping("/sync")
+    @PreAuthorize("hasAnyRole('LINK_MANAGER', 'HOST')")
+    public ResponseEntity<OfflineSyncBatchResponse> sync(@AuthenticationPrincipal Jwt jwt,
+                                                         @RequestHeader(value = HttpHeaders.USER_AGENT,
+                                                                 required = false) String userAgent,
+                                                         @Valid @RequestBody OfflineSyncBatchRequest request) {
+        return noStore(syncBatchService.sync(UUID.fromString(jwt.getSubject()), userAgent, request));
     }
 
     private static <T> ResponseEntity<T> noStore(T body) {
