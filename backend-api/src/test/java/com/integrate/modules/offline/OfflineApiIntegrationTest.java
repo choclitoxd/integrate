@@ -147,6 +147,12 @@ class OfflineApiIntegrationTest extends PostgresIntegrationTest {
         assertThat(jdbc.queryForObject(
                 "SELECT count(*) FROM audit.audit_trail WHERE action = 'OFFLINE_ROSTER_DOWNLOADED'", Long.class))
                 .isPositive();
+        // El acceso a datos personales y sensibles deja rastro por titular, con los campos y sin valores (ADR-0035 §2).
+        assertThat(jdbc.queryForObject("""
+                SELECT details::text FROM audit.audit_trail WHERE action = 'SENSITIVE_DATA_ACCESSED'
+                   AND details @> jsonb_build_object('subjects', jsonb_build_array(?::text))""", String.class,
+                bookingId)).contains("OFFLINE_ROSTER", "emergencyContact.phone", "participants.docNumber")
+                .doesNotContain("Carlos Gomez").doesNotContain("+573001234567");
 
         // Otro gestor, de otra asociación, no ve nada.
         String otherToken = tokenFor(otherManager);

@@ -2,7 +2,10 @@ package com.integrate.common.audit;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ class JpaAuditTrail implements AuditTrail {
             VALUES (:module, :entityName, :entityId, :action, :severity, CAST(:actorId AS uuid),
                     CAST(:actorIp AS inet), :userAgent, CAST(:details AS jsonb))""";
 
+    private static final Logger log = LoggerFactory.getLogger(JpaAuditTrail.class);
     private static final int MAX_USER_AGENT = 1000;
 
     @PersistenceContext
@@ -33,6 +37,11 @@ class JpaAuditTrail implements AuditTrail {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void record(AuditEntry entry) {
+        Map<String, Object> details = entry.details();
+        if (AuditRedactor.containsSensitiveKey(details)) {
+            log.warn("audit.redacted module={} action={} entity={}", entry.module(), entry.action(), entry.entityName());
+            details = AuditRedactor.redact(details);
+        }
         entityManager.createNativeQuery(INSERT_SQL)
                 .setParameter("module", entry.module())
                 .setParameter("entityName", entry.entityName())
@@ -42,7 +51,7 @@ class JpaAuditTrail implements AuditTrail {
                 .setParameter("actorId", entry.actorId() == null ? null : entry.actorId().toString())
                 .setParameter("actorIp", entry.actorIp() == null ? null : entry.actorIp().getHostAddress())
                 .setParameter("userAgent", truncate(entry.userAgent()))
-                .setParameter("details", jsonMapper.writeValueAsString(entry.details()))
+                .setParameter("details", jsonMapper.writeValueAsString(details))
                 .executeUpdate();
     }
 

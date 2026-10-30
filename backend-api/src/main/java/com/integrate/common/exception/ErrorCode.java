@@ -70,6 +70,7 @@ public enum ErrorCode {
     // --- Offline (ADR-0032) --------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
     OFFLINE_DEVICE_OWNED_BY_OTHER(HttpStatus.CONFLICT, "device-owned-by-other", "Device Owned By Another Manager"),
+    AUDIT_EXPORT_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "audit-export-too-large", "Audit Export Too Large"),
     OFFLINE_ROSTER_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "roster-too-large", "Roster Too Large"),
     SYNC_BATCH_PAYLOAD_MISMATCH(HttpStatus.CONFLICT, "sync-batch-payload-mismatch", "Sync Batch Payload Mismatch");
 

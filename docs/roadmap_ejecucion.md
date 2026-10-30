@@ -175,11 +175,11 @@ Cada etapa se cierra formalmente cuando se cumplen los entregables de todas sus 
 ### ETAPA 2 (Proceso 3)
 
 #### DoD Fase 2.1: Backend de Validación, Sincronización y Dispersión
-- [ ] El padrón y la lista de revocación se descargan por API y el canje de contingencia impide el doble canje.
-- [ ] Ante un conflicto de sincronización por cancelación previa, el sistema ejecuta la resolución determinista: no descuenta el 85% de la comunidad y crea la incidencia contable para el Administrador.
-- [ ] La dispersión calcula y ejecuta de forma comprobada el 85% comunidad / 15% plataforma.
-- [ ] La regla de cancelación de 72 horas ejecuta con precisión matemática los reembolsos del 85% (>72h) o la retención total a favor del anfitrión ($\le$72h).
-- [ ] La tabla de consentimientos es inmutable y los datos sensibles están cifrados con AES-256.
+- [x] El padrón y la lista de revocación se descargan por API y el canje de contingencia impide el doble canje.
+- [x] Ante un conflicto de sincronización por cancelación previa, el sistema ejecuta la resolución determinista: no descuenta el 85% de la comunidad y crea la incidencia contable para el Administrador.
+- [x] La dispersión calcula y ejecuta de forma comprobada el 85% comunidad / 15% plataforma.
+- [x] La regla de cancelación de 72 horas ejecuta con precisión matemática los reembolsos del 85% (>72h) o la retención total a favor del anfitrión ($\le$72h).
+- [x] La tabla de consentimientos es inmutable y los datos sensibles están cifrados con AES-256.
 
 #### DoD Fase 2.2: Frontend PWA Offline-First
 - [ ] La PWA se instala correctamente en dispositivos móviles (Android/iOS) y funciona en modo avión (desconectado).

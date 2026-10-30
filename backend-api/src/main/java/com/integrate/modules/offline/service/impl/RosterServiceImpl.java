@@ -2,6 +2,7 @@ package com.integrate.modules.offline.service.impl;
 
 import com.integrate.common.audit.AuditEntry;
 import com.integrate.common.audit.AuditTrail;
+import com.integrate.common.audit.SensitiveAccessRecorder;
 import com.integrate.common.crypto.SensitiveDataCipher;
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
@@ -34,10 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 class RosterServiceImpl implements RosterService {
 
     private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
+    static final String ROSTER_PURPOSE = "OFFLINE_ROSTER";
+    static final List<String> ROSTER_FIELDS = List.of("emergencyContact.name", "emergencyContact.phone",
+            "holderName", "holderDocument", "participants.fullName", "participants.docNumber");
 
     private final OfflineQueries queries;
     private final OfflineScopes scopes;
     private final SensitiveDataCipher cipher;
+    private final SensitiveAccessRecorder accessRecorder;
     private final AuditTrail audit;
     private final Clock clock;
 
@@ -75,6 +80,13 @@ class RosterServiceImpl implements RosterService {
                 .orElseGet(() -> keys.get(0).id());
         queries.insertRosterDownload(deviceId, manager.associationId(), day, activeKey, vouchers.size(),
                 revocations.watermark());
+        // Datos personales y sensibles en claro hacia el dispositivo del gestor (ADR-0035 §2): quién, para qué, qué
+        // campos y de qué reservas; nunca los valores.
+        if (!vouchers.isEmpty()) {
+            accessRecorder.record(new SensitiveAccessRecorder.Access("offline", "device", deviceId.toString(),
+                    ROSTER_PURPOSE, ROSTER_FIELDS,
+                    vouchers.stream().map(v -> v.bookingId().toString()).toList(), userId, null, userAgent));
+        }
         audit.record(new AuditEntry("offline", "device", deviceId.toString(), "OFFLINE_ROSTER_DOWNLOADED",
                 AuditEntry.Severity.INFO, userId, null, userAgent,
                 Map.of("rosterDate", day.toString(), "vouchers", vouchers.size(),
