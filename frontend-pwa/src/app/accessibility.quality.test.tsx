@@ -70,6 +70,30 @@ const VIEWS: readonly View[] = [
     roles: ['ROLE_LINK_MANAGER'],
     routes: { '/v1/privacy-policies/current': policy },
   },
+  {
+    name: 'Panel de jornada offline (Gestor)',
+    path: '/gestor',
+    roles: ['ROLE_LINK_MANAGER'],
+    routes: {},
+  },
+  {
+    name: 'Escáner QR en campo (Gestor)',
+    path: '/gestor/validar',
+    roles: ['ROLE_LINK_MANAGER'],
+    routes: {},
+  },
+  {
+    name: 'Contingencia manual (Gestor)',
+    path: '/gestor/contingencia',
+    roles: ['ROLE_LINK_MANAGER'],
+    routes: {},
+  },
+  {
+    name: 'Cola de sincronización (Gestor)',
+    path: '/gestor/cola',
+    roles: ['ROLE_LINK_MANAGER'],
+    routes: {},
+  },
 ];
 
 async function audit(): Promise<axe.Result[]> {

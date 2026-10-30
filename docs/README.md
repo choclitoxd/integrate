@@ -67,6 +67,15 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0026](architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) | Backend de la demo en SnapDeploy (plan gratuito) con proxy que traduce «despertando» a 503 | Aceptado |
 | [0027](architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md) | Alojar el backend 24/7 en un VPS de Hetzner Cloud | Propuesto |
 | [0028](architecture/adr/ADR-0028-publicacion-manual-usuario-en-pwa.md) | Publicar el manual de usuario como activo estático en la PWA (Cloudflare Pages y Local) | Aceptado |
+| [0029](architecture/adr/ADR-0029-simulador-pago-mock-en-demo.md) | Simulador de la pasarela Mock controlado por bandera explícita en demo | Aceptado |
+| [0030](architecture/adr/ADR-0030-verificacion-direccion-vs-coordenadas-del-punto-de-encuentro.md) | Verificación de la dirección frente a las coordenadas del punto de encuentro con autómata | Aceptado |
+| [0031](architecture/adr/ADR-0031-entorno-de-pruebas-y-promocion-a-produccion.md) | Entorno de pruebas y promoción a producción | Aceptado |
+| [0032](architecture/adr/ADR-0032-padron-offline-revocacion-y-canje-de-contingencia.md) | Servir el padrón offline, la lista delta de revocación y el canje manual de contingencia | Aceptado |
+| [0033](architecture/adr/ADR-0033-sincronizacion-offline-idempotente-y-resolucion-de-conflictos.md) | Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista | Aceptado |
+| [0034](architecture/adr/ADR-0034-dispersion-85-15-cancelacion-72h-y-reembolsos.md) | Dispersión 85/15, política de cancelación de 72 h y reembolsos | Aceptado |
+| [0035](architecture/adr/ADR-0035-auditoria-habeas-data-consulta-accesos-sensibles-y-cifrado.md) | Auditoría de Habeas Data, consulta de accesos sensibles y cifrado | Aceptado |
+| [0036](architecture/adr/ADR-0036-infraestructura-offline-pwa-workbox-indexeddb.md) | Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`) | Aceptado |
+| [0037](architecture/adr/ADR-0037-padron-validacion-qr-contingencia-y-sincronizacion-pwa.md) | Implementar la descarga preventiva del padrón, validación criptográfica QR con Web Crypto, anti-doble canje local, contingencia manual y sincronización diferida en la PWA | Aceptado |
 
 ## Calidad
 
@@ -75,6 +84,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [Plan de Gestión de la Calidad v1.10](quality/) | Documento Word del plan (`1.1 Integrate Plan de Gestión de la Calidad del Proyecto v1.10.docx`). |
 | [Matriz de trazabilidad RNF](quality/matriz-trazabilidad-rnf.md) | Relación entre cada RNF, su prueba y su evidencia. |
 | [Evidencias métricas](quality/evidencias-metricas.md) | Informe generado por la suite (no editar a mano). |
+| [Guía de pruebas del ciclo de vida por rol](quality/guion-pruebas-ciclo-de-vida.md) | Prueba manual de cada rol (visitante, turista, administrador, gestor, anfitrión) en computador y celular, con la causa probable de cada error. |
 
 ## Reglas del equipo
 

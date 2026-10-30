@@ -8,7 +8,7 @@ Estados: **Automatizada** (la suite verifica el criterio), **Parcial** (cubre pa
 |---|---|---|---|---|---|---|---|
 | RNF-01 | Seguridad | P1 Identidades | Cifrado en reposo/tránsito y anonimización | Parcial | SensitiveDataAtRestQualityTest | No cumple | TLS 1.3 A+ se audita en el despliegue (T-2.16) |
 | RNF-04 | Seguridad | P1 Identidades | Hashing y custodia de credenciales | Automatizada | CredentialStorageQualityTest, SecretRedactionQualityTest | Cumple | El plan nombra BCrypt; el sistema usa Argon2id (ADR-0005 §3) |
-| RNF-05 | Seguridad | P3 Validación y split | Firma criptográfica de vouchers | Parcial | VoucherTamperDetectionQualityTest | Cumple | Verificación en la PWA sin conexión: T-2.10 |
+| RNF-05 | Seguridad | P3 Validación y split | Firma criptográfica de vouchers | Automatizada | VoucherTamperDetectionQualityTest, offlineValidation.quality.test.tsx | Cumple | Verificada en backend y en la PWA sin conexión (Web Crypto API, T-2.10) |
 | RNF-06 | Seguridad | P1 Identidades | Bitácora inmutable de Habeas Data | Automatizada | ConsentAuditQualityTest | No cumple |  |
 | RNF-07 | Seguridad | P1 Identidades | RBAC y seguridad en endpoints | Automatizada | EndpointSecuritySweepQualityTest | Cumple |  |
 | RNF-02 | Eficiencia de desempeño | P2 Reserva | Bloqueo transaccional < 200 ms | Automatizada | BookingLockLatencyQualityTest, qa/k6/booking-lock.js | Cumple |  |
@@ -19,13 +19,13 @@ Estados: **Automatizada** (la suite verifica el criterio), **Parcial** (cubre pa
 | RNF-03 | Capacidad de interacción | P1 Identidades | Accesibilidad WCAG 2.1 AA / NTC 5854 | Parcial | accessibility.quality.test.tsx, styles/tokens.test.ts | Cumple | Áreas táctiles y lector de pantalla: auditoría manual T-2.15 |
 | RNF-12 | Capacidad de interacción | P1 Identidades | Enrolamiento asistido < 3 min | No automatizable | — | No automatizable | Prueba de usuario en campo con el Gestor de Enlace |
 | RNF-13 | Capacidad de interacción | P2 Reserva | Protección contra errores en checkout | Automatizada | checkoutGuards.quality.test.tsx | Cumple |  |
-| RNF-14 | Capacidad de interacción | P3 Validación y split | Indicadores visuales de validación offline | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.10 (lector QR) |
+| RNF-14 | Capacidad de interacción | P3 Validación y split | Indicadores visuales de validación offline | Automatizada | offlineValidation.quality.test.tsx | Cumple | Veredicto multimodal AAA + vibración háptica (T-2.10) |
 | RNF-15 | Capacidad de interacción | P1 Identidades | Legibilidad del consentimiento (IFSZ > 60) | Automatizada | consentReadability.quality.test.ts | No cumple |  |
 | RNF-16 | Fiabilidad | P2 Reserva | Tasa cero de overbooking | Automatizada | OverbookingStressQualityTest | Cumple |  |
-| RNF-17 | Fiabilidad | P3 Validación y split | Operación offline (IndexedDB) | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.8, T-2.9 |
-| RNF-18 | Fiabilidad | P3 Validación y split | Prevención de doble canje offline | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.11 |
-| RNF-19 | Fiabilidad | P3 Validación y split | Background Sync determinista | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.3, T-2.13 |
-| RNF-20 | Fiabilidad | P3 Validación y split | Contingencia por falla del terminal | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.2, T-2.12 |
+| RNF-17 | Fiabilidad | P3 Validación y split | Operación offline (IndexedDB) | Automatizada | offlineStorage.quality.test.ts | Cumple | IntegrateOfflineDB v1 (< 10 MB) + Logout Guard (T-2.8, T-2.9) |
+| RNF-18 | Fiabilidad | P3 Validación y split | Prevención de doble canje offline | Automatizada | offlineValidation.quality.test.tsx | Cumple | Bloqueo atómico CONSUMIDO_LOCAL (T-2.11) |
+| RNF-19 | Fiabilidad | P3 Validación y split | Background Sync determinista | Automatizada | offlineValidation.quality.test.tsx | Cumple | Lotes idempotentes syncBatchId + backoff exponencial (T-2.3, T-2.13) |
+| RNF-20 | Fiabilidad | P3 Validación y split | Contingencia por falla del terminal | Automatizada | offlineValidation.quality.test.tsx | Cumple | Canje manual por shortCode de 8 caracteres online/offline (T-2.2, T-2.12) |
 | RNF-21 | Adecuación funcional | P3 Validación y split | Exactitud de la dispersión 85/15 | Parcial | SplitPaymentExactnessQualityTest | Cumple | Se verifica la custodia; la orden de giro es T-2.5 |
 | RNF-22 | Adecuación funcional | P3 Validación y split | Política de cancelación 72 h | Pendiente Fase 2 | — | Pendiente Fase 2 | T-2.6 |
 | RNF-23 | Adecuación funcional | P2 Reserva | Voucher PDF/A completo | Automatizada | VoucherPdfConformanceQualityTest | No cumple |  |

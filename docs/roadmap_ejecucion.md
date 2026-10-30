@@ -182,11 +182,11 @@ Cada etapa se cierra formalmente cuando se cumplen los entregables de todas sus 
 - [x] La tabla de consentimientos es inmutable y los datos sensibles están cifrados con AES-256.
 
 #### DoD Fase 2.2: Frontend PWA Offline-First
-- [ ] La PWA se instala correctamente en dispositivos móviles (Android/iOS) y funciona en modo avión (desconectado).
-- [ ] El Gestor de Enlace puede descargar con un clic el padrón de reservas y la clave pública institucional.
-- [ ] El escáner QR de la PWA valida matemáticamente la autenticidad del voucher sin conexión celular.
-- [ ] Todo voucher escaneado se almacena como `CONSUMIDO_LOCAL` en IndexedDB e impide inmediatamente su reuso local.
-- [ ] Al recuperar la conexión a internet, las asistencias encoladas se sincronizan automáticamente con el servidor en segundo plano.
+- [x] La PWA se instala correctamente en dispositivos móviles (Android/iOS) y funciona en modo avión (desconectado).
+- [x] El Gestor de Enlace puede descargar con un clic el padrón de reservas y la clave pública institucional.
+- [x] El escáner QR de la PWA valida matemáticamente la autenticidad del voucher sin conexión celular.
+- [x] Todo voucher escaneado se almacena como `CONSUMIDO_LOCAL` en IndexedDB e impide inmediatamente su reuso local.
+- [x] Al recuperar la conexión a internet, las asistencias encoladas se sincronizan automáticamente con el servidor en segundo plano.
 
 #### DoD Fase 2.3: Calidad, Hardening y Cloud
 - [ ] Prueba de carga de 200 peticiones simultáneas sobre el endpoint de bloqueo responde en un tiempo promedio inferior a 200 ms y con 0% de sobreventa.
