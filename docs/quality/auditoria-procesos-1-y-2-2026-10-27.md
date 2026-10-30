@@ -96,13 +96,13 @@ La base de accesibilidad es muy buena: **ninguna de las 14 pantallas revisadas t
 ### A6. El build de producción se rompe con facilidad
 
 - La PWA necesita `VITE_API_BASE_URL` al compilar. Sin ella el sitio muestra «Configuración incompleta», y en Git Bash `/api` se convierte en `C:/Program Files/Git/api`. Ambas cosas pasaron hoy en producción.
-- **Arreglo:** versionar `frontend-pwa/.env.production` con `VITE_API_BASE_URL=/api` (con una excepción en `.gitignore`), o un valor por defecto `/api` en producción. Ver `docs/despliegue/despliegue-pwa-cloudflare.md`.
+- **Arreglo:** versionar `frontend-pwa/.env.production` con `VITE_API_BASE_URL=/api` (con una excepción en `.gitignore`), o un valor por defecto `/api` en producción. Ver `docs/despliegue/demo-gratuita.md` (§4).
 
 ### A7. Los roles de anfitrión y administrador no tienen pantallas
 
 - El router solo tiene rutas de turista y de gestor. No hay pantallas para que un anfitrión cree experiencias ni para que un administrador las apruebe.
 - **Impacto:** las cuentas `tester.anfitrion` y `tester.admin` solo sirven por la API. La descripción de la experiencia de ejemplo dice «puede editarla desde su cuenta», lo cual hoy no es cierto.
-- **Arreglo:** dejarlo explícito en `docs/despliegue/usuarios-y-datos-de-prueba.md` y planear esas pantallas en la fase siguiente.
+- **Arreglo:** dejarlo explícito en `docs/despliegue/demo-gratuita.md` (§5) y planear esas pantallas en la fase siguiente.
 
 ---
 

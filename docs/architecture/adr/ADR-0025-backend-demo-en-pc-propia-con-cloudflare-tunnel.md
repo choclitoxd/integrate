@@ -1,6 +1,6 @@
 # ADR-0025: Ejecutar el backend de la demo en un PC propio y publicarlo con Cloudflare Tunnel
 
-- **Estado:** Aceptado (plan B de [ADR-0026](ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md))
+- **Estado:** Aceptado como alternativa local; la producción corre en Hetzner ([ADR-0027](ADR-0027-backend-24-7-en-vps-hetzner.md)) y SnapDeploy es el entorno de pruebas ([ADR-0026](ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md))
 - **Proyecto / Módulo:** Despliegue · backend-api, infra/docker · reemplaza parcialmente a ADR-0024
 - **Fecha:** 2026-10-19
 

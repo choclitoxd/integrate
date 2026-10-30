@@ -1,0 +1,77 @@
+export {
+  assertQuotaAvailable,
+  clearAllOfflineStores,
+  closeOfflineDBForTesting,
+  countPendingOutbox,
+  countStoreRecords,
+  estimateOfflineUsageBytes,
+  estimateSerializedBytes,
+  getOfflineDB,
+  getOfflineStorageDiagnostics,
+  guardAndPurgeOnLogout,
+  notifyOfflineChanges,
+  OfflineQuotaExceededError,
+  PendingSyncLogoutError,
+  purgeExpiredRosterEntries,
+  requestPersistentStorage,
+  runInactivityMaintenance,
+  subscribeOfflineChanges,
+  upgradeOfflineDatabase,
+  type IntegrateOfflineDB,
+  type IntegrateOfflineDBSchema,
+} from './db';
+
+export {
+  allocateSequenceNumber,
+  bogotaDateString,
+  getOrCreateDeviceId,
+  isInactiveBeyondRetention,
+  OFFLINE_META_STORAGE_KEY,
+  readOfflineMeta,
+  touchOfflineActivity,
+  updateOfflineMeta,
+} from './deviceMeta';
+
+export {
+  OFFLINE_SYNC_TAG,
+  registerServiceWorker,
+  requestBackgroundSync,
+  type SwBroadcastMessage,
+  type SwClientMessage,
+} from './registerSw';
+
+export {
+  CATALOG_TTL_MS,
+  INACTIVITY_PURGE_MS,
+  MAX_OFFLINE_BYTES,
+  OBJECT_STORE_NAMES,
+  OFFLINE_DB_NAME,
+  OFFLINE_DB_VERSION,
+  ROSTER_TTL_MS,
+  WARN_OFFLINE_BYTES,
+  type ObjectStoreName,
+  type OfflineCatalogEntry,
+  type OfflineCatalogSchedule,
+  type OfflineDeviceMeta,
+  type OfflineEmergencyContact,
+  type OfflineLocalResult,
+  type OfflineRevocationEntry,
+  type OfflineRosterEntry,
+  type OfflineRosterParticipant,
+  type OfflineSigningKeyEntry,
+  type OfflineStorageDiagnostics,
+  type OfflineValidationChannel,
+  type OfflineValidationEntry,
+  type OfflineValidationSyncStatus,
+  type OutboxActionType,
+  type OutboxAggregateType,
+  type OutboxStatus,
+  type RosterDownloadMeta,
+  type SyncOutboxEntry,
+} from './types';
+
+export {
+  useOfflineStatus,
+  useOnlineStatus,
+  type OfflineStatusSnapshot,
+} from './useOfflineDiagnostics';

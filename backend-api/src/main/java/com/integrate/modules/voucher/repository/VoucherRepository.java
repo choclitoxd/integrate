@@ -36,6 +36,20 @@ public interface VoucherRepository extends JpaRepository<Voucher, UUID> {
              LIMIT :limit""", nativeQuery = true)
     List<UUID> findIssuedWithoutPdf(@Param("limit") int limit);
 
+    /** Canje en campo (ADR-0032 §4): solo un voucher {@code ISSUED} pasa a {@code CONSUMED}; devuelve las filas tocadas. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE voucher.vouchers SET status = 'CONSUMED', consumed_at = :at
+             WHERE id = :id AND status = 'ISSUED'""", nativeQuery = true)
+    int consume(@Param("id") UUID id, @Param("at") java.time.Instant at);
+
+    /** Cancelación de la reserva (ADR-0034 §2): solo un voucher {@code ISSUED} se revoca; devuelve las filas tocadas. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE voucher.vouchers SET status = 'REVOKED', revoked_at = :at, revocation_reason = :reason
+             WHERE booking_id = :bookingId AND status = 'ISSUED'""", nativeQuery = true)
+    int revokeOfBooking(@Param("bookingId") UUID bookingId, @Param("at") java.time.Instant at,
+                        @Param("reason") String reason);
     /** Idempotente: dos generadores concurrentes escriben la misma clave y solo el primero la fija. */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(value = "UPDATE voucher.vouchers SET pdf_s3_key = :key WHERE id = :id AND pdf_s3_key IS NULL",

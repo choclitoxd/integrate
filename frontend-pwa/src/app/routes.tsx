@@ -34,11 +34,24 @@ const slotsHandle: ShellHandle = {
 };
 
 const toHosts: ShellHandle = { flow: true, back: () => '/gestor/anfitriones' };
+const toManagerHome: ShellHandle = { flow: true, back: () => '/gestor' };
 
 /*
  * Carga diferida (ADR-0018 §1): la reserva (QR incluido) y el portal del Gestor no viajan en el
  * bundle inicial del catálogo. La guarda se aplica al resolver el módulo.
  */
+const qrScannerPage = async () => {
+  const { QrScannerPage } = await import('@/features/offline');
+  return { Component: QrScannerPage };
+};
+const contingencyRedeemPage = async () => {
+  const { ContingencyRedeemPage } = await import('@/features/offline');
+  return { Component: ContingencyRedeemPage };
+};
+const syncQueuePage = async () => {
+  const { SyncQueuePage } = await import('@/features/offline');
+  return { Component: SyncQueuePage };
+};
 const bookingForm = async () => {
   const { BookingFormPage } = await import('@/features/booking');
   return {
@@ -145,6 +158,9 @@ export const routes: RouteObject[] = [
         ),
         children: [
           { index: true, element: <ManagerHomePage /> },
+          { path: 'validar', lazy: qrScannerPage, handle: toManagerHome },
+          { path: 'contingencia', lazy: contingencyRedeemPage, handle: toManagerHome },
+          { path: 'cola', lazy: syncQueuePage, handle: toManagerHome },
           { path: 'anfitriones', lazy: hostsPage },
           { path: 'anfitriones/enrolamiento', lazy: enrollmentPage, handle: toHosts },
         ],

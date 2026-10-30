@@ -1,5 +1,8 @@
 package com.integrate.modules.catalog.service.impl;
 
+import com.integrate.common.audit.AuditEntry;
+import com.integrate.common.audit.AuditEntry.Severity;
+import com.integrate.common.audit.AuditTrail;
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
 import com.integrate.modules.auth.entity.RoleCode;
@@ -15,6 +18,7 @@ import com.integrate.modules.catalog.service.LinkManagerAdminService;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,6 +34,7 @@ public class LinkManagerAdminServiceImpl implements LinkManagerAdminService {
     private final LinkManagerProfileRepository linkManagerRepository;
     private final CommunityAssociationRepository associationRepository;
     private final RoleAssignmentService roleAssignmentService;
+    private final AuditTrail auditTrail;
     private final Clock clock;
 
     @Override
@@ -59,7 +64,7 @@ public class LinkManagerAdminServiceImpl implements LinkManagerAdminService {
 
     @Override
     @Transactional
-    public LinkManagerResponse changeStatus(UUID linkManagerId, AccreditationStatus target) {
+    public LinkManagerResponse changeStatus(UUID linkManagerId, AccreditationStatus target, UUID adminUserId) {
         LinkManagerProfile profile = linkManagerRepository.findById(linkManagerId)
                 .filter(p -> p.getDeletedAt() == null)
                 .orElseThrow(() -> CatalogErrors.notFound("Link manager"));
@@ -69,6 +74,16 @@ public class LinkManagerAdminServiceImpl implements LinkManagerAdminService {
                     .with("currentStatus", profile.getAccreditationStatus().name());
         }
         profile.moveTo(target);
-        return LinkManagerResponse.from(profile);
+        LinkManagerResponse response = LinkManagerResponse.from(profile);
+        if (target == AccreditationStatus.REVOKED) {
+            // ADR-0038 §2: REVOKED es terminal, así que el rol se quita. SUSPENDED no: es reversible y el servidor
+            // ya niega las operaciones del gestor suspendido.
+            roleAssignmentService.revoke(profile.getUserId(), RoleCode.LINK_MANAGER, adminUserId);
+            // Debe ser lo último de la transacción (encadenamiento de la bitácora).
+            auditTrail.record(new AuditEntry("catalog", "link_manager_profiles", profile.getId().toString(),
+                    "LINK_MANAGER_ROLE_REVOKED", Severity.WARNING, adminUserId, null, null,
+                    Map.of("userId", profile.getUserId().toString(), "role", RoleCode.LINK_MANAGER.name())));
+        }
+        return response;
     }
 }

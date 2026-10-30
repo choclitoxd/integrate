@@ -1,0 +1,54 @@
+{
+  "id": "/",
+  "name": "Intégrate · Turismo Comunitario",
+  "short_name": "Intégrate",
+  "description": "Plataforma de turismo comunitario para la paz en Colombia con validación territorial sin conexión.",
+  "lang": "es-CO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#14532d",
+  "background_color": "#fafaf7",
+  "categories": ["travel", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Panel de jornada",
+      "short_name": "Jornada",
+      "description": "Validar vouchers y descargar padrón del día",
+      "url": "/gestor"
+    },
+    {
+      "name": "Mis experiencias",
+      "short_name": "Reservas",
+      "description": "Ver reservas y códigos QR",
+      "url": "/mis-experiencias"
+    }
+  ]
+}

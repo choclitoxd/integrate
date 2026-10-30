@@ -58,8 +58,20 @@ public enum ErrorCode {
     // --- Voucher (ADR-0010) ----------------------------------------------------
     VOUCHER_NOT_READY(HttpStatus.CONFLICT, "voucher-not-ready", "Voucher Not Ready"),
 
-    // --- Offline -------------------------------------------------------------
+    VOUCHER_NOT_FOUND(HttpStatus.NOT_FOUND, "voucher-not-found", "Voucher Not Found"),
+    VOUCHER_REVOKED(HttpStatus.CONFLICT, "voucher-revoked", "Voucher Revoked"),
+    VOUCHER_ALREADY_REDEEMED(HttpStatus.CONFLICT, "voucher-already-redeemed", "Voucher Already Redeemed"),
+    VOUCHER_EXPIRED(HttpStatus.UNPROCESSABLE_CONTENT, "voucher-expired", "Voucher Expired"),
+    VOUCHER_WRONG_DATE(HttpStatus.UNPROCESSABLE_CONTENT, "voucher-wrong-date", "Voucher Not Valid Today"),
+    BOOKING_NOT_REDEEMABLE(HttpStatus.CONFLICT, "booking-not-redeemable", "Booking Not Redeemable"),
+    BOOKING_NOT_CANCELLABLE(HttpStatus.CONFLICT, "booking-not-cancellable", "Booking Not Cancellable"),
+    BOOKING_ALREADY_STARTED(HttpStatus.CONFLICT, "booking-already-started", "Booking Already Started"),
+
+    // --- Offline (ADR-0032) --------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
+    OFFLINE_DEVICE_OWNED_BY_OTHER(HttpStatus.CONFLICT, "device-owned-by-other", "Device Owned By Another Manager"),
+    AUDIT_EXPORT_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "audit-export-too-large", "Audit Export Too Large"),
+    OFFLINE_ROSTER_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "roster-too-large", "Roster Too Large"),
     SYNC_BATCH_PAYLOAD_MISMATCH(HttpStatus.CONFLICT, "sync-batch-payload-mismatch", "Sync Batch Payload Mismatch");
 
     public static final String PROBLEM_BASE_URI = "https://api.integrate.co/problems/";

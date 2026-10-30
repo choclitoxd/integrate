@@ -259,3 +259,8 @@ $RECYCLE.BIN/
 
 # Resultados crudos de k6 (ADR-0019 §5): la evidencia versionada es docs/quality/
 qa/k6/results/
+
+# Credenciales para testers: nunca al repositorio (SEC-DIR-004)
+docs/testers/
+*.pdf.credentials
+

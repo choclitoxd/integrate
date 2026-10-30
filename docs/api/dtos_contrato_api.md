@@ -192,7 +192,7 @@ Pública y cacheable (`Cache-Control: max-age=300, public`): `{version, title, d
 | `docType` | `CC\|CE\|PA\|PPT\|TI` | ✔ | |
 | `docNumber` | string | ✔ | `^[A-Za-z0-9]{4,20}$`; `(docType, docNumber)` único → 409 |
 | `phone` | string | ✔ | E.164 `^\+[1-9][0-9]{7,14}$` |
-| `email` | string \| null | | si se omite, el servidor genera `{docType}{docNumber}@comunidad.integrate.co` en minúsculas (p. ej. `cc1094857483@…`) |
+| `email` | string \| null | | si se omite, el servidor genera `h-<10 caracteres>@comunidad.integrate.co`, opaco y aleatorio, sin relación con el documento (p. ej. `h-k7q3m9x2tw@…`; ADR-0038 §1) |
 | `linkManagerId` | UUID \| null | condicional | **obligatorio si el invocador es `ADMIN`**; si es `LINK_MANAGER` se usa el gestor autenticado |
 | `victimData.victimCondition` | boolean | ✔ | cifrado → `victim_condition_enc` |
 | `victimData.ruvRegistrationNumber` | string \| null | | ≤ 40, cifrado |

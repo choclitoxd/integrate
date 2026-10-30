@@ -18,10 +18,12 @@ public interface LinkManagerAdminService {
     LinkManagerResponse accredit(LinkManagerRequest request, UUID adminUserId);
 
     /**
-     * Suspende, reactiva o revoca la acreditación. {@code REVOKED} es terminal.
+     * Suspende, reactiva o revoca la acreditación. {@code REVOKED} es terminal y además quita
+     * {@code ROLE_LINK_MANAGER} y deja una entrada de auditoría (ADR-0038 §2); suspender no toca el rol.
      *
+     * @param adminUserId administrador que ordena el cambio
      * @throws com.integrate.common.exception.BusinessRuleException {@code RESOURCE_NOT_FOUND} o
      *         {@code CATALOG_INVALID_STATUS_TRANSITION} (409)
      */
-    LinkManagerResponse changeStatus(UUID linkManagerId, AccreditationStatus target);
+    LinkManagerResponse changeStatus(UUID linkManagerId, AccreditationStatus target, UUID adminUserId);
 }

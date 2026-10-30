@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +31,11 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
             EnumSet.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.SENSITIVE_VICTIM);
     private static final List<RoleCode> HOST_ROLES = List.of(RoleCode.HOST);
     private static final int UNUSABLE_SECRET_BYTES = 32;
+    /** Sin I, O, 0 ni 1 (como los códigos cortos), en minúsculas: 32 símbolos, así que 10 son 50 bits. */
+    private static final String SYNTHETIC_EMAIL_ALPHABET = "abcdefghjklmnpqrstuvwxyz23456789";
+    private static final String SYNTHETIC_EMAIL_PREFIX = "h-";
+    private static final int SYNTHETIC_EMAIL_ID_LENGTH = 10;
+    private static final int SYNTHETIC_EMAIL_ATTEMPTS = 3;
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
@@ -55,7 +59,7 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
         }
 
         boolean synthetic = account.email() == null || account.email().isBlank();
-        String email = synthetic ? syntheticEmail(account) : Emails.normalize(account.email());
+        String email = synthetic ? newSyntheticEmail() : Emails.normalize(account.email());
         if (userRepository.existsByEmailIgnoreCase(email)
                 || userRepository.existsByDocTypeAndDocNumber(account.docType(), account.docNumber())) {
             throw AuthErrors.userAlreadyExists();
@@ -70,11 +74,23 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
     }
 
     /**
-     * {@code {docType}{docNumber}@comunidad.integrate.co} en minúsculas (ADR-0007 §3). Es único porque
-     * {@code (doc_type, doc_number)} lo es; para {@code CC} coincide con el ejemplo del contrato.
+     * {@code h-<10 caracteres>@comunidad.integrate.co} (ADR-0038 §1): opaco, sin relación con el documento ni con el
+     * nombre. Reemplaza a {@code {docType}{docNumber}@…} de ADR-0007 §3.4, que dejaba el número de documento a la
+     * vista en la lista del gestor. El sufijo no cambia: es lo que identifica una cuenta sin correo real.
      */
-    static String syntheticEmail(AssistedHostAccount account) {
-        return (account.docType().name() + account.docNumber()).toLowerCase(Locale.ROOT) + "@" + SYNTHETIC_EMAIL_DOMAIN;
+    private String newSyntheticEmail() {
+        for (int attempt = 0; attempt < SYNTHETIC_EMAIL_ATTEMPTS; attempt++) {
+            StringBuilder local = new StringBuilder(SYNTHETIC_EMAIL_PREFIX);
+            for (int i = 0; i < SYNTHETIC_EMAIL_ID_LENGTH; i++) {
+                local.append(SYNTHETIC_EMAIL_ALPHABET.charAt(RANDOM.nextInt(SYNTHETIC_EMAIL_ALPHABET.length())));
+            }
+            String email = local + "@" + SYNTHETIC_EMAIL_DOMAIN;
+            // 50 bits: una colisión es despreciable, pero el índice único es la última palabra.
+            if (!userRepository.existsByEmailIgnoreCase(email)) {
+                return email;
+            }
+        }
+        throw new IllegalStateException("Could not generate a unique synthetic e-mail address");
     }
 
     /** Secreto que nadie conoce: la cuenta solo se habilita con un código de activación (§6). */

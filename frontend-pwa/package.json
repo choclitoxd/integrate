@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:https": "node scripts/dev-https.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/check-service-worker.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint . --max-warnings 0",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "~5.103.2",
+    "idb": "~8.0.3",
     "react": "~19.3.0",
     "react-dom": "~19.3.0",
     "react-router": "~8.4.0",
@@ -48,6 +49,7 @@
     "eslint-plugin-jsx-a11y-x": "~0.2.0",
     "eslint-plugin-react-hooks": "~7.1.1",
     "eslint-plugin-react-refresh": "~0.5.7",
+    "fake-indexeddb": "~6.2.2",
     "globals": "~17.13.0",
     "jsdom": "~30.1.2",
     "jsqr": "~1.4.0",
@@ -56,6 +58,11 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "~8.71.1",
     "vite": "~8.3.2",
-    "vitest": "~5.0.3"
+    "vitest": "~5.0.3",
+    "workbox-core": "~7.3.0",
+    "workbox-expiration": "~7.3.0",
+    "workbox-precaching": "~7.3.0",
+    "workbox-routing": "~7.3.0",
+    "workbox-strategies": "~7.3.0"
   }
 }

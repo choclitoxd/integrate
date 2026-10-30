@@ -12,6 +12,7 @@ export { SessionContext, useSession, useSessionStore } from './sessionContext';
 export {
   createSessionStore,
   hasRole,
+  OFFLINE_SESSION_USER_KEY,
   type ConsentUpdate,
   type Credentials,
   type SessionState,

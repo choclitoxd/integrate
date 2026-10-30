@@ -40,5 +40,4 @@ public class UserRole {
         userRole.userId = userId;
         userRole.roleId = role.getId();
         return userRole;
-    }
-}
+    }}

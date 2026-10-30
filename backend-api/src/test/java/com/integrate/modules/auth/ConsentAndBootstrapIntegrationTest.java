@@ -110,6 +110,10 @@ class ConsentAndBootstrapIntegrationTest extends PostgresIntegrationTest {
                 SELECT EXISTS (SELECT 1 FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
                                 WHERE r.code = 'ADMIN' AND ur.revoked_at IS NULL)""", Boolean.class));
 
+        long adminsBefore = jdbc.queryForObject("""
+                SELECT count(*) FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
+                 WHERE r.code = 'ADMIN' AND ur.revoked_at IS NULL""", Long.class);
+
         BootstrapOutcome first = registrationService.bootstrapAdmin(command);
         BootstrapOutcome second = registrationService.bootstrapAdmin(new AdminBootstrapCommand(uniqueEmail("admin2"),
                 PASSWORD, "Otro administrador", DocType.PA, uniqueDocNumber(), "+10000000000"));
@@ -120,9 +124,12 @@ class ConsentAndBootstrapIntegrationTest extends PostgresIntegrationTest {
                     .containsExactly("ROLE_TOURIST", "ROLE_ADMIN");
         }
         assertThat(second).isEqualTo(BootstrapOutcome.ADMIN_ALREADY_EXISTS);
+        // Otras clases de prueba (p. ej. la de auditoría) crean administradores en la misma base: si ya había, el
+        // arranque no agrega ninguno; si no había, deja exactamente uno.
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
-                 WHERE r.code = 'ADMIN' AND ur.revoked_at IS NULL""", Long.class)).isEqualTo(1);
+                 WHERE r.code = 'ADMIN' AND ur.revoked_at IS NULL""", Long.class))
+                .isEqualTo(adminExisted ? adminsBefore : 1L);
     }
 
     private void publishPolicy(String version) {

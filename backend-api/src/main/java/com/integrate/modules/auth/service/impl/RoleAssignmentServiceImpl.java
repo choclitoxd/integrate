@@ -37,4 +37,12 @@ public class RoleAssignmentServiceImpl implements RoleAssignmentService {
                 .orElseThrow(() -> new IllegalStateException("Role " + role + " is missing from auth.roles"));
         userRoleRepository.save(UserRole.grant(user.getId(), entity));
     }
+
+    @Override
+    @Transactional
+    public void revoke(UUID userId, RoleCode role, UUID revokedBy) {
+        // Sin filtrar por el estado del usuario: una cuenta suspendida o cerrada también debe perder el rol.
+        // La hora la pone la base de datos (ver UserRoleRepository.revokeActive).
+        userRoleRepository.revokeActive(userId, role.name(), revokedBy);
+    }
 }

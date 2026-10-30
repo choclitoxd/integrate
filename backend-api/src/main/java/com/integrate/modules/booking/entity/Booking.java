@@ -126,6 +126,39 @@ public class Booking {
         moveFrom(BookingStatus.PENDING, BookingStatus.PAYMENT_FAILED);
     }
 
+    /** Servicio prestado y canjeado en campo (ADR-0032 §4). */
+    public void execute() {
+        moveFrom(status == BookingStatus.NO_SHOW ? BookingStatus.NO_SHOW : BookingStatus.CONFIRMED,
+                BookingStatus.EXECUTED);
+    }
+
+    /** Cancelación anticipada del turista (RF-13, ADR-0034 §2): devuelve los cupos. */
+    public void cancelRefunded() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.CANCELLED_REFUNDED);
+    }
+
+    /** Cancelación tardía del turista (RF-14, ADR-0034 §2): sin reembolso. */
+    public void cancelNoRefund() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.CANCELLED_NO_REFUND);
+    }
+
+    /** Nadie asistió y venció la gracia de la dispersión (RF-14, ADR-0034 §4). */
+    public void noShow() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.NO_SHOW);
+    }
+
+    /** Canje en campo de una reserva ya cancelada (ADR-0033 §3); idempotente si ya está en conflicto. */
+    public void syncConflict() {
+        if (status == BookingStatus.SYNC_CONFLICT) {
+            return;
+        }
+        if (status != BookingStatus.CANCELLED_REFUNDED && status != BookingStatus.CANCELLED_NO_REFUND
+                && status != BookingStatus.CANCELLED_BY_PLATFORM) {
+            throw new IllegalStateException("Booking " + id + " is " + status + ", cannot move to SYNC_CONFLICT");
+        }
+        this.status = BookingStatus.SYNC_CONFLICT;
+    }
+
     /** Pago anulado sobre una reserva aún {@code PENDING} (F5, V10): sus cupos se devuelven. */
     public void voidPending() {
         moveFrom(BookingStatus.PENDING, BookingStatus.CANCELLED_REFUNDED);

@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError, NetworkError, type HttpClient } from '@/shared/api';
+import { PendingSyncLogoutError } from '@/shared/offline';
 
-import { createSessionStore, hasRole } from './sessionStore';
+import { createSessionStore, hasRole, OFFLINE_SESSION_USER_KEY } from './sessionStore';
 
 function tokenResponse(token: string, overrides: Record<string, unknown> = {}) {
   return {
@@ -28,16 +29,26 @@ const unauthorized = () =>
     null,
   );
 
-function storeWith(handler: (path: string) => Promise<unknown>) {
+function storeWith(
+  handler: (path: string) => Promise<unknown>,
+  extraOptions: Partial<Parameters<typeof createSessionStore>[0]> = {},
+) {
   const request = vi.fn((path: string) => handler(path));
   const http: HttpClient = { request: request as HttpClient['request'] };
-  const store = createSessionStore({ http, channelName: null, locks: undefined });
+  const store = createSessionStore({
+    http,
+    channelName: null,
+    locks: undefined,
+    onBeforeSignOut: () => Promise.resolve(),
+    ...extraOptions,
+  });
   return { store, request };
 }
 
 describe('createSessionStore', () => {
   afterEach(() => {
     vi.useRealTimers();
+    localStorage.clear();
   });
 
   it('restaura la sesión con la cookie y nunca expone el token en el estado', async () => {
@@ -88,6 +99,7 @@ describe('createSessionStore', () => {
       http,
       channelName: null,
       locks: { request: lockRequest } as unknown as LockManager,
+      onBeforeSignOut: () => Promise.resolve(),
     });
     await store.refresh();
     expect(lockRequest).toHaveBeenCalledWith('integrate-auth-refresh', expect.any(Function));
@@ -148,5 +160,54 @@ describe('createSessionStore', () => {
     expect(request).toHaveBeenLastCalledWith('/v1/auth/logout', { method: 'POST' });
     expect(store.getState().status).toBe('anonymous');
     expect(store.getAccessToken()).toBeNull();
+  });
+
+  it('permite abrir la sesión del Gestor en modo avión sin guardar ningún token en localStorage (ADR-0036 §4)', async () => {
+    // 1. El Gestor inicia sesión con red.
+    const managerToken = tokenResponse('secret-jwt-never-persisted', {
+      user: {
+        id: 'mgr-1',
+        email: 'gestor@integrate.co',
+        fullName: 'Lucía Mena',
+        roles: ['ROLE_LINK_MANAGER'],
+      },
+    });
+    const { store: onlineStore } = storeWith(() => Promise.resolve(managerToken));
+    await onlineStore.restore();
+
+    const storedRaw = localStorage.getItem(OFFLINE_SESSION_USER_KEY) ?? '';
+    expect(storedRaw).toContain('Lucía Mena');
+    expect(storedRaw).not.toContain('secret-jwt-never-persisted');
+
+    // 2. El Gestor recarga la PWA en modo avión (NetworkError en /v1/auth/refresh).
+    let isOnline = false;
+    const { store: offlineBootStore } = storeWith(() =>
+      isOnline
+        ? Promise.resolve(managerToken)
+        : Promise.reject(new NetworkError(new TypeError('Failed to fetch'))),
+    );
+    await offlineBootStore.restore();
+
+    const stateOffline = offlineBootStore.getState();
+    expect(stateOffline.status).toBe('authenticated');
+    expect(hasRole(stateOffline, 'ROLE_LINK_MANAGER')).toBe(true);
+    expect(offlineBootStore.getAccessToken()).toBeNull();
+
+    // 3. Al volver la red (evento online), recupera un accessToken en memoria.
+    isOnline = true;
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => {
+      expect(offlineBootStore.getAccessToken()).toBe('secret-jwt-never-persisted');
+    });
+  });
+
+  it('aborta el cierre de sesión si el Logout Guard detecta mutaciones pendientes en sync_outbox', async () => {
+    const { store } = storeWith(() => Promise.resolve(tokenResponse('tok-8')), {
+      onBeforeSignOut: () => Promise.reject(new PendingSyncLogoutError(2)),
+    });
+    await store.restore();
+    await expect(store.signOut()).rejects.toBeInstanceOf(PendingSyncLogoutError);
+    expect(store.getState().status).toBe('authenticated');
+    expect(store.getAccessToken()).toBe('tok-8');
   });
 });

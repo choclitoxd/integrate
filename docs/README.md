@@ -13,10 +13,9 @@ general y el inicio rápido, vea el [README principal](../README.md).
 
 | Documento | Contenido |
 | :--- | :--- |
-| [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas y problemas frecuentes. |
+| [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas, problemas frecuentes y búsqueda de experiencias en local (anexo). |
 | [Infraestructura local](../infra/README.md) | Servicios de Docker Compose, perfiles y reinicio limpio. |
 | [Despliegue de demostración gratuito](despliegue/demo-gratuita.md) | Publicar la demo sin tarjeta: backend en SnapDeploy (o en su PC con Cloudflare Tunnel), Neon, Cloudflare Pages y Backblaze B2 (ADR-0024 a ADR-0026). |
-| [Guía: búsqueda de experiencias](guia_despliegue_busqueda_servicio.md) | Despliegue local enfocado en el catálogo y sus filtros. |
 | [Pruebas de carga k6](../qa/k6/README.md) | Scripts de RNF-02, RNF-08 y RNF-10 y su ejecución en un entorno aislado. |
 
 ## Producto y requerimientos
@@ -68,6 +67,16 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0026](architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) | Backend de la demo en SnapDeploy (plan gratuito) con proxy que traduce «despertando» a 503 | Aceptado |
 | [0027](architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md) | Alojar el backend 24/7 en un VPS de Hetzner Cloud | Propuesto |
 | [0028](architecture/adr/ADR-0028-publicacion-manual-usuario-en-pwa.md) | Publicar el manual de usuario como activo estático en la PWA (Cloudflare Pages y Local) | Aceptado |
+| [0029](architecture/adr/ADR-0029-simulador-pago-mock-en-demo.md) | Simulador de la pasarela Mock controlado por bandera explícita en demo | Aceptado |
+| [0030](architecture/adr/ADR-0030-verificacion-direccion-vs-coordenadas-del-punto-de-encuentro.md) | Verificación de la dirección frente a las coordenadas del punto de encuentro con autómata | Aceptado |
+| [0031](architecture/adr/ADR-0031-entorno-de-pruebas-y-promocion-a-produccion.md) | Entorno de pruebas y promoción a producción | Aceptado |
+| [0032](architecture/adr/ADR-0032-padron-offline-revocacion-y-canje-de-contingencia.md) | Servir el padrón offline, la lista delta de revocación y el canje manual de contingencia | Aceptado |
+| [0033](architecture/adr/ADR-0033-sincronizacion-offline-idempotente-y-resolucion-de-conflictos.md) | Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista | Aceptado |
+| [0034](architecture/adr/ADR-0034-dispersion-85-15-cancelacion-72h-y-reembolsos.md) | Dispersión 85/15, política de cancelación de 72 h y reembolsos | Aceptado |
+| [0035](architecture/adr/ADR-0035-auditoria-habeas-data-consulta-accesos-sensibles-y-cifrado.md) | Auditoría de Habeas Data, consulta de accesos sensibles y cifrado | Aceptado |
+| [0036](architecture/adr/ADR-0036-infraestructura-offline-pwa-workbox-indexeddb.md) | Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`) | Aceptado |
+| [0037](architecture/adr/ADR-0037-padron-validacion-qr-contingencia-y-sincronizacion-pwa.md) | Implementar la descarga preventiva del padrón, validación criptográfica QR con Web Crypto, anti-doble canje local, contingencia manual y sincronización diferida en la PWA | Aceptado |
+| [0038](architecture/adr/ADR-0038-correo-sintetico-opaco-rol-gestor-revocado-y-firma-del-pdf.md) | Correo sintético opaco, rol del gestor revocado y firma del PDF (hallazgos de la prueba de ciclo de vida) | Aceptado |
 
 ## Calidad
 
@@ -76,6 +85,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [Plan de Gestión de la Calidad v1.10](quality/) | Documento Word del plan (`1.1 Integrate Plan de Gestión de la Calidad del Proyecto v1.10.docx`). |
 | [Matriz de trazabilidad RNF](quality/matriz-trazabilidad-rnf.md) | Relación entre cada RNF, su prueba y su evidencia. |
 | [Evidencias métricas](quality/evidencias-metricas.md) | Informe generado por la suite (no editar a mano). |
+| [Guía de pruebas del ciclo de vida por rol](quality/guion-pruebas-ciclo-de-vida.md) | Prueba manual de cada rol (visitante, turista, administrador, gestor, anfitrión) en computador y celular, con la causa probable de cada error. |
 
 ## Reglas del equipo
 
