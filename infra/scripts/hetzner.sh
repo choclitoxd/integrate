@@ -20,7 +20,7 @@ SERVER_NAME="${HETZNER_SERVER_NAME:-integrate-api}"
 SSH_USER="${HETZNER_SSH_USER:-integrate}"
 IMAGE="integrate-api"
 
-[ -f "$ENV_FILE" ] || { echo "No existe $ENV_FILE (HCLOUD_TOKEN=...). Ver docs/despliegue/backend-24-7-hetzner.md" >&2; exit 2; }
+[ -f "$ENV_FILE" ] || { echo "No existe $ENV_FILE (HCLOUD_TOKEN=...). Ver docs/despliegue/demo-gratuita.md (§1)" >&2; exit 2; }
 HCLOUD_TOKEN="$(sed -n 's/^HCLOUD_TOKEN=//p' "$ENV_FILE" | tr -d '\r"[:space:]')"
 HETZNER_HOST="${HETZNER_HOST:-$(sed -n 's/^HETZNER_HOST=//p' "$ENV_FILE" | tr -d '\r"[:space:]')}"
 

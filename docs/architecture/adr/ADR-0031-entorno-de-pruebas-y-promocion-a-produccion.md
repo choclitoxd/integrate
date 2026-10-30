@@ -46,7 +46,7 @@ cambio → rama `pruebas` → SnapDeploy + PWA de vista previa → verificación
 ```
 
 - Se agrega `infra/scripts/hetzner.sh` con `deploy` (construye la imagen, la envía con `docker save | ssh docker load`, reinicia solo la API, espera la salud y corre la comprobación), `status`, `logs` y `rollback` (re-etiqueta la imagen anterior). Lee `infra/env/.env.hetzner` (token y dirección), sin imprimir secretos.
-- Se agrega `infra/scripts/pages.sh deploy [produccion|pruebas]` que encapsula el comando de compilación (`MSYS_NO_PATHCONV=1 VITE_API_BASE_URL=/api …`) y la comprobación de que el *bundle* no contiene la ruta de Git (hoy documentado a mano en `despliegue-pwa-cloudflare.md`).
+- Se agrega `infra/scripts/pages.sh deploy [produccion|pruebas]` que encapsula el comando de compilación (`MSYS_NO_PATHCONV=1 VITE_API_BASE_URL=/api …`) y la comprobación de que el *bundle* no contiene la ruta de Git (hoy documentado a mano en `docs/despliegue/demo-gratuita.md` (§4)).
 - Antes de promover: Quality Gate de la PWA y suite del backend en verde, y la verificación contra el entorno de pruebas.
 
 ### 5. Operación y cierre
@@ -58,7 +58,7 @@ cambio → rama `pruebas` → SnapDeploy + PWA de vista previa → verificación
 
 ## Hallazgos de la implementación (2026-10-27)
 
-- **SnapDeploy aplica las variables solo al construir un despliegue nuevo.** `snapdeploy.sh env` las guarda, pero al despertar un contenedor detenido arranca con las de su última construcción. La primera prueba arrancó contra la base de **producción** por unos minutos; se detuvo y se limpió (un usuario de prueba, anonimizado, y un correo a una dirección ficticia; sin reservas ni pagos). De ahí la comprobación de aislamiento obligatoria en `docs/despliegue/pruebas-y-promocion.md`.
+- **SnapDeploy aplica las variables solo al construir un despliegue nuevo.** `snapdeploy.sh env` las guarda, pero al despertar un contenedor detenido arranca con las de su última construcción. La primera prueba arrancó contra la base de **producción** por unos minutos; se detuvo y se limpió (un usuario de prueba, anonimizado, y un correo a una dirección ficticia; sin reservas ni pagos). De ahí la comprobación de aislamiento obligatoria en `docs/despliegue/demo-gratuita.md` (§2).
 - **Cambiar la rama enlazada exige desenlazar el repositorio, y SnapDeploy no lo permite con llaves de API** (solo con sesión en su panel). `link --branch` queda implementado y avisa de esto; el desenlace lo hace el desarrollador.
 - **La base de pruebas se aísla de verdad solo después de ese despliegue nuevo.** Hasta entonces el contenedor permanece detenido.
 - El almacenamiento de objetos (Backblaze B2) y la llave de firma de vouchers son compartidos entre ambos entornos; los objetos se nombran por reserva, así que no chocan, pero un voucher de pruebas queda en el mismo bucket.

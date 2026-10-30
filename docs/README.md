@@ -13,10 +13,9 @@ general y el inicio rápido, vea el [README principal](../README.md).
 
 | Documento | Contenido |
 | :--- | :--- |
-| [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas y problemas frecuentes. |
+| [Guía de desarrollo](guia-desarrollo.md) | Requisitos, variables de entorno, infraestructura, backend, PWA, datos de prueba, pruebas, problemas frecuentes y búsqueda de experiencias en local (anexo). |
 | [Infraestructura local](../infra/README.md) | Servicios de Docker Compose, perfiles y reinicio limpio. |
 | [Despliegue de demostración gratuito](despliegue/demo-gratuita.md) | Publicar la demo sin tarjeta: backend en SnapDeploy (o en su PC con Cloudflare Tunnel), Neon, Cloudflare Pages y Backblaze B2 (ADR-0024 a ADR-0026). |
-| [Guía: búsqueda de experiencias](guia_despliegue_busqueda_servicio.md) | Despliegue local enfocado en el catálogo y sus filtros. |
 | [Pruebas de carga k6](../qa/k6/README.md) | Scripts de RNF-02, RNF-08 y RNF-10 y su ejecución en un entorno aislado. |
 
 ## Producto y requerimientos
