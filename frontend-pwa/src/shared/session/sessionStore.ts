@@ -1,7 +1,14 @@
-import { ApiError, type HttpClient } from '@/shared/api';
+import { ApiError, NetworkError, type HttpClient } from '@/shared/api';
+import {
+  guardAndPurgeOnLogout,
+  INACTIVITY_PURGE_MS,
+  requestPersistentStorage,
+  touchOfflineActivity,
+} from '@/shared/offline';
 
 import {
   authTokenResponseSchema,
+  ROLES,
   type AuthTokenResponse,
   type ConsentPurpose,
   type Role,
@@ -53,17 +60,86 @@ export interface SessionStoreOptions {
   readonly now?: () => number;
   readonly locks?: Pick<LockManager, 'request'> | undefined;
   readonly channelName?: string | null;
+  /** Gancho de guardia y limpieza selectiva al cerrar sesión (ADR-0036 §3.4). */
+  readonly onBeforeSignOut?: () => Promise<void>;
 }
 
 const LOCK_NAME = 'integrate-auth-refresh';
 const CHANNEL_NAME = 'integrate-auth';
 /** El refresh proactivo ocurre 60 s antes de vencer el access token de 900 s. */
 const REFRESH_MARGIN_MS = 60_000;
+/**
+ * Clave de la tupla pública del usuario offline (`offline_data_indexeddb.md` §1 y ADR-0036 §4).
+ * Jamás almacena `accessToken` ni `refresh_token` (FE-DIR-001 Directiva 4.1).
+ */
+export const OFFLINE_SESSION_USER_KEY = 'integrate.offline.session.v1' as const;
+
+interface StoredOfflineSession {
+  readonly user: SessionUser;
+  readonly savedAtMs: number;
+}
 
 type ChannelMessage = { readonly type: 'signed-in' } | { readonly type: 'signed-out' };
 
 export function hasRole(state: SessionState, role: Role): boolean {
   return state.status === 'authenticated' && state.user.roles.includes(role);
+}
+
+function isFieldOperator(user: SessionUser): boolean {
+  return user.roles.includes('ROLE_LINK_MANAGER') || user.roles.includes('ROLE_HOST');
+}
+
+function saveOfflineSessionUser(user: SessionUser, nowMs: number): void {
+  if (!isFieldOperator(user)) return;
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const record: StoredOfflineSession = { user, savedAtMs: nowMs };
+    localStorage.setItem(OFFLINE_SESSION_USER_KEY, JSON.stringify(record));
+  } catch {
+    // Ignorado si localStorage no está disponible.
+  }
+}
+
+function clearOfflineSessionUser(): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(OFFLINE_SESSION_USER_KEY);
+  } catch {
+    // Ignorado si localStorage no está disponible.
+  }
+}
+
+function readOfflineSessionUser(nowMs: number): SessionUser | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(OFFLINE_SESSION_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredOfflineSession>;
+    if (
+      typeof parsed.savedAtMs !== 'number' ||
+      nowMs - parsed.savedAtMs > INACTIVITY_PURGE_MS ||
+      !parsed.user ||
+      typeof parsed.user.id !== 'string' ||
+      typeof parsed.user.email !== 'string' ||
+      typeof parsed.user.fullName !== 'string' ||
+      !Array.isArray(parsed.user.roles)
+    ) {
+      clearOfflineSessionUser();
+      return null;
+    }
+    const validRoles = parsed.user.roles.filter((r): r is Role =>
+      (ROLES as readonly string[]).includes(r),
+    );
+    const user: SessionUser = {
+      id: parsed.user.id,
+      email: parsed.user.email,
+      fullName: parsed.user.fullName,
+      roles: validRoles,
+    };
+    return isFieldOperator(user) ? user : null;
+  } catch {
+    return null;
+  }
 }
 
 export function createSessionStore({
@@ -72,6 +148,7 @@ export function createSessionStore({
   now = () => Date.now(),
   locks = typeof navigator !== 'undefined' ? navigator.locks : undefined,
   channelName = CHANNEL_NAME,
+  onBeforeSignOut = () => guardAndPurgeOnLogout({ now: () => new Date(now()) }),
 }: SessionStoreOptions): SessionStore {
   let state: SessionState = { status: initialStatus };
   let accessToken: string | null = null;
@@ -94,6 +171,7 @@ export function createSessionStore({
     clearTimeout(timer);
     accessToken = null;
     expiresAt = 0;
+    clearOfflineSessionUser();
     setState({ status: 'anonymous' });
     if (broadcast) channel?.postMessage({ type: 'signed-out' } satisfies ChannelMessage);
   }
@@ -111,6 +189,11 @@ export function createSessionStore({
       response.requiresConsentUpdate && response.pendingPolicyVersion
         ? { policyVersion: response.pendingPolicyVersion, purposes: response.pendingPurposes }
         : null;
+    saveOfflineSessionUser(response.user, now());
+    if (isFieldOperator(response.user)) {
+      touchOfflineActivity({ now: () => new Date(now()) });
+      void requestPersistentStorage();
+    }
     setState({ status: 'authenticated', user: response.user, consentUpdate });
     schedule();
   }
@@ -149,7 +232,15 @@ export function createSessionStore({
           if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
             clear(false);
           } else if (state.status === 'checking') {
-            setState({ status: 'anonymous' });
+            // ADR-0036 §4: en modo avión (NetworkError), si existe la tupla pública de un Gestor/Anfitrión
+            // activo (< 7 días), se habilita la sesión local sin token para abrir /gestor desconectado.
+            const offlineUser =
+              error instanceof NetworkError ? readOfflineSessionUser(now()) : null;
+            if (offlineUser) {
+              setState({ status: 'authenticated', user: offlineUser, consentUpdate: null });
+            } else {
+              setState({ status: 'anonymous' });
+            }
           }
           return null;
         }
@@ -171,6 +262,9 @@ export function createSessionStore({
     },
 
     async signOut() {
+      // ADR-0036 §3.4 (Logout Guard): bloquea el cierre de sesión si hay mutaciones pendientes en sync_outbox;
+      // si está en 0, purga selectivamente operational_roster, revocation_list y local_validations.
+      await onBeforeSignOut();
       try {
         await http.request('/v1/auth/logout', { method: 'POST' });
       } catch {
@@ -199,6 +293,15 @@ export function createSessionStore({
         state.status === 'authenticated' &&
         expiresAt - now() < REFRESH_MARGIN_MS
       ) {
+        void store.refresh();
+      }
+    });
+  }
+
+  // Al recuperar conectividad desde modo avión, obtiene un accessToken fresco en memoria.
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => {
+      if (state.status === 'authenticated' && accessToken === null) {
         void store.refresh();
       }
     });

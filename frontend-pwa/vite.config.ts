@@ -1,10 +1,77 @@
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react';
-import { loadEnv } from 'vite';
+import { build as viteBuild, loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
+
+function collectPrecacheEntries(distDir: string): { url: string; revision: string | null }[] {
+  const entries: { url: string; revision: string | null }[] = [];
+
+  function walk(dir: string) {
+    for (const item of readdirSync(dir)) {
+      const fullPath = join(dir, item);
+      const relPath = relative(distDir, fullPath).replace(/\\/g, '/');
+      if (relPath.startsWith('manual/') || relPath === 'manual' || relPath === 'sw.js') continue;
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+      if (relPath.endsWith('.map')) continue;
+      const isFingerprintedAsset = relPath.startsWith('assets/');
+      const revision = isFingerprintedAsset
+        ? null
+        : createHash('sha256').update(readFileSync(fullPath)).digest('hex').slice(0, 16);
+      entries.push({ url: `/${relPath}`, revision });
+    }
+  }
+
+  if (existsSync(distDir)) walk(distDir);
+  return entries.sort((a, b) => a.url.localeCompare(b.url));
+}
+
+// ADR-0036 §5: compila `src/sw.ts` en `dist/sw.js` e inyecta el manifiesto de precache de Workbox.
+function buildServiceWorkerPlugin(): Plugin {
+  const rootDir = fileURLToPath(new URL('.', import.meta.url));
+  return {
+    name: 'build-service-worker',
+    apply: 'build',
+    async closeBundle() {
+      const distDir = resolve(rootDir, 'dist');
+      if (!existsSync(join(distDir, 'index.html'))) return;
+      const manifest = collectPrecacheEntries(distDir);
+      await viteBuild({
+        configFile: false,
+        root: rootDir,
+        logLevel: 'silent',
+        resolve: {
+          alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+        },
+        define: {
+          // Identificador propio leído tal cual en `src/sw.ts` (ver el comentario allí).
+          __PRECACHE_MANIFEST__: JSON.stringify(manifest),
+          'process.env.NODE_ENV': JSON.stringify('production'),
+        },
+        build: {
+          emptyOutDir: false,
+          outDir: distDir,
+          sourcemap: false,
+          lib: {
+            entry: resolve(rootDir, 'src/sw.ts'),
+            name: 'IntegrateSW',
+            formats: ['iife'],
+            fileName: () => 'sw.js',
+          },
+        },
+      });
+    },
+  };
+}
 
 // ADR-0004: en desarrollo la PWA llama a /api en su propio origen y Vite reenvía al backend,
 // de modo que la cookie de refresh (SameSite=Strict; Path=/api/v1/auth) viaja sin CORS.
@@ -35,7 +102,13 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
-    plugins: [react(), tailwindcss(), serveManualPlugin, ...(devHttps ? [basicSsl()] : [])],
+    plugins: [
+      react(),
+      tailwindcss(),
+      serveManualPlugin,
+      buildServiceWorkerPlugin(),
+      ...(devHttps ? [basicSsl()] : []),
+    ],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
@@ -43,7 +116,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       // Con HTTPS de desarrollo también se publica en la red local (el celular lo abre por la IP del equipo).
-      ...(devHttps ? { host: true } : {}),
+      host: true,
       proxy: {
         '/api': { target: proxyTarget, changeOrigin: true },
       },

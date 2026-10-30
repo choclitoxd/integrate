@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { PendingSyncLogoutError } from '@/shared/offline';
 import { useSession, useSessionStore, type Role } from '@/shared/session';
 import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
@@ -16,8 +17,8 @@ const ROLE_LABEL: Readonly<Record<Role, string>> = {
 };
 
 /**
- * Mi cuenta: datos básicos, autorizaciones de datos y cierre de sesión (T-1.11). "Mis experiencias"
- * tiene su propia pantalla y su pestaña en la barra (`/mis-experiencias`, ADR-0023 §2 enmendado).
+ * Mi cuenta: datos básicos, autorizaciones de datos y cierre de sesión con Logout Guard (T-1.11, T-2.8).
+ * "Mis experiencias" tiene su propia pantalla y su pestaña en la barra (`/mis-experiencias`, ADR-0023 §2 enmendado).
  */
 export function AccountPage() {
   const session = useSession();
@@ -26,7 +27,9 @@ export function AccountPage() {
   const consents = useMyConsents();
   const [granting, setGranting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   const consentsHeading = useRef<HTMLHeadingElement>(null);
+  const signOutAlertRef = useRef<HTMLDivElement>(null);
 
   if (session.status !== 'authenticated') return null;
   const { user } = session;
@@ -109,13 +112,39 @@ export function AccountPage() {
         )}
       </section>
 
+      {signOutError && (
+        <div
+          ref={signOutAlertRef}
+          role="alert"
+          tabIndex={-1}
+          className="mt-8 rounded-xl border-2 border-danger-border bg-danger-bg px-4 py-3 text-danger-text"
+        >
+          <p className="flex items-start gap-2 font-bold">
+            <Icon name="alert" size={20} className="mt-0.5 shrink-0" />
+            <span>{signOutError}</span>
+          </p>
+        </div>
+      )}
+
       <Button
         variant="secondary"
         className="mt-10 w-full"
         disabled={signingOut}
         onClick={() => {
           setSigningOut(true);
-          void store.signOut().then(() => navigate('/', { replace: true }));
+          setSignOutError(null);
+          void store
+            .signOut()
+            .then(() => navigate('/', { replace: true }))
+            .catch((error: unknown) => {
+              setSigningOut(false);
+              if (error instanceof PendingSyncLogoutError) {
+                setSignOutError(error.message);
+              } else {
+                setSignOutError('No fue posible cerrar la sesión en este momento.');
+              }
+              setTimeout(() => signOutAlertRef.current?.focus(), 0);
+            });
         }}
       >
         {signingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
