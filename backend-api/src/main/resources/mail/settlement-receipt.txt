@@ -1,0 +1,13 @@
+Hola, [(${associationName})]:
+
+Hemos pagado a su asociación la dispersión del [(${paidDate})]. Adjuntamos el comprobante contable en PDF.
+
+Pagos incluidos: [(${paymentCount})]
+Valor bruto cobrado: [(${grossAmount})]
+Comisión de la plataforma: [(${platformFee})] (incluye la comisión de la pasarela: [(${gatewayFee})])
+Desembolso neto a la comunidad: [(${netAmount})]
+
+Referencia del lote: [(${batchId})]
+
+Intégrate · Turismo comunitario de memoria y paz
+Este correo es transaccional y se envió porque su asociación recibió una dispersión.

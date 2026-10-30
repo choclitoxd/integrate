@@ -1,6 +1,8 @@
 package com.integrate.modules.payment.worker;
 
+import com.integrate.modules.payment.service.impl.PayoutProcessor;
 import com.integrate.modules.payment.service.impl.RefundProcessor;
+import com.integrate.modules.payment.service.impl.ReleaseProcessor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,14 +23,23 @@ public class PaymentWorker {
     private static final Logger log = LoggerFactory.getLogger(PaymentWorker.class);
 
     private final RefundProcessor refundProcessor;
+    private final ReleaseProcessor releaseProcessor;
+    private final PayoutProcessor payoutProcessor;
 
     @Scheduled(fixedDelayString = "${integrate.payments.workers.interval}",
             initialDelayString = "${integrate.payments.workers.interval}")
     public void run() {
+        // Orden fijo: reembolsos, luego liberación y por último el pago de lo ya liberado. Un fallo no frena al resto.
+        attempt("refund", refundProcessor::sweepOnce);
+        attempt("release", releaseProcessor::sweepOnce);
+        attempt("payout", payoutProcessor::sweepOnce);
+    }
+
+    private static void attempt(String name, java.util.function.IntSupplier sweep) {
         try {
-            refundProcessor.sweepOnce();
+            sweep.getAsInt();
         } catch (RuntimeException e) {
-            log.warn("payments.refund sweep failed cause={}", e.toString());
+            log.warn("payments.{} sweep failed cause={}", name, e.toString());
         }
     }
 }

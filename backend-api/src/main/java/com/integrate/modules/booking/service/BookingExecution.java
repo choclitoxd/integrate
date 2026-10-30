@@ -14,4 +14,12 @@ public interface BookingExecution {
      * @throws IllegalStateException si la reserva no existe o no está {@code CONFIRMED}
      */
     void markExecuted(UUID bookingId);
+
+    /**
+     * {@code CONFIRMED → NO_SHOW}: nadie asistió y venció la gracia de la dispersión (RF-14, ADR-0034 §4). Un
+     * {@code NO_SHOW} todavía puede pasar a {@code EXECUTED} si luego llega un canje válido (ADR-0033).
+     *
+     * @throws IllegalStateException si la reserva no existe o no está {@code CONFIRMED}
+     */
+    void markNoShow(UUID bookingId);
 }

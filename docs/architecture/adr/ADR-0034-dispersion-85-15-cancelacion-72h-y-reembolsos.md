@@ -80,6 +80,12 @@ Sin migración: `V4`, `V5` y `V10` cubren los estados, claves y topes. Códigos 
 - `MockRefundGateway` completa siempre con un identificador derivado de la clave de idempotencia; las pruebas fuerzan `RETRY` y rechazos con `next(...)`.
 - Sin migración: `booking_cancellations` se escribe con una entidad solo de inserción.
 
+**Precisiones de la implementación de T-2.5 (2026-10-29):**
+- La liberación por asistencia usa `BookingExecutedEvent` (en `booking.service.model`, publicado por `BookingExecutionImpl`) y un `@EventListener` síncrono de `ReleaseProcessor` en `payment`: se libera en la misma transacción del canje manual o de la sincronización. El barrido supletorio (`ReleaseProcessor.sweepOnce`) bloquea por fila en el orden voucher → reserva → dispersión, marca `NO_SHOW` (`BookingExecution.markNoShow`) y libera; no libera una reserva en `SYNC_CONFLICT`, con un incidente `OPEN`/`IN_REVIEW` o cancelada con reembolso.
+- `PayoutProcessor` arma el lote directamente en `SUBMITTED` (no existe un `OPEN` observable), y envía a `PayoutGateway` (mock) con la clave `payout:<lote>`. Un error transitorio deja el lote `SUBMITTED` y el siguiente barrido lo retoma; un rechazo lo pasa a `FAILED` y devuelve las porciones al conjunto de pendientes.
+- El comprobante se guarda en el bucket de vouchers bajo `settlements/<lote>.pdf` y se envía por el outbox con la plantilla `settlement-receipt` al correo de contacto de la asociación. La alerta `PAYOUT_ACCOUNT_MISSING` se audita una vez por asociación y día por proceso (dedupe en memoria).
+- Sin migración. `PaymentWorker` encadena reembolsos, liberación y pago en ese orden.
+
 ## Alternativas Descartadas
 
 - **Liberar y pagar en una sola transacción con la llamada a la pasarela dentro:** mantiene filas bloqueadas durante una llamada de red y, si el proceso cae después del pago, no hay forma de saber si se pagó. La máquina de estados con clave de idempotencia lo resuelve.
