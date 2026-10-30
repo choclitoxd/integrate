@@ -18,4 +18,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                                                                        String gatewayTransactionId);
 
     boolean existsByBookingIdAndStatus(UUID bookingId, PaymentStatus status);
+
+    /** El único pago {@code APPROVED} de la reserva (índice parcial único), bloqueado para cancelarlo (ADR-0034 §2). */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    Optional<PaymentTransaction> findFirstByBookingIdAndStatusOrderByCreatedAtDesc(UUID bookingId, PaymentStatus status);
 }

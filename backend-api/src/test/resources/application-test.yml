@@ -29,6 +29,9 @@ integrate:
       async: false
 
   payments:
+    workers:
+      # Las pruebas invocan los trabajadores directamente, con el reloj de prueba (ADR-0034 §8).
+      enabled: false
     simulator:
       # La PWA y las pruebas confirman pagos Mock sin firmar el webhook (ADR-0029).
       enabled: true

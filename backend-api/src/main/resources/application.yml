@@ -122,6 +122,11 @@ integrate:
       events-secret-previous: ${WOMPI_EVENTS_SECRET_PREVIOUS:}
       # Cubre los reintentos de Wompi (30 min, 3 h y 24 h) con margen.
       max-event-age: PT25H
+    # Trabajadores de reembolsos, liberación y pago (ADR-0034 §7).
+    workers:
+      enabled: true
+      interval: PT60S
+      batch-size: 50
     # Simulador de la pasarela Mock (ADR-0029): apagado por defecto; solo con provider=MOCK (fail-fast).
     simulator:
       enabled: ${PAYMENT_SIMULATOR_ENABLED:false}

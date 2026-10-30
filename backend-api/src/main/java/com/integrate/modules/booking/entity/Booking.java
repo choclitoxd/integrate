@@ -132,6 +132,21 @@ public class Booking {
                 BookingStatus.EXECUTED);
     }
 
+    /** Cancelación anticipada del turista (RF-13, ADR-0034 §2): devuelve los cupos. */
+    public void cancelRefunded() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.CANCELLED_REFUNDED);
+    }
+
+    /** Cancelación tardía del turista (RF-14, ADR-0034 §2): sin reembolso. */
+    public void cancelNoRefund() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.CANCELLED_NO_REFUND);
+    }
+
+    /** Nadie asistió y venció la gracia de la dispersión (RF-14, ADR-0034 §4). */
+    public void noShow() {
+        moveFrom(BookingStatus.CONFIRMED, BookingStatus.NO_SHOW);
+    }
+
     /** Canje en campo de una reserva ya cancelada (ADR-0033 §3); idempotente si ya está en conflicto. */
     public void syncConflict() {
         if (status == BookingStatus.SYNC_CONFLICT) {

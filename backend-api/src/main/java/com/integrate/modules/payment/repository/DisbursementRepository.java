@@ -23,6 +23,15 @@ public interface DisbursementRepository extends JpaRepository<Disbursement, UUID
             nativeQuery = true)
     int releaseCancelledOfBooking(@Param("bookingId") UUID bookingId, @Param("at") Instant at);
 
+    /** Cancelación anticipada (ADR-0034 §2): la comunidad no recibe nada; el motivo es obligatorio por el CHECK. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE payments.disbursements SET status = 'CANCELLED', cancellation_reason = :reason
+             WHERE status IN ('SCHEDULED', 'ON_HOLD')
+               AND payment_id IN (SELECT id FROM payments.payment_transactions WHERE booking_id = :bookingId)""",
+            nativeQuery = true)
+    int cancelOfBooking(@Param("bookingId") UUID bookingId, @Param("reason") String reason);
+
     @Query(value = """
             SELECT COALESCE(SUM(r.amount_cop), 0) FROM payments.refunds r
               JOIN payments.payment_transactions p ON p.id = r.payment_id

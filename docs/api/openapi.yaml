@@ -1648,6 +1648,75 @@ paths:
         '409': { $ref: '#/components/responses/SyncBatchMismatch' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/bookings/{bookingId}/cancel:
+    post:
+      tags: [Bookings]
+      operationId: cancelBooking
+      summary: Cancela una reserva confirmada con la regla de 72 horas (RF-13, RF-14, ADR-0034).
+      description: |
+        Solo `ROLE_TOURIST`, dueño de la reserva (una ajena responde 404). Solo una reserva `CONFIRMED` cuya franja no
+        ha empezado. Δt = inicio de la franja − momento de la cancelación, en UTC, con el umbral de la política
+        vinculada al pago:
+
+        - **Δt > 72 h** (`EARLY_REFUND`): la reserva pasa a `CANCELLED_REFUNDED`, el voucher se revoca, la dispersión
+          comunitaria se cancela, los cupos vuelven al catálogo y se ordena un reembolso de `FLOOR(85 %)` del valor
+          pagado (el resto lo retiene la plataforma). El reembolso lo ejecuta después un trabajador.
+        - **Δt ≤ 72 h** (`LATE_NO_REFUND`, 72 h exactas incluidas): la reserva pasa a `CANCELLED_NO_REFUND`, el voucher
+          se revoca, no hay reembolso, los cupos no se devuelven y la dispersión sigue programada.
+
+        Todo queda en `booking.booking_cancellations` (append-only) y en la auditoría.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 3, maxLength: 500 }
+            example:
+              reason: Cambio de planes
+      responses:
+        '200':
+          description: Reserva cancelada (`Cache-Control no-store`).
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [bookingId, status, policyApplied, hoursBeforeStart, touristRefundPct, refundAmountCop,
+                           slotsReleased, cancelledAt]
+                properties:
+                  bookingId: { type: string, format: uuid }
+                  status: { type: string, enum: [CANCELLED_REFUNDED, CANCELLED_NO_REFUND] }
+                  policyApplied: { type: string, enum: [EARLY_REFUND, LATE_NO_REFUND] }
+                  hoursBeforeStart: { type: number, description: Δt en horas, truncado a 2 decimales. }
+                  touristRefundPct: { type: number }
+                  refundAmountCop: { type: integer, format: int64 }
+                  refundStatus: { type: string, nullable: true, enum: [REQUESTED, PROCESSING, COMPLETED, FAILED] }
+                  slotsReleased: { type: boolean }
+                  cancelledAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: La reserva no está `CONFIRMED` (`BOOKING_NOT_CANCELLABLE`) o su franja ya empezó
+            (`BOOKING_ALREADY_STARTED`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
   /api/v1/offline/roster:
     get:
       tags: [Offline]

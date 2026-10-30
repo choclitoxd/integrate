@@ -32,6 +32,13 @@ public class CommissionPolicy {
     @Column(name = "community_pct", nullable = false, precision = 5, scale = 2, columnDefinition = PgDomains.PERCENTAGE)
     private BigDecimal communityPct;
 
+    @Column(name = "early_cancel_refund_pct", nullable = false, precision = 5, scale = 2,
+            columnDefinition = PgDomains.PERCENTAGE)
+    private BigDecimal earlyCancelRefundPct;
+
+    @Column(name = "cancellation_threshold_hours", nullable = false)
+    private short cancellationThresholdHours;
+
     @Column(name = "payout_grace_hours", nullable = false)
     private short payoutGraceHours;
 
@@ -43,6 +50,6 @@ public class CommissionPolicy {
 
     /** Porción comunitaria del bruto, redondeada con {@code CEIL} a favor de la comunidad (F3, RF-12). */
     public BigDecimal communityShareOf(BigDecimal grossCop) {
-        return grossCop.multiply(communityPct).divide(HUNDRED, 0, RoundingMode.CEILING);
+        return com.integrate.modules.payment.service.impl.MoneyRules.communityShare(grossCop, communityPct);
     }
 }

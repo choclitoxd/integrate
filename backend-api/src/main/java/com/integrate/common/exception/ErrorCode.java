@@ -64,6 +64,8 @@ public enum ErrorCode {
     VOUCHER_EXPIRED(HttpStatus.UNPROCESSABLE_CONTENT, "voucher-expired", "Voucher Expired"),
     VOUCHER_WRONG_DATE(HttpStatus.UNPROCESSABLE_CONTENT, "voucher-wrong-date", "Voucher Not Valid Today"),
     BOOKING_NOT_REDEEMABLE(HttpStatus.CONFLICT, "booking-not-redeemable", "Booking Not Redeemable"),
+    BOOKING_NOT_CANCELLABLE(HttpStatus.CONFLICT, "booking-not-cancellable", "Booking Not Cancellable"),
+    BOOKING_ALREADY_STARTED(HttpStatus.CONFLICT, "booking-already-started", "Booking Already Started"),
 
     // --- Offline (ADR-0032) --------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
