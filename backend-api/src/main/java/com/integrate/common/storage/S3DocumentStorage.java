@@ -49,4 +49,24 @@ public class S3DocumentStorage implements DocumentStorage {
             throw e;
         }
     }
+
+    @Override
+    public Optional<byte[]> readPrefix(String key, int length) {
+        try {
+            // Rango HTTP: S3 entrega solo esos bytes, no el archivo completo.
+            return Optional.of(client.getObjectAsBytes(g -> g.bucket(bucket).key(key)
+                    .range("bytes=0-" + (length - 1))).asByteArray());
+        } catch (NoSuchKeyException e) {
+            return Optional.empty();
+        } catch (S3Exception e) {
+            // Un objeto vacío no admite rango (416): no tiene bytes que leer.
+            if (e.statusCode() == 404) {
+                return Optional.empty();
+            }
+            if (e.statusCode() == 416) {
+                return Optional.of(new byte[0]);
+            }
+            throw e;
+        }
+    }
 }

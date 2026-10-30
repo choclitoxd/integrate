@@ -76,6 +76,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0035](architecture/adr/ADR-0035-auditoria-habeas-data-consulta-accesos-sensibles-y-cifrado.md) | Auditoría de Habeas Data, consulta de accesos sensibles y cifrado | Aceptado |
 | [0036](architecture/adr/ADR-0036-infraestructura-offline-pwa-workbox-indexeddb.md) | Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`) | Aceptado |
 | [0037](architecture/adr/ADR-0037-padron-validacion-qr-contingencia-y-sincronizacion-pwa.md) | Implementar la descarga preventiva del padrón, validación criptográfica QR con Web Crypto, anti-doble canje local, contingencia manual y sincronización diferida en la PWA | Aceptado |
+| [0038](architecture/adr/ADR-0038-correo-sintetico-opaco-rol-gestor-revocado-y-firma-del-pdf.md) | Correo sintético opaco, rol del gestor revocado y firma del PDF (hallazgos de la prueba de ciclo de vida) | Aceptado |
 
 ## Calidad
 

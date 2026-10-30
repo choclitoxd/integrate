@@ -221,3 +221,9 @@ Desviaciones respecto del texto aceptado, sin cambio de decisión:
 ## Enmienda (ADR-0014, 2026-10-09)
 
 §6: una cuenta de anfitrión con correo sintético (`@comunidad.integrate.co`) no puede usar la recuperación por correo. Su gestor puede emitirle un código de activación aunque la cuenta ya esté `ACTIVE`; la cuenta no pasa a `PENDING_RESET` y, al canjear el código, se revocan sus sesiones. Una cuenta activa con correo real sigue respondiendo 409.
+
+## Enmienda (ADR-0038, 2026-10-30)
+
+- **§3.4 (correo sintético):** la fórmula `{docType}{docNumber}@comunidad.integrate.co` queda **reemplazada** por `h-<10 caracteres aleatorios>@comunidad.integrate.co`: dejaba el número de documento completo a la vista en la lista del gestor y anulaba el enmascarado a los últimos 4 dígitos. El sufijo no cambia. Las cuentas pendientes de activación se renombraron (migración `V16`); las activas conservan su correo y la lista lo muestra enmascarado.
+- **§5 (documentos en S3):** además del tipo y del tamaño, el objeto debe empezar por la firma `%PDF-` (`DocumentStorage.readPrefix`).
+- **§2 (acreditación):** revocar la acreditación quita también `ROLE_LINK_MANAGER` (`RoleAssignmentService.revoke`) y deja la entrada de auditoría `LINK_MANAGER_ROLE_REVOKED`; suspender no toca el rol.

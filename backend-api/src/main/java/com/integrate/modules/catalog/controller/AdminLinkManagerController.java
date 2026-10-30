@@ -36,17 +36,17 @@ public class AdminLinkManagerController {
     }
 
     @PostMapping("/{id}/suspend")
-    public LinkManagerResponse suspend(@PathVariable UUID id) {
-        return service.changeStatus(id, AccreditationStatus.SUSPENDED);
+    public LinkManagerResponse suspend(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.changeStatus(id, AccreditationStatus.SUSPENDED, Actors.subject(jwt));
     }
 
     @PostMapping("/{id}/reinstate")
-    public LinkManagerResponse reinstate(@PathVariable UUID id) {
-        return service.changeStatus(id, AccreditationStatus.ACTIVE);
+    public LinkManagerResponse reinstate(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.changeStatus(id, AccreditationStatus.ACTIVE, Actors.subject(jwt));
     }
 
     @PostMapping("/{id}/revoke")
-    public LinkManagerResponse revoke(@PathVariable UUID id) {
-        return service.changeStatus(id, AccreditationStatus.REVOKED);
+    public LinkManagerResponse revoke(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return service.changeStatus(id, AccreditationStatus.REVOKED, Actors.subject(jwt));
     }
 }

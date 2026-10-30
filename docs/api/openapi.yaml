@@ -296,7 +296,7 @@ paths:
       description: |
         Solo `ROLE_LINK_MANAGER` con acreditación `ACTIVE` (si no, 403 `ENROLLMENT_MANAGER_NOT_ACTIVE`) y `ROLE_ADMIN`.
         Crea siempre un usuario con rol `HOST` en la asociación del gestor (ADR-0007 §3).
-        - Si no se envía `email`, el servidor genera uno sintético `{docType}{docNumber}@comunidad.integrate.co`
+        - Si no se envía `email`, el servidor genera uno sintético `h-<10 caracteres>@comunidad.integrate.co` (opaco, sin relación con el documento; ADR-0038 §1)
           en minúsculas (`cc1094857483@…` para CC).
         - La contraseña inicial es un secreto aleatorio que no se revela. La cuenta queda con
           `credentialStatus = PENDING_RESET` hasta que el anfitrión la active con el código que emite el gestor
@@ -350,7 +350,7 @@ paths:
                 associationId: 11111111-2222-4333-8444-555555555555
                 assignmentId: 4821
                 linkManagerId: 99999999-8888-4777-8666-555555555555
-                email: cc1094857483@comunidad.integrate.co
+                email: h-k7q3m9x2tw@comunidad.integrate.co
                 emailIsSynthetic: true
                 roles: [ROLE_HOST]
                 credentialStatus: PENDING_RESET
@@ -384,7 +384,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/ActivationRequest' }
             example:
-              email: cc1094857483@comunidad.integrate.co
+              email: h-k7q3m9x2tw@comunidad.integrate.co
               code: 7K3QD-M9X2P
               newPassword: una-clave-larga-y-propia
       responses:
@@ -2395,7 +2395,7 @@ components:
           type: [string, 'null']
           format: email
           maxLength: 254
-          description: Opcional. Si se omite, el servidor genera `cc{docNumber}@comunidad.integrate.co`.
+          description: Opcional. Si se omite, el servidor genera `h-<10 caracteres>@comunidad.integrate.co` (ADR-0038 §1).
         linkManagerId:
           type: [string, 'null']
           format: uuid
@@ -2475,7 +2475,13 @@ components:
         hostProfileId: { type: string, format: uuid }
         userId: { type: string, format: uuid }
         fullName: { type: string }
-        email: { type: string, format: email }
+        email:
+          type: string
+          description: >-
+            Correo de acceso. Los correos sintéticos opacos (`h-xxxxxxxxxx@comunidad.integrate.co`) se muestran
+            completos. Los anteriores a ADR-0038 (`{tipo}{documento}@comunidad.integrate.co`) se muestran
+            **enmascarados** (`cc••••1142@comunidad.integrate.co`) para no revelar el número de documento, por lo
+            que en ese caso no es un correo válido sino una etiqueta.
         emailIsSynthetic: { type: boolean }
         phone: { $ref: '#/components/schemas/PhoneE164' }
         docType: { $ref: '#/components/schemas/DocType' }

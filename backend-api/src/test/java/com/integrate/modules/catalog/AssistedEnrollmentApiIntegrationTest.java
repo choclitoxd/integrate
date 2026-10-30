@@ -9,6 +9,7 @@ import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -50,6 +51,8 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
 
     private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 1_000_000);
     private static final String NEW_PASSWORD = "clave-propia-del-anfitrion";
+    /** ADR-0038 §1: {@code h-} y 10 caracteres de un alfabeto sin I, O, 0 ni 1. */
+    private static final String OPAQUE_EMAIL = "^h-[a-hj-np-z2-9]{10}@comunidad\\.integrate\\.co$";
 
     @Autowired
     private MockMvc mvc;
@@ -96,9 +99,12 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("RBAC_FORBIDDEN"));
 
+        assertThat(activeManagerRoles(gestor.userId())).isEqualTo(1L);
         action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/suspend")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accreditationStatus").value("SUSPENDED"));
+        // ADR-0038 §2: suspender es reversible y no toca el rol.
+        assertThat(activeManagerRoles(gestor.userId())).isEqualTo(1L);
         // El JWT conserva ROLE_LINK_MANAGER, pero sin acreditación ACTIVE no opera.
         mvc.perform(postJson("/api/v1/gestor/uploads", gestor.token(), "{\"kind\":\"PHYSICAL_CONSENT_FORM\"}"))
                 .andExpect(status().isForbidden())
@@ -118,6 +124,48 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.currentStatus").value("REVOKED"));
     }
 
+    /** ADR-0038 §2 (hallazgo E-02): revocar quita el rol, lo audita y el siguiente login ya no lo trae. */
+    @Test
+    void revokingAnAccreditationAlsoRemovesTheGestorRole() throws Exception {
+        assertThat(activeManagerRoles(gestor.userId())).isEqualTo(1L);
+
+        action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/revoke")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accreditationStatus").value("REVOKED"));
+
+        assertThat(activeManagerRoles(gestor.userId())).isZero();
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
+                 WHERE ur.user_id = ? AND r.code = 'LINK_MANAGER' AND ur.revoked_at IS NOT NULL
+                   AND ur.revoked_by IS NOT NULL""", Long.class, gestor.userId()))
+                .as("el historial conserva la asignación, con quien la revocó").isEqualTo(1L);
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM audit.audit_trail
+                 WHERE action = 'LINK_MANAGER_ROLE_REVOKED' AND severity = 'WARNING' AND entity_id = ?""",
+                Long.class, gestor.linkManagerId())).isEqualTo(1L);
+
+        // El token viejo aún trae el rol (dura hasta 15 min) pero el servidor ya no lo deja operar; uno nuevo, no.
+        mvc.perform(postJson("/api/v1/gestor/uploads", gestor.token(), "{\"kind\":\"PHYSICAL_CONSENT_FORM\"}"))
+                .andExpect(status().isForbidden());
+        String fresh = tokenFor(gestor.email(), PASSWORD);
+        mvc.perform(get("/api/v1/gestor/hosts").header(HttpHeaders.AUTHORIZATION, bearer(fresh)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("RBAC_FORBIDDEN"));
+
+        // Terminal: no se revoca dos veces, y no queda una segunda entrada de auditoría.
+        action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/revoke")
+                .andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM audit.audit_trail WHERE action = 'LINK_MANAGER_ROLE_REVOKED' AND entity_id = ?""",
+                Long.class, gestor.linkManagerId())).isEqualTo(1L);
+    }
+
+    private long activeManagerRoles(UUID userId) {
+        return jdbc.queryForObject("""
+                SELECT count(*) FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
+                 WHERE ur.user_id = ? AND r.code = 'LINK_MANAGER' AND ur.revoked_at IS NULL""", Long.class, userId);
+    }
+
     // ------------------------------------------------------------- registro asistido (§3)
 
     @Test
@@ -132,7 +180,8 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                         .header(HttpHeaders.USER_AGENT, "Terminal-Gestor/1.0"))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(jsonPath("$.email").value("cc" + docNumber.toLowerCase() + "@comunidad.integrate.co"))
+                // ADR-0038 §1: correo opaco, sin relación con el documento.
+                .andExpect(jsonPath("$.email").value(matchesPattern(OPAQUE_EMAIL)))
                 .andExpect(jsonPath("$.emailIsSynthetic").value(true))
                 .andExpect(jsonPath("$.roles[0]").value("ROLE_HOST"))
                 .andExpect(jsonPath("$.credentialStatus").value("PENDING_RESET"))
@@ -143,6 +192,7 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.victimData").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         assertThat(json).doesNotContain("RUV-2019-000123", "DESPLAZAMIENTO_FORZADO");
+        assertThat((String) JsonPath.read(json, "$.email")).doesNotContainIgnoringCase(docNumber);
 
         UUID userId = UUID.fromString(JsonPath.read(json, "$.userId"));
         UUID hostProfileId = UUID.fromString(JsonPath.read(json, "$.hostProfileId"));
@@ -232,6 +282,12 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
         String image = presignedKey(gestor.token(), "PHYSICAL_CONSENT_FORM");
         documentStorage.put(image, "image/png", 1024);
         expectDocumentInvalid(registrationBody(docNumber, null, null, victim, image), "consent.physicalConsentFormS3Key");
+        // ADR-0038 §3: un PNG subido declarando application/pdf se rechaza por su contenido, no por su tipo.
+        String disguised = presignedKey(gestor.token(), "PHYSICAL_CONSENT_FORM");
+        documentStorage.put(disguised, "application/pdf",
+                new byte[] {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0, 0, 0, 13});
+        expectDocumentInvalid(registrationBody(docNumber, null, null, victim, disguised),
+                "consent.physicalConsentFormS3Key");
         String huge = presignedKey(gestor.token(), "PHYSICAL_CONSENT_FORM");
         documentStorage.put(huge, "application/pdf", 6L * 1024 * 1024);
         expectDocumentInvalid(registrationBody(docNumber, null, null, victim, huge), "consent.physicalConsentFormS3Key");
@@ -279,6 +335,40 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.items", hasSize(0)));
         action(other.token(), "/api/v1/gestor/hosts/" + hostProfileId + "/activation-code")
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+     * ADR-0038 §1 (hallazgo E-03): la lista muestra tal cual el correo opaco y enmascara el correo antiguo
+     * {@code {tipo}{documento}@…}, que de otro modo revelaría el número de documento que la lista ya oculta.
+     */
+    @Test
+    void gestorListMasksLegacySyntheticEmailsThatEmbedTheDocument() throws Exception {
+        String hostProfileId = registerHost(gestor);
+        String opaque = hostEmail(hostProfileId);
+        assertThat(opaque).matches(OPAQUE_EMAIL);
+        mvc.perform(get("/api/v1/gestor/hosts").header(HttpHeaders.AUTHORIZATION, bearer(gestor.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].email").value(opaque))
+                .andExpect(jsonPath("$.items[0].emailIsSynthetic").value(true));
+
+        // Estado heredado: el correo se había construido con el tipo y el número de documento completos.
+        Map<String, Object> user = jdbc.queryForMap("""
+                SELECT u.doc_type, u.doc_number FROM auth.users u JOIN catalog.host_profiles h ON h.user_id = u.id
+                 WHERE h.id = ?::uuid""", hostProfileId);
+        String docNumber = (String) user.get("doc_number");
+        String legacy = (user.get("doc_type") + docNumber).toLowerCase() + "@comunidad.integrate.co";
+        jdbc.update("""
+                UPDATE auth.users SET email = ?
+                 WHERE id = (SELECT user_id FROM catalog.host_profiles WHERE id = ?::uuid)""", legacy, hostProfileId);
+
+        String listed = mvc.perform(get("/api/v1/gestor/hosts").header(HttpHeaders.AUTHORIZATION, bearer(gestor.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].emailIsSynthetic").value(true))
+                .andExpect(jsonPath("$.items[0].email").value(
+                        user.get("doc_type").toString().toLowerCase() + "••••" + docNumber.substring(docNumber.length() - 4)
+                                + "@comunidad.integrate.co"))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(listed).doesNotContainIgnoringCase(docNumber);
     }
 
     @Test

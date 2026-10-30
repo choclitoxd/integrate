@@ -17,6 +17,13 @@ public interface DocumentStorage {
     /** Metadatos del objeto, o vacío si no existe. */
     Optional<StoredObject> head(String key);
 
+    /**
+     * Los primeros {@code length} bytes del objeto (o menos, si es más corto), o vacío si no existe. Sirve para
+     * comprobar la firma del formato sin descargar el archivo (ADR-0038 §3): el tipo declarado al subir
+     * lo escribe el cliente y no prueba el contenido.
+     */
+    Optional<byte[]> readPrefix(String key, int length);
+
     record PresignedUpload(URI url, Instant expiresAt) {
     }
 

@@ -4,10 +4,12 @@ import com.integrate.common.storage.DocumentStorage;
 import com.integrate.common.storage.DocumentStorage.PresignedUpload;
 import com.integrate.common.storage.DocumentStorage.StoredObject;
 import com.integrate.modules.catalog.dto.request.DocumentKind;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -26,6 +28,8 @@ class EnrollmentDocuments {
     static final String CONTENT_TYPE = "application/pdf";
     static final long MAX_SIZE_BYTES = 5L * 1024 * 1024;
     static final Duration UPLOAD_TTL = Duration.ofMinutes(5);
+    /** Primeros bytes de todo PDF: {@code %PDF-}. */
+    private static final byte[] PDF_SIGNATURE = "%PDF-".getBytes(StandardCharsets.US_ASCII);
     private static final Pattern KEY_SUFFIX =
             Pattern.compile("^\\d{4}/\\d{2}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.pdf$");
 
@@ -59,6 +63,11 @@ class EnrollmentDocuments {
         }
         if (stored.get().sizeBytes() <= 0 || stored.get().sizeBytes() > MAX_SIZE_BYTES) {
             throw CatalogErrors.documentInvalid(field, "must be between 1 byte and 5 MB");
+        }
+        // El tipo lo declara quien sube el archivo: se comprueba también la firma del formato (ADR-0038 §3).
+        byte[] prefix = storage.readPrefix(key, PDF_SIGNATURE.length).orElse(new byte[0]);
+        if (!Arrays.equals(Arrays.copyOf(prefix, PDF_SIGNATURE.length), PDF_SIGNATURE)) {
+            throw CatalogErrors.documentInvalid(field, "must be a PDF");
         }
     }
 }

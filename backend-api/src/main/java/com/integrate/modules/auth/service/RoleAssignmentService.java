@@ -18,4 +18,12 @@ public interface RoleAssignmentService {
      *         usuario no existe, está dado de baja o no está {@code ACTIVE}
      */
     void grant(UUID userId, RoleCode role);
+
+    /**
+     * Revoca el rol vigente del usuario (ADR-0038 §2). Idempotente: sin el rol vigente no hace nada. El rol
+     * desaparece del JWT en el siguiente login o refresh; el historial queda en {@code auth.user_roles}.
+     *
+     * @param revokedBy quien ordena la revocación (administrador), o {@code null} si es un proceso del sistema
+     */
+    void revoke(UUID userId, RoleCode role, UUID revokedBy);
 }

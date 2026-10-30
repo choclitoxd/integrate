@@ -14,9 +14,11 @@ import com.integrate.modules.catalog.entity.LinkManagerProfile;
 import com.integrate.modules.catalog.repository.HostManagerAssignmentRepository;
 import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.service.GestorHostService;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class GestorHostServiceImpl implements GestorHostService {
 
     private static final String SYNTHETIC_SUFFIX = "@" + AssistedAccountService.SYNTHETIC_EMAIL_DOMAIN;
+    /** Correo sintético opaco de ADR-0038: {@code h-} y 10 caracteres del alfabeto sin I, O, 0 ni 1. */
+    private static final Pattern OPAQUE_SYNTHETIC_LOCAL =
+            Pattern.compile("^h-[a-hj-np-z2-9]{10}" + Pattern.quote(SYNTHETIC_SUFFIX) + "$");
 
     private final LinkManagers linkManagers;
     private final HostManagerAssignmentRepository assignmentRepository;
@@ -50,8 +55,9 @@ public class GestorHostServiceImpl implements GestorHostService {
         return PageResponse.of(assignments, a -> {
             HostProfile profile = profiles.get(a.getHostId());
             UserSummary user = users.get(profile.getUserId());
-            return new ManagedHostResponse(profile.getId(), user.userId(), user.fullName(), user.email(),
-                    user.email().endsWith(SYNTHETIC_SUFFIX), user.phone(), user.docType(), last4(user.docNumber()),
+            boolean synthetic = user.email().endsWith(SYNTHETIC_SUFFIX);
+            return new ManagedHostResponse(profile.getId(), user.userId(), user.fullName(),
+                    shownEmail(user, synthetic), synthetic, user.phone(), user.docType(), last4(user.docNumber()),
                     user.credentialStatus(), a.getValidFrom());
         });
     }
@@ -67,6 +73,18 @@ public class GestorHostServiceImpl implements GestorHostService {
                 .orElseThrow(() -> CatalogErrors.notFound("Host"));
         IssuedActivationCode issued = activationService.issue(profile.getUserId(), managerUserId);
         return new ActivationCodeResponse(issued.code(), issued.expiresAt());
+    }
+
+    /**
+     * Los correos sintéticos anteriores a ADR-0038 son {@code {tipo}{documento}@…}: mostrarlos completos revelaría el
+     * número de documento que la lista ya enmascara. Se muestran como {@code cc••••1142@…}; el correo opaco nuevo
+     * (que no contiene ningún dato personal) se muestra tal cual.
+     */
+    private static String shownEmail(UserSummary user, boolean synthetic) {
+        if (!synthetic || OPAQUE_SYNTHETIC_LOCAL.matcher(user.email()).matches()) {
+            return user.email();
+        }
+        return user.docType().name().toLowerCase(Locale.ROOT) + "••••" + last4(user.docNumber()) + SYNTHETIC_SUFFIX;
     }
 
     private static String last4(String docNumber) {
