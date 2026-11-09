@@ -65,6 +65,8 @@ spring:
           time_zone: UTC
 
 integrate:
+  auth:
+    admin-consent-enforcement-enabled: ${INTEGRATE_AUTH_ADMIN_CONSENT_ENFORCEMENT_ENABLED:false}
   # --- Sesión (ADR-0005 §2): llave RSA ≥ 2048 PKCS#8 PEM en Base64; sin default (fail-fast)
   jwt:
     signing-key: ${JWT_SIGNING_KEY}

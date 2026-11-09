@@ -11,6 +11,7 @@ import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.auth.service.model.ConsentStatus;
 import com.integrate.modules.auth.service.model.ConsentStatus.PurposeConsent;
 import com.integrate.modules.auth.service.model.ConsentStatus.State;
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,12 +19,14 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,8 +41,28 @@ class ConsentLedger {
     private final PrivacyPolicyRepository policyRepository;
     private final Clock clock;
 
+    @Value("${integrate.auth.admin-consent-enforcement-enabled}")
+    private boolean enforcementEnabled;
+
     Optional<PrivacyPolicy> currentPolicy() {
-        return policyRepository.findByCurrentTrue();
+        return policyRepository.findByCurrentTrue()
+                .filter(policy -> !enforcementEnabled || canBePublished(policy.getDocumentUrl()));
+    }
+
+    private static boolean canBePublished(String documentUrl) {
+        try {
+            URI url = URI.create(documentUrl);
+            if (!"https".equals(url.getScheme()) || url.getHost() == null || url.getUserInfo() != null) {
+                return false;
+            }
+            String host = url.getHost().toLowerCase(Locale.ROOT);
+            if (host.endsWith(".")) {
+                host = host.substring(0, host.length() - 1);
+            }
+            return !host.equals("invalid") && !host.endsWith(".invalid");
+        } catch (IllegalArgumentException invalidUrl) {
+            return false;
+        }
     }
 
     /** Valida que {@code version} sea la vigente; {@code field} es la ruta del campo para {@code invalidParams}. */

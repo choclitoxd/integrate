@@ -6,6 +6,8 @@ spring:
     locations: classpath:db/migration,classpath:db/seed-dev
 
 integrate:
+  auth:
+    admin-consent-enforcement-enabled: true
   booking:
     expiration:
       # Las pruebas invocan el worker de expiración directamente, con el reloj de prueba (ADR-0008 §9).

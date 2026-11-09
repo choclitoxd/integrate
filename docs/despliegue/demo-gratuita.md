@@ -406,6 +406,18 @@ General). Evite que el PC se suspenda mientras haya demo (Windows: `powercfg /ch
 
 ### 7. Política de privacidad de la demo
 
+**Publicación de una política aprobada (ADR-0040).** Aloje los bytes del documento aprobado en una URL
+HTTPS pública y versionada. Configure `PGSERVICEFILE` y `PGPASSFILE` fuera de Git. El primero debe
+tener una entrada `integrate-policy-pruebas` o `integrate-policy-produccion` con destino explícito,
+TLS y una identidad autorizada para publicar. Ejecute `infra/scripts/publicar-politica.sh` con el entorno,
+una versión nueva, el título, la URL y el archivo aprobado. El script exige que la descarga coincida
+con el original, registra la huella y activa la versión en una transacción. Verifique el enlace en
+registro y enrolamiento. Tras verificar la política vigente, configure
+`INTEGRATE_AUTH_ADMIN_CONSENT_ENFORCEMENT_ENABLED=true` en el backend del entorno y redespliéguelo.
+La variable queda desactivada de forma predeterminada durante la transición.
+Para una prueba con un administrador pendiente, confirme que la operación
+protegida devuelve 428, que puede aceptar desde el diálogo y que la operación funciona después.
+
 Con el backend ya iniciado (Flyway creó las tablas), publique la política de demostración. Sin ella
 `GET /api/v1/privacy-policies/current` responde 404 y nadie puede registrarse (la política de ejemplo
 solo viene con el perfil `dev`). Es idempotente:
@@ -414,6 +426,9 @@ solo viene con el perfil `dev`). Es idempotente:
 psql "postgresql://integrate_owner:<contraseña-owner>@ep-xxx.<region>.aws.neon.tech/integrate?sslmode=require" \
   -f infra/postgres/seed/demo_privacy_policy.sql
 ```
+
+La semilla anterior es histórica y apunta a una URL de ejemplo. Para validar el flujo en pruebas,
+publique un artefacto de demostración accesible y use datos sintéticos.
 
 ### 8. Cloudflare Pages (PWA)
 

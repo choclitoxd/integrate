@@ -30,6 +30,9 @@ public enum ErrorCode {
     AUTH_ACTIVATION_INVALID(HttpStatus.UNAUTHORIZED, "activation-invalid", "Activation Code Invalid"),
     AUTH_RESET_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "reset-token-invalid", "Password Reset Token Invalid"),
     PRIVACY_POLICY_NOT_PUBLISHED(HttpStatus.NOT_FOUND, "privacy-policy-not-published", "Privacy Policy Not Published"),
+    ADMIN_CONSENT_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "admin-consent-required", "Consent Required"),
+    ADMIN_PRIVACY_POLICY_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "admin-privacy-policy-unavailable",
+            "Privacy Policy Unavailable"),
 
     // --- Enrolamiento asistido (ADR-0007) ------------------------------------
     ENROLLMENT_MANAGER_NOT_ACTIVE(HttpStatus.FORBIDDEN, "manager-not-active", "Link Manager Not Active"),

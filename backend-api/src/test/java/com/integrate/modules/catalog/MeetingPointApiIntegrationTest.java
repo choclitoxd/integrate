@@ -100,8 +100,8 @@ class MeetingPointApiIntegrationTest extends PostgresIntegrationTest {
     // ----------------------------------------------------------------------------- aprobación
 
     @Test
-    void matchingPointIsApprovedAndPublicDetailTrustsTheCoordinates() throws Exception {
-        String id = createExperience(6.25, -75.56);
+    void matchingPointIsApprovedAndPublicDetailRoundsTheCoordinates() throws Exception {
+        String id = createExperience(6.251234, -75.561234);
         submit(id).andExpect(status().isOk());
         assertThat(checkStatus(id)).isEqualTo("MATCH");
         assertThat(history(id)).containsExactly("PENDIENTE|ENVIAR|VERIFICANDO", "VERIFICANDO|DIST_OK|MATCH");
@@ -109,6 +109,9 @@ class MeetingPointApiIntegrationTest extends PostgresIntegrationTest {
         approve(id).andExpect(status().isOk());
         mvc.perform(get("/api/v1/experiences/" + id))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.latitude").value(6.25))
+                .andExpect(jsonPath("$.longitude").value(-75.56))
+                .andExpect(jsonPath("$.meetingPoint").value("MEDELLÍN"))
                 .andExpect(jsonPath("$.meetingPointCoordinatesTrusted").value(true));
     }
 

@@ -13,6 +13,11 @@ info:
     - Todo error se emite como `application/problem+json` (RFC 9457). Los errores de protocolo usan
       `type: about:blank`; los de dominio usan `https://api.integrate.co/problems/<slug>`.
     - Roles en el claim `roles` del JWT: `ROLE_TOURIST`, `ROLE_HOST`, `ROLE_LINK_MANAGER`, `ROLE_ADMIN`.
+    - ADR-0040. Al activar el control de consentimiento, una cuenta administradora sin aceptación vigente
+      recibe 428 `ADMIN_CONSENT_REQUIRED`
+      en operaciones protegidas. El problema incluye `policyVersion` y `requiredPurposes`.
+      Si falta una política vigente, recibe 503 `ADMIN_PRIVACY_POLICY_UNAVAILABLE`.
+      La consulta pública de política, la aceptación en `/me/consents` y el cierre de sesión siguen disponibles.
     - Cada respuesta incluye la cabecera `X-Trace-Id`, igual al `traceId` de los errores.
 servers:
   - url: https://api.integrate.co
@@ -2559,23 +2564,23 @@ components:
         associationName: { type: string }
         categoryCodes: { type: array, items: { type: string } }
     ExperienceDetail:
+      description: Ficha pública. La ubicación es aproximada y las paradas detalladas se reservan para la gestión.
       type: object
       required: [summary, description, safetyGuidelines, meetingPoint, timezone]
       properties:
         summary: { $ref: '#/components/schemas/ExperienceSummary' }
         description: { type: string }
         safetyGuidelines: { type: string }
-        vereda: { type: [string, 'null'] }
-        meetingPoint: { type: string }
-        latitude: { type: [number, 'null'] }
-        longitude: { type: [number, 'null'] }
+        vereda: { type: 'null' }
+        meetingPoint: { type: string, description: Referencia municipal sin dirección exacta. }
+        latitude: { type: [number, 'null'], multipleOf: 0.01 }
+        longitude: { type: [number, 'null'], multipleOf: 0.01 }
         timezone: { type: string, const: America/Bogota }
-        stops: { type: array, items: { $ref: '#/components/schemas/RouteStop' } }
+        stops: { type: array, maxItems: 0, items: { $ref: '#/components/schemas/RouteStop' } }
         meetingPointCoordinatesTrusted:
           type: boolean
           description: |
-            `false` si la verificación quedó en REVIEW o MISMATCH (ADR-0030): las coordenadas no coinciden con la
-            dirección y el cliente debe ubicar el punto por la dirección escrita.
+            `true` cuando puede dibujarse el mapa público aproximado. En otro caso se muestra el municipio.
     RouteType:
       type: string
       description: LOOP (circular), OUT_AND_BACK (ida y vuelta por el mismo camino) o ONE_WAY (ADR-0022).

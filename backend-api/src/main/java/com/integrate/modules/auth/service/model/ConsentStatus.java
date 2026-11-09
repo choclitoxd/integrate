@@ -23,6 +23,11 @@ public record ConsentStatus(String currentPolicyVersion, List<PurposeConsent> pu
         return !pendingPurposes.isEmpty();
     }
 
+    public boolean hasCurrentPersonalDataConsent() {
+        return purposes.stream().anyMatch(purpose ->
+                purpose.purpose() == ConsentPurpose.PERSONAL_DATA && purpose.state() == State.VALID);
+    }
+
     /** Versión que el titular debe aceptar, o {@code null} si no hay nada pendiente. */
     public String pendingPolicyVersion() {
         return requiresConsentUpdate() ? currentPolicyVersion : null;

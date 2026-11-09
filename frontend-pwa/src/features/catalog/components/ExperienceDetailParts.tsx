@@ -5,16 +5,8 @@ import { placeLabel } from '../labels';
 import { useCategories } from '../queries';
 import { MeetingPointMap } from './MeetingPointMap';
 
-function MapLinks({
-  latitude,
-  longitude,
-  addressQuery,
-}: {
-  latitude: number;
-  longitude: number;
-  addressQuery: string | undefined;
-}) {
-  const coords = addressQuery ?? `${String(latitude)},${String(longitude)}`;
+function MapLinks({ latitude, longitude }: { latitude: number; longitude: number }) {
+  const coords = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
   return (
     <div className="mt-4">
       {/*
@@ -73,19 +65,12 @@ export function DetailHeader({ detail }: { detail: ExperienceDetail }) {
   );
 }
 
-/** Descripción, punto de encuentro y recomendaciones de seguridad. */
-/**
- * Dirección escrita para ubicar el punto cuando las coordenadas no coinciden con ella (ADR-0030 §5); `undefined`
- * si las coordenadas son de fiar o el servidor no informa la verificación.
- */
-function untrustedAddress(detail: ExperienceDetail): string | undefined {
-  if (detail.meetingPointCoordinatesTrusted !== false) return undefined;
-  const { municipality, department } = detail.summary;
-  return [detail.meetingPoint, municipality.name, department.name, 'Colombia'].join(', ');
-}
-
+/** Descripción, ubicación pública y recomendaciones de seguridad (ADR-0039). */
 export function DetailSections({ detail }: { detail: ExperienceDetail }) {
-  const addressQuery = untrustedAddress(detail);
+  const latitude = detail.latitude === null ? null : Number(detail.latitude.toFixed(2));
+  const longitude = detail.longitude === null ? null : Number(detail.longitude.toFixed(2));
+  const showMap =
+    detail.meetingPointCoordinatesTrusted !== false && latitude !== null && longitude !== null;
   return (
     <>
       <section aria-labelledby="sobre" className="mt-8">
@@ -95,75 +80,39 @@ export function DetailSections({ detail }: { detail: ExperienceDetail }) {
         <p className="mt-2 max-w-prose whitespace-pre-line text-ink">{detail.description}</p>
       </section>
 
-      {detail.stops.length > 0 && (
-        <section aria-labelledby="paradas" className="mt-8">
-          <h2 id="paradas" className="text-xl font-bold text-ink">
-            Paradas del recorrido
-          </h2>
-          <ol className="mt-3 grid gap-3 rounded-xl bg-surface px-4 py-4">
-            {detail.stops.map((stop, index) => (
-              <li key={`${String(index)}-${stop.name}`} className="flex items-start gap-3">
-                <span
-                  aria-hidden="true"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-on-brand"
-                >
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="font-semibold text-ink">{stop.name}</p>
-                  {stop.description && <p className="text-ink-muted">{stop.description}</p>}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
       <section aria-labelledby="encuentro" className="mt-8">
         <h2 id="encuentro" className="text-xl font-bold text-ink">
-          Punto de encuentro
+          Zona de la experiencia
         </h2>
         {/* Misma tarjeta plana y mismo patrón de lista que los datos de la ficha (ExperienceFacts). */}
         <div className="mt-3 rounded-xl bg-surface px-4 py-4">
           <dl className="grid gap-4">
             <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
-              <Icon name="flag" size={24} className="row-span-2 text-brand" />
-              <dt className="text-sm text-ink-muted">Punto de referencia</dt>
-              <dd className="font-semibold whitespace-pre-line text-ink">{detail.meetingPoint}</dd>
-            </div>
-            <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
               <Icon name="map" size={24} className="row-span-2 text-brand" />
               <dt className="text-sm text-ink-muted">Ubicación</dt>
-              <dd className="font-semibold text-ink">
-                {detail.vereda ? `Vereda ${detail.vereda}, ` : ''}
-                {placeLabel(detail.summary)}
-              </dd>
+              <dd className="font-semibold text-ink">{placeLabel(detail.summary)}</dd>
             </div>
-            {detail.latitude !== null &&
-              detail.longitude !== null &&
-              addressQuery === undefined && (
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
-                  <Icon name="crosshair" size={24} className="row-span-2 text-brand" />
-                  <dt className="text-sm text-ink-muted">Coordenadas</dt>
-                  <dd className="font-semibold text-ink tabular-nums">
-                    {detail.latitude.toFixed(5)}, {detail.longitude.toFixed(5)}
-                  </dd>
-                </div>
-              )}
+            {showMap && (
+              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3">
+                <Icon name="crosshair" size={24} className="row-span-2 text-brand" />
+                <dt className="text-sm text-ink-muted">Coordenadas aproximadas</dt>
+                <dd className="font-semibold text-ink tabular-nums">
+                  {latitude.toFixed(2)}, {longitude.toFixed(2)}
+                </dd>
+              </div>
+            )}
           </dl>
-          {detail.latitude !== null && detail.longitude !== null && (
+          <p className="mt-3 text-ink-muted">
+            Consulta el punto exacto en el comprobante de tu reserva confirmada.
+          </p>
+          {showMap && (
             <>
               <MeetingPointMap
-                latitude={detail.latitude}
-                longitude={detail.longitude}
+                latitude={latitude}
+                longitude={longitude}
                 title={detail.summary.title}
-                {...(addressQuery === undefined ? {} : { addressQuery })}
               />
-              <MapLinks
-                latitude={detail.latitude}
-                longitude={detail.longitude}
-                addressQuery={addressQuery}
-              />
+              <MapLinks latitude={latitude} longitude={longitude} />
             </>
           )}
         </div>

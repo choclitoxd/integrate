@@ -34,7 +34,7 @@ public enum MeetingPointState {
         return APPROVABLE.contains(this);
     }
 
-    /** Con {@code REVIEW} o {@code MISMATCH} el mapa público se centra por la dirección y no por las coordenadas. */
+    /** Los estados dudosos excluyen las coordenadas del mapa público (ADR-0039). */
     public boolean coordinatesTrusted() {
         return !DOUBTFUL.contains(this);
     }

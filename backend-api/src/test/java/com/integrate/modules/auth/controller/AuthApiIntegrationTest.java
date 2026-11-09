@@ -319,7 +319,16 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
                  WHERE revoked_at IS NULL AND role_id = (SELECT id FROM auth.roles WHERE code = 'ADMIN')""");
         registrationService.bootstrapAdmin(new AdminBootstrapCommand(adminEmail, PASSWORD, "Admin de prueba",
                 DocType.PA, uniqueDocNumber(), "+10000000000"));
-        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken(adminEmail)))
+        String adminAuthorization = "Bearer " + accessToken(adminEmail);
+        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, adminAuthorization))
+                .andExpect(status().isPreconditionRequired())
+                .andExpect(jsonPath("$.code").value("ADMIN_CONSENT_REQUIRED"));
+        mvc.perform(post("/api/v1/me/consents").header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"policyVersion":"%s","purposes":["PERSONAL_DATA"]}""".formatted(DEV_POLICY)))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, adminAuthorization))
                 .andExpect(status().isOk());
     }
 

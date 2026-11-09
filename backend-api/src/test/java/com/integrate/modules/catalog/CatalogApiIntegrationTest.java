@@ -193,7 +193,7 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
     // ------------------------------------------------------------- datos de recorrido (ADR-0022)
 
     @Test
-    void routeDetailsAreStoredReplacedAndExposedInCatalog() throws Exception {
+    void routeDetailsAreStoredReplacedAndOnlyTheirCountIsPublic() throws Exception {
         String route = """
                 "routeType":"LOOP","distanceKm":8.5,"roundTripMinutes":300,
                 "stops":[{"name":"Mirador del río","description":"Descanso de 15 minutos"},{"name":"Casa de la memoria"}],""";
@@ -226,7 +226,9 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.summary.distanceKm").value(8.5))
                 .andExpect(jsonPath("$.summary.roundTripMinutes").value(300))
                 .andExpect(jsonPath("$.summary.stopsCount").value(2))
-                .andExpect(jsonPath("$.stops[0].name").value("Mirador del río"));
+                .andExpect(jsonPath("$.stops").isEmpty())
+                .andExpect(jsonPath("$.vereda").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.meetingPoint").value("MEDELLÍN"));
     }
 
     @Test
@@ -319,7 +321,7 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/experiences/" + approved))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.summary.associationName").isString())
-                .andExpect(jsonPath("$.meetingPoint").value("Parque principal"));
+                .andExpect(jsonPath("$.meetingPoint").value("MEDELLÍN"));
     }
 
     @Test

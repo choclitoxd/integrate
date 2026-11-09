@@ -77,6 +77,11 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0036](architecture/adr/ADR-0036-infraestructura-offline-pwa-workbox-indexeddb.md) | Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`) | Aceptado |
 | [0037](architecture/adr/ADR-0037-padron-validacion-qr-contingencia-y-sincronizacion-pwa.md) | Implementar la descarga preventiva del padrón, validación criptográfica QR con Web Crypto, anti-doble canje local, contingencia manual y sincronización diferida en la PWA | Aceptado |
 | [0038](architecture/adr/ADR-0038-correo-sintetico-opaco-rol-gestor-revocado-y-firma-del-pdf.md) | Correo sintético opaco, rol del gestor revocado y firma del PDF (hallazgos de la prueba de ciclo de vida) | Aceptado |
+| [0039](architecture/adr/ADR-0039-proteger-identidad-y-punto-de-encuentro.md) | Protección del documento, celular y punto de encuentro (H-01) | Aceptado |
+| [0040](architecture/adr/ADR-0040-publicar-politica-y-exigir-consentimiento-inicial.md) | Política accesible y consentimiento inicial (H-02) | Aceptado |
+| [0041](architecture/adr/ADR-0041-respaldar-y-restaurar-postgresql.md) | Respaldo externo y restauración de PostgreSQL (H-03) | Aceptado |
+
+El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 
 ## Calidad
 
