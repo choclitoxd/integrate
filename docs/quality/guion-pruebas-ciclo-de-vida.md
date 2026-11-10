@@ -308,17 +308,23 @@ Api POST "/bookings/<id-de-la-reserva>/cancel" $tur @{ reason = 'Cambio de plane
 
 ## 6. Administrador
 
-El Administrador **no se registra**: el equipo lo configura al arrancar el sistema (`BOOTSTRAP_ADMIN_*`). En la PWA solo
-tiene las pantallas de un turista; lo propio de su rol se hace por API.
+El Administrador **no se registra**: el equipo lo configura al arrancar el sistema (`BOOTSTRAP_ADMIN_*`). Desde ADR-0042
+tiene una **consola propia** en `/admin` (moderación, asociaciones y auditoría). Convertir en anfitrión y acreditar
+gestores (§6.2 y §6.3) sigue siendo por API hasta la Fase 2.
 
 ### 6.1 En la PWA
 
 | # | Acción | Debe ver | 🖥 | 📱 | Si falla, por qué |
 |---|---|---|---|---|---|
-| A-01 | Ingresar como administrador. | Entra; el menú es el de un turista (Explorar · Mis experiencias · Mi cuenta). | ✘ | ✘ | Credenciales: la cuenta no existe en este entorno (la semilla o `crear-testers.py` no se cargó). |
+| A-01 | Ingresar como administrador (sin `?volver=`). | 🖥 Llega a `/admin`: barra lateral oscura «Intégrate · Administración» con Resumen · Experiencias · Asociaciones · Auditoría. 📱 Aviso «La administración se usa desde un computador» con los pendientes. | | | Credenciales: la cuenta no existe en este entorno (la semilla o `crear-testers.py` no se cargó). Llega al catálogo: falta el aterrizaje del administrador. |
 | A-02 | **Mi cuenta**. | «Turista · **Administrador**». Si le pide **renovar el consentimiento**, apruébelo: es el comportamiento de una cuenta creada por arranque, sin consentimiento previo. | ✔ | ✔ | Falta «Administrador»: rol no asignado → no podrá hacer A-10 en adelante. |
 | A-03 | Abrir `/gestor`. | «**Esta sección no está disponible para tu cuenta**» y **Ir al inicio**. | ✔ | ✔ | Entra al portal: **defecto de permisos (alta)**. |
 | A-04 | Reservar y pagar como en 5.4–5.6. | Funciona igual que para un turista. | ✔ | ✔ | — |
+| A-05 | Como turista o gestor, abrir `/admin`. | «Esta sección no está disponible para tu cuenta». El menú no ofrece «Administración». | | | Entra a la consola: **defecto de permisos (alta)**. |
+| A-06 | 🖥 **Experiencias** → «Por revisar» → abrir una ficha → **Rechazar** sin motivo. | El campo «Motivo» queda marcado y no se envía nada. | | | Se envía sin motivo: validación faltante. |
+| A-07 | 🖥 En una ficha con punto «No coincide», **Aprobar y publicar**. | Aviso: el punto de encuentro no coincide; ofrece **Confirmar el punto de encuentro**. Tras confirmarlo, aprobar funciona y la experiencia sale en el catálogo. | | | Aprueba sin confirmar: el autómata de ADR-0030 no se aplicó. |
+| A-08 | 🖥 **Asociaciones** → **Nueva asociación** con un NIT ya registrado. | El campo NIT dice «Ya existe una asociación registrada con este NIT». Con un NIT nuevo, aparece en la lista. | | | — |
+| A-09 | 🖥 **Auditoría**: filtrar por módulo `booking`, **Exportar CSV** y **Verificar la cadena**. | Solo filas de `booking`; se descarga `auditoria-AAAA-MM-DD.csv`; «La cadena está íntegra». La consulta aparece luego como `AUDIT_QUERIED`. | | | Cadena rota: **incidente**. |
 
 ### 6.2 Por API: asociaciones y anfitriones
 
@@ -345,6 +351,8 @@ $adm = Login 'tester.admin@integrate-demo.test'
 | A-25 | (Al final) **Revocar** (`/revoke`). | El gestor ya no puede enrolar ni descargar el padrón. | ✔ | — |
 
 ### 6.4 Por API: moderar experiencias (incluye el punto de encuentro)
+
+Desde ADR-0042 esto también se hace en la consola (A-06 y A-07); los pasos por API comprueban el servidor sin la PWA.
 
 Requiere una experiencia en revisión (ver H-22).
 

@@ -72,7 +72,8 @@ Desviaciones respecto a la decisión:
 - **Exportación CSV:** `createHttpClient` ganó la opción `responseType: 'blob'` para descargar el archivo con el token en memoria.
 - **Entrada:** en la navegación del sitio el destino se rotula «Administración» en escritorio y «Admin» en la barra inferior del celular.
 - **§8 verificación hecha:** Quality Gate (tipos, lint, 317 pruebas, build) en verde salvo `format:check`, que falla por `src/features/offline/offlineFlow.test.tsx`, un archivo con cambios previos ajenos a este ADR. El build deja la consola en los chunks `admin-*.js` y `AdminLayout-*.js`, fuera del bundle inicial. Revisión en el navegador contra el backend local a 1440 px y aviso a 375 px.
-- **Pendiente:** Fase 2 (Personas), enmienda de texto en FE-DIR-001, guion §6, manual de usuario y `demo-gratuita.md` §5.
+- **Documentación:** enmienda en FE-DIR-001 (Directiva 1.6 y matriz), manual de usuario §2 y §6, guion §6 (A-01 y A-05 a A-09), `demo-gratuita.md` §5 y estado de A7 en la auditoría propia.
+- **Pendiente:** Fase 2 (Personas). Las capturas del manual para la consola no se tomaron.
 
 ## Contrato o Esquema Conceptual
 

@@ -594,7 +594,7 @@ Cómo se inicializa la base de la demo desplegada (Neon + SnapDeploy + Cloudflar
    `DROP SCHEMA IF EXISTS notification, audit, offline, voucher, payments, booking, catalog, auth, common CASCADE`.
 2. **Reiniciar el backend** (`bash infra/scripts/snapdeploy.sh env` y luego `wake`). Al arrancar, Flyway aplica las 14 migraciones (V1–V14) y recrea las extensiones.
 3. **Cargar la política de privacidad vigente** (sin ella nadie puede registrarse): `infra/postgres/seed/demo_privacy_policy.sql` (versión `v0.1`, idempotente). Se carga con `psql` leyendo el archivo en binario.
-4. **Crear el ADMIN inicial** con las variables `BOOTSTRAP_ADMIN_*` de `infra/env/.env.demo`: se registra por la API y se le concede el rol por SQL. La app no tiene pantalla para otorgar ADMIN.
+4. **Crear el ADMIN inicial** con las variables `BOOTSTRAP_ADMIN_*` de `infra/env/.env.demo`: se registra por la API y se le concede el rol por SQL. La app no tiene pantalla para otorgar ADMIN. Una vez creado, el ADMIN usa la consola `/admin` (ADR-0042) desde un computador para moderar experiencias, registrar asociaciones y revisar la auditoría; convertir en anfitrión y acreditar gestores sigue siendo por API.
 
 ### 2. Cuentas de prueba (testers) · todos los roles
 

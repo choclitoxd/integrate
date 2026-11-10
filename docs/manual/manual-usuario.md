@@ -57,9 +57,9 @@ Una misma persona puede tener varios roles; en *Mi cuenta* aparecen todos (por e
 | Turista | Explorar y filtrar experiencias, reservar cupos, pagar, recibir el voucher con QR, gestionar sus autorizaciones de datos. | Se registra solo en «Crea una gratis». |
 | Gestor de Enlace | Todo lo del turista, más: enrolar anfitriones de su asociación, emitir códigos de activación y consultar el estado de sus anfitriones. | Lo acredita el Administrador. |
 | Anfitrión comunitario | Activar su cuenta con el código del gestor, ingresar, explorar el catálogo y gestionar sus autorizaciones de datos. | Lo enrola su Gestor de Enlace. |
-| Administrador | Ingresar, explorar y reservar (también es turista) y ver su perfil. | Configurado por el equipo de Intégrate. |
+| Administrador | Todo lo del turista, más la **consola de administración** (desde un computador): moderar experiencias, confirmar puntos de encuentro, registrar asociaciones y consultar la bitácora de auditoría. | Configurado por el equipo de Intégrate. |
 
-> El portal propio del Anfitrión (crear experiencias y franjas) y el del Administrador (aprobar experiencias, verificar anfitriones) todavía no tienen pantallas en la aplicación. Si uno de estos roles intenta abrir una sección que no le corresponde, verá «Esta sección no está disponible para tu cuenta» (ver [sección 6](#6-administrador-role_admin)).
+> El portal propio del Anfitrión (crear experiencias y franjas) todavía no tiene pantallas en la aplicación, y la consola aún no permite convertir personas en anfitriones ni acreditar gestores (se hace por API). Si un rol intenta abrir una sección que no le corresponde, verá «Esta sección no está disponible para tu cuenta» (ver [sección 6](#6-administrador-role_admin)).
 
 ## 3. Turista ROLE_TOURIST
 
@@ -284,7 +284,27 @@ En **Mi cuenta** aparece el rol «Anfitrión comunitario» y tres autorizaciones
 
 El Administrador ingresa como cualquier usuario (ver [3.1](#31-crear-cuenta-e-ingresar)). En esta versión su cuenta también tiene el rol Turista, así que puede explorar, reservar y pagar, y en **Mi cuenta** aparece «Turista · Administrador».
 
-Las tareas administrativas (aprobar experiencias en revisión, verificar anfitriones, acreditar gestores) se realizan hoy fuera de la PWA y aún no tienen pantallas.
+### 6.1 Consola de administración
+
+Al ingresar, el Administrador llega directo a la **consola de administración** (`/admin`). Es una ventana distinta a la del resto de la aplicación: tiene una barra lateral oscura con el rótulo «Intégrate · Administración». Desde el sitio público también se abre con **Administración** en el menú, y se vuelve al sitio con **Volver al sitio**.
+
+La consola está pensada para un **computador**. En un celular o una tablet, `/admin` solo muestra un aviso y cuántas experiencias esperan revisión, sin poder actuar sobre ellas.
+
+| Sección | Qué permite |
+| :--- | :--- |
+| **Resumen** | Ver cuántas experiencias esperan revisión, cuántas tienen el punto de encuentro dudoso, cuántas están suspendidas y cuántas asociaciones hay. Verificar la integridad de la bitácora. |
+| **Experiencias** | Filtrar por estado (Por revisar, Publicadas, Suspendidas, Rechazadas, Retiradas, Todas) y abrir la ficha de cada una. Desde la ficha: **Aprobar y publicar**, **Rechazar**, **Suspender**, **Reactivar**, **Retirar** y **Confirmar el punto de encuentro**. |
+| **Asociaciones** | Ver las asociaciones registradas y registrar una nueva (razón social, NIT con dígito de verificación, RNT, tipo, municipio DANE, correo y celular de contacto). |
+| **Auditoría** | Consultar la bitácora por módulo, acción, severidad y fechas; ver el detalle de cada registro; **Exportar CSV**; **Verificar la cadena**. |
+
+Reglas que conviene saber:
+
+- **Rechazar, suspender y retirar piden un motivo.** El anfitrión lo lee y queda en el historial. Retirar no se puede deshacer.
+- **Un punto de encuentro dudoso bloquea la aprobación.** Si las coordenadas no coinciden con la dirección, la consola lo avisa. Confírmalo solo si conoces el lugar; si no, rechaza la experiencia para que el anfitrión lo corrija.
+- **Todo queda registrado.** Cada consulta, exportación y verificación de la bitácora genera a su vez un registro de auditoría.
+- **Aún no tiene pantalla:** convertir a una persona en anfitrión y acreditar, suspender o revocar gestores. Se hace por API (guion de pruebas §6.2 y §6.3).
+
+### 6.2 Secciones de otros roles
 
 Si un Administrador o Anfitrión abre una sección reservada a otro rol, como `/gestor`, ve **«Esta sección no está disponible para tu cuenta»** y el botón **Ir al inicio**.
 
