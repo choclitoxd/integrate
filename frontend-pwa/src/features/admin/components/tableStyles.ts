@@ -4,3 +4,5 @@ export const CAPTION_CLASS = 'px-4 py-3 text-left text-lg font-bold text-ink';
 export const TH_CLASS =
   'border-y-2 border-border-strong bg-brand-soft px-3 py-3 text-sm font-bold text-brand';
 export const TD_CLASS = 'border-b border-border-subtle px-3 py-3 align-top break-words';
+export const operationFieldClass =
+  'min-h-11 w-full rounded-lg border-2 border-border bg-surface px-3 py-2 text-ink';

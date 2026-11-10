@@ -350,7 +350,7 @@ export function PeoplePage() {
         description="Convierte a una persona en anfitrión, acredita gestores de enlace y gestiona su estado."
       />
 
-      <div className="mt-6 grid gap-6">
+      <div className="mt-6 grid grid-cols-1 gap-6">
         <PersonSearch />
 
         <section aria-labelledby="listas-titulo">

@@ -1,6 +1,7 @@
 package com.integrate.modules.payment.gateway;
 
 import java.util.UUID;
+import java.util.Optional;
 
 /**
  * Puerto de pago a la asociación (ADR-0034 §5). La clave de idempotencia ({@code payout:<lote>}) hace seguro repetir
@@ -9,6 +10,11 @@ import java.util.UUID;
 public interface PayoutGateway {
 
     Result payout(String idempotencyKey, UUID batchId, UUID payoutAccountId, long amountCop);
+
+    /** Consulta sin iniciar una dispersión. Vacío si la referencia no se puede verificar. */
+    default Optional<Result> lookup(String idempotencyKey, String gatewayPayoutId) {
+        return Optional.empty();
+    }
 
     /** @param gatewayPayoutId identificador del pago en la pasarela cuando se completó */
     record Result(Outcome outcome, String gatewayPayoutId, String failureReason) {

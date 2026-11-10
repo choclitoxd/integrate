@@ -8,6 +8,8 @@ import static com.integrate.modules.auth.AuthTestData.uniqueDocNumber;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.integrate.modules.auth.dto.request.ConsentAcceptance;
@@ -36,6 +38,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
@@ -288,8 +292,9 @@ class DisbursementPayoutIntegrationTest extends PostgresIntegrationTest {
                 .isEqualTo(1);
     }
 
-    @Test
-    void aTransientPayoutErrorLeavesTheBatchSubmittedAndTheNextSweepFinishesIt() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void aTransientPayoutErrorLeavesTheBatchSubmittedAndReconciliationFinishesIt(boolean accepted) throws Exception {
         Paid paid = paidBooking(1);
         payoutAccount();
         clock.set(endOf().plus(Duration.ofHours(25)));
@@ -304,11 +309,46 @@ class DisbursementPayoutIntegrationTest extends PostgresIntegrationTest {
                 .isEqualTo("SUBMITTED");
         assertThat(disbursementStatus(paid.bookingId)).isEqualTo("RELEASED");
 
-        payoutProcessor.sweepOnce();
+        String batches = "/api/v1/admin/payout-batches";
+        String detail = batches + "/" + batch;
+        adminToken = tokenFor(userWithRole("admin", RoleCode.ADMIN));
+        touristToken = tokenFor(touristEmail);
+        mvc.perform(get(batches)).andExpect(status().isUnauthorized());
+        mvc.perform(get(detail).header(HttpHeaders.AUTHORIZATION, "Bearer " + touristToken))
+                .andExpect(status().isForbidden());
+        mvc.perform(get(batches).queryParam("status", "SUBMITTED").queryParam("associationId", associationId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].id").value(batch.toString()));
+        postJson(detail + "/reconcile", adminToken, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.lookupStatus").value("CHECKED"))
+                .andExpect(jsonPath("$.batch.status").value("SUBMITTED"));
+
+        var account = jdbc.queryForObject("SELECT payout_account_id FROM payments.payout_batches WHERE id = ?",
+                UUID.class, batch);
+        long amount = jdbc.queryForObject("""
+                SELECT net_community_cop FROM payments.v_payout_batch_totals WHERE payout_batch_id = ?
+                """, Long.class, batch);
+        if (!accepted) {
+            payoutGateway.next(Result.rejected("Cuenta destino inactiva"));
+        }
+        payoutGateway.payout("payout:" + batch, batch, account, amount);
+        String expected = accepted ? "PAID" : "FAILED";
+        postJson(detail + "/reconcile", adminToken, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.batch.status").value(expected));
+        postJson(detail + "/reconcile", adminToken, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.lookupStatus").value("ALREADY_CLOSED"));
+        var receipt = mvc.perform(get(detail + "/receipt").header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken));
+        if (accepted) {
+            receipt.andExpect(status().isOk()).andExpect(jsonPath("$.url").isNotEmpty());
+        } else {
+            receipt.andExpect(status().isNotFound());
+        }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM payments.settlement_receipts WHERE payout_batch_id = ?",
+                Long.class, batch)).isEqualTo(accepted ? 1L : 0L);
 
         assertThat(jdbc.queryForObject("SELECT status FROM payments.payout_batches WHERE id = ?", String.class, batch))
-                .isEqualTo("PAID");
-        assertThat(disbursementStatus(paid.bookingId)).isEqualTo("PAID");
+                .isEqualTo(expected);
+        assertThat(disbursementStatus(paid.bookingId)).isEqualTo(accepted ? "PAID" : "RELEASED");
         assertThat(jdbc.queryForObject("SELECT count(*) FROM payments.payout_batches WHERE association_id = ?::uuid",
                 Long.class, associationId)).isEqualTo(1);
     }

@@ -204,6 +204,16 @@ export const routes: RouteObject[] = [
           { path: 'experiencias', lazy: adminExperiencesPage, handle: adminWide },
           { path: 'asociaciones', lazy: adminAssociationsPage, handle: adminWide },
           { path: 'personas', lazy: adminPeoplePage, handle: adminWide },
+          {
+            path: 'incidentes',
+            lazy: async () => ({ Component: (await import('@/features/admin')).IncidentsPage }),
+            handle: adminWide,
+          },
+          {
+            path: 'liquidaciones',
+            lazy: async () => ({ Component: (await import('@/features/admin')).PayoutsPage }),
+            handle: adminWide,
+          },
           { path: 'auditoria', lazy: adminAuditPage, handle: adminWide },
         ],
       },

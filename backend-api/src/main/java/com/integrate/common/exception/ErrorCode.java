@@ -12,6 +12,8 @@ public enum ErrorCode {
 
     // --- Protocolo (type: about:blank) -------------------------------------
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, null, "Bad Request"),
+    SYNC_INCIDENT_TRANSITION_CONFLICT(HttpStatus.CONFLICT, "sync-incident-transition-conflict",
+            "Sync Incident Transition Conflict"),
 
     // --- Transversales -------------------------------------------------------
     VALIDATION_FAILED(HttpStatus.UNPROCESSABLE_CONTENT, "validation-failed", "Validation Failed"),

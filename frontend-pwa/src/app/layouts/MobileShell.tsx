@@ -1,8 +1,10 @@
+import { Fragment } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 
 import { Icon, SkipLink } from '@/shared/ui';
 
-import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
+import { ADMIN_NAV_ITEMS, MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
+import { AdminModules } from './AdminModules';
 import { BackButton } from './ShellParts';
 
 /**
@@ -12,6 +14,10 @@ import { BackButton } from './ShellParts';
  */
 export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps) {
   const { flow, backTo, loading } = useShellRoute();
+  const admin = navItems === ADMIN_NAV_ITEMS;
+  const primaryItems = admin
+    ? navItems.filter((item) => item.to === '/admin' || item.to === '/cuenta')
+    : navItems;
 
   return (
     <div className="min-h-dvh bg-surface">
@@ -39,7 +45,7 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
           )}
         </header>
 
-        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 px-4 pt-6 pb-8">
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="w-full min-w-0 flex-1 px-4 pt-6 pb-8">
           {children ?? <Outlet />}
         </main>
 
@@ -60,18 +66,27 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
 
         {!flow && (
           <nav aria-label={navLabel} className="fixed inset-x-0 bottom-0 z-30">
-            <ul className="mx-auto flex w-full max-w-md gap-1 overflow-x-auto border-t-2 border-border-strong bg-surface-elevated px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
-              {navItems.map((item) => (
-                <li key={item.to} className="flex-auto">
-                  <NavLink
-                    to={item.to}
-                    end
-                    className="flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1.5 text-center text-xs font-semibold whitespace-nowrap text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand sm:text-sm"
-                  >
-                    <Icon name={item.icon} size={22} />
-                    {item.label}
-                  </NavLink>
-                </li>
+            <ul
+              className={`mx-auto flex w-full max-w-md border-t-2 border-border-strong bg-surface-elevated px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] ${admin ? 'gap-2' : 'gap-1 overflow-x-auto'}`}
+            >
+              {primaryItems.map((item) => (
+                <Fragment key={item.to}>
+                  {admin && item.to === '/cuenta' && (
+                    <li className="flex-auto text-ink-muted">
+                      <AdminModules items={navItems.slice(1, -1)} mobile />
+                    </li>
+                  )}
+                  <li className="flex-auto">
+                    <NavLink
+                      to={item.to}
+                      end
+                      className="flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1.5 text-center text-xs font-semibold whitespace-nowrap text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand sm:text-sm"
+                    >
+                      <Icon name={item.icon} size={22} />
+                      {item.label}
+                    </NavLink>
+                  </li>
+                </Fragment>
               ))}
             </ul>
           </nav>

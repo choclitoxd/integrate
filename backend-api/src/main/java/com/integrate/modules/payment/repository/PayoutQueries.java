@@ -77,8 +77,8 @@ public class PayoutQueries {
                         rs.getBigDecimal("amount"))).list();
     }
 
-    public void markPaid(UUID batchId, String gatewayPayoutId, Instant now) {
-        jdbc.sql("""
+    public int markPaid(UUID batchId, String gatewayPayoutId, Instant now) {
+        return jdbc.sql("""
                 UPDATE payments.payout_batches SET status = 'PAID', gateway_payout_id = :gateway, paid_at = :now
                  WHERE id = :id AND status = 'SUBMITTED'""")
                 .param("id", batchId).param("gateway", gatewayPayoutId).param("now", utc(now)).update();
@@ -89,8 +89,8 @@ public class PayoutQueries {
                 .param("id", batchId).update();
     }
 
-    public void markFailed(UUID batchId, String reason) {
-        jdbc.sql("""
+    public int markFailed(UUID batchId, String reason) {
+        return jdbc.sql("""
                 UPDATE payments.payout_batches SET status = 'FAILED', failure_reason = :reason
                  WHERE id = :id AND status = 'SUBMITTED'""").param("id", batchId).param("reason", reason).update();
     }

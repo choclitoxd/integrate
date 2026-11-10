@@ -20,6 +20,8 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
   { to: '/admin/experiencias', label: 'Experiencias', icon: 'mountain' },
   { to: '/admin/asociaciones', label: 'Asociaciones', icon: 'users' },
   { to: '/admin/personas', label: 'Personas', icon: 'user' },
+  { to: '/admin/incidentes', label: 'Incidentes', icon: 'alert' },
+  { to: '/admin/liquidaciones', label: 'Liquidaciones', icon: 'clock' },
   { to: '/admin/auditoria', label: 'Auditoría', icon: 'shield' },
   { to: '/cuenta', label: 'Mi cuenta', icon: 'user' },
 ];

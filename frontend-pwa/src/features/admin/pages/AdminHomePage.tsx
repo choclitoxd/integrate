@@ -7,6 +7,7 @@ import { ChainVerifier } from '../components/ChainVerifier';
 import { PageHeader } from '../components/parts';
 import { formatInstant, isDoubtfulMeetingPoint } from '../labels';
 import { useAdminExperiences, useAssociations } from '../queries';
+import { useOperationList, type Batch, type Incident } from '../operations';
 
 interface CardProps {
   readonly to: string;
@@ -77,12 +78,23 @@ export function AdminHomePage() {
   const pending = useAdminExperiences('PENDING_REVIEW', 0);
   const suspended = useAdminExperiences('SUSPENDED', 0);
   const associations = useAssociations(0);
+  const incidents = useOperationList<Incident>('incidents', { status: 'OPEN' }, 0, 1);
+  const severe = useOperationList<Incident>(
+    'incidents',
+    { status: 'OPEN', severity: 'HIGH' },
+    0,
+    1,
+  );
+  const submitted = useOperationList<Batch>('payout-batches', { status: 'SUBMITTED' }, 0, 1);
+  const rejected = useOperationList<Batch>('payout-batches', { status: 'FAILED' }, 0, 1);
 
   const pendingItems = pending.data?.items ?? [];
   const doubtful = pendingItems.filter((item) =>
     isDoubtfulMeetingPoint(item.meetingPointCheck?.status),
   ).length;
-  const failed = [pending, suspended, associations].find((query) => query.isError);
+  const failed = [pending, suspended, associations, incidents, severe, submitted, rejected].find(
+    (query) => query.isError,
+  );
 
   return (
     <>
@@ -100,12 +112,19 @@ export function AdminHomePage() {
               void pending.refetch();
               void suspended.refetch();
               void associations.refetch();
+              void incidents.refetch();
+              void severe.refetch();
+              void submitted.refetch();
+              void rejected.refetch();
             }}
           />
         </div>
       )}
 
-      <ul aria-label="Indicadores" className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <ul
+        aria-label="Indicadores"
+        className="mt-6 grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 xl:grid-cols-4"
+      >
         <SummaryCard
           to="/admin/experiencias?estado=PENDING_REVIEW"
           icon="clock"
@@ -133,6 +152,31 @@ export function AdminHomePage() {
           label="Asociaciones"
           value={associations.data?.totalElements}
           hint="Organizaciones comunitarias registradas"
+        />
+        <SummaryCard
+          to="/admin/incidentes?status=OPEN"
+          icon="alert"
+          label="Incidentes abiertos"
+          value={incidents.data?.totalElements}
+          hint="Conflictos pendientes de revisión"
+        />
+        <SummaryCard
+          to="/admin/incidentes?status=OPEN&severity=HIGH"
+          icon="flag"
+          label="Severidad alta"
+          value={severe.data?.totalElements}
+          hint="Entre los incidentes abiertos"
+        />
+        <SummaryCard
+          to="/admin/liquidaciones"
+          icon="clock"
+          label="Lotes por conciliar"
+          value={
+            submitted.data && rejected.data
+              ? submitted.data.totalElements + rejected.data.totalElements
+              : undefined
+          }
+          hint="Lotes enviados o fallidos"
         />
       </ul>
 

@@ -78,6 +78,8 @@ function adminRoutes(extra: FakeRoutes = {}): FakeRoutes {
     },
     '/v1/admin/associations': (_url: URL, options: RequestOptions) =>
       options.method === 'POST' ? association : page([association]),
+    '/v1/admin/incidents': page([]),
+    '/v1/admin/payout-batches': page([]),
     '/v1/admin/audit': page([auditRecord]),
     '/v1/admin/audit/verify': {
       intact: true,
@@ -132,7 +134,16 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Resumen', 'Experiencias', 'Asociaciones', 'Personas', 'Auditoría', 'Mi cuenta']);
+    ).toEqual([
+      'Resumen',
+      'Experiencias',
+      'Asociaciones',
+      'Personas',
+      'Incidentes',
+      'Liquidaciones',
+      'Auditoría',
+      'Mi cuenta',
+    ]);
     expect(within(nav).getByRole('link', { name: 'Resumen' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -158,7 +169,14 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Experiencias' })).toBeVisible();
     expect(await screen.findByRole('table', { name: /Por revisar/ })).toBeVisible();
     const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
-    expect(within(nav).getByRole('link', { name: 'Experiencias' })).toHaveAttribute(
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Resumen', 'Mi cuenta']);
+    await userEvent.click(within(nav).getByRole('button', { name: 'Módulos' }));
+    const menu = await screen.findByRole('dialog', { name: 'Módulos de administración' });
+    expect(within(menu).getByRole('link', { name: 'Experiencias' })).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -498,6 +516,103 @@ describe('auditoría', () => {
   });
 });
 
+describe('operación administrativa (ADR-0045)', () => {
+  it('requiere nota y confirmación antes de cerrar un incidente', async () => {
+    const user = userEvent.setup();
+    let incident = {
+      id: 'i-1',
+      status: 'OPEN',
+      severity: 'HIGH',
+      type: 'OVER_REDEMPTION_COMMUNITY_PROTECTED',
+      financialImpactCop: 20000,
+      createdAt: '2026-11-10T10:00:00Z',
+      bookingId: 'r-1',
+      voucherId: 'v-1',
+      resolutionNotes: '',
+    };
+    const resolve = vi.fn((_url: URL, options: RequestOptions) => {
+      incident = {
+        ...incident,
+        status: 'RESOLVED',
+        resolutionNotes: (options.body as { resolutionNotes: string }).resolutionNotes,
+      };
+      return incident;
+    });
+    renderApp(
+      '/admin/incidentes?severity=HIGH',
+      adminRoutes({
+        '/v1/admin/incidents': (url: URL) => {
+          expect(url.searchParams.get('severity')).toBe('HIGH');
+          return page([incident]);
+        },
+        '/v1/admin/incidents/i-1': () => incident,
+        '/v1/admin/incidents/i-1/take': () => {
+          incident = { ...incident, status: 'IN_REVIEW' };
+          return incident;
+        },
+        '/v1/admin/incidents/i-1/resolve': resolve,
+      }),
+      ADMIN,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Ver incidente i-1' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Detalle del incidente' }));
+    await user.click(await sheet.findByRole('button', { name: 'Tomar caso' }));
+    expect(await sheet.findByRole('button', { name: 'Resolver' })).toBeDisabled();
+    await user.type(sheet.getByLabelText('Nota de cierre'), 'Evidencia revisada');
+    await user.click(sheet.getByRole('button', { name: 'Resolver' }));
+    expect(resolve).not.toHaveBeenCalled();
+    await user.click(sheet.getByRole('button', { name: 'Confirmar resolución' }));
+    expect(await sheet.findByText('Evidencia revisada')).toBeVisible();
+    expect(resolve).toHaveBeenCalledTimes(1);
+  });
+
+  it('informa si la referencia del lote no se puede verificar y permite volver a conciliar', async () => {
+    const user = userEvent.setup();
+    const batch = {
+      id: 'l-1',
+      associationName: 'Asociación comunitaria',
+      status: 'SUBMITTED',
+      grossCop: 100000,
+      gatewayFeeCop: 3000,
+      platformFeeCop: 15000,
+      netCommunityCop: 85000,
+      submittedAt: '2026-11-10T10:00:00Z',
+    };
+    renderApp(
+      '/admin/liquidaciones',
+      adminRoutes({
+        '/v1/admin/associations': (url: URL) => ({
+          ...page(
+            url.searchParams.get('page') === '1'
+              ? [{ ...association, id: 'a-2', legalName: 'Segunda asociación' }]
+              : [association],
+          ),
+          totalPages: 2,
+          totalElements: 21,
+        }),
+        '/v1/admin/payout-batches': (url: URL) =>
+          page(url.searchParams.get('associationId') === 'a-2' ? [batch] : []),
+        '/v1/admin/payout-batches/l-1': { batch, disbursements: [] },
+        '/v1/admin/payout-batches/l-1/reconcile': { batch, lookupStatus: 'UNAVAILABLE' },
+      }),
+      ADMIN,
+    );
+
+    const associationPages = await screen.findByRole('navigation', {
+      name: 'Páginas de opciones de asociación',
+    });
+    await user.click(within(associationPages).getByRole('button', { name: 'Siguiente' }));
+    await screen.findByRole('option', { name: 'Segunda asociación' });
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Asociación' }), 'a-2');
+    await user.click(await screen.findByRole('button', { name: 'Ver lote l-1' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Detalle de liquidación' }));
+    await user.click(await sheet.findByRole('button', { name: 'Conciliar lote' }));
+    expect(await sheet.findByText(/No se pudo verificar/)).toBeVisible();
+    expect(sheet.getByRole('button', { name: 'Conciliar lote' })).toBeEnabled();
+  });
+});
+
 describe('accesibilidad de la consola', () => {
   it(
     'las secciones no tienen violaciones WCAG 2.1 A/AA detectables y llevan un único h1',
@@ -509,6 +624,8 @@ describe('accesibilidad de la consola', () => {
         '/admin',
         '/admin/experiencias?ver=e-1',
         '/admin/asociaciones',
+        '/admin/incidentes',
+        '/admin/liquidaciones',
         '/admin/auditoria',
       ]) {
         const { unmount } = renderApp(path, adminRoutes(), ADMIN);

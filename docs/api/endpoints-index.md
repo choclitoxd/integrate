@@ -36,6 +36,8 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | GET `/admin/audit`, `/admin/audit/export`, `/admin/audit/verify` | `AuditController` (módulo `audit`) | ADR-0035 |
 | GET `/admin/users/search?email=\|docType=&document=`, `/admin/users/{id}` | `AdminPeopleController` | ADR-0043 §1 |
 | GET `/admin/link-managers`, `/admin/host-profiles` | `AdminPeopleController` | ADR-0043 §1 |
+| GET `/admin/incidents`, `/admin/incidents/{id}`; POST `/admin/incidents/{id}/take\|resolve\|dismiss` | `AdminIncidentController` (módulo `offline`) | ADR-0043 §2, ADR-0045 §1 |
+| GET `/admin/payout-batches`, `/admin/payout-batches/{id}`, `/admin/payout-batches/{id}/receipt`; POST `/admin/payout-batches/{id}/reconcile` | `AdminPayoutController` (módulo `payment`) | ADR-0043 §3, ADR-0045 §2 |
 
 ## Gestor de enlace — rol LINK_MANAGER
 | Método y ruta | Controlador | ADR |

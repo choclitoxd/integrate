@@ -113,3 +113,12 @@ export function formatInstant(iso: string): string {
 export function shortId(id: string): string {
   return id.length > 8 ? `${id.slice(0, 8)}…` : id;
 }
+const copCurrency = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+export function formatCop(amount: number | null) {
+  return amount === null ? 'Sin estimación' : copCurrency.format(amount);
+}

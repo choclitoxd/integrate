@@ -1,6 +1,6 @@
 # Seguimiento de hallazgos de TejiendoHogar
 
-**Corte documental:** 9 de noviembre de 2026. **Fuente:** [informe original](auditoria-tejiendohogar.md).
+**Última actualización:** 10 de noviembre de 2026. **Fuente:** [informe original](auditoria-tejiendohogar.md).
 
 Esta revisión contrasta las recomendaciones del informe con los ADR, los entregables disponibles y los archivos de implementación y pruebas del proyecto. Las ejecuciones citadas son evidencias históricas. La validación de la aplicación queda para la etapa descrita al final.
 
@@ -25,7 +25,7 @@ Esta revisión contrasta las recomendaciones del informe con los ADR, los entreg
 | H-06 | Alta | Abierto | El [protocolo Git](../rules/git-workflow.md) define revisiones y controles. No se encontró un directorio local `.github/workflows` en el árbol revisado. La protección de ramas queda por verificar. | Presentar una ejecución de CI con compilación, pruebas, cobertura y escaneo de secretos. Adjuntar evidencia de protección de rama y un PR revisado por otra persona. |
 | H-07 | Alta | Abierto | El [build de la PWA](../../frontend-pwa/vite.config.ts) conserva `sourcemap: true` para el cliente. No se encontró un archivo `_headers` en el frontend revisado. La [auditoría propia](auditoria-procesos-1-y-2-2026-10-27.md) contiene hallazgos relacionados. | Validar el artefacto desplegado sin mapas de código públicos y comprobar CSP, HSTS y protección contra enmarcado. Revisar el cierre de los hallazgos altos relacionados. |
 | H-08 | Alta | Parcial | Hay [script de cuentas de prueba](../../infra/scripts/crear-testers.py) y [guion por rol](guion-pruebas-ciclo-de-vida.md). Esos archivos no demuestran franjas disponibles ni credenciales vigentes para todos los roles en el entorno. | Validar las cuentas en `pruebas` y completar catálogo → franja → reserva → pago simulado → voucher. Documentar cómo reponer los datos sintéticos. |
-| H-09 | Alta | Parcial | El [ADR-0042](../architecture/adr/ADR-0042-consola-de-administracion-con-shell-propio.md) y las [rutas](../../frontend-pwa/src/app/routes.tsx) muestran la consola de escritorio con resumen, experiencias, asociaciones y auditoría. El [ADR-0043](../architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) define la fase 2. Siguen por confirmar los flujos de anfitrión, cancelación en la PWA, edición de perfil y actualización de «Mis experiencias» tras el pago. | Probar las acciones priorizadas en la PWA y documentar qué funciones quedan por API. Evaluar administración según el alcance de escritorio del ADR-0042 y el aviso previsto para móvil. |
+| H-09 | Alta | Parcial | El [ADR-0044](../architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) enmienda los ADR-0042 y ADR-0043. El [layout](../../frontend-pwa/src/app/layouts/AdminLayout.tsx) usa AppShell y las [rutas](../../frontend-pwa/src/app/routes.tsx) incluyen Resumen, Experiencias, Asociaciones, Personas y Auditoría. La [suite de administración](../../frontend-pwa/src/features/admin/admin.test.tsx) comprueba menú exclusivo, redirección, Mi cuenta y ambos factores de forma. Incidentes y Liquidaciones quedan para las etapas correspondientes del ADR-0043. | Validar los recorridos administrativos con sesión real en Chrome de escritorio y celular físico. Completar o documentar el alcance de anfitrión, cancelación, edición de perfil y actualización de «Mis experiencias» tras el pago. |
 | H-10 | Media | Abierto | Hay [configuración de aplicación y logging](../../backend-api/src/main/resources/application.yml). En el material revisado faltan pruebas de disponibilidad, alertas y un registro operativo de incidentes. | Verificar un chequeo público de salud acotado, logs JSON con trazabilidad, alerta por caída y registro de un incidente de prueba. |
 | H-11 | Media | Por confirmar | Se localizaron dos copias de la Definición en Descargas y referencias a Bizagi. El [estado del proyecto](../status/PROJECT_STATUS.md) ofrece una base para alinear el cronograma. Falta identificar el archivo oficial y verificar los BPMN adjuntos. | Confirmar versión oficial con cronograma, BPMN, aprobación y revisión de plantilla. |
 | H-12 | Media | Abierto | El [informe generado](evidencias-metricas.md) está fechado el 11 de octubre de 2026 y aún tiene RNF marcados «Pendiente Fase 2». El [estado del proyecto](../status/PROJECT_STATUS.md) ya registra avances posteriores. | Regenerar la evidencia sobre el commit de entrega y alinear PGCP §5, matriz de trazabilidad y estado del proyecto con los resultados. |
@@ -43,7 +43,7 @@ Los archivos de Descargas se usaron como copias de trabajo. La revisión de text
 ## Orden de trabajo
 
 1. Avanzar en paralelo en H-01, H-02 y H-03. Sus cierres dependen del corte de identidad, la política aprobada y el simulacro externo, respectivamente.
-2. Preparar una versión verificable de `pruebas` para H-07 a H-09. Cargar datos sintéticos y dejar identificada la versión antes de probar. La consola de administración puede avanzar en paralelo según los ADR-0042 y ADR-0043.
+2. Preparar una versión verificable de `pruebas` para H-07 a H-09. Cargar datos sintéticos y dejar identificada la versión antes de probar. Usar el ADR-0044 como criterio de navegación administrativa y el ADR-0043 para el alcance funcional de la fase 2.
 3. Alinear los entregables y la evidencia de revisión. Priorizar H-04 a H-06 antes de la entrega y registrar los ajustes de H-11, H-15 y H-17 a H-20.
 4. Ejecutar la auditoría de aplicación y publicar resultados de calidad, aceptación y rendimiento para H-10, H-12 a H-14 y H-16.
 
@@ -54,11 +54,31 @@ Agrega una fila por cambio o validación. El estado actual de cada hallazgo se a
 | Fecha | Hallazgo | Responsable | Acción o resultado | Evidencia | Próximo paso y fecha objetivo |
 |---|---|---|---|---|---|
 | 2026-11-09 | H-01 a H-20 | Por asignar por hallazgo | Línea base de auditoría documental | Matriz anterior | Asignar responsables y acordar fechas de cierre |
+| 2026-11-10 | H-09 | Por asignar | Revisión del ADR-0044 y comprobación automatizada de administración, Personas y rutas. Pasaron 44 de 44 pruebas en tres archivos. | [Administración](../../frontend-pwa/src/features/admin/admin.test.tsx), [Personas](../../frontend-pwa/src/features/admin/people.test.tsx) y [rutas](../../frontend-pwa/src/app/routes.test.tsx) | Probar en Chrome con sesión real y celular físico. Alinear FE-DIR-001, que todavía describe el aviso móvil anterior. |
+| 2026-11-10 | H-09 | Por asignar | Inspección de la consola desplegada en `pruebas` con cuenta QA y Chrome. | Resultados de la consola en la sección siguiente. | Corregir el ancho en móvil e implementar Incidentes y Liquidaciones. |
+
+## Revisión de la consola administrativa en pruebas
+
+Chrome a 1440 px y emulación móvil a 390 y 320 px. Se inició sesión con una cuenta QA, se recorrieron pantallas y se comprobó la lectura de datos. Quedan pendientes las mutaciones, las pruebas con otros roles y la validación en un teléfono físico.
+
+| Caso | Estado | Resultado y efecto |
+|---|---|---|
+| Ingreso, secciones y perfil | Cumple en el recorrido de lectura | El ingreso llevó a Resumen. Se abrieron Experiencias, Asociaciones, Personas, Auditoría y Mi cuenta. El perfil conservó el menú administrativo y las consultas principales devolvieron 200. La recarga de Resumen del recorrido final renovó la sesión con 200. |
+| Incidentes | No cumple | El menú y Resumen carecen de este módulo. La URL devolvió la pantalla de página no encontrada. Falta la operación prevista por ADR-0043 para asignar, resolver o descartar casos con notas y trazabilidad. |
+| Liquidaciones | No cumple | El menú y Resumen carecen de este módulo. La URL devolvió la pantalla de página no encontrada. Falta consultar los lotes y su desglose, conciliarlos con la pasarela y acceder al comprobante cuando corresponda. |
+| Personas y Auditoría a 390 px | No cumple | El ancho efectivo del documento llegó a 614 px en Personas y a 909 px en Auditoría. La vista pierde el ajuste al ancho del teléfono. Revisar los límites de ancho de los contenedores y comprobar que el desplazamiento se limite a las tablas. |
+| Descubrimiento del menú en móvil | No cumple | En Resumen a 390 px, el borde derecho de «Mi cuenta» quedó en 440 px. A 320 px también quedan pestañas fuera del área visible. El menú permite desplazamiento lateral, pero en la vista inicial quedan ocultos accesos como el perfil y el cierre de sesión. |
+
+**H-09 permanece parcial.** En el primer recorrido una navegación directa devolvió el formulario de ingreso. La renovación por HTTP y la recarga en Chrome del recorrido posterior devolvieron 200. La pérdida de sesión queda por reproducir antes de asignarle una causa.
+
+El [ADR-0045 aceptado](../architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) reúne las correcciones de la consola y sus pruebas de aceptación. Los resultados de esta revisión siguen siendo la línea base.
+
+La [evaluación del administrador](evaluacion-administrador.md) registra la implementación local del ADR-0045 y distingue las verificaciones automatizadas de los recorridos con una sesión real y un celular físico.
 
 ## Etapa final · Auditoría en la aplicación
 
 1. Registrar versión desplegada, fecha, entorno, navegador, dispositivo y cuentas sintéticas por rol. Preparar franjas, pagos simulados y registros de administración. Guardar las credenciales por separado.
-2. Ejecutar el [guion por rol](guion-pruebas-ciclo-de-vida.md) en Chrome de escritorio y en un celular físico. Recorrer visitante y turista, administrador, gestor y anfitrión. En administración, comprobar el acceso por rol y las acciones disponibles en escritorio, y el aviso en móvil. En gestor, incluir cámara, instalación, operación sin conexión y sincronización.
+2. Ejecutar el [guion por rol](guion-pruebas-ciclo-de-vida.md) en Chrome de escritorio y en un celular físico. Recorrer visitante y turista, administrador, gestor y anfitrión. En administración, comprobar la barra verde y el menú exclusivo en ambos dispositivos, la redirección de `/` y `/mis-experiencias` a `/admin`, y el menú administrativo en `/cuenta`. En gestor, incluir cámara, instalación, operación sin conexión y sincronización.
 3. Comprobar permisos y casos negativos. Intentar abrir rutas con un rol distinto, consultar reservas ajenas, acceder al punto exacto sin autorización y operar como administrador sin aceptación vigente cuando el control esté activo.
 4. Complementar la navegación con pruebas de API, respaldos, alertas y rendimiento. Registrar estas evidencias por separado de las capturas de interfaz.
 5. Consolidar resultados y vincularlos a la matriz. Para cada caso registrar **Cumple**, **No cumple**, **Bloqueado** o **No aplica**, con motivo para los últimos dos. Indicar la causa solo si se confirmó.

@@ -170,7 +170,7 @@ export function AuditPage() {
         noValidate
         onSubmit={handleSubmit}
         aria-label="Filtrar la bitácora"
-        className="mt-6 grid grid-cols-2 items-end gap-4 rounded-xl bg-surface px-5 py-5 xl:grid-cols-5"
+        className="mt-6 grid grid-cols-1 items-end gap-4 rounded-xl bg-surface px-5 py-5 sm:grid-cols-2 xl:grid-cols-5"
       >
         <TextField
           label="Módulo"

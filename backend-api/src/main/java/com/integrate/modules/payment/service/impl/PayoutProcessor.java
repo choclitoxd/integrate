@@ -120,21 +120,35 @@ public class PayoutProcessor {
             tx.executeWithoutResult(status -> fail(batch, result.failureReason()));
             return false;
         }
-        tx.executeWithoutResult(status -> complete(batch, result.gatewayPayoutId()));
-        return true;
+        return Boolean.TRUE.equals(tx.execute(status -> complete(batch, result.gatewayPayoutId())));
+    }
+
+    /** Aplica el resultado de una consulta mediante el mismo cierre que usa el barrido. */
+    public void applyLookup(SubmittedBatch batch, Result result) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            switch (result.outcome()) {
+                case COMPLETED -> complete(batch, result.gatewayPayoutId());
+                case REJECTED -> fail(batch, result.failureReason());
+                case RETRY -> { }
+            }
+        });
     }
 
     private void fail(SubmittedBatch batch, String reason) {
-        queries.markFailed(batch.id(), reason);
+        if (queries.markFailed(batch.id(), reason) == 0) {
+            return;
+        }
         queries.detachShares(batch.id());
         audit.record(new AuditEntry("payments", "payout_batches", batch.id().toString(), "PAYOUT_FAILED",
                 AuditEntry.Severity.HIGH, null, null, null,
                 Map.of("reason", reason, "amountCop", batch.amountCop().longValueExact())));
     }
 
-    private void complete(SubmittedBatch batch, String gatewayPayoutId) {
+    private boolean complete(SubmittedBatch batch, String gatewayPayoutId) {
         Instant now = clock.instant();
-        queries.markPaid(batch.id(), gatewayPayoutId, now);
+        if (queries.markPaid(batch.id(), gatewayPayoutId, now) == 0) {
+            return false;
+        }
         queries.payShares(batch.id());
 
         Totals totals = queries.totals(batch.id());
@@ -165,5 +179,6 @@ public class PayoutProcessor {
                 AuditEntry.Severity.INFO, null, null, null,
                 Map.of("receiptId", receiptId.toString(), "netCommunityCop", breakdown.netCommunityCop().longValueExact(),
                         "payments", totals.count())));
+        return true;
     }
 }

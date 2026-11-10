@@ -2196,6 +2196,323 @@ paths:
               schema: { $ref: '#/components/schemas/ProblemDetails' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/admin/incidents:
+    get:
+      tags: [Admin]
+      operationId: listAdminIncidents
+      summary: Lista incidentes de sincronización.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: status
+          in: query
+          schema: { type: string, enum: [OPEN, IN_REVIEW, RESOLVED, DISMISSED] }
+        - name: severity
+          in: query
+          schema: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        - name: type
+          in: query
+          schema: { type: string, enum: [OVER_REDEMPTION_COMMUNITY_PROTECTED, DUPLICATE_OFFLINE_REDEMPTION, CLOCK_SKEW_FUTURE_SCAN] }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminIncidentPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '400':
+          description: Filtros o paginación inválidos.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/incidents/{id}:
+    get:
+      tags: [Admin]
+      operationId: getAdminIncident
+      summary: Consulta un incidente.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminIncident' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/incidents/{id}/take:
+    post:
+      tags: [Admin]
+      operationId: takeAdminIncident
+      summary: Toma un incidente.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminIncident' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '409':
+          description: El estado del incidente cambió. El problema incluye currentStatus.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/incidents/{id}/resolve:
+    post:
+      tags: [Admin]
+      operationId: resolveAdminIncident
+      summary: Resuelve un incidente.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IncidentResolution' }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminIncident' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '409':
+          description: El estado del incidente cambió. El problema incluye currentStatus.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422':
+          description: La nota de cierre es inválida.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/incidents/{id}/dismiss:
+    post:
+      tags: [Admin]
+      operationId: dismissAdminIncident
+      summary: Descarta un incidente.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IncidentResolution' }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminIncident' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '409':
+          description: El estado del incidente cambió. El problema incluye currentStatus.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422':
+          description: La nota de cierre es inválida.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/payout-batches:
+    get:
+      tags: [Admin]
+      operationId: listAdminPayouts
+      summary: Lista lotes de liquidación.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: status
+          in: query
+          schema: { type: string, enum: [OPEN, SUBMITTED, PAID, FAILED] }
+        - name: associationId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPayoutPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '400':
+          description: Filtros o paginación inválidos.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/payout-batches/{id}:
+    get:
+      tags: [Admin]
+      operationId: getAdminPayout
+      summary: Consulta un lote y sus dispersiones.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPayoutDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/payout-batches/{id}/receipt:
+    get:
+      tags: [Admin]
+      operationId: downloadAdminPayoutReceipt
+      summary: Genera un enlace temporal al comprobante del lote.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPayoutReceipt' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  /api/v1/admin/payout-batches/{id}/reconcile:
+    post:
+      tags: [Admin]
+      operationId: reconcileAdminPayout
+      summary: Consulta la pasarela y concilia el lote si procede.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Operación completada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPayoutReconciliation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Se requiere ROLE_ADMIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '404':
+          description: El recurso no existe.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2262,6 +2579,96 @@ components:
       schema: { type: string }
 
   schemas:
+    AdminIncident:
+      type: object
+      required: [id, status, severity, type, financialImpactCop, createdAt, bookingId, voucherId, resolutionNotes, resolvedBy, resolvedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [OPEN, IN_REVIEW, RESOLVED, DISMISSED] }
+        severity: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        type: { type: string, enum: [OVER_REDEMPTION_COMMUNITY_PROTECTED, DUPLICATE_OFFLINE_REDEMPTION, CLOCK_SKEW_FUTURE_SCAN] }
+        financialImpactCop: { type: [number, 'null'] }
+        createdAt: { type: string, format: date-time }
+        bookingId: { type: string, format: uuid }
+        voucherId: { type: string, format: uuid }
+        resolutionNotes: { type: [string, 'null'] }
+        resolvedBy: { type: [string, 'null'], format: uuid }
+        resolvedAt: { type: [string, 'null'], format: date-time }
+
+    IncidentResolution:
+      type: object
+      required: [resolutionNotes]
+      properties:
+        resolutionNotes: { type: string, minLength: 1, maxLength: 2000 }
+
+    AdminIncidentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminIncident' }
+
+    AdminPayout:
+      type: object
+      required: [id, associationId, associationName, status, grossCop, gatewayFeeCop, platformFeeCop, netCommunityCop, disbursementCount, createdAt, submittedAt, paidAt, failureReason, receiptId]
+      properties:
+        id: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string }
+        status: { type: string, enum: [OPEN, SUBMITTED, PAID, FAILED] }
+        grossCop: { type: number }
+        gatewayFeeCop: { type: number }
+        platformFeeCop: { type: number }
+        netCommunityCop: { type: number }
+        disbursementCount: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        submittedAt: { type: [string, 'null'], format: date-time }
+        paidAt: { type: [string, 'null'], format: date-time }
+        failureReason: { type: [string, 'null'] }
+        receiptId: { type: [string, 'null'], format: uuid }
+
+    AdminPayoutPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminPayout' }
+
+    AdminPayoutDisbursement:
+      type: object
+      required: [id, status, amountCop]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string }
+        amountCop: { type: number }
+
+    AdminPayoutDetail:
+      type: object
+      required: [batch, disbursements]
+      properties:
+        batch: { $ref: '#/components/schemas/AdminPayout' }
+        disbursements: { type: array, items: { $ref: '#/components/schemas/AdminPayoutDisbursement' } }
+
+    AdminPayoutReceipt:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time }
+
+    AdminPayoutReconciliation:
+      type: object
+      required: [batch, lookupStatus]
+      properties:
+        batch: { $ref: '#/components/schemas/AdminPayout' }
+        lookupStatus: { type: string, enum: [CHECKED, UNAVAILABLE, ALREADY_CLOSED] }
+
     # ---------- Tipos comunes ----------
     DocType:
       type: string

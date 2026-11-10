@@ -1,8 +1,10 @@
+import { Fragment } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 
 import { Icon, SkipLink } from '@/shared/ui';
 
-import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
+import { ADMIN_NAV_ITEMS, MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
+import { AdminModules } from './AdminModules';
 
 /**
  * Shell de escritorio (ADR-0020 §4): navegación horizontal arriba y contenedor max-w-6xl. Las rutas
@@ -11,6 +13,7 @@ import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
  */
 export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProps) {
   const { wide, centerOnDesktop, loading } = useShellRoute();
+  const admin = navItems === ADMIN_NAV_ITEMS;
   const column = wide ? 'max-w-6xl px-8' : 'max-w-md px-4';
   const verticalLayout = centerOnDesktop ? 'grid content-center py-6' : 'pt-6 pb-12';
 
@@ -25,16 +28,29 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
           <nav aria-label={navLabel}>
             <ul className="flex gap-2">
               {navItems.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    end
-                    className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 font-semibold text-on-brand hover:bg-brand-hover aria-[current=page]:bg-canvas aria-[current=page]:text-brand"
+                <Fragment key={item.to}>
+                  {admin && item.to === '/cuenta' && (
+                    <li className="xl:hidden">
+                      <AdminModules items={navItems.slice(1, -1)} />
+                    </li>
+                  )}
+                  <li
+                    className={
+                      admin && item.to !== '/admin' && item.to !== '/cuenta'
+                        ? 'hidden xl:block'
+                        : undefined
+                    }
                   >
-                    <Icon name={item.icon} size={20} />
-                    {item.label}
-                  </NavLink>
-                </li>
+                    <NavLink
+                      to={item.to}
+                      end
+                      className={`inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg font-semibold text-on-brand hover:bg-brand-hover aria-[current=page]:bg-canvas aria-[current=page]:text-brand ${admin ? 'px-2' : 'px-4'}`}
+                    >
+                      <Icon name={item.icon} size={20} />
+                      {item.label}
+                    </NavLink>
+                  </li>
+                </Fragment>
               ))}
             </ul>
           </nav>

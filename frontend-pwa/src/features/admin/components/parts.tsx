@@ -130,7 +130,7 @@ export function Pager({
 /** Marco de tabla: superficie elevada con el `caption` como título visible y desplazamiento horizontal seguro. */
 export function TableFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-xl border-2 border-border-subtle bg-surface">
+    <div className="relative min-w-0 max-w-full overflow-x-auto rounded-xl border-2 border-border-subtle bg-surface">
       {children}
     </div>
   );

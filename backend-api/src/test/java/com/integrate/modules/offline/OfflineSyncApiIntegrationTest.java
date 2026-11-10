@@ -243,6 +243,44 @@ class OfflineSyncApiIntegrationTest extends PostgresIntegrationTest {
                 .containsEntry("incident_type", "OVER_REDEMPTION_COMMUNITY_PROTECTED")
                 .containsEntry("severity", "HIGH").containsEntry("status", "OPEN");
         assertThat(JsonPath.<String>read(body, "$.items[0].incidentId")).isNotBlank();
+        String incidentId = JsonPath.read(body, "$.items[0].incidentId");
+        String incidents = "/api/v1/admin/incidents";
+        String detail = incidents + "/" + incidentId;
+        adminToken = tokenFor(userWithRole("admin", RoleCode.ADMIN));
+        mvc.perform(get(incidents)).andExpect(status().isUnauthorized());
+        mvc.perform(get(incidents).header(HttpHeaders.AUTHORIZATION, "Bearer " + gestor))
+                .andExpect(status().isForbidden());
+        mvc.perform(get(incidents).queryParam("status", "OPEN").queryParam("severity", "HIGH")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.id == '%s')].bookingId".formatted(incidentId))
+                        .value(org.hamcrest.Matchers.hasItem(a.bookingId)));
+
+        try (var executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+            java.util.concurrent.Callable<Integer> take = () -> postJson(detail + "/take", adminToken, null)
+                    .andReturn().getResponse().getStatus();
+            var first = executor.submit(take);
+            var second = executor.submit(take);
+            assertThat(java.util.List.of(first.get(), second.get())).containsExactlyInAnyOrder(200, 409);
+        }
+        postJson(detail + "/resolve", adminToken, "{\"resolutionNotes\":\" \"}")
+                .andExpect(status().isUnprocessableContent());
+        postJson(detail + "/resolve", adminToken, "{\"resolutionNotes\":\"Evidencia revisada\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RESOLVED"))
+                .andExpect(jsonPath("$.resolvedBy").isNotEmpty())
+                .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
+        postJson(detail + "/dismiss", adminToken, "{\"resolutionNotes\":\"Cierre repetido\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("SYNC_INCIDENT_TRANSITION_CONFLICT"));
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM audit.audit_trail
+                 WHERE entity_id = ? AND action IN ('SYNC_INCIDENT_TAKEN', 'SYNC_INCIDENT_RESOLVED')
+                   AND severity = 'WARNING' AND actor_id IS NOT NULL
+                """, Long.class, incidentId)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("""
+                SELECT d.status FROM payments.disbursements d JOIN payments.payment_transactions p ON p.id = d.payment_id
+                 WHERE p.booking_id = ?::uuid""", String.class, a.bookingId)).isEqualTo("RELEASED");
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM audit.audit_trail WHERE action = 'SYNC_INCIDENT_OPENED' AND severity = 'HIGH'""",
                 Long.class)).isPositive();
