@@ -1,6 +1,6 @@
 # ADR-0046: Completar la protección de identidad y gestionar la cuenta propia
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-11-10). Implementado en `pruebas` (commits `89109c8`, `0c43308` y `6503573`); el corte de identidad en base real sigue pendiente.
 - **Proyecto / módulo:** Intégrate · autenticación, catálogo, reservas, auditoría y PWA
 - **Fecha:** 2026-11-10
 - **Trazabilidad:** TejiendoHogar H-01 y edición de perfil de H-09, RNF-01, ADR-0005, ADR-0013, ADR-0014, ADR-0035, ADR-0038, ADR-0039 y ADR-0041
