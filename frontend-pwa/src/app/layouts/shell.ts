@@ -12,6 +12,19 @@ export interface NavItem {
 }
 
 /**
+ * Navegación exclusiva del Administrador (ADR-0044 §2): sin «Explorar» ni «Mis experiencias».
+ * Se comparte entre `AdminLayout` y `TouristLayout` (para `/cuenta`) sin arrastrar el chunk de `features/admin`.
+ */
+export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
+  { to: '/admin', label: 'Resumen', icon: 'compass' },
+  { to: '/admin/experiencias', label: 'Experiencias', icon: 'mountain' },
+  { to: '/admin/asociaciones', label: 'Asociaciones', icon: 'users' },
+  { to: '/admin/personas', label: 'Personas', icon: 'user' },
+  { to: '/admin/auditoria', label: 'Auditoría', icon: 'shield' },
+  { to: '/cuenta', label: 'Mi cuenta', icon: 'user' },
+];
+
+/**
  * Metadatos de ruta para el shell (ADR-0012 §1). Una ruta `flow` tiene acción fija propia: el shell
  * móvil oculta la navegación inferior y ofrece "Atrás" hacia `back` si no hay historial. Una ruta
  * `wide` tiene vista de escritorio dedicada (ADR-0020 §4): el shell de escritorio no la estrecha.

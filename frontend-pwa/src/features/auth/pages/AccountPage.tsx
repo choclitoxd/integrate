@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { PendingSyncLogoutError } from '@/shared/offline';
-import { useSession, useSessionStore, type Role } from '@/shared/session';
+import { hasRole, useSession, useSessionStore, type Role } from '@/shared/session';
 import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import { ConsentDialog } from '../components/ConsentDialog';
@@ -33,7 +33,17 @@ export function AccountPage() {
 
   if (session.status !== 'authenticated') return null;
   const { user } = session;
-  const health = consents.data?.consents.find((item) => item.purpose === 'HEALTH_EMERGENCY');
+  const isAdmin = hasRole(session, 'ROLE_ADMIN');
+  const displayedRoles =
+    isAdmin && user.roles.length > 1
+      ? user.roles.filter((role) => role !== 'ROLE_TOURIST')
+      : user.roles;
+  const visibleConsents = isAdmin
+    ? consents.data?.consents.filter((item) => item.purpose !== 'HEALTH_EMERGENCY')
+    : consents.data?.consents;
+  const health = isAdmin
+    ? undefined
+    : consents.data?.consents.find((item) => item.purpose === 'HEALTH_EMERGENCY');
 
   return (
     <>
@@ -47,7 +57,7 @@ export function AccountPage() {
         <p className="text-xl font-bold text-ink">{user.fullName}</p>
         <p className="mt-0.5 break-all text-ink-muted">{user.email}</p>
         <p className="mt-2 text-sm font-semibold text-ink-muted">
-          {user.roles.map((role) => ROLE_LABEL[role]).join(' · ')}
+          {displayedRoles.map((role) => ROLE_LABEL[role]).join(' · ')}
         </p>
       </section>
 
@@ -76,9 +86,9 @@ export function AccountPage() {
             />
           </div>
         )}
-        {consents.data && (
+        {visibleConsents && (
           <ul className="mt-3 grid gap-2">
-            {consents.data.consents.map((item) => {
+            {visibleConsents.map((item) => {
               const valid = item.state === 'VALID';
               return (
                 <li

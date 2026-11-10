@@ -82,7 +82,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0041](architecture/adr/ADR-0041-respaldar-y-restaurar-postgresql.md) | Respaldo externo y restauración de PostgreSQL (H-03) | Aceptado |
 | [0042](architecture/adr/ADR-0042-consola-de-administracion-con-shell-propio.md) | Consola de administración con shell propio (H-09); Fase 1 implementada | Aceptado |
 | [0043](architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) | Consola de administración, Fase 2: Personas, Incidentes y Liquidaciones | Aceptado |
-| [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Propuesto |
+| [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Aceptado |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 

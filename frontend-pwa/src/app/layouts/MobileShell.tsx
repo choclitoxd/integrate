@@ -60,13 +60,13 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
 
         {!flow && (
           <nav aria-label={navLabel} className="fixed inset-x-0 bottom-0 z-30">
-            <ul className="mx-auto flex w-full max-w-md gap-2 border-t-2 border-border-strong bg-surface-elevated px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+            <ul className="mx-auto flex w-full max-w-md gap-1 overflow-x-auto border-t-2 border-border-strong bg-surface-elevated px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
               {navItems.map((item) => (
                 <li key={item.to} className="flex-auto">
                   <NavLink
                     to={item.to}
                     end
-                    className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-center text-sm font-semibold text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand"
+                    className="flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1.5 text-center text-xs font-semibold whitespace-nowrap text-ink-muted hover:bg-surface-subtle aria-[current=page]:bg-brand-soft aria-[current=page]:text-brand sm:text-sm"
                   >
                     <Icon name={item.icon} size={22} />
                     {item.label}

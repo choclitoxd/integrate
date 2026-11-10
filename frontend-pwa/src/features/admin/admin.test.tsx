@@ -96,7 +96,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('consola de administración (ADR-0042)', () => {
+describe('consola de administración (ADR-0042, ADR-0044)', () => {
   it('lleva a ingresar al visitante y conserva el destino', async () => {
     const { router } = renderApp('/admin', adminRoutes());
     await waitFor(() => {
@@ -119,25 +119,30 @@ describe('consola de administración (ADR-0042)', () => {
     },
   );
 
-  it('en un computador abre el shell propio con su navegación lateral y el resumen', async () => {
+  it('usa AppShell con la barra verde institucional y navegación exclusiva de administrador (sin Explorar ni Mis experiencias)', async () => {
     stubMatchMedia(LAPTOP);
     renderApp('/admin', adminRoutes(), ADMIN);
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Resumen' })).toBeVisible();
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Resumen' });
+    expect(heading).toBeVisible();
+    expect(heading.className).toContain('text-brand');
+
     const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
     expect(
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Resumen', 'Experiencias', 'Asociaciones', 'Personas', 'Auditoría']);
+    ).toEqual(['Resumen', 'Experiencias', 'Asociaciones', 'Personas', 'Auditoría', 'Mi cuenta']);
     expect(within(nav).getByRole('link', { name: 'Resumen' })).toHaveAttribute(
       'aria-current',
       'page',
     );
-    // No es el shell del turista: sin su navegación ni su pie.
+    // Sin los apartados del turista ni enlace de «Volver al sitio».
+    expect(screen.queryByRole('link', { name: 'Explorar' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Volver al sitio' })).toBeNull();
     expect(screen.queryByRole('navigation', { name: 'Navegación principal' })).toBeNull();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'contenido');
-    expect(screen.getByRole('link', { name: 'Volver al sitio' })).toHaveAttribute('href', '/');
 
     const pending = await screen.findByRole('link', { name: /Por revisar/ });
     await waitFor(() => {
@@ -148,25 +153,54 @@ describe('consola de administración (ADR-0042)', () => {
     );
   });
 
-  it('en un celular muestra el aviso y el resumen en solo lectura, sin tablas', async () => {
+  it('en celular mantiene el mismo AppShell verde y sus secciones administrativas', async () => {
     renderApp('/admin/experiencias', adminRoutes(), ADMIN);
-    expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: 'La administración se usa desde un computador',
-      }),
-    ).toBeVisible();
-    expect(await screen.findByText('1 experiencia espera tu revisión.')).toBeVisible();
-    expect(screen.queryByRole('table')).toBeNull();
-    expect(screen.queryByRole('navigation', { name: 'Navegación de administración' })).toBeNull();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Experiencias' })).toBeVisible();
+    expect(await screen.findByRole('table', { name: /Por revisar/ })).toBeVisible();
+    const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
+    expect(within(nav).getByRole('link', { name: 'Experiencias' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(nav).queryByRole('link', { name: 'Explorar' })).toBeNull();
   });
 
-  it('ofrece la entrada a la consola solo a quien tiene ROLE_ADMIN', () => {
-    const tourist = renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
-    expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull();
-    tourist.unmount();
-    renderApp('/', catalogRoutes, ADMIN);
-    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+  it('redirige al administrador desde / y /mis-experiencias hacia /admin y conserva su barra en /cuenta', async () => {
+    const fromRoot = renderApp('/', adminRoutes(), ADMIN);
+    await waitFor(() => {
+      expect(fromRoot.router.state.location.pathname).toBe('/admin');
+    });
+    fromRoot.unmount();
+
+    const fromBookings = renderApp('/mis-experiencias', adminRoutes(), ADMIN);
+    await waitFor(() => {
+      expect(fromBookings.router.state.location.pathname).toBe('/admin');
+    });
+    fromBookings.unmount();
+
+    renderApp(
+      '/cuenta',
+      adminRoutes({
+        '/v1/me/consents': {
+          policyVersion: 'v0.1',
+          consents: [
+            { purpose: 'CORE_SERVICE', state: 'VALID' },
+            { purpose: 'HEALTH_EMERGENCY', state: 'MISSING' },
+          ],
+        },
+      }),
+      ADMIN,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mi cuenta' })).toBeVisible();
+    const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
+    expect(within(nav).getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.queryByRole('link', { name: 'Explorar' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Autorizar datos de salud para reservar' }),
+    ).toBeNull();
   });
 
   it('tras ingresar sin destino pedido, el administrador aterriza en la consola', async () => {

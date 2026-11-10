@@ -21,16 +21,18 @@ function SummaryCard({ to, icon, label, value, hint }: CardProps) {
     <li>
       <Link
         to={to}
-        className="flex h-full min-h-11 flex-col gap-1 rounded-xl border-2 border-border-subtle bg-canvas px-5 py-4 hover:border-brand hover:bg-brand-soft"
+        className="flex h-full min-h-11 flex-col gap-1 rounded-xl border-2 border-border-subtle bg-surface px-5 py-4 hover:border-brand hover:bg-brand-soft"
       >
-        <span className="flex items-center gap-2 font-semibold text-ink-muted">
-          <Icon name={icon} size={20} />
+        <span className="flex items-center gap-2 font-semibold text-ink">
+          <span className="rounded-lg bg-brand-soft p-1.5 text-brand">
+            <Icon name={icon} size={20} />
+          </span>
           {label}
         </span>
         {value === undefined ? (
           <Skeleton className="h-10 w-16" />
         ) : (
-          <span className="text-4xl font-bold text-ink tabular-nums">{value}</span>
+          <span className="text-4xl font-bold text-brand tabular-nums">{value}</span>
         )}
         <span className="text-sm text-ink-muted">{hint}</span>
       </Link>

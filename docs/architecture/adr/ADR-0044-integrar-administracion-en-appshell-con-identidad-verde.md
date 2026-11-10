@@ -1,6 +1,6 @@
 # ADR-0044: Integrar el panel de administración en AppShell con la identidad visual verde y navegación exclusiva de rol
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-11-10) — aprobado por el desarrollador.
 - **Proyecto / Módulo:** Intégrate · `frontend-pwa/` — `app/layouts`, `app/routes.tsx`, `features/admin`, `features/auth`. Enmienda ADR-0042 (§1, §3, §4) y ADR-0043 (§4, §5).
 - **Fecha:** 2026-11-09
 - **Trazabilidad:** Enmienda directa a ADR-0042 y ADR-0043 por revisión visual del desarrollador en el entorno de pruebas (`pruebas.integrate-demo.pages.dev/admin`).

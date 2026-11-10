@@ -1,15 +1,40 @@
-import { useFormFactor } from '@/shared/lib';
+import { Navigate, useLocation } from 'react-router';
+
 import { hasRole, useSession } from '@/shared/session';
 
 import { AppShell, type NavItem } from './AppShell';
+import { ADMIN_NAV_ITEMS } from './shell';
+
+const TOURIST_ONLY_PREFIXES = ['/experiencias', '/mis-experiencias', '/reservas'] as const;
 
 /**
- * Navegación del turista: el último destino cambia con la sesión (ADR-0013 §6). «Gestor» solo
- * existe para quien tiene ROLE_LINK_MANAGER: a un visitante o a un turista le llevaría a un muro.
+ * Navegación pública y del turista (ADR-0013 §6, ADR-0044 §2):
+ * - Si la sesión pertenece a un Administrador (`ROLE_ADMIN`), nunca ve «Explorar» ni «Mis experiencias»:
+ *   en `/` o rutas de compra/catálogo se redirige a `/admin`, y en `/cuenta` conserva la barra de administración.
+ * - «Gestor» solo aparece para quien tiene `ROLE_LINK_MANAGER`.
  */
 export function TouristLayout() {
   const session = useSession();
-  const formFactor = useFormFactor();
+  const { pathname } = useLocation();
+
+  if (hasRole(session, 'ROLE_ADMIN')) {
+    if (
+      pathname === '/' ||
+      TOURIST_ONLY_PREFIXES.some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      )
+    ) {
+      return <Navigate to="/admin" replace />;
+    }
+    return (
+      <AppShell
+        navLabel="Navegación de administración"
+        navItems={ADMIN_NAV_ITEMS}
+        homeTo="/admin"
+      />
+    );
+  }
+
   const navItems: readonly NavItem[] = [
     { to: '/', label: 'Explorar', icon: 'compass' },
     // Las reservas son del turista: a un visitante o a un gestor sin ese rol le llevaría a un muro.
@@ -18,16 +43,6 @@ export function TouristLayout() {
       : []),
     ...(hasRole(session, 'ROLE_LINK_MANAGER')
       ? [{ to: '/gestor', label: 'Gestor', icon: 'route' } as const]
-      : []),
-    // La consola es de escritorio (ADR-0042 §4): en la barra inferior del celular va el rótulo corto.
-    ...(hasRole(session, 'ROLE_ADMIN')
-      ? [
-          {
-            to: '/admin',
-            label: formFactor === 'desktop' ? 'Administración' : 'Admin',
-            icon: 'shield',
-          } as const,
-        ]
       : []),
     session.status === 'authenticated'
       ? { to: '/cuenta', label: 'Mi cuenta', icon: 'user' }

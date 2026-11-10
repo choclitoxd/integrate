@@ -14,6 +14,7 @@ import { AdaptiveView } from '@/shared/ui';
 
 import { CatalogDesktop, ExperienceDetailDesktop, SlotPickerDesktop } from './desktopViews';
 import { RequireSession } from './guards/RequireSession';
+import { AdminLayout } from './layouts/AdminLayout';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
 import { TouristLayout } from './layouts/TouristLayout';
@@ -35,6 +36,7 @@ const slotsHandle: ShellHandle = {
 
 const toHosts: ShellHandle = { flow: true, back: () => '/gestor/anfitriones' };
 const toManagerHome: ShellHandle = { flow: true, back: () => '/gestor' };
+const adminWide: ShellHandle = { wide: true };
 
 /*
  * Carga diferida (ADR-0018 §1): la reserva (QR incluido) y el portal del Gestor no viajan en el
@@ -92,19 +94,9 @@ const enrollmentPage = async () => {
 };
 
 /*
- * Consola de administración (ADR-0042 §2): el shell y la feature `admin` viajan en un chunk propio
+ * Consola de administración (ADR-0042 §2, ADR-0044 §1): la feature `admin` viaja en un chunk propio
  * que ni el turista ni el gestor descargan.
  */
-const adminLayout = async () => {
-  const { AdminLayout } = await import('./layouts/AdminLayout');
-  return {
-    element: (
-      <RequireSession roles={['ROLE_ADMIN']}>
-        <AdminLayout />
-      </RequireSession>
-    ),
-  };
-};
 const adminHomePage = async () => {
   const { AdminHomePage } = await import('@/features/admin');
   return { Component: AdminHomePage };
@@ -202,13 +194,17 @@ export const routes: RouteObject[] = [
       },
       {
         path: '/admin',
-        lazy: adminLayout,
+        element: (
+          <RequireSession roles={['ROLE_ADMIN']}>
+            <AdminLayout />
+          </RequireSession>
+        ),
         children: [
-          { index: true, lazy: adminHomePage },
-          { path: 'experiencias', lazy: adminExperiencesPage },
-          { path: 'asociaciones', lazy: adminAssociationsPage },
-          { path: 'personas', lazy: adminPeoplePage },
-          { path: 'auditoria', lazy: adminAuditPage },
+          { index: true, lazy: adminHomePage, handle: adminWide },
+          { path: 'experiencias', lazy: adminExperiencesPage, handle: adminWide },
+          { path: 'asociaciones', lazy: adminAssociationsPage, handle: adminWide },
+          { path: 'personas', lazy: adminPeoplePage, handle: adminWide },
+          { path: 'auditoria', lazy: adminAuditPage, handle: adminWide },
         ],
       },
       {
