@@ -49,7 +49,7 @@ class IdentityMigration {
                 """, Long.class);
     }
 
-    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public List<Coverage> verify(int batchSize) {
         requireDual();
         UUID cursor = null;
@@ -111,7 +111,7 @@ class IdentityMigration {
         return ids.size();
     }
 
-    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public long verifyRotation(int batchSize) {
         requireProtected();
         UUID cursor = null;
