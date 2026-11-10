@@ -6,6 +6,7 @@ Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- Para preguntas sobre endpoints (ruta → controlador → rol → ADR), leer primero `docs/api/endpoints-index.md` (~70 líneas); es más barato y preciso que `graphify query`. Actualizarlo al añadir o cambiar un endpoint.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 - On this machine `graphify.exe` is blocked by Windows Application Control. Run every `graphify <cmd>` as `& "C:\Users\victx\AppData\Roaming\uv\tools\graphifyy\Scripts\python.exe" -m graphify <cmd>`.
 - To build the graph from scratch, use the project skill `/graphify` (in `.claude/skills/graphify`).

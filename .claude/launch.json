@@ -8,6 +8,12 @@
       "port": 5173
     },
     {
+      "name": "frontend-pwa-5174",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend-pwa", "run", "dev", "--", "--port", "5174"],
+      "port": 5174
+    },
+    {
       "name": "backend-api",
       "runtimeExecutable": "cmd",
       "runtimeArgs": [
