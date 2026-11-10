@@ -134,8 +134,8 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.unitPriceCop").value(80000))
                 .andExpect(jsonPath("$.totalAmountCop").value(160000))
                 .andExpect(jsonPath("$.currency").value("COP"))
-                .andExpect(jsonPath("$.createdAt").value("2026-10-05T12:00:00Z"))
-                .andExpect(jsonPath("$.expiresAt").value("2026-10-05T12:15:00Z"))
+                .andExpect(jsonPath("$.createdAt").value(START.toString()))
+                .andExpect(jsonPath("$.expiresAt").value(START.plusSeconds(900).toString()))
                 .andExpect(jsonPath("$.ttlSecondsRemaining").value(900))
                 .andReturn();
         String bookingId = JsonPath.read(result.getResponse().getContentAsString(), "$.bookingId");

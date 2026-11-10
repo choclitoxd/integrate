@@ -125,7 +125,7 @@ class PaymentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.provider").value("MOCK_GATEWAY"))
                 .andExpect(jsonPath("$.amountCop").value(2 * PRICE))
                 .andExpect(jsonPath("$.currency").value("COP"))
-                .andExpect(jsonPath("$.bookingExpiresAt").value("2026-10-05T12:15:00Z"))
+                .andExpect(jsonPath("$.bookingExpiresAt").value(START.plusSeconds(900).toString()))
                 .andExpect(jsonPath("$.checkout.type").value("MOCK"))
                 .andReturn().getResponse().getContentAsString(), "$.paymentId");
 

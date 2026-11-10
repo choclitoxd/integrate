@@ -33,7 +33,12 @@ import org.testcontainers.utility.MountableFile;
 @Import(PostgresIntegrationTest.TestClockConfig.class)
 public abstract class PostgresIntegrationTest {
 
-    protected static final Instant START = Instant.parse("2026-10-05T12:00:00Z");
+    /**
+     * Inicio del reloj de pruebas: mañana a mediodía UTC. El trigger de reservas compara las franjas con la hora
+     * real de PostgreSQL (V4), así que un inicio fijo en el pasado dejaba las franjas "ya iniciadas".
+     */
+    protected static final Instant START = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.DAYS)
+            .plus(1, java.time.temporal.ChronoUnit.DAYS).plus(12, java.time.temporal.ChronoUnit.HOURS);
 
     private static final String OWNER_PASSWORD = UUID.randomUUID().toString();
     private static final String API_PASSWORD = UUID.randomUUID().toString();
