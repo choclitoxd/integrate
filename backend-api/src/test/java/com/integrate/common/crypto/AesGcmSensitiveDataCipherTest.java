@@ -60,6 +60,22 @@ class AesGcmSensitiveDataCipherTest {
     }
 
     @Test
+    void aVersionDeclaredWithoutValueIsDiscarded() {
+        SensitiveDataProperties properties =
+                new SensitiveDataProperties(Map.of((short) 1, keyV1, (short) 2, ""), (short) 1);
+        assertThat(properties.keys()).containsOnlyKeys((short) 1);
+        AesGcmSensitiveDataCipher cipher = new AesGcmSensitiveDataCipher(properties);
+        assertThat(cipher.decrypt(cipher.encrypt("dato", AAD, (short) 1), AAD, (short) 1)).isEqualTo("dato");
+    }
+
+    @Test
+    void theCurrentVersionCannotBeDeclaredWithoutValue() {
+        assertThatThrownBy(() -> new AesGcmSensitiveDataCipher(
+                new SensitiveDataProperties(Map.of((short) 1, keyV1, (short) 2, " "), (short) 2)))
+                .isInstanceOf(SensitiveDataException.class);
+    }
+
+    @Test
     void failsFastWithoutAValidCurrentKey() {
         assertThatThrownBy(() -> new AesGcmSensitiveDataCipher(new SensitiveDataProperties(Map.of(), (short) 1)))
                 .isInstanceOf(SensitiveDataException.class)

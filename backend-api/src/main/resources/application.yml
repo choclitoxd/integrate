@@ -92,6 +92,8 @@ integrate:
       current-version: ${SENSITIVE_DATA_KEY_CURRENT_VERSION:1}
       keys:
         1: ${SENSITIVE_DATA_KEY_V1}
+        # Siguiente versión para la rotación (ADR-0046); sin valor no se declara.
+        2: ${SENSITIVE_DATA_KEY_V2:}
   # --- Documentos sensibles en S3 (ADR-0007 §5): endpoint y credenciales estáticas solo en local
   #     (LocalStack); vacías = cadena por defecto del SDK (rol IAM en despliegue).
   storage:
