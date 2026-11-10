@@ -191,10 +191,7 @@ export function PersonSearch() {
   }
 
   return (
-    <section
-      aria-labelledby="buscar-persona-titulo"
-      className="rounded-xl border-2 border-border-subtle bg-canvas px-5 py-5"
-    >
+    <section aria-labelledby="buscar-persona-titulo" className="rounded-xl bg-surface px-5 py-5">
       <h2 id="buscar-persona-titulo" className="text-xl font-bold text-ink">
         Buscar a una persona
       </h2>

@@ -85,7 +85,7 @@ function Ficha({ experience, closeTo, onAction }: FichaProps) {
   return (
     <aside
       aria-label="Ficha de la experiencia"
-      className="rounded-xl border-2 border-border-strong bg-canvas px-5 py-5"
+      className="rounded-xl border-2 border-border-subtle bg-surface px-5 py-5"
     >
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-xl font-bold text-ink">{experience.title}</h2>

@@ -40,7 +40,39 @@ function SummaryCard({ to, icon, label, value, hint }: CardProps) {
   );
 }
 
-/** Resumen de la consola: lo que espera una decisión del administrador (ADR-0042 §2). */
+const ADMIN_SHORTCUTS: readonly {
+  readonly to: string;
+  readonly title: string;
+  readonly body: string;
+  readonly icon: IconName;
+}[] = [
+  {
+    to: '/admin/experiencias',
+    title: 'Moderación de experiencias',
+    body: 'Revisa las experiencias enviadas por anfitriones, puntos de encuentro y catálogo público.',
+    icon: 'mountain',
+  },
+  {
+    to: '/admin/asociaciones',
+    title: 'Asociaciones comunitarias',
+    body: 'Consulta y registra las organizaciones comunitarias con NIT y RNT vigentes.',
+    icon: 'users',
+  },
+  {
+    to: '/admin/personas',
+    title: 'Personas, anfitriones y gestores',
+    body: 'Busca cuentas por correo o documento, acredita gestores de enlace y asigna anfitriones.',
+    icon: 'user',
+  },
+  {
+    to: '/admin/auditoria',
+    title: 'Bitácora de auditoría',
+    body: 'Filtra eventos de seguridad, verifica la cadena criptográfica y exporta reportes CSV.',
+    icon: 'shield',
+  },
+];
+
+/** Resumen de la consola: plantilla de inicio del administrador con indicadores y accesos directos (ADR-0042 §2, ADR-0044 §1). */
 export function AdminHomePage() {
   const pending = useAdminExperiences('PENDING_REVIEW', 0);
   const suspended = useAdminExperiences('SUSPENDED', 0);
@@ -57,7 +89,7 @@ export function AdminHomePage() {
       <title>Resumen · Administración · Intégrate</title>
       <PageHeader
         title="Resumen"
-        description="Lo que espera una decisión tuya hoy. Cada tarjeta lleva a su sección."
+        description="Panel de administración comunitaria. Revisa lo pendiente de hoy o entra a cada módulo."
       />
 
       {failed && (
@@ -105,10 +137,7 @@ export function AdminHomePage() {
       </ul>
 
       <div className="mt-8 grid items-start gap-6 xl:grid-cols-2">
-        <section
-          aria-labelledby="cola-titulo"
-          className="rounded-xl border-2 border-border-subtle bg-canvas px-5 py-5"
-        >
+        <section aria-labelledby="cola-titulo" className="rounded-xl bg-surface px-5 py-5">
           <h2 id="cola-titulo" className="text-xl font-bold text-ink">
             Siguientes en la cola
           </h2>
@@ -127,9 +156,9 @@ export function AdminHomePage() {
                   <li key={item.id}>
                     <Link
                       to={`/admin/experiencias?estado=PENDING_REVIEW&ver=${item.id}`}
-                      className="flex min-h-11 items-center justify-between gap-4 rounded-lg px-3 py-2 font-semibold text-brand hover:bg-brand-soft"
+                      className="flex min-h-11 items-center justify-between gap-4 rounded-xl border-2 border-border-subtle bg-canvas px-4 py-3 font-semibold text-brand hover:border-brand hover:bg-brand-soft"
                     >
-                      <span className="min-w-0 underline underline-offset-4">{item.title}</span>
+                      <span className="min-w-0">{item.title}</span>
                       <span className="shrink-0 text-sm font-normal text-ink-muted">
                         {formatInstant(item.createdAt)}
                       </span>
@@ -143,6 +172,31 @@ export function AdminHomePage() {
 
         <ChainVerifier />
       </div>
+
+      <section aria-labelledby="accesos-admin-titulo" className="mt-8">
+        <h2 id="accesos-admin-titulo" className="text-xl font-bold text-ink">
+          Módulos de administración
+        </h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+          {ADMIN_SHORTCUTS.map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                className="flex h-full min-h-11 items-start gap-3 rounded-xl border-2 border-border-subtle bg-surface px-4 py-4 transition-colors duration-150 hover:border-brand hover:bg-brand-soft"
+              >
+                <span className="rounded-lg bg-brand-soft p-2 text-brand">
+                  <Icon name={item.icon} size={24} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-lg font-bold text-ink">{item.title}</span>
+                  <span className="mt-0.5 block text-sm text-ink-muted">{item.body}</span>
+                </span>
+                <Icon name="chevronRight" className="mt-1 shrink-0 text-brand" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

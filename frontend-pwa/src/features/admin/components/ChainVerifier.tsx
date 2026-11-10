@@ -12,10 +12,7 @@ export function ChainVerifier() {
   const result = verify.data;
 
   return (
-    <section
-      aria-labelledby="cadena-titulo"
-      className="rounded-xl border-2 border-border-subtle bg-canvas px-5 py-5"
-    >
+    <section aria-labelledby="cadena-titulo" className="rounded-xl bg-surface px-5 py-5">
       <h2 id="cadena-titulo" className="text-xl font-bold text-ink">
         Integridad de la bitácora
       </h2>

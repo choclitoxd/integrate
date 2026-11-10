@@ -54,7 +54,7 @@ export function Notice({
   );
 }
 
-/** Encabezado de sección de la consola: `h1` único, descripción y acciones a la derecha. */
+/** Encabezado de sección de la consola: `h1` único con la tipografía de inicio, descripción y acciones a la derecha. */
 export function PageHeader({
   title,
   description,
@@ -66,9 +66,11 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="text-3xl font-bold text-brand">{title}</h1>
-        <p className="mt-1 max-w-3xl text-ink-muted">{description}</p>
+      <div className="min-w-0 max-w-3xl">
+        <h1 className="text-3xl leading-tight font-bold text-balance text-brand sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-2 text-lg text-ink-muted">{description}</p>
       </div>
       {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
     </div>
@@ -128,7 +130,7 @@ export function Pager({
 /** Marco de tabla: superficie elevada con el `caption` como título visible y desplazamiento horizontal seguro. */
 export function TableFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-xl border-2 border-border-subtle bg-canvas">
+    <div className="overflow-x-auto rounded-xl border-2 border-border-subtle bg-surface">
       {children}
     </div>
   );
