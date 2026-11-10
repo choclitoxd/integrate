@@ -30,6 +30,18 @@ Toda interacción con Git, commits y subida de cambios debe regirse estrictament
 - **Archivos modificados que no son míos:** si `git status` muestra cambios en archivos que no toqué en esta sesión, no comitearlos, no revertirlos ni "arreglarlos" sin preguntar.
 - Un cambio que el desarrollador hace mientras trabajamos se considera vigente: releer el archivo antes de editarlo.
 
+## Uso de SnapDeploy (entorno de pruebas): presupuesto de 5 usos al día
+
+SnapDeploy solo permite **5 usos diarios**. Tratar como un uso cada push a `pruebas` (dispara una construcción), cada `wake` y cada reconstrucción. Reglas:
+
+- **Evaluar antes de gastar.** Si el cambio ya lo cubren las pruebas locales (`./mvnw test` con Testcontainers, `vitest`, `build`), **no** se usa SnapDeploy. Una prueba de punta a punta en pruebas solo se justifica si algo depende del entorno real (variables, Neon, correos).
+- **Un solo push por tanda.** Juntar los cambios y empujar una vez a `pruebas`; nunca empujar para ver un cambio pequeño.
+- **Comprobar sin conexión lo que pueda fallar** antes del push: variables del contenedor frente a `infra/env/.env.demo.pruebas`, pruebas y build locales.
+- **Sin sondeos en bucle.** No repetir `wake`, `deploys`, `logs` ni `vars`; una lectura por decisión, y un solo bucle de espera acotado tras un push.
+- **Avisar el costo.** Si una acción gasta uno o más usos, decirlo al desarrollador antes de hacerla.
+- **Apagar al terminar:** `bash infra/scripts/snapdeploy.sh stop`, salvo que el desarrollador pida dejarlo encendido.
+- **Variables:** `snapdeploy.sh env` se ejecuta siempre con `ENV_FILE=infra/env/.env.demo.pruebas` explícito; sin él toma `.env.demo` (producción) y el entorno de pruebas queda apuntando a otra base.
+
 ## Precedencia sobre skills de diseño (Impeccable y similares)
 
 La skill `impeccable` (`.claude/skills/impeccable/`) y cualquier otra skill de diseño (`frontend-design`, `make-interfaces-feel-better`, etc.) son **subordinadas** a `docs/rules/frontend-rules.md` (`FE-DIR-001`). Ante cualquier conflicto gana FE-DIR-001, sin excepción. Para Impeccable, FE-DIR-001 cuenta como el "brief fijado" que su propia regla "The brief wins" obliga a respetar. En concreto:

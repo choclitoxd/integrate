@@ -82,6 +82,17 @@ cambio → rama `pruebas` → SnapDeploy + PWA de vista previa → verificar →
 3. **Verificar** el cambio en `pruebas.integrate-demo.pages.dev`. Al terminar, deténgalo (`POST …/containers/<id>/stop` o desde el panel).
 4. **Promover:** fusione a `main` y ejecute `bash infra/scripts/hetzner.sh deploy` y `bash infra/scripts/pages.sh deploy produccion`. Si algo sale mal: `bash infra/scripts/hetzner.sh rollback`.
 
+### Presupuesto de usos de SnapDeploy (5 al día)
+
+El plan de SnapDeploy da **5 usos diarios**. Cuentan como uso cada push a `pruebas` (dispara una construcción), cada `wake` y cada reconstrucción.
+
+- **Evaluar antes de gastar:** si lo cubren las pruebas locales (`./mvnw test`, `vitest`, `build`), no se usa SnapDeploy.
+- **Un solo push por tanda** de cambios; no empujar para ver algo pequeño.
+- **Comprobar sin conexión** antes del push: variables del contenedor frente a `infra/env/.env.demo.pruebas`, pruebas y build locales.
+- **Sin sondeos en bucle** (`wake`, `deploys`, `logs`, `vars`): una lectura por decisión.
+- **Variables:** `ENV_FILE=infra/env/.env.demo.pruebas bash infra/scripts/snapdeploy.sh env`, siempre con el archivo explícito. Sin él toma `.env.demo` (producción).
+- **Apagar al terminar:** `bash infra/scripts/snapdeploy.sh stop`.
+
 ### Comprobar el aislamiento (obligatorio tras cambiar variables)
 
 SnapDeploy **aplica las variables solo al construir un despliegue nuevo**: `snapdeploy.sh env` las guarda, pero un contenedor detenido que se despierta arranca con las que tenía al construirse. El 2026-10-27 esto hizo que el entorno de pruebas arrancara contra la base de **producción** durante unos minutos (se detuvo y se limpió: un solo usuario de prueba y un correo a una dirección ficticia, sin reservas ni pagos tocados).
