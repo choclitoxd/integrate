@@ -309,8 +309,9 @@ Api POST "/bookings/<id-de-la-reserva>/cancel" $tur @{ reason = 'Cambio de plane
 ## 6. Administrador
 
 El Administrador **no se registra**: el equipo lo configura al arrancar el sistema (`BOOTSTRAP_ADMIN_*`). Desde ADR-0042
-tiene una **consola propia** en `/admin` (moderación, asociaciones y auditoría). Convertir en anfitrión y acreditar
-gestores (§6.2 y §6.3) sigue siendo por API hasta la Fase 2.
+tiene una **consola propia** en `/admin` (moderación, asociaciones, personas y auditoría). Convertir en anfitrión y
+acreditar gestores se puede hacer desde la consola (§6.6, ADR-0043); los pasos por API (§6.2 y §6.3) comprueban el
+servidor sin la PWA.
 
 ### 6.1 En la PWA
 
@@ -376,6 +377,24 @@ Requiere una experiencia en revisión (ver H-22).
 | A-42 | `Api GET '/admin/audit/verify' $adm`. | La cadena de la bitácora es **íntegra** (sin eslabones rotos). | ✔ | Eslabón roto: alguien alteró la bitácora (**incidente**). |
 | A-43 | Repetir A-40. | La consulta anterior aparece **como entrada de auditoría** (`AUDIT_QUERIED`). | ✔ | No queda registrada: falta la auditoría de la consulta. |
 | A-44 | Como **turista**: `Api GET '/admin/audit' $tur`. | `Status` 403. | ✔ | 200: **defecto de permisos (alta)**. |
+
+
+### 6.6 En la PWA: personas (ADR-0043)
+
+Se ejecuta con una cuenta de turista registrada para el futuro anfitrión o gestor, y una asociación creada (A-08).
+
+| # | Acción | Debe ver | 🖥 | Si falla, por qué |
+|---|---|---|---|---|
+| A-50 | 🖥 **Personas** → **Buscar por** «Correo» → escribir solo la mitad del correo. | «No hay una cuenta con ese dato». No hay búsqueda parcial. | ✔ | Devuelve cuentas parecidas: búsqueda parcial (**defecto de privacidad**). |
+| A-51 | Buscar con el correo completo (en otro uso de mayúsculas). | La persona con su nombre, correo y roles; botones **Convertir en anfitrión** y **Acreditar como gestor**. Sin celular ni documento. | ✔ | Muestra celular o documento completo: **defecto de privacidad (alta)**. |
+| A-52 | **Buscar por** «Documento» con el tipo y el número completos. | La misma persona, con el correo **parcialmente oculto** (`l***@dominio`). | ✔ | Correo en claro: se filtra un dato que no se conocía. |
+| A-53 | **Convertir en anfitrión** sin elegir asociación; luego elegirla y confirmar. | Primero «Elige la asociación»; después «… ya es anfitrión» y la tarjeta dice «Ya es anfitrión». Aviso: el rol llega al siguiente ingreso. | ✔ | 409 si ya era anfitrión o la asociación no está activa. |
+| A-54 | **Acreditar como gestor** con la fecha de hoy. | «… quedó acreditado como gestor de enlace». Al reingresar, esa persona ve **Gestor** (A-22). | ✔ | 409: ya tiene acreditación vigente. La fecha futura no se deja elegir. |
+| A-55 | Lista **Gestores de enlace** (filtro «Vigentes») → **Suspender** al gestor y confirmar. | «… quedó suspendido»; sale de «Vigentes» y aparece en «Suspendidos». El gestor no puede enrolar (A-23). | ✔ | Sigue operando: la suspensión no se aplicó. |
+| A-56 | **Reactivar**, y luego **Revocar** (el diálogo avisa que no se puede deshacer). | Revocado: la fila queda sin acciones; al reingresar pierde el rol (G-61). | ✔ | Conserva el rol: ver ADR-0038 §2. |
+| A-57 | Lista **Anfitriones**; filtrar por asociación. | Nombre, asociación, verificado y fecha; los correos internos dicen «(interno)». | ✔ | — |
+| A-58 | Hacer **21 búsquedas seguidas** en un minuto. | La búsqueda 21 dice que superaste el límite de 20 por minuto. | ✔ | No limita: barrido posible con una cuenta comprometida. |
+| A-59 | **Auditoría** → módulo `catalog`, acción `SENSITIVE_DATA_ACCESSED`. | Una entrada por búsqueda, detalle o lista (`ADMIN_USER_LOOKUP_EMAIL`, `ADMIN_USER_LOOKUP_DOCUMENT`, `ADMIN_USER_LIST`, `ADMIN_USER_DETAIL`), con las personas vistas y **sin** el correo ni el documento buscados. | ✔ | El criterio aparece escrito: **defecto de privacidad (alta)**. |
 
 ---
 

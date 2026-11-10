@@ -3,16 +3,28 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useHttpClient } from '@/shared/api';
 
 import {
+  accreditLinkManager,
+  changeLinkManagerStatus,
   createAssociation,
+  createHostProfile,
+  getUserDetail,
   listAdminExperiences,
+  listAssociationOptions,
   listAssociations,
+  listHosts,
+  listLinkManagers,
   moderateExperience,
   searchAudit,
+  searchUsers,
   verifyAudit,
+  type AccreditRequest,
   type AssociationRequest,
   type AuditFilters,
   type ExperienceStatus,
+  type LinkManagerStatus,
+  type ManagerAction,
   type ModerationAction,
+  type UserCriterion,
 } from './api';
 
 /** Bajo `['me', …]`: se borra al cerrar sesión (ADR-0013 §2). */
@@ -20,6 +32,9 @@ export const adminKeys = {
   experiences: ['me', 'admin', 'experiences'] as const,
   associations: ['me', 'admin', 'associations'] as const,
   audit: ['me', 'admin', 'audit'] as const,
+  managers: ['me', 'admin', 'link-managers'] as const,
+  hosts: ['me', 'admin', 'hosts'] as const,
+  detail: ['me', 'admin', 'user-detail'] as const,
 };
 
 export function useAdminExperiences(status: ExperienceStatus | null, page: number) {
@@ -89,4 +104,85 @@ export function useAuditSearch(filters: AuditFilters, page: number) {
 export function useVerifyAudit() {
   const http = useHttpClient();
   return useMutation({ mutationFn: () => verifyAudit(http) });
+}
+
+/* ---------------------------------------------------------------------------- personas (ADR-0043) */
+
+/**
+ * La búsqueda de personas es una acción explícita, no una consulta en caché: cada una queda en la
+ * bitácora y cuenta para el límite de 20 por minuto, así que nunca se repite sola.
+ */
+export function useSearchUser() {
+  const http = useHttpClient();
+  return useMutation({ mutationFn: (criterion: UserCriterion) => searchUsers(http, criterion) });
+}
+
+/** Historial de roles; no se conserva al salir de la pantalla (lleva datos personales). */
+export function useUserDetail(userId: string) {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.detail, userId],
+    queryFn: ({ signal }) => getUserDetail(http, userId, signal),
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useLinkManagers(status: LinkManagerStatus | null, page: number) {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.managers, status ?? 'ALL', page],
+    queryFn: ({ signal }) => listLinkManagers(http, status, page, signal),
+    placeholderData: keepPreviousData,
+    staleTime: 0,
+  });
+}
+
+export function useHosts(associationId: string | null, page: number) {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.hosts, associationId ?? 'ALL', page],
+    queryFn: ({ signal }) => listHosts(http, associationId, page, signal),
+    placeholderData: keepPreviousData,
+    staleTime: 0,
+  });
+}
+
+export function useAssociationOptions() {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.associations, 'options'],
+    queryFn: ({ signal }) => listAssociationOptions(http, signal),
+    staleTime: 60_000,
+  });
+}
+
+export function useCreateHostProfile() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { userId: string; associationId: string }) => createHostProfile(http, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.hosts }),
+  });
+}
+
+export function useAccreditLinkManager() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AccreditRequest) => accreditLinkManager(http, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.managers }),
+  });
+}
+
+/** Tras cada intento se recarga la lista: un 409 significa que la fila ya cambió (ADR-0042 §5). */
+export function useChangeManagerStatus() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: ManagerAction }) =>
+      changeLinkManagerStatus(http, id, action),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.managers }),
+  });
 }

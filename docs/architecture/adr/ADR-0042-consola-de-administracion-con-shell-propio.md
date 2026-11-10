@@ -1,6 +1,6 @@
 # ADR-0042: Dar al Administrador una consola propia con shell dedicado
 
-- **Estado:** Aceptado (2026-11-09) — Fase 1 aprobada por el desarrollador; la Fase 2 (Personas) queda pendiente.
+- **Estado:** Aceptado (2026-11-09) — Fase 1 aprobada por el desarrollador; la Fase 2 (Personas) se desarrolla en el ADR-0043.
 - **Proyecto / Módulo:** Intégrate · `frontend-pwa/` — `app/layouts`, `app/routes.tsx`, nueva feature `features/admin`. Fase 2 en `backend-api/` (módulos `auth` y `catalog`). Enmienda FE-DIR-001 (Directiva 1) y ADR-0020 §7.
 - **Fecha:** 2026-11-09
 - **Trazabilidad:** Tejiendo Hogar, H-09 · auditoría propia 2026-10-27, A7 · guion de pruebas §6 (A-01 a A-44)
@@ -73,7 +73,7 @@ Desviaciones respecto a la decisión:
 - **Entrada:** en la navegación del sitio el destino se rotula «Administración» en escritorio y «Admin» en la barra inferior del celular.
 - **§8 verificación hecha:** Quality Gate (tipos, lint, 317 pruebas, build) en verde salvo `format:check`, que falla por `src/features/offline/offlineFlow.test.tsx`, un archivo con cambios previos ajenos a este ADR. El build deja la consola en los chunks `admin-*.js` y `AdminLayout-*.js`, fuera del bundle inicial. Revisión en el navegador contra el backend local a 1440 px y aviso a 375 px.
 - **Documentación:** enmienda en FE-DIR-001 (Directiva 1.6 y matriz), manual de usuario §2 y §6, guion §6 (A-01 y A-05 a A-09), `demo-gratuita.md` §5 y estado de A7 en la auditoría propia.
-- **Pendiente:** Fase 2 (Personas). Las capturas del manual para la consola no se tomaron.
+- **Fase 2 (Personas):** ver ADR-0043. Las capturas del manual para la consola no se tomaron.
 
 ## Contrato o Esquema Conceptual
 

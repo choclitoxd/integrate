@@ -925,6 +925,111 @@ paths:
                   associationId: { type: string, format: uuid }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/CatalogConflict' }
+    get:
+      tags: [Admin]
+      operationId: listAdminHostProfiles
+      summary: Anfitriones vigentes con su asociación, paginados (ADR-0043 §1.4).
+      description: >
+        Solo nombre, correo y asociación: nunca documento, celular ni datos de víctima. `emailIsSynthetic` marca las
+        cuentas sin correo propio. Cada consulta queda en la bitácora como acceso sensible (`ADMIN_USER_LIST`). No se
+        almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: associationId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de anfitriones.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/AdminHost' } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/admin/users/search:
+    get:
+      tags: [Admin]
+      operationId: searchAdminUsers
+      summary: Busca una persona por correo exacto o por documento exacto (ADR-0043 §1.1).
+      description: >
+        Exactamente uno de `email`, o `document` junto con `docType`; de lo contrario 400. La coincidencia es exacta
+        (el correo no distingue mayúsculas): no hay búsqueda parcial. Devuelve 0 o 1 cuenta. Con `email` el correo sale
+        en claro; con `document` sale enmascarado (`emailMasked`). Las cuentas con correo sintético no se encuentran por
+        correo. Límite de 20 búsquedas por minuto por administrador (429). Cada búsqueda queda en la bitácora
+        (`ADMIN_USER_LOOKUP_EMAIL` o `ADMIN_USER_LOOKUP_DOCUMENT`) sin guardar el criterio. No se almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: email
+          in: query
+          required: false
+          schema: { type: string, maxLength: 254 }
+        - name: docType
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/DocType' }
+        - name: document
+          in: query
+          required: false
+          schema: { type: string, pattern: '^[A-Za-z0-9]{4,20}$' }
+      responses:
+        '200':
+          description: Página de 0 o 1 cuenta.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/AdminUser' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/LookupRateLimited' }
+
+  /api/v1/admin/users/{id}:
+    get:
+      tags: [Admin]
+      operationId: getAdminUser
+      summary: Detalle de una cuenta con su historial de roles (ADR-0043 §1.5).
+      description: >
+        Correo siempre enmascarado y documento solo por sus 4 últimos caracteres. El historial incluye los roles
+        revocados (`revokedAt`, `revokedBy`). Queda en la bitácora (`ADMIN_USER_DETAIL`). No se almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Detalle de la cuenta.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUserDetail' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /api/v1/admin/link-managers:
     post:
@@ -952,6 +1057,39 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/LinkManagerConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [Admin]
+      operationId: listAdminLinkManagers
+      summary: Gestores de enlace con su asociación y estado, paginados (ADR-0043 §1.3).
+      description: >
+        Nombre, correo, asociación y quién acreditó; nunca documento ni celular. Queda en la bitácora como acceso
+        sensible (`ADMIN_USER_LIST`). No se almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de gestores.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/AdminLinkManager' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/admin/link-managers/{id}/{action}:
@@ -2517,6 +2655,70 @@ components:
         accreditationStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
         accreditedOn: { type: string, format: date }
 
+    AdminUser:
+      type: object
+      description: Cuenta vista por el administrador (ADR-0043 §1). Sin celular, documento completo ni datos de víctima.
+      required: [userId, fullName, email, emailMasked, status, roles]
+      properties:
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, description: En claro si se buscó por correo; enmascarado (`j***@dominio`) si se buscó por documento. }
+        emailMasked: { type: boolean }
+        status: { type: string }
+        roles: { type: array, items: { type: string, example: TOURIST } }
+        hostProfileId: { type: string, format: uuid, nullable: true }
+        linkManagerId: { type: string, format: uuid, nullable: true }
+        linkManagerStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED], nullable: true }
+    AdminUserDetail:
+      type: object
+      required: [userId, fullName, maskedEmail, status, docType, docNumberLast4, roles, roleHistory]
+      properties:
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        maskedEmail: { type: string }
+        status: { type: string }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumberLast4: { type: string, minLength: 1, maxLength: 4 }
+        roles: { type: array, items: { type: string } }
+        hostProfileId: { type: string, format: uuid, nullable: true }
+        linkManagerId: { type: string, format: uuid, nullable: true }
+        linkManagerStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED], nullable: true }
+        roleHistory:
+          type: array
+          items:
+            type: object
+            required: [role]
+            properties:
+              role: { type: string }
+              revokedAt: { type: string, format: date-time, nullable: true }
+              revokedBy: { type: string, format: uuid, nullable: true }
+    AdminLinkManager:
+      type: object
+      required: [linkManagerId, userId, fullName, associationId, accreditationStatus, accreditedOn]
+      properties:
+        linkManagerId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, nullable: true }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string, nullable: true }
+        accreditationStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
+        accreditedByName: { type: string, nullable: true }
+    AdminHost:
+      type: object
+      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, createdAt]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, nullable: true }
+        emailIsSynthetic: { type: boolean }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string, nullable: true }
+        verified: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
     # ---------- Catalog ----------
     PageMeta:
       type: object
@@ -3088,6 +3290,21 @@ components:
             title: Forbidden
             status: 403
             code: RBAC_FORBIDDEN
+            traceId: c4b9-8f21-4d1a
+    LookupRateLimited:
+      description: Se superó el límite de 20 búsquedas de personas por minuto por administrador (ADR-0043 §1).
+      headers:
+        Retry-After:
+          description: Segundos hasta que se reabre la ventana.
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/admin-lookup-rate-limited
+            title: Too Many Lookups
+            status: 429
+            code: ADMIN_LOOKUP_RATE_LIMITED
             traceId: c4b9-8f21-4d1a
     AccountSuspended:
       description: La cuenta está SUSPENDED o ANONYMIZED.

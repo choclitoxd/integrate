@@ -81,6 +81,8 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0040](architecture/adr/ADR-0040-publicar-politica-y-exigir-consentimiento-inicial.md) | Política accesible y consentimiento inicial (H-02) | Aceptado |
 | [0041](architecture/adr/ADR-0041-respaldar-y-restaurar-postgresql.md) | Respaldo externo y restauración de PostgreSQL (H-03) | Aceptado |
 | [0042](architecture/adr/ADR-0042-consola-de-administracion-con-shell-propio.md) | Consola de administración con shell propio (H-09); Fase 1 implementada | Aceptado |
+| [0043](architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) | Consola de administración, Fase 2: Personas, Incidentes y Liquidaciones | Aceptado |
+| [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Propuesto |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 
@@ -91,6 +93,7 @@ El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md
 | [Plan de Gestión de la Calidad v1.10](quality/) | Documento Word del plan (`1.1 Integrate Plan de Gestión de la Calidad del Proyecto v1.10.docx`). |
 | [Matriz de trazabilidad RNF](quality/matriz-trazabilidad-rnf.md) | Relación entre cada RNF, su prueba y su evidencia. |
 | [Evidencias métricas](quality/evidencias-metricas.md) | Informe generado por la suite (no editar a mano). |
+| [Auditoría de TejiendoHogar](quality/auditoria-tejiendohogar.md) | Informe original en PDF y acceso a la matriz de seguimiento. |
 | [Guía de pruebas del ciclo de vida por rol](quality/guion-pruebas-ciclo-de-vida.md) | Prueba manual de cada rol (visitante, turista, administrador, gestor, anfitrión) en computador y celular, con la causa probable de cada error. |
 
 ## Reglas del equipo

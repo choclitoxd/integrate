@@ -57,9 +57,9 @@ Una misma persona puede tener varios roles; en *Mi cuenta* aparecen todos (por e
 | Turista | Explorar y filtrar experiencias, reservar cupos, pagar, recibir el voucher con QR, gestionar sus autorizaciones de datos. | Se registra solo en «Crea una gratis». |
 | Gestor de Enlace | Todo lo del turista, más: enrolar anfitriones de su asociación, emitir códigos de activación y consultar el estado de sus anfitriones. | Lo acredita el Administrador. |
 | Anfitrión comunitario | Activar su cuenta con el código del gestor, ingresar, explorar el catálogo y gestionar sus autorizaciones de datos. | Lo enrola su Gestor de Enlace. |
-| Administrador | Todo lo del turista, más la **consola de administración** (desde un computador): moderar experiencias, confirmar puntos de encuentro, registrar asociaciones y consultar la bitácora de auditoría. | Configurado por el equipo de Intégrate. |
+| Administrador | Todo lo del turista, más la **consola de administración** (desde un computador): moderar experiencias, confirmar puntos de encuentro, registrar asociaciones, convertir personas en anfitriones, acreditar gestores y consultar la bitácora de auditoría. | Configurado por el equipo de Intégrate. |
 
-> El portal propio del Anfitrión (crear experiencias y franjas) todavía no tiene pantallas en la aplicación, y la consola aún no permite convertir personas en anfitriones ni acreditar gestores (se hace por API). Si un rol intenta abrir una sección que no le corresponde, verá «Esta sección no está disponible para tu cuenta» (ver [sección 6](#6-administrador-role_admin)).
+> El portal propio del Anfitrión (crear experiencias y franjas) todavía no tiene pantallas en la aplicación, Si un rol intenta abrir una sección que no le corresponde, verá «Esta sección no está disponible para tu cuenta» (ver [sección 6](#6-administrador-role_admin)).
 
 ## 3. Turista ROLE_TOURIST
 
@@ -295,6 +295,7 @@ La consola está pensada para un **computador**. En un celular o una tablet, `/a
 | **Resumen** | Ver cuántas experiencias esperan revisión, cuántas tienen el punto de encuentro dudoso, cuántas están suspendidas y cuántas asociaciones hay. Verificar la integridad de la bitácora. |
 | **Experiencias** | Filtrar por estado (Por revisar, Publicadas, Suspendidas, Rechazadas, Retiradas, Todas) y abrir la ficha de cada una. Desde la ficha: **Aprobar y publicar**, **Rechazar**, **Suspender**, **Reactivar**, **Retirar** y **Confirmar el punto de encuentro**. |
 | **Asociaciones** | Ver las asociaciones registradas y registrar una nueva (razón social, NIT con dígito de verificación, RNT, tipo, municipio DANE, correo y celular de contacto). |
+| **Personas** | **Buscar a una persona** por correo exacto o por tipo y número de documento exactos; desde el resultado, **Convertir en anfitrión** o **Acreditar como gestor** (eliges la asociación y, para el gestor, la fecha de acreditación). Ver el historial de roles. Dos listas: **Gestores de enlace** (con **Suspender**, **Reactivar** y **Revocar**) y **Anfitriones**. |
 | **Auditoría** | Consultar la bitácora por módulo, acción, severidad y fechas; ver el detalle de cada registro; **Exportar CSV**; **Verificar la cadena**. |
 
 Reglas que conviene saber:
@@ -302,7 +303,11 @@ Reglas que conviene saber:
 - **Rechazar, suspender y retirar piden un motivo.** El anfitrión lo lee y queda en el historial. Retirar no se puede deshacer.
 - **Un punto de encuentro dudoso bloquea la aprobación.** Si las coordenadas no coinciden con la dirección, la consola lo avisa. Confírmalo solo si conoces el lugar; si no, rechaza la experiencia para que el anfitrión lo corrija.
 - **Todo queda registrado.** Cada consulta, exportación y verificación de la bitácora genera a su vez un registro de auditoría.
-- **Aún no tiene pantalla:** convertir a una persona en anfitrión y acreditar, suspender o revocar gestores. Se hace por API (guion de pruebas §6.2 y §6.3).
+- **La búsqueda de personas es exacta.** Escribe el correo o el documento completo: no hay búsqueda parcial ni autocompletado. Al buscar por documento, el correo del resultado sale parcialmente oculto. Las cuentas de anfitriones enrolados por un gestor (con correo interno `@comunidad.integrate.co`) no se encuentran por correo; se encuentran por documento o en la lista de anfitriones.
+- **Hay un límite de 20 búsquedas por minuto.** Si lo superas, la consola te lo dice y debes esperar un momento.
+- **El rol llega al siguiente ingreso.** Tras convertir en anfitrión o acreditar a un gestor, la persona ve su nuevo rol cuando vuelva a ingresar. Al revocar a un gestor, su sesión abierta puede seguir válida hasta 15 minutos.
+- **Revocar no se puede deshacer.** Suspender sí se puede reactivar.
+- **Consultar personas queda registrado.** Cada búsqueda, detalle o lista de personas deja una entrada en la bitácora, sin guardar el correo ni el documento que buscaste.
 
 ### 6.2 Secciones de otros roles
 

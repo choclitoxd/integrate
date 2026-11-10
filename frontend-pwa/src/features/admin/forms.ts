@@ -110,6 +110,35 @@ export function associationServerErrors(
   return errors;
 }
 
+const DOCUMENT = /^[A-Za-z0-9]{4,20}$/;
+
+/** Correo exacto para la búsqueda de personas: `null` si es válido (ADR-0043 §1.1). */
+export function emailSearchProblem(email: string): string | null {
+  const text = email.trim();
+  if (text.length === 0) return 'Escribe el correo completo de la persona.';
+  if (text.length > 254 || !EMAIL.test(text)) {
+    return 'Revisa el correo: debe tener la forma nombre@dominio.co.';
+  }
+  return null;
+}
+
+/** Número de documento exacto para la búsqueda de personas: `null` si es válido. */
+export function documentSearchProblem(document: string): string | null {
+  const text = document.trim();
+  if (text.length === 0) return 'Escribe el número de documento completo.';
+  if (!DOCUMENT.test(text)) {
+    return 'El número de documento lleva entre 4 y 20 letras o dígitos, sin espacios.';
+  }
+  return null;
+}
+
+/** Fecha de acreditación: obligatoria y no futura (`today` es el día civil de Bogotá). */
+export function accreditedOnProblem(date: string, today: string): string | null {
+  if (date === '') return 'Elige la fecha de acreditación.';
+  if (date > today) return 'La fecha de acreditación no puede ser futura.';
+  return null;
+}
+
 export const REASON_MAX = 1000;
 
 /** Motivo obligatorio de rechazo, suspensión o retiro: `null` si es válido. */

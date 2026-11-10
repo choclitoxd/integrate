@@ -117,6 +117,10 @@ const adminAssociationsPage = async () => {
   const { AssociationsPage } = await import('@/features/admin');
   return { Component: AssociationsPage };
 };
+const adminPeoplePage = async () => {
+  const { PeoplePage } = await import('@/features/admin');
+  return { Component: PeoplePage };
+};
 const adminAuditPage = async () => {
   const { AuditPage } = await import('@/features/admin');
   return { Component: AuditPage };
@@ -203,6 +207,7 @@ export const routes: RouteObject[] = [
           { index: true, lazy: adminHomePage },
           { path: 'experiencias', lazy: adminExperiencesPage },
           { path: 'asociaciones', lazy: adminAssociationsPage },
+          { path: 'personas', lazy: adminPeoplePage },
           { path: 'auditoria', lazy: adminAuditPage },
         ],
       },

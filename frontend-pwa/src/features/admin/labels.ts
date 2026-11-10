@@ -68,6 +68,35 @@ export const INTENSITY: Readonly<Record<'LOW' | 'MEDIUM' | 'HIGH', string>> = {
   HIGH: 'Alta',
 };
 
+export const MANAGER_STATUS: Readonly<Record<'ACTIVE' | 'SUSPENDED' | 'REVOKED', Label>> = {
+  ACTIVE: { text: 'Vigente', tone: 'success' },
+  SUSPENDED: { text: 'Suspendido', tone: 'warning' },
+  REVOKED: { text: 'Revocado', tone: 'danger' },
+};
+
+/** Orden de los filtros de gestores; `null` = todos. */
+export const MANAGER_FILTERS: readonly {
+  value: 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | null;
+  text: string;
+}[] = [
+  { value: 'ACTIVE', text: 'Vigentes' },
+  { value: 'SUSPENDED', text: 'Suspendidos' },
+  { value: 'REVOKED', text: 'Revocados' },
+  { value: null, text: 'Todos' },
+];
+
+/** Roles de la API (sin el prefijo `ROLE_`) en palabras del manual. */
+export const ROLE_NAMES: Readonly<Record<string, string>> = {
+  TOURIST: 'Turista',
+  HOST: 'Anfitrión',
+  LINK_MANAGER: 'Gestor de enlace',
+  ADMIN: 'Administrador',
+};
+
+export function roleName(role: string): string {
+  return ROLE_NAMES[role] ?? role;
+}
+
 const INSTANT = new Intl.DateTimeFormat('es-CO', {
   dateStyle: 'short',
   timeStyle: 'medium',

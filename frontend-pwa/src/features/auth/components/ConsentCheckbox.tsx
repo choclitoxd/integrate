@@ -32,7 +32,7 @@ export function ConsentCheckbox({
   return (
     <div>
       <label
-        className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 has-checked:border-brand has-checked:bg-brand-soft ${
+        className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 has-checked:border-brand has-checked:bg-brand-soft has-[:focus-visible]:border-brand ${
           error ? 'border-danger-border' : 'border-border'
         }`}
       >
@@ -45,7 +45,8 @@ export function ConsentCheckbox({
           }}
           aria-describedby={[bodyId, error ? errorId : null].filter(Boolean).join(' ')}
           aria-invalid={error ? true : undefined}
-          className="mt-0.5 size-6 shrink-0 accent-brand"
+          className="mt-0.5 size-6 shrink-0 accent-brand focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+          style={{ outline: 'none', boxShadow: 'none' }}
         />
         <span className="font-semibold text-ink">
           Autorizo el tratamiento de: {copy.title}

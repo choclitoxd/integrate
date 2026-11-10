@@ -18,6 +18,23 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
              order by r.id""")
     List<RoleCode> findActiveRoleCodes(@Param("userId") UUID userId);
 
+    /** Todas las asignaciones del usuario, vigentes y revocadas, en orden de creación (ADR-0043 §1.5). */
+    @Query("""
+            select r.code as code, ur.revokedAt as revokedAt, ur.revokedBy as revokedBy
+              from UserRole ur join Role r on r.id = ur.roleId
+             where ur.userId = :userId
+             order by ur.id""")
+    List<RoleHistoryRow> findHistory(@Param("userId") UUID userId);
+
+    /** Proyección de {@link #findHistory}. */
+    interface RoleHistoryRow {
+        RoleCode getCode();
+
+        java.time.Instant getRevokedAt();
+
+        UUID getRevokedBy();
+    }
+
     @Query("""
             select count(ur) > 0 from UserRole ur join Role r on r.id = ur.roleId
              where r.code = :code and ur.revokedAt is null""")

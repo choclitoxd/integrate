@@ -129,7 +129,7 @@ describe('consola de administración (ADR-0042)', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Resumen', 'Experiencias', 'Asociaciones', 'Auditoría']);
+    ).toEqual(['Resumen', 'Experiencias', 'Asociaciones', 'Personas', 'Auditoría']);
     expect(within(nav).getByRole('link', { name: 'Resumen' })).toHaveAttribute(
       'aria-current',
       'page',

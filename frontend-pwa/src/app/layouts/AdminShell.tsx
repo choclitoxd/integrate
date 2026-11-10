@@ -10,6 +10,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { to: '/admin', label: 'Resumen', icon: 'compass' },
   { to: '/admin/experiencias', label: 'Experiencias', icon: 'mountain' },
   { to: '/admin/asociaciones', label: 'Asociaciones', icon: 'users' },
+  { to: '/admin/personas', label: 'Personas', icon: 'user' },
   { to: '/admin/auditoria', label: 'Auditoría', icon: 'shield' },
 ];
 

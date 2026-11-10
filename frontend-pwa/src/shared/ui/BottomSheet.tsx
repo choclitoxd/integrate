@@ -115,7 +115,7 @@ export function BottomSheet({
         centered
           ? 'sheet sheet-center fixed inset-0 m-auto flex h-fit max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border-2 border-border-subtle shadow-2xl'
           : 'sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl'
-      } bg-surface-elevated p-0 text-ink not-open:hidden backdrop:bg-surface-inverse/60${
+      } bg-surface-elevated p-0 text-ink not-open:hidden focus:outline-none focus:ring-0 focus-visible:outline-none backdrop:bg-surface-inverse/60${
         closing ? ' closing' : ''
       }`}
     >

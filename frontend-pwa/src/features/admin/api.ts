@@ -1,5 +1,6 @@
-import { addDays } from '@/shared/lib';
+import type { DocType } from '@/features/auth';
 import type { HttpClient } from '@/shared/api';
+import { addDays } from '@/shared/lib';
 
 /** DTO de la administración desde `docs/api/openapi.yaml` (ADR-0006, ADR-0030, ADR-0035, ADR-0042). */
 
@@ -213,4 +214,163 @@ export function exportAudit(http: HttpClient, filters: AuditFilters): Promise<Bl
 
 export function verifyAudit(http: HttpClient): Promise<AuditVerification> {
   return http.request<AuditVerification>('/v1/admin/audit/verify');
+}
+
+/* --------------------------------------------------------------------------------- personas (ADR-0043) */
+
+export type LinkManagerStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED';
+
+/** Cuenta encontrada por la búsqueda: sin celular ni documento completo. */
+export interface AdminUser {
+  readonly userId: string;
+  readonly fullName: string;
+  /** En claro si se buscó por correo; enmascarado (`j***@dominio`) si se buscó por documento. */
+  readonly email: string;
+  readonly emailMasked: boolean;
+  readonly status: string;
+  /** Códigos sin prefijo: `TOURIST`, `HOST`, `LINK_MANAGER`, `ADMIN`. */
+  readonly roles: readonly string[];
+  readonly hostProfileId: string | null;
+  readonly linkManagerId: string | null;
+  readonly linkManagerStatus: LinkManagerStatus | null;
+}
+
+export interface RoleHistoryEntry {
+  readonly role: string;
+  readonly revokedAt: string | null;
+  readonly revokedBy: string | null;
+}
+
+export interface AdminUserDetail {
+  readonly userId: string;
+  readonly fullName: string;
+  readonly maskedEmail: string;
+  readonly status: string;
+  readonly docType: DocType;
+  readonly docNumberLast4: string;
+  readonly roles: readonly string[];
+  readonly hostProfileId: string | null;
+  readonly linkManagerId: string | null;
+  readonly linkManagerStatus: LinkManagerStatus | null;
+  readonly roleHistory: readonly RoleHistoryEntry[];
+}
+
+export interface AdminLinkManager {
+  readonly linkManagerId: string;
+  readonly userId: string;
+  readonly fullName: string;
+  readonly email: string | null;
+  readonly associationId: string;
+  readonly associationName: string | null;
+  readonly accreditationStatus: LinkManagerStatus;
+  readonly accreditedOn: string;
+  readonly accreditedByName: string | null;
+}
+
+export interface AdminHost {
+  readonly hostProfileId: string;
+  readonly userId: string;
+  readonly fullName: string;
+  readonly email: string | null;
+  readonly emailIsSynthetic: boolean;
+  readonly associationId: string;
+  readonly associationName: string | null;
+  readonly verified: boolean;
+  readonly createdAt: string;
+}
+
+/** Exactamente un criterio: correo exacto, o tipo y número de documento exactos. */
+export type UserCriterion =
+  | { readonly kind: 'email'; readonly email: string }
+  | { readonly kind: 'document'; readonly docType: DocType; readonly document: string };
+
+export type ManagerAction = 'suspend' | 'reinstate' | 'revoke';
+
+export interface AccreditRequest {
+  readonly userId: string;
+  readonly associationId: string;
+  /** Día civil de Bogotá ("YYYY-MM-DD"); la API rechaza fechas futuras. */
+  readonly accreditedOn: string;
+}
+
+export function searchUsers(http: HttpClient, criterion: UserCriterion): Promise<Page<AdminUser>> {
+  const query =
+    criterion.kind === 'email'
+      ? new URLSearchParams({ email: criterion.email })
+      : new URLSearchParams({ docType: criterion.docType, document: criterion.document });
+  return http.request<Page<AdminUser>>(`/v1/admin/users/search?${query.toString()}`);
+}
+
+export function getUserDetail(
+  http: HttpClient,
+  userId: string,
+  signal?: AbortSignal,
+): Promise<AdminUserDetail> {
+  return http.request<AdminUserDetail>(
+    `/v1/admin/users/${encodeURIComponent(userId)}`,
+    withSignal(signal),
+  );
+}
+
+export function listLinkManagers(
+  http: HttpClient,
+  status: LinkManagerStatus | null,
+  page: number,
+  signal?: AbortSignal,
+): Promise<Page<AdminLinkManager>> {
+  const query = pageQuery(page);
+  if (status) query.set('status', status);
+  return http.request<Page<AdminLinkManager>>(
+    `/v1/admin/link-managers?${query.toString()}`,
+    withSignal(signal),
+  );
+}
+
+export function listHosts(
+  http: HttpClient,
+  associationId: string | null,
+  page: number,
+  signal?: AbortSignal,
+): Promise<Page<AdminHost>> {
+  const query = pageQuery(page);
+  if (associationId) query.set('associationId', associationId);
+  return http.request<Page<AdminHost>>(
+    `/v1/admin/host-profiles?${query.toString()}`,
+    withSignal(signal),
+  );
+}
+
+/** Asociaciones elegibles en los diálogos: la primera página del tamaño máximo (50). */
+export function listAssociationOptions(
+  http: HttpClient,
+  signal?: AbortSignal,
+): Promise<Page<Association>> {
+  return http.request<Page<Association>>(
+    '/v1/admin/associations?page=0&size=50',
+    withSignal(signal),
+  );
+}
+
+export function createHostProfile(
+  http: HttpClient,
+  body: { readonly userId: string; readonly associationId: string },
+): Promise<{ readonly hostProfileId: string; readonly userId: string }> {
+  return http.request('/v1/admin/host-profiles', { method: 'POST', body });
+}
+
+export function accreditLinkManager(
+  http: HttpClient,
+  body: AccreditRequest,
+): Promise<{ readonly linkManagerId: string; readonly accreditationStatus: LinkManagerStatus }> {
+  return http.request('/v1/admin/link-managers', { method: 'POST', body });
+}
+
+export function changeLinkManagerStatus(
+  http: HttpClient,
+  linkManagerId: string,
+  action: ManagerAction,
+): Promise<{ readonly linkManagerId: string; readonly accreditationStatus: LinkManagerStatus }> {
+  return http.request(`/v1/admin/link-managers/${encodeURIComponent(linkManagerId)}/${action}`, {
+    method: 'POST',
+  });
 }

@@ -197,6 +197,13 @@
     box-shadow: none;
   }
 
+  /* Las casillas de verificación y radio usan el acento de marca nativo; no llevan el doble anillo grueso sobre la casilla pequeña */
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
