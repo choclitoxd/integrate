@@ -182,8 +182,15 @@ class AdminPeopleApiIntegrationTest extends PostgresIntegrationTest {
                 "ADMIN_USER_LOOKUP_EMAIL");
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM audit.audit_trail
-                 WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? AND details @> ?::jsonb""", Long.class,
+                 WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? AND details @> ?::jsonb
+                   AND details->>'purpose' <> 'IDENTITY_READ'""", Long.class,
                 adminId, "{\"subjects\":[\"" + userId + "\"]}")).isEqualTo(2);
+        // Cada lectura de identidad que hace la consulta también queda en la bitácora (ADR-0046 §2).
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM audit.audit_trail
+                 WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? AND details->>'purpose' = 'IDENTITY_READ'
+                   AND details @> ?::jsonb""", Long.class,
+                adminId, "{\"subjects\":[\"" + userId + "\"]}")).isGreaterThanOrEqualTo(2);
         // Ni el correo ni el documento buscados quedan escritos.
         String trail = jdbc.queryForObject("""
                 SELECT string_agg(details::text, ' ') FROM audit.audit_trail
@@ -280,10 +287,12 @@ class AdminPeopleApiIntegrationTest extends PostgresIntegrationTest {
 
     // ---------------------------------------------------------------- fixtures
 
+    /** Finalidades de las consultas del administrador; las lecturas de identidad (IDENTITY_READ) van aparte. */
     private List<String> purposes() {
         return jdbc.queryForList("""
                 SELECT details->>'purpose' FROM audit.audit_trail
-                 WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? ORDER BY id""", String.class, adminId);
+                 WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? AND details->>'purpose' <> 'IDENTITY_READ'
+                 ORDER BY id""", String.class, adminId);
     }
 
     private UUID createAssociation() throws Exception {

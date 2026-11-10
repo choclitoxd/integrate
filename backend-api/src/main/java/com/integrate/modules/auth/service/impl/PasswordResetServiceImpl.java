@@ -79,11 +79,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw invalid();
         }
         Instant now = clock.instant();
-        PasswordResetToken reset = tokenRepository.findByTokenSha256ForUpdate(RefreshTokenCodec.sha256Hex(token.strip()))
+        String hash = RefreshTokenCodec.sha256Hex(token.strip());
+        java.util.UUID ownerId = tokenRepository.findUserIdByTokenHash(hash).orElseThrow(PasswordResetServiceImpl::invalid);
+        User user = userRepository.findByIdForUpdate(ownerId)
+                .filter(PasswordResetServiceImpl::canRecoverByEmail).orElseThrow(PasswordResetServiceImpl::invalid);
+        PasswordResetToken reset = tokenRepository.findByTokenSha256ForUpdate(hash)
                 .filter(t -> t.isUsableAt(now))
-                .orElseThrow(PasswordResetServiceImpl::invalid);
-        User user = userRepository.findByIdForUpdate(reset.getUserId())
-                .filter(PasswordResetServiceImpl::canRecoverByEmail)
                 .orElseThrow(PasswordResetServiceImpl::invalid);
 
         user.resetCredentials(passwordEncoder.encode(newPassword));

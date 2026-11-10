@@ -22,34 +22,35 @@ public class UserDirectoryImpl implements UserDirectory {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final IdentityProtection identityProtection;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Map<UUID, UserSummary> findSummaries(Collection<UUID> userIds) {
         if (userIds.isEmpty()) {
             return Map.of();
         }
         return userRepository.findAllById(userIds).stream()
-                .map(u -> new UserSummary(u.getId(), u.getFullName(), u.getEmail(), u.getPhone(), u.getDocType(),
-                        u.getDocNumber(), u.getCredentialStatus()))
+                .map(u -> new UserSummary(u.getId(), u.getFullName(), u.getEmail(), identityProtection.readPhone(u),
+                        u.getDocType(), identityProtection.readDocument(u), u.getCredentialStatus()))
                 .collect(Collectors.toMap(UserSummary::userId, Function.identity()));
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<AccountView> findAccountByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email).filter(u -> !u.isClosed()).map(this::view);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<AccountView> findAccountByDocument(DocType docType, String docNumber) {
-        return userRepository.findByDocTypeAndDocNumber(docType, docNumber).filter(u -> !u.isClosed())
+        return identityProtection.findByDocument(docType, docNumber).filter(u -> !u.isClosed())
                 .map(this::view);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<AccountView> findAccount(UUID userId) {
         return userRepository.findById(userId).filter(u -> !u.isClosed()).map(this::view);
     }
@@ -64,6 +65,7 @@ public class UserDirectoryImpl implements UserDirectory {
 
     private AccountView view(User user) {
         return new AccountView(user.getId(), user.getFullName(), user.getEmail(), user.getDocType(),
-                user.getDocNumber(), user.getStatus().name(), userRoleRepository.findActiveRoleCodes(user.getId()));
+                identityProtection.readDocument(user), user.getStatus().name(),
+                userRoleRepository.findActiveRoleCodes(user.getId()));
     }
 }

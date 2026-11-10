@@ -1,6 +1,5 @@
 package com.integrate.modules.auth.repository;
 
-import com.integrate.modules.auth.entity.DocType;
 import com.integrate.modules.auth.entity.User;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
@@ -17,10 +16,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    /** Búsqueda exacta por la restricción {@code uq_users_document} (consulta de personas, ADR-0043 §1). */
-    Optional<User> findByDocTypeAndDocNumber(DocType docType, String docNumber);
-
-    boolean existsByDocTypeAndDocNumber(DocType docType, String docNumber);
+    Optional<User> findByDocumentIndex(byte[] documentIndex);
 
     /** {@code SELECT … FOR UPDATE}: serializa los intentos de login concurrentes sobre la misma cuenta. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

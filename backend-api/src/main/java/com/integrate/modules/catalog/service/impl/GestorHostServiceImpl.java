@@ -42,7 +42,8 @@ public class GestorHostServiceImpl implements GestorHostService {
     private final CredentialActivationService activationService;
 
     @Override
-    @Transactional(readOnly = true)
+    // Sin readOnly: la lectura de datos de contacto registra acceso sensible en la bitácora (ADR-0046 §2).
+    @Transactional
     public PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, Pageable pageable) {
         LinkManagerProfile manager = linkManagers.requireActive(managerUserId);
         Page<HostManagerAssignment> assignments = assignmentRepository.findByManagerIdAndValidToIsNull(manager.getId(),

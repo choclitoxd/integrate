@@ -84,6 +84,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0043](architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) | Consola de administración, Fase 2: Personas, Incidentes y Liquidaciones | Aceptado |
 | [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Aceptado |
 | [0045](architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) | Completar Incidentes y Liquidaciones, corregir la navegación móvil y validar la consola | Aceptado |
+| [0046](architecture/adr/ADR-0046-cifrar-identidad-y-gestionar-cuenta-propia.md) | Completar la protección de identidad y gestionar la cuenta propia | Propuesto |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 

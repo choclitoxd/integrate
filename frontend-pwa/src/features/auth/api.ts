@@ -57,3 +57,23 @@ export function getMyConsents(http: HttpClient, signal?: AbortSignal): Promise<C
 export function grantConsents(http: HttpClient, body: ConsentAcceptance): Promise<ConsentStatus> {
   return http.request<ConsentStatus>('/v1/me/consents', { method: 'POST', body });
 }
+
+export interface AccountProfile {
+  readonly fullName: string;
+  readonly phone: string;
+}
+export function getAccountProfile(http: HttpClient, signal?: AbortSignal): Promise<AccountProfile> {
+  return http.request('/v1/auth/me', signal ? { signal } : {});
+}
+export function updateAccountProfile(
+  http: HttpClient,
+  body: AccountProfile,
+): Promise<AccountProfile> {
+  return http.request('/v1/auth/me', { method: 'PATCH', body });
+}
+export function changePassword(
+  http: HttpClient,
+  body: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  return http.request('/v1/auth/me/password', { method: 'POST', body });
+}

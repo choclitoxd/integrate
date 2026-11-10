@@ -15,6 +15,12 @@
 --     -v ON_ERROR_STOP=1 -v pwhash='<hash argon2id>' < infra/postgres/seed/dev_test_data.sql
 -- =============================================================================
 \set ON_ERROR_STOP on
+-- ADR-0046: esta semilla inserta documento y celular en claro en auth.users.
+-- Solo se ejecuta con -v allow_legacy_identity_seed=1, antes del relleno en bases de ensayo.
+\if :{?allow_legacy_identity_seed}
+\else
+DO $$ BEGIN RAISE EXCEPTION 'Semilla bloqueada (ADR-0046): use -v allow_legacy_identity_seed=1 solo en bases de ensayo antes del relleno'; END $$;
+\endif
 BEGIN;
 
 -- Con replica se omiten los triggers de solo-inserción (trg_forbid_truncate) y las FK.

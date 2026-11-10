@@ -14,6 +14,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 
+    @Query("select t.userId from RefreshToken t where t.tokenSha256 = :hash")
+    Optional<UUID> findUserIdByTokenHash(@Param("hash") String hash);
+
     /** {@code SELECT … FOR UPDATE}: dos rotaciones simultáneas del mismo token se serializan. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from RefreshToken t where t.tokenSha256 = :hash")

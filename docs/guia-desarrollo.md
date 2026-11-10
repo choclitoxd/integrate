@@ -136,11 +136,14 @@ comparten la contraseña de prueba guardada en `infra/env/.env.test-users` (igno
 
    ```bash
    docker exec -i integrate-postgres psql -U postgres -d integrate \
-     -v ON_ERROR_STOP=1 -v pwhash='<hash argon2id>' < infra/postgres/seed/dev_test_data.sql
+     -v ON_ERROR_STOP=1 -v pwhash='<hash argon2id>' -v allow_legacy_identity_seed=1 < infra/postgres/seed/dev_test_data.sql
    ```
 
    En PowerShell, sustituya la redirección `<` por
    `Get-Content infra/postgres/seed/dev_test_data.sql -Raw | docker exec -i integrate-postgres psql ...`.
+
+   La semilla inserta documento y celular en claro (ADR-0046). Sin `-v allow_legacy_identity_seed=1` se
+   bloquea; úsela solo en bases de ensayo antes del relleno de identidad, nunca tras el corte.
 
 Cuentas creadas: `turista1…3@ejemplo.com`, `gestor1@ejemplo.com`, `gestor2@ejemplo.com`,
 `anfitrion1…3@ejemplo.com` y `admin@ejemplo.com`. Qué puede hacer cada una: [manual de usuario](manual/README.md).

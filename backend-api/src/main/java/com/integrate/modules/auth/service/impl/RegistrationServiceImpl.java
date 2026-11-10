@@ -28,6 +28,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final IdentityWriter identityWriter;
+    private final IdentityProtection identityProtection;
     private final ConsentLedger consentLedger;
     private final PasswordEncoder passwordEncoder;
 
@@ -45,7 +46,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         String email = Emails.normalize(request.email());
         if (userRepository.existsByEmailIgnoreCase(email)
-                || userRepository.existsByDocTypeAndDocNumber(request.docType(), request.docNumber())) {
+                || identityProtection.documentExists(request.docType(), request.docNumber())) {
             throw AuthErrors.userAlreadyExists();
         }
         User user = identityWriter.persist(User.register(email, passwordEncoder.encode(request.password()), fullName,
@@ -63,7 +64,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         PasswordPolicy.check(command.password(), "BOOTSTRAP_ADMIN_PASSWORD");
         String email = Emails.normalize(command.email());
         if (userRepository.existsByEmailIgnoreCase(email)
-                || userRepository.existsByDocTypeAndDocNumber(command.docType(), command.docNumber())) {
+                || identityProtection.documentExists(command.docType(), command.docNumber())) {
             return BootstrapOutcome.IDENTITY_TAKEN;
         }
         identityWriter.persist(User.register(email, passwordEncoder.encode(command.password()),

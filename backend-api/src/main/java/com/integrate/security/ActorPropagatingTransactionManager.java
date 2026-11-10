@@ -41,7 +41,8 @@ public class ActorPropagatingTransactionManager extends JpaTransactionManager {
         }
     }
 
-    static UUID currentActor() {
+    /** Usuario autenticado de la petición, o {@code null} si no hay ninguno (procesos del sistema). */
+    public static UUID currentActor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof JwtAuthenticationToken token) || !token.isAuthenticated()) {
             return null;

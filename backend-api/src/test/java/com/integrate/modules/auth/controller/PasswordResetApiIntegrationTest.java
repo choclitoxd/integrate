@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import com.jayway.jsonpath.JsonPath;
+import org.springframework.http.HttpHeaders;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,6 +197,37 @@ class PasswordResetApiIntegrationTest extends PostgresIntegrationTest {
                         .content("{\"newPassword\":\"" + NEW_PASSWORD + "\"}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.invalidParams[0].name").value("token"));
+    }
+
+    @Test
+    void resetAndOwnPasswordChangeSerialize() throws Exception {
+        String email = registered(uniqueEmail("carrera"));
+        String body = login(email, PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String bearer = JsonPath.read(body, "$.accessToken");
+        forgot(email).andExpect(status().isAccepted());
+        String resetToken = tokenFromOutbox(email);
+        String ownPassword = "clave-propia-" + UUID.randomUUID();
+        CountDownLatch start = new CountDownLatch(1);
+        CompletableFuture<Integer> reset = CompletableFuture.supplyAsync(() -> {
+            try { start.await(); return reset(resetToken, NEW_PASSWORD).andReturn().getResponse().getStatus(); }
+            catch (Exception ex) { throw new RuntimeException(ex); }
+        });
+        CompletableFuture<Integer> change = CompletableFuture.supplyAsync(() -> {
+            try {
+                start.await();
+                return mvc.perform(post("/api/v1/auth/me/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + ownPassword + "\"}"))
+                        .andReturn().getResponse().getStatus();
+            } catch (Exception ex) { throw new RuntimeException(ex); }
+        });
+        start.countDown();
+        int resetStatus = reset.get(30, TimeUnit.SECONDS);
+        int changeStatus = change.get(30, TimeUnit.SECONDS);
+        assertThat(resetStatus == 204 ^ changeStatus == 204).isTrue();
+        assertThat(resetStatus).isIn(204, 401);
+        assertThat(changeStatus).isIn(204, 422);
+        login(email, resetStatus == 204 ? NEW_PASSWORD : ownPassword).andExpect(status().isOk());
     }
 
     // ---------------------------------------------------------------- fixtures

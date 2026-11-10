@@ -40,6 +40,7 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
 
     private final UserRepository userRepository;
     private final IdentityWriter identityWriter;
+    private final IdentityProtection identityProtection;
     private final ConsentLedger consentLedger;
     private final PasswordEncoder passwordEncoder;
 
@@ -61,7 +62,7 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
         boolean synthetic = account.email() == null || account.email().isBlank();
         String email = synthetic ? newSyntheticEmail() : Emails.normalize(account.email());
         if (userRepository.existsByEmailIgnoreCase(email)
-                || userRepository.existsByDocTypeAndDocNumber(account.docType(), account.docNumber())) {
+                || identityProtection.documentExists(account.docType(), account.docNumber())) {
             throw AuthErrors.userAlreadyExists();
         }
         User user = identityWriter.persist(User.registerPendingReset(email, passwordEncoder.encode(unusableSecret()),

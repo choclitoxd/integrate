@@ -39,7 +39,12 @@ const TRACE_ID_HEADER = 'X-Trace-Id';
  * reintentar gastaría intentos. La excepción es el enrolamiento asistido, que va con el token del gestor.
  */
 function renewsOnUnauthorized(path: string): boolean {
-  return !path.startsWith('/v1/auth/') || path === '/v1/auth/register-assisted';
+  return (
+    !path.startsWith('/v1/auth/') ||
+    path === '/v1/auth/register-assisted' ||
+    path === '/v1/auth/me' ||
+    path === '/v1/auth/me/password'
+  );
 }
 
 function isJson(contentType: string | null): boolean {

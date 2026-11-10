@@ -47,6 +47,8 @@ export interface SessionStore {
   readonly restore: () => Promise<void>;
   readonly signIn: (credentials: Credentials) => Promise<SessionUser>;
   readonly signOut: () => Promise<void>;
+  readonly finishPasswordChange: () => Promise<boolean>;
+  readonly updateFullName: (fullName: string) => void;
   /** El titular aceptó las finalidades pendientes. */
   readonly consentCompleted: () => void;
   /** Adopta una respuesta de login o refresh ya validada (también usado por las pruebas). */
@@ -152,6 +154,7 @@ export function createSessionStore({
 }: SessionStoreOptions): SessionStore {
   let state: SessionState = { status: initialStatus };
   let accessToken: string | null = null;
+  let generation = 0;
   let expiresAt = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let inFlight: Promise<string | null> | null = null;
@@ -168,6 +171,7 @@ export function createSessionStore({
   }
 
   function clear(broadcast: boolean) {
+    generation += 1;
     clearTimeout(timer);
     accessToken = null;
     expiresAt = 0;
@@ -222,12 +226,15 @@ export function createSessionStore({
     getAccessToken: () => accessToken,
 
     refresh() {
+      const currentGeneration = generation;
       inFlight ??= withLock(async () => {
         try {
           const response = await exchange('/v1/auth/refresh');
+          if (generation !== currentGeneration) return null;
           adopt(response);
           return response.accessToken;
         } catch (error) {
+          if (generation !== currentGeneration) return null;
           // Cookie inválida, vencida o cuenta suspendida: la sesión terminó. Un fallo de red no la cierra.
           if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
             clear(false);
@@ -273,6 +280,23 @@ export function createSessionStore({
       clear(true);
     },
 
+    async finishPasswordChange() {
+      clear(true);
+      try {
+        await onBeforeSignOut();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    updateFullName(fullName) {
+      if (state.status === 'authenticated') {
+        generation += 1;
+        const user = { ...state.user, fullName };
+        saveOfflineSessionUser(user, now());
+        setState({ ...state, user });
+      }
+    },
     consentCompleted() {
       if (state.status === 'authenticated') setState({ ...state, consentUpdate: null });
     },

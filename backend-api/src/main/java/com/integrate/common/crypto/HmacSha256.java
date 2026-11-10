@@ -14,6 +14,17 @@ public final class HmacSha256 {
     private HmacSha256() {
     }
 
+    /** HMAC-SHA256 en bytes, para índices ciegos (ADR-0046 §2). La clave nunca se devuelve ni se registra. */
+    public static byte[] mac(byte[] key, byte[] message) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            return mac.doFinal(message);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("HmacSHA256 is mandatory in every JRE", e);
+        }
+    }
+
     public static String hex(byte[] key, byte[] message) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");

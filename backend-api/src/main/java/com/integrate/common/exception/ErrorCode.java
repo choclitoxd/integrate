@@ -23,6 +23,7 @@ public enum ErrorCode {
     IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "idempotency-key-reused", "Idempotency Key Reused"),
 
     // --- Auth ----------------------------------------------------------------
+    AUTH_PASSWORD_CHANGE_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "password-change-rate-limited", "Too Many Attempts"),
     AUTH_INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "invalid-credentials", "Invalid Credentials"),
     AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "authentication-required", "Authentication Required"),
     AUTH_REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "refresh-token-invalid", "Refresh Token Invalid"),

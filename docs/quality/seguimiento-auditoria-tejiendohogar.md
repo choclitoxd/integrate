@@ -2,7 +2,7 @@
 
 **Última actualización:** 10 de noviembre de 2026. **Fuente:** [informe original](auditoria-tejiendohogar.md).
 
-Esta revisión contrasta las recomendaciones del informe con los ADR, los entregables disponibles y los archivos de implementación y pruebas del proyecto. Las ejecuciones citadas son evidencias históricas. La validación de la aplicación queda para la etapa descrita al final.
+Esta revisión contrasta las recomendaciones del informe con los ADR, los entregables disponibles y los archivos de implementación y pruebas del proyecto. Las ejecuciones citadas son evidencias históricas vinculadas a su versión y entorno. La evaluación en el despliegue y en un celular físico sigue pendiente donde se indica.
 
 ## Cómo actualizar el seguimiento
 
@@ -13,7 +13,9 @@ Esta revisión contrasta las recomendaciones del informe con los ADR, los entreg
 
 **Parcial** indica que existe una decisión, corrección o evidencia para una parte del hallazgo. **Abierto** indica que el criterio sigue pendiente. **Por confirmar** indica que falta identificar la versión oficial del entregable o conseguir evidencia suficiente.
 
-## Auditoría documental inicial
+## Estado de los hallazgos
+
+El corte conserva **9 parciales, 9 abiertos y 2 por confirmar**. Ningún hallazgo se cierra por la sola existencia de un ADR o una prueba automatizada.
 
 | ID | Prioridad | Estado | Evidencia revisada y brecha | Criterio de cierre |
 |---|---|---|---|---|
@@ -25,7 +27,7 @@ Esta revisión contrasta las recomendaciones del informe con los ADR, los entreg
 | H-06 | Alta | Abierto | El [protocolo Git](../rules/git-workflow.md) define revisiones y controles. No se encontró un directorio local `.github/workflows` en el árbol revisado. La protección de ramas queda por verificar. | Presentar una ejecución de CI con compilación, pruebas, cobertura y escaneo de secretos. Adjuntar evidencia de protección de rama y un PR revisado por otra persona. |
 | H-07 | Alta | Abierto | El [build de la PWA](../../frontend-pwa/vite.config.ts) conserva `sourcemap: true` para el cliente. No se encontró un archivo `_headers` en el frontend revisado. La [auditoría propia](auditoria-procesos-1-y-2-2026-10-27.md) contiene hallazgos relacionados. | Validar el artefacto desplegado sin mapas de código públicos y comprobar CSP, HSTS y protección contra enmarcado. Revisar el cierre de los hallazgos altos relacionados. |
 | H-08 | Alta | Parcial | Hay [script de cuentas de prueba](../../infra/scripts/crear-testers.py) y [guion por rol](guion-pruebas-ciclo-de-vida.md). Esos archivos no demuestran franjas disponibles ni credenciales vigentes para todos los roles en el entorno. | Validar las cuentas en `pruebas` y completar catálogo → franja → reserva → pago simulado → voucher. Documentar cómo reponer los datos sintéticos. |
-| H-09 | Alta | Parcial | El [ADR-0044](../architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) enmienda los ADR-0042 y ADR-0043. El [layout](../../frontend-pwa/src/app/layouts/AdminLayout.tsx) usa AppShell y las [rutas](../../frontend-pwa/src/app/routes.tsx) incluyen Resumen, Experiencias, Asociaciones, Personas y Auditoría. La [suite de administración](../../frontend-pwa/src/features/admin/admin.test.tsx) comprueba menú exclusivo, redirección, Mi cuenta y ambos factores de forma. Incidentes y Liquidaciones quedan para las etapas correspondientes del ADR-0043. | Validar los recorridos administrativos con sesión real en Chrome de escritorio y celular físico. Completar o documentar el alcance de anfitrión, cancelación, edición de perfil y actualización de «Mis experiencias» tras el pago. |
+| H-09 | Alta | Parcial | Los [ADR-0044](../architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) y [ADR-0045](../architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) están aceptados. En el árbol local existen [rutas](../../frontend-pwa/src/app/routes.tsx), controladores y pantallas de Incidentes y Liquidaciones. La [evaluación del administrador](evaluacion-administrador.md) registra pruebas locales, Chrome headless y resultados con simulador. La inspección de `pruebas` detallada abajo es anterior a esa implementación local. | Verificar la versión desplegada con sesiones reales y celular físico. Completar los casos pendientes de la evaluación, incluidos descarte y carrera de conciliación. Verificar anfitrión, cancelación, edición de perfil y actualización de «Mis experiencias» tras el pago. |
 | H-10 | Media | Abierto | Hay [configuración de aplicación y logging](../../backend-api/src/main/resources/application.yml). En el material revisado faltan pruebas de disponibilidad, alertas y un registro operativo de incidentes. | Verificar un chequeo público de salud acotado, logs JSON con trazabilidad, alerta por caída y registro de un incidente de prueba. |
 | H-11 | Media | Por confirmar | Se localizaron dos copias de la Definición en Descargas y referencias a Bizagi. El [estado del proyecto](../status/PROJECT_STATUS.md) ofrece una base para alinear el cronograma. Falta identificar el archivo oficial y verificar los BPMN adjuntos. | Confirmar versión oficial con cronograma, BPMN, aprobación y revisión de plantilla. |
 | H-12 | Media | Abierto | El [informe generado](evidencias-metricas.md) está fechado el 11 de octubre de 2026 y aún tiene RNF marcados «Pendiente Fase 2». El [estado del proyecto](../status/PROJECT_STATUS.md) ya registra avances posteriores. | Regenerar la evidencia sobre el commit de entrega y alinear PGCP §5, matriz de trazabilidad y estado del proyecto con los resultados. |
@@ -43,7 +45,7 @@ Los archivos de Descargas se usaron como copias de trabajo. La revisión de text
 ## Orden de trabajo
 
 1. Avanzar en paralelo en H-01, H-02 y H-03. Sus cierres dependen del corte de identidad, la política aprobada y el simulacro externo, respectivamente.
-2. Preparar una versión verificable de `pruebas` para H-07 a H-09. Cargar datos sintéticos y dejar identificada la versión antes de probar. Usar el ADR-0044 como criterio de navegación administrativa y el ADR-0043 para el alcance funcional de la fase 2.
+2. Preparar una versión verificable de `pruebas` para H-07 a H-09. Cargar datos sintéticos y dejar identificada la versión antes de probar. Usar los ADR-0044 y ADR-0045 para la navegación y la evaluación administrativa.
 3. Alinear los entregables y la evidencia de revisión. Priorizar H-04 a H-06 antes de la entrega y registrar los ajustes de H-11, H-15 y H-17 a H-20.
 4. Ejecutar la auditoría de aplicación y publicar resultados de calidad, aceptación y rendimiento para H-10, H-12 a H-14 y H-16.
 
@@ -56,10 +58,26 @@ Agrega una fila por cambio o validación. El estado actual de cada hallazgo se a
 | 2026-11-09 | H-01 a H-20 | Por asignar por hallazgo | Línea base de auditoría documental | Matriz anterior | Asignar responsables y acordar fechas de cierre |
 | 2026-11-10 | H-09 | Por asignar | Revisión del ADR-0044 y comprobación automatizada de administración, Personas y rutas. Pasaron 44 de 44 pruebas en tres archivos. | [Administración](../../frontend-pwa/src/features/admin/admin.test.tsx), [Personas](../../frontend-pwa/src/features/admin/people.test.tsx) y [rutas](../../frontend-pwa/src/app/routes.test.tsx) | Probar en Chrome con sesión real y celular físico. Alinear FE-DIR-001, que todavía describe el aviso móvil anterior. |
 | 2026-11-10 | H-09 | Por asignar | Inspección de la consola desplegada en `pruebas` con cuenta QA y Chrome. | Resultados de la consola en la sección siguiente. | Corregir el ancho en móvil e implementar Incidentes y Liquidaciones. |
+| 2026-11-10 | H-09 | Por asignar | Contraste del ADR-0045 aceptado con las rutas y la evaluación local. La evaluación registra 346 pruebas de backend sin fallos y 334 pruebas de PWA aprobadas, más un fallo esperado. | [Evaluación del administrador](evaluacion-administrador.md), versión local basada en `c94bb42` con cambios en el área de trabajo. | Identificar la versión desplegada y repetir los recorridos pendientes con sesiones reales y celular físico. |
+| 2026-11-10 | H-09 · Cuentas | Por asignar | Revisión de Mi cuenta, el índice de endpoints y el alcance del ADR-0043. | [AccountPage](../../frontend-pwa/src/features/auth/pages/AccountPage.tsx), [índice de endpoints](../api/endpoints-index.md) y [ADR-0043 §1](../architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md). | Definir e implementar la edición de cuenta propia y decidir el alcance de la edición por el administrador. |
+
+## H-09 · Edición de cuentas
+
+El informe de TejiendoHogar señala que **Mi cuenta** no permite editar nombre, teléfono ni contraseña y recomienda priorizar la edición del perfil. En el código revisado, [Mi cuenta](../../frontend-pwa/src/features/auth/pages/AccountPage.tsx) muestra nombre, correo, roles y autorizaciones, y ofrece cierre de sesión. No presenta controles para editar esos datos ni cambiar la contraseña. El [índice de endpoints](../api/endpoints-index.md) incluye recuperación y restablecimiento de contraseña, sin una operación de edición de perfil o cambio de contraseña autenticado.
+
+| Alcance | Estado | Trabajo y evidencia de cierre |
+|---|---|---|
+| Cuenta propia · nombre y teléfono | Pendiente | Definir el contrato de lectura y modificación, implementar las operaciones necesarias y los formularios por rol. Comprobar validaciones, persistencia tras recargar, errores y uso en celular y computador. Coordinar el teléfono con el cifrado y la migración de H-01. |
+| Cuenta propia · contraseña | Pendiente | Definir e implementar el cambio autenticado y su interfaz, incluida la verificación de identidad, la política de contraseñas y el tratamiento de sesiones. Probar contraseña actual incorrecta, nueva clave inválida, éxito e ingreso posterior. La recuperación de contraseña existente es un flujo distinto. |
+| Edición de otra cuenta por administrador | Por definir | Decidir si se necesita, qué campos puede editar y con qué permisos y trazabilidad. El [ADR-0043 §1](../architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) dejó fuera la edición de datos personales. La auditoría solicita edición en Mi cuenta y no especifica que el administrador modifique datos de terceros. |
+
+La edición del perfil sigue incluida en el criterio de cierre de H-09. Los ADR de la consola cubrieron la consulta de personas y la gestión de acreditaciones, mientras que el ADR-0043 excluyó la edición de sus datos personales. Los archivos revisados no documentan por qué quedó pendiente la edición de la cuenta propia. Antes de implementar cambios de backend se debe documentar y aceptar la decisión arquitectónica conforme al flujo del proyecto.
+
+El [ADR-0046 propuesto](../architecture/adr/ADR-0046-cifrar-identidad-y-gestionar-cuenta-propia.md) detalla la protección pendiente de identidad de H-01 y propone la edición de la cuenta propia de H-09. Ambos hallazgos conservan su estado hasta completar las verificaciones correspondientes.
 
 ## Revisión de la consola administrativa en pruebas
 
-Chrome a 1440 px y emulación móvil a 390 y 320 px. Se inició sesión con una cuenta QA, se recorrieron pantallas y se comprobó la lectura de datos. Quedan pendientes las mutaciones, las pruebas con otros roles y la validación en un teléfono físico.
+Revisión del 10 de noviembre, anterior a la evaluación local del ADR-0045. Chrome a 1440 px y emulación móvil a 390 y 320 px. Se inició sesión con una cuenta QA, se recorrieron pantallas y se comprobó la lectura de datos. Estos resultados describen aquella versión desplegada.
 
 | Caso | Estado | Resultado y efecto |
 |---|---|---|
@@ -71,7 +89,7 @@ Chrome a 1440 px y emulación móvil a 390 y 320 px. Se inició sesión con una 
 
 **H-09 permanece parcial.** En el primer recorrido una navegación directa devolvió el formulario de ingreso. La renovación por HTTP y la recarga en Chrome del recorrido posterior devolvieron 200. La pérdida de sesión queda por reproducir antes de asignarle una causa.
 
-El [ADR-0045 aceptado](../architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) reúne las correcciones de la consola y sus pruebas de aceptación. Los resultados de esta revisión siguen siendo la línea base.
+El [ADR-0045 aceptado](../architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) reúne las correcciones de la consola y sus pruebas de aceptación. Los resultados anteriores son la línea base para contrastar una versión desplegada posterior.
 
 La [evaluación del administrador](evaluacion-administrador.md) registra la implementación local del ADR-0045 y distingue las verificaciones automatizadas de los recorridos con una sesión real y un celular físico.
 
