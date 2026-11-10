@@ -172,6 +172,31 @@
     box-shadow: 0 0 0 6px var(--color-focus-halo);
   }
 
+  /*
+   * Casillas y radios: el doble anillo no se suprime, se traslada a la etiqueta que los envuelve, que
+   * es el área táctil completa (FE-DIR-001, Directiva 2.3). Una casilla sin etiqueta que la envuelva
+   * conserva su propio anillo.
+   */
+  label:has(input:is([type='checkbox'], [type='radio']):focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 0;
+    box-shadow: 0 0 0 6px var(--color-focus-halo);
+  }
+
+  label input:is([type='checkbox'], [type='radio']):focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /*
+   * La hoja recibe el foco al abrirse para que ningún control arranque marcado. Es un contenedor no
+   * interactivo (tabindex=-1, fuera del orden de tabulación): no lleva anillo. Sus controles sí.
+   */
+  dialog.sheet:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

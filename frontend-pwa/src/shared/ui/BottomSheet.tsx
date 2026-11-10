@@ -47,6 +47,7 @@ export function BottomSheet({
     if (open && !dialog.open) {
       setClosing(false);
       dialog.showModal();
+      dialog.focus();
     }
     if (!open && dialog.open) {
       // Cierre pedido por el padre: no es una decisión del usuario y no debe disparar onClose.
@@ -91,6 +92,7 @@ export function BottomSheet({
   return (
     <dialog
       ref={dialogRef}
+      tabIndex={-1}
       aria-labelledby={titleId}
       onAnimationEnd={handleAnimationEnd}
       onClose={() => {
@@ -130,8 +132,7 @@ export function BottomSheet({
                 type="button"
                 onClick={requestClose}
                 aria-label="Cerrar"
-                className="inline-flex size-11 items-center justify-center border-0 border-none bg-transparent text-ink hover:opacity-70 active:opacity-50 focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
-                style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                className="inline-flex size-11 items-center justify-center rounded-lg border-0 bg-transparent text-ink hover:opacity-70 active:opacity-50"
               >
                 <Icon name="close" size={22} />
               </button>
