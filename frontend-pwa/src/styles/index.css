@@ -92,7 +92,7 @@
   }
 
   /* Hoja inferior (ADR-0012 §6): entrada y salida animadas; la regla de movimiento reducido la anula. */
-  dialog.sheet[open] {
+  dialog.sheet:not(.sheet-center)[open] {
     animation: sheet-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -100,7 +100,7 @@
     animation: backdrop-in 200ms ease-out;
   }
 
-  dialog.sheet.closing {
+  dialog.sheet.closing:not(.sheet-center) {
     animation: sheet-out 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     pointer-events: none;
   }
@@ -110,12 +110,15 @@
   }
 
   /* En computador la hoja es un diálogo centrado: aparece con un fundido corto, sin subir desde abajo. */
+  dialog.sheet.sheet-center[open],
   dialog.sheet-center[open] {
     animation: dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  dialog.sheet.sheet-center.closing,
   dialog.sheet-center.closing {
     animation: dialog-out 200ms ease-in forwards;
+    pointer-events: none;
   }
 
   @keyframes dialog-in {

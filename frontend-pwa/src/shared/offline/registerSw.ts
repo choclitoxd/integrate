@@ -36,6 +36,28 @@ export async function registerServiceWorker(
   try {
     const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
 
+    // Cuando hay un nuevo Service Worker esperando, pedirle que salte la espera para actualizar
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+
+    registration.addEventListener('updatefound', () => {
+      const installing = registration.installing;
+      if (!installing) return;
+      installing.addEventListener('statechange', () => {
+        if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+          installing.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+    });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
     if (options.onSyncRequested) {
       navigator.serviceWorker.addEventListener('message', (event: MessageEvent<unknown>) => {
         const data = event.data as Partial<SwBroadcastMessage> | null;
