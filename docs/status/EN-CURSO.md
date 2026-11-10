@@ -15,6 +15,6 @@ Este archivo evita que dos cambios choquen en los mismos archivos. Se lee **ante
 | :--- | :--- | :--- | :--- | :--- |
 | Equipo de Desarrollo | `frontend-pwa/src/features/admin/*`, `backend-api/` y `docs/` | ADR-0047 y ADR-0048: Edición administrativa de experiencias/asociaciones, altas de usuarios/experiencias y listado por roles | 2026-11-10 16:44 | Terminado (ADR-0048 completado y verificado) |
 | Sin identificar | `docs/manual/*`, `frontend-pwa/public/manual*`, `ADR-0027`, `ADR-0028`, `.github/workflows/deploy-manual.yml`, `infra/`, `render.yaml` | Manual de usuario y despliegue | 2026-10-27 | Sin comitear |
-| Claude (sesión con Sebastián) | `frontend-pwa/src/features/catalog/components/ExperienceDetailParts.tsx` | Ficha: aporte del 85 % a la comunidad y frase de nivel de esfuerzo (sin datos nuevos) | 2026-11-10 | En curso |
+| Claude (sesión con Sebastián) | `backend-api/.../booking` (meeting-point), `backend-api/.../catalog` (`ScheduleDirectory`, `OperationalLocation`), `frontend-pwa/src/features/booking/*`, `docs/api/*` | ADR-0049: paradas del recorrido en la reserva confirmada | 2026-11-10 | Terminado (sin comitear: 13 archivos del ADR-0049; también quité una `}` suelta de `openapi.yaml` que venía de `951ddda`) |
 
 > Completa o corrige la columna **Quién** con tu nombre. Si no sabes quién dejó una fila, pregúntalo antes de tocar esa área.
