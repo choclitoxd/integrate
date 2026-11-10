@@ -1,8 +1,14 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode, type SubmitEvent } from 'react';
 
 import { Button, Icon, type IconName } from '@/shared/ui';
 
 import type { Tone } from '../labels';
+import {
+  SEARCH_BUTTON_CLASS,
+  SEARCH_FORM_CLASS,
+  SEARCH_INPUT_CLASS,
+  SEARCH_LABEL_CLASS,
+} from './tableStyles';
 
 const TONE_CLASS: Readonly<Record<Tone, string>> = {
   neutral: 'border-border-subtle bg-surface-subtle text-ink',
@@ -127,12 +133,78 @@ export function Pager({
   );
 }
 
-/** Marco de tabla: superficie elevada con el `caption` como título visible y desplazamiento horizontal seguro. */
-export function TableFrame({ children }: { children: ReactNode }) {
+/** Marco de tabla (FE-DIR-001 D1.7): forma rectangular con fondo transparente y título + conteo por fuera. */
+export function TableFrame({
+  title,
+  count,
+  children,
+}: {
+  title?: ReactNode | undefined;
+  count?: number | undefined;
+  children: ReactNode;
+}) {
   return (
-    <div className="relative min-w-0 max-w-full overflow-x-auto rounded-xl border-2 border-border-subtle bg-surface">
-      {children}
+    <div className="grid min-w-0 gap-2">
+      {title && (
+        <p aria-hidden="true" className="text-base font-bold text-ink">
+          {title}
+          {count !== undefined && <span className="font-normal text-ink-muted"> · {count}</span>}
+        </p>
+      )}
+      <div className="relative min-w-0 max-w-full overflow-x-auto rounded-lg border-2 border-border-subtle bg-transparent">
+        {children}
+      </div>
     </div>
+  );
+}
+
+/** Buscador acoplado para tablas (FE-DIR-001 D1.7): mismo diseño y comportamiento que el buscador de experiencias. */
+export function TableSearchBar({
+  label,
+  placeholder = 'Buscar',
+  value,
+  onChange,
+  onSubmitSearch,
+}: {
+  label: string;
+  placeholder?: string | undefined;
+  value: string;
+  onChange: (value: string) => void;
+  onSubmitSearch?: ((value: string) => void) | undefined;
+}) {
+  const inputId = useId();
+
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = value.trim();
+    onChange(trimmed);
+    onSubmitSearch?.(trimmed);
+  }
+
+  return (
+    <form role="search" aria-label={label} onSubmit={handleSubmit} className={SEARCH_FORM_CLASS}>
+      <label htmlFor={inputId} className="sr-only">
+        {label}
+      </label>
+      <input
+        id={inputId}
+        type="search"
+        enterKeyHint="search"
+        maxLength={100}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+        placeholder={placeholder}
+        className={SEARCH_INPUT_CLASS}
+      />
+      <button type="submit" aria-label="Buscar" className={SEARCH_BUTTON_CLASS}>
+        <Icon name="search" size={22} />
+        <span aria-hidden="true" className={SEARCH_LABEL_CLASS}>
+          Buscar
+        </span>
+      </button>
+    </form>
   );
 }
 

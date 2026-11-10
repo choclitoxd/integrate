@@ -10,7 +10,7 @@ const TOURIST_ONLY_PREFIXES = ['/experiencias', '/mis-experiencias', '/reservas'
 /**
  * Navegación pública y del turista (ADR-0013 §6, ADR-0044 §2):
  * - Si la sesión pertenece a un Administrador (`ROLE_ADMIN`), nunca ve «Explorar» ni «Mis experiencias»:
- *   en `/` o rutas de compra/catálogo se redirige a `/admin`, y en `/cuenta` conserva la barra de administración.
+ *   en `/` o rutas de compra/catálogo se redirige a `/admin`, y `/cuenta` se redirige a `/admin/cuenta`.
  * - «Gestor» solo aparece para quien tiene `ROLE_LINK_MANAGER`.
  */
 export function TouristLayout() {
@@ -18,6 +18,10 @@ export function TouristLayout() {
   const { pathname } = useLocation();
 
   if (hasRole(session, 'ROLE_ADMIN')) {
+    // Su perfil vive en el panel, no en la cuenta de turista: /cuenta le lleva a /admin/cuenta.
+    if (pathname === '/cuenta') {
+      return <Navigate to="/admin/cuenta" replace />;
+    }
     if (
       pathname === '/' ||
       TOURIST_ONLY_PREFIXES.some(

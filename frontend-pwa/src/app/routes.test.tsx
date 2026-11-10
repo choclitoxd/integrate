@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { catalogRoutes } from '@/test/fixtures';
+import { LAPTOP, stubMatchMedia } from '@/test/matchMedia';
 import { renderApp } from '@/test/renderApp';
 
 describe('routes', () => {
@@ -112,5 +113,62 @@ describe('routes', () => {
     renderApp('/no-existe');
     expect(screen.getByRole('heading', { level: 1, name: 'Página no encontrada' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/');
+  });
+});
+
+describe('perfil del administrador en /admin/cuenta', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const adminRoles = ['ROLE_ADMIN', 'ROLE_TOURIST'];
+  const consentsOk = {
+    currentPolicyVersion: 'v0.1',
+    consents: [],
+    requiresConsentUpdate: false,
+    pendingPurposes: [],
+  };
+
+  it('muestra "Mi cuenta" dentro del panel, sin Explorar ni Mis experiencias', async () => {
+    stubMatchMedia(LAPTOP);
+    renderApp('/admin/cuenta', { '/v1/me/consents': consentsOk }, { roles: adminRoles });
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mi cuenta' })).toBeVisible();
+    const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
+    expect(within(nav).getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute(
+      'href',
+      '/admin/cuenta',
+    );
+    expect(within(nav).queryByRole('link', { name: 'Explorar' })).toBeNull();
+    expect(within(nav).queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
+  });
+
+  it('un enlace a /cuenta de un administrador lo lleva a /admin/cuenta', async () => {
+    const { router } = renderApp(
+      '/cuenta',
+      { '/v1/me/consents': consentsOk },
+      { roles: adminRoles },
+    );
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/admin/cuenta');
+    });
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mi cuenta' })).toBeVisible();
+  });
+
+  it('una ruta desconocida dentro del panel vuelve a su inicio, no a la página de no encontrada', async () => {
+    const { router } = renderApp('/admin/no-existe', {}, { roles: adminRoles });
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/admin');
+    });
+    expect(screen.queryByRole('heading', { name: 'Página no encontrada' })).toBeNull();
+  });
+
+  it('el perfil de administrador no es accesible para un turista', async () => {
+    stubMatchMedia(LAPTOP);
+    renderApp('/admin/cuenta', {}, { roles: ['ROLE_TOURIST'] });
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Esta sección no está disponible para tu cuenta',
+      }),
+    ).toBeVisible();
   });
 });

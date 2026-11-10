@@ -10,7 +10,7 @@ import { LAPTOP, stubMatchMedia } from '@/test/matchMedia';
 import { renderApp, type FakeRoutes } from '@/test/renderApp';
 import { pickOption } from '@/test/select';
 
-/** Sección Personas de la consola (ADR-0043 §1): búsqueda exacta, altas y listas de gestores y anfitriones. */
+/** Sección Personas de la consola (ADR-0043 §1): vistas Usuarios, Gestores de enlace y Anfitriones con buscador unificado. */
 
 const ADMIN = { roles: ['ROLE_TOURIST', 'ROLE_ADMIN'] };
 const ASSOCIATION_ID = 'a-1';
@@ -78,6 +78,7 @@ const apiError = (status: number, code: string) =>
 function routes(extra: FakeRoutes = {}): FakeRoutes {
   return {
     '/v1/admin/users/search': page([found]),
+    '/v1/admin/users': page([found]),
     '/v1/admin/users/u-1': {
       userId: 'u-1',
       fullName: 'Laura Gómez',
@@ -113,11 +114,10 @@ function routes(extra: FakeRoutes = {}): FakeRoutes {
   };
 }
 
-async function searchByEmail(
-  user: ReturnType<typeof userEvent.setup>,
-  email = 'laura@ejemplo.com',
-) {
-  await user.type(await screen.findByRole('textbox', { name: 'Correo exacto' }), email);
+async function searchPerson(user: ReturnType<typeof userEvent.setup>, query = 'laura@ejemplo.com') {
+  const input = await screen.findByRole('textbox', { name: 'Correo o número de documento' });
+  await user.clear(input);
+  await user.type(input, query);
   await user.click(screen.getByRole('button', { name: 'Buscar' }));
 }
 
@@ -125,19 +125,21 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
-  it('encuentra a una persona por correo exacto y ofrece las dos altas', async () => {
+describe('Personas · búsqueda en Usuarios (ADR-0043 §1.1)', () => {
+  it('encuentra a una persona por correo exacto en la tabla de Usuarios y ofrece las dos altas', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
     const { http } = renderApp('/admin/personas', routes(), ADMIN);
 
-    await searchByEmail(user);
-    const card = await screen.findByRole('region', { name: 'Persona encontrada' });
-    expect(within(card).getByRole('heading', { level: 3, name: 'Laura Gómez' })).toBeVisible();
-    expect(within(card).getByText('laura@ejemplo.com')).toBeVisible();
-    expect(within(card).getByRole('list', { name: 'Roles vigentes' })).toHaveTextContent('Turista');
-    expect(within(card).getByRole('button', { name: 'Convertir en anfitrión' })).toBeVisible();
-    expect(within(card).getByRole('button', { name: 'Acreditar como gestor' })).toBeVisible();
+    await searchPerson(user);
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    expect(await within(table).findByRole('rowheader', { name: 'Laura Gómez' })).toBeVisible();
+    expect(within(table).getByText('laura@ejemplo.com')).toBeVisible();
+    expect(within(table).getByRole('list', { name: 'Roles vigentes' })).toHaveTextContent(
+      'Turista',
+    );
+    expect(within(table).getByRole('button', { name: 'Convertir en anfitrión' })).toBeVisible();
+    expect(within(table).getByRole('button', { name: 'Acreditar como gestor' })).toBeVisible();
     expect(http.calls.map(([path]) => path)).toContain(
       '/v1/admin/users/search?email=laura%40ejemplo.com',
     );
@@ -148,14 +150,14 @@ describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
     const user = userEvent.setup();
     const { http } = renderApp('/admin/personas', routes(), ADMIN);
 
-    await searchByEmail(user, 'laura');
-    const field = screen.getByRole('textbox', { name: 'Correo exacto' });
+    await searchPerson(user, 'laura');
+    const field = screen.getByRole('textbox', { name: 'Correo o número de documento' });
     expect(field).toHaveAttribute('aria-invalid', 'true');
     expect(field).toHaveFocus();
     expect(http.calls.some(([path]) => path.startsWith('/v1/admin/users/search'))).toBe(false);
   });
 
-  it('busca por documento con su tipo y avisa que el correo sale oculto', async () => {
+  it('detecta automáticamente un número de documento sin cambiar de radio button y avisa que el correo sale oculto', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
     const { http } = renderApp(
@@ -168,20 +170,35 @@ describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
       ADMIN,
     );
 
-    await user.click(await screen.findByRole('radio', { name: 'Documento' }));
+    const field = await screen.findByRole('textbox', { name: 'Correo o número de documento' });
     await user.click(screen.getByRole('button', { name: 'Buscar' }));
-    expect(screen.getByRole('textbox', { name: 'Número de documento' })).toHaveAttribute(
-      'aria-invalid',
-      'true',
-    );
+    expect(field).toHaveAttribute('aria-invalid', 'true');
 
-    await user.type(screen.getByRole('textbox', { name: 'Número de documento' }), 'D1234567');
+    await user.type(field, 'D1234567');
     await user.click(screen.getByRole('button', { name: 'Buscar' }));
-    const card = await screen.findByRole('region', { name: 'Persona encontrada' });
-    expect(within(card).getByText(/parcialmente oculto/)).toBeVisible();
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    expect(await within(table).findByText(/parcialmente oculto/)).toBeVisible();
     expect(http.calls.map(([path]) => path)).toContain(
       '/v1/admin/users/search?docType=CC&document=D1234567',
     );
+  });
+
+  it('respeta el filtro de rol activo al buscar a una persona en Usuarios', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    renderApp('/admin/personas', routes(), ADMIN);
+
+    const roleFilters = await screen.findByRole('navigation', { name: 'Filtrar usuarios por rol' });
+    await user.click(within(roleFilters).getByRole('button', { name: 'Gestores' }));
+    await searchPerson(user);
+
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    expect(
+      await within(table).findByText(/no tiene el rol seleccionado en este filtro/),
+    ).toBeVisible();
+
+    await user.click(within(roleFilters).getByRole('button', { name: 'Turistas' }));
+    expect(await within(table).findByRole('rowheader', { name: 'Laura Gómez' })).toBeVisible();
   });
 
   it('dice cuando no hay una cuenta con ese dato', async () => {
@@ -189,9 +206,8 @@ describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
     const user = userEvent.setup();
     renderApp('/admin/personas', routes({ '/v1/admin/users/search': page([]) }), ADMIN);
 
-    await searchByEmail(user, 'nadie@ejemplo.com');
+    await searchPerson(user, 'nadie@ejemplo.com');
     expect(await screen.findByText(/No hay una cuenta con ese dato/)).toBeVisible();
-    expect(screen.queryByRole('region', { name: 'Persona encontrada' })).toBeNull();
   });
 
   it('explica el límite de 20 búsquedas por minuto (429)', async () => {
@@ -203,7 +219,7 @@ describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
       ADMIN,
     );
 
-    await searchByEmail(user);
+    await searchPerson(user);
     expect(await screen.findByText(/Hiciste demasiadas búsquedas seguidas/)).toBeVisible();
   });
 
@@ -212,15 +228,16 @@ describe('Personas · búsqueda (ADR-0043 §1.1)', () => {
     const user = userEvent.setup();
     const { http } = renderApp('/admin/personas', routes(), ADMIN);
 
-    await searchByEmail(user);
-    await screen.findByRole('region', { name: 'Persona encontrada' });
+    await searchPerson(user);
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    await within(table).findByRole('rowheader', { name: 'Laura Gómez' });
     expect(http.calls.some(([path]) => path === '/v1/admin/users/u-1')).toBe(false);
 
-    await user.click(screen.getByRole('button', { name: 'Ver historial de roles' }));
-    const history = await screen.findByRole('list', { name: 'Historial de roles' });
+    await user.click(within(table).getByRole('button', { name: 'Ver historial de roles' }));
+    const history = await within(table).findByRole('list', { name: 'Historial de roles' });
     expect(within(history).getByText(/Gestor de enlace/)).toBeVisible();
     expect(within(history).getByText(/revocado el/)).toBeVisible();
-    expect(screen.getByText(/terminado en 4567/)).toBeVisible();
+    expect(within(table).getByText(/terminado en 4567/)).toBeVisible();
   });
 });
 
@@ -230,7 +247,7 @@ describe('Personas · altas', () => {
     const user = userEvent.setup();
     const { http } = renderApp('/admin/personas', routes(), ADMIN);
 
-    await searchByEmail(user);
+    await searchPerson(user);
     await user.click(await screen.findByRole('button', { name: 'Convertir en anfitrión' }));
     const dialog = await screen.findByRole('dialog', { name: 'Convertir en anfitrión' });
     expect(within(dialog).getByText(/vuelva a ingresar o se renueve su sesión/)).toBeVisible();
@@ -255,10 +272,9 @@ describe('Personas · altas', () => {
       '/v1/admin/host-profiles',
       { method: 'POST', body: { userId: 'u-1', associationId: ASSOCIATION_ID } },
     ]);
-    // La tarjeta se actualiza sin repetir la búsqueda.
-    const card = screen.getByRole('region', { name: 'Persona encontrada' });
-    expect(within(card).getByText('Ya es anfitrión.')).toBeVisible();
-    expect(within(card).queryByRole('button', { name: 'Convertir en anfitrión' })).toBeNull();
+    const table = screen.getByRole('table', { name: /Usuarios/ });
+    expect(within(table).getByText('Ya es anfitrión.')).toBeVisible();
+    expect(within(table).queryByRole('button', { name: 'Convertir en anfitrión' })).toBeNull();
   });
 
   it('acredita a un gestor con la fecha de hoy y traduce el 409 de acreditación vigente', async () => {
@@ -279,7 +295,7 @@ describe('Personas · altas', () => {
       ADMIN,
     );
 
-    await searchByEmail(user);
+    await searchPerson(user);
     await user.click(await screen.findByRole('button', { name: 'Acreditar como gestor' }));
     const dialog = await screen.findByRole('dialog', { name: 'Acreditar como gestor de enlace' });
     expect(within(dialog).getByLabelText('Fecha de acreditación')).toHaveValue(todayInBogota());
@@ -303,8 +319,8 @@ describe('Personas · altas', () => {
         body: { userId: 'u-1', associationId: ASSOCIATION_ID, accreditedOn: todayInBogota() },
       },
     ]);
-    const card = screen.getByRole('region', { name: 'Persona encontrada' });
-    expect(within(card).getByText(/Ya tiene acreditación de gestor \(Vigente\)/)).toBeVisible();
+    const table = screen.getByRole('table', { name: /Usuarios/ });
+    expect(within(table).getByText(/Ya tiene acreditación de gestor \(Vigente\)/)).toBeVisible();
   });
 
   it('no ofrece el alta a quien ya es anfitrión o tiene acreditación', async () => {
@@ -326,11 +342,11 @@ describe('Personas · altas', () => {
       ADMIN,
     );
 
-    await searchByEmail(user);
-    const card = await screen.findByRole('region', { name: 'Persona encontrada' });
-    expect(within(card).getByText('Ya es anfitrión.')).toBeVisible();
-    expect(within(card).getByText(/Ya tiene acreditación de gestor \(Suspendido\)/)).toBeVisible();
-    expect(within(card).queryByRole('button', { name: /Convertir|Acreditar/ })).toBeNull();
+    await searchPerson(user);
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    expect(await within(table).findByText('Ya es anfitrión.')).toBeVisible();
+    expect(within(table).getByText(/Ya tiene acreditación de gestor \(Suspendido\)/)).toBeVisible();
+    expect(within(table).queryByRole('button', { name: /Convertir|Acreditar/ })).toBeNull();
   });
 });
 
@@ -338,7 +354,7 @@ describe('Personas · listas', () => {
   it('lista los gestores vigentes y suspende a uno tras confirmar', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
-    const { http } = renderApp('/admin/personas', routes(), ADMIN);
+    const { http } = renderApp('/admin/personas?vista=gestores', routes(), ADMIN);
 
     const table = await screen.findByRole('table', { name: /Gestores de enlace/ });
     expect(await within(table).findByRole('rowheader', { name: /Gabriel Gestor/ })).toBeVisible();
@@ -359,7 +375,7 @@ describe('Personas · listas', () => {
   it('avisa que revocar no se puede deshacer y que el token puede seguir vigente', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
-    renderApp('/admin/personas', routes(), ADMIN);
+    renderApp('/admin/personas?vista=gestores', routes(), ADMIN);
 
     await user.click(await screen.findByRole('button', { name: 'Revocar a Gabriel Gestor' }));
     const dialog = screen.getByRole('dialog', { name: 'Revocar la acreditación' });
@@ -373,7 +389,7 @@ describe('Personas · listas', () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
     renderApp(
-      '/admin/personas',
+      '/admin/personas?vista=gestores',
       routes({
         '/v1/admin/link-managers/m-1/suspend': apiError(409, 'CATALOG_INVALID_STATUS_TRANSITION'),
       }),
@@ -391,7 +407,7 @@ describe('Personas · listas', () => {
   it('los revocados no tienen acciones y el filtro «Todos» los muestra', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
-    const { router } = renderApp('/admin/personas', routes(), ADMIN);
+    const { router } = renderApp('/admin/personas?vista=gestores', routes(), ADMIN);
 
     await screen.findByRole('rowheader', { name: /Gabriel Gestor/ });
     expect(screen.queryByRole('rowheader', { name: /Gloria Revocada/ })).toBeNull();
@@ -431,17 +447,23 @@ describe('Personas · listas', () => {
 
 describe('Personas · accesibilidad', () => {
   it(
-    'la pantalla, con un resultado y las listas, no tiene violaciones WCAG 2.1 A/AA',
+    'las tres vistas de Personas (Usuarios, Gestores, Anfitriones) no tienen violaciones WCAG 2.1 A/AA',
     { timeout: 60_000 },
     async () => {
       stubMatchMedia(LAPTOP);
       const findings: string[] = [];
-      for (const path of ['/admin/personas', '/admin/personas?vista=anfitriones']) {
+      for (const path of [
+        '/admin/personas',
+        '/admin/personas?vista=gestores',
+        '/admin/personas?vista=anfitriones',
+      ]) {
         const user = userEvent.setup();
         const { unmount } = renderApp(path, routes(), ADMIN);
         await screen.findByRole('heading', { level: 1, name: 'Personas' });
-        await searchByEmail(user);
-        await screen.findByRole('region', { name: 'Persona encontrada' });
+        if (path === '/admin/personas') {
+          await searchPerson(user);
+          await screen.findByRole('rowheader', { name: 'Laura Gómez' });
+        }
         await waitFor(() => {
           expect(screen.queryByText(/^Cargando/)).toBeNull();
         });

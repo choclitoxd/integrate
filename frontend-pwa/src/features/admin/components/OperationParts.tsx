@@ -39,33 +39,44 @@ export function OperationFilter({
 /* eslint-disable jsx-a11y-x/no-noninteractive-tabindex -- Permite desplazar la tabla con el teclado. */
 export function OperationTable({
   caption,
+  count,
   headings,
   children,
 }: {
   caption: string;
+  count?: number | undefined;
   headings: readonly string[];
   children: ReactNode;
 }) {
   return (
-    <div
-      className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-border bg-surface"
-      role="region"
-      aria-label={caption}
-      tabIndex={0}
-    >
-      <table className={TABLE_CLASS}>
-        <caption className={CAPTION_CLASS}>{caption}</caption>
-        <thead>
-          <tr>
-            {headings.map((heading) => (
-              <th className={TH_CLASS} key={heading} scope="col">
-                {heading}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{children}</tbody>
-      </table>
+    <div className="grid min-w-0 gap-2">
+      <p aria-hidden="true" className="text-base font-bold text-ink">
+        {caption}
+        {count !== undefined && <span className="font-normal text-ink-muted"> · {count}</span>}
+      </p>
+      <div
+        className="min-w-0 max-w-full overflow-x-auto rounded-lg border-2 border-border-subtle bg-transparent"
+        role="region"
+        aria-label={caption}
+        tabIndex={0}
+      >
+        <table className={TABLE_CLASS}>
+          <caption className={CAPTION_CLASS}>
+            {caption}
+            {count !== undefined && ` · ${String(count)}`}
+          </caption>
+          <thead>
+            <tr>
+              {headings.map((heading) => (
+                <th className={TH_CLASS} key={heading} scope="col">
+                  {heading}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>{children}</tbody>
+        </table>
+      </div>
     </div>
   );
 }

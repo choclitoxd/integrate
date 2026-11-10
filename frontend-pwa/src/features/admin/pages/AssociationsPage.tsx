@@ -1,5 +1,5 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import type { FieldErrors } from '@/features/auth';
 import { ApiError } from '@/shared/api';
@@ -15,30 +15,66 @@ import {
   TextField,
 } from '@/shared/ui';
 
-import { EmptyRow, Notice, PageHeader, Pager, StatusBadge, TableFrame } from '../components/parts';
-import { CAPTION_CLASS, TABLE_CLASS, TD_CLASS, TH_CLASS } from '../components/tableStyles';
+import {
+  EmptyRow,
+  Notice,
+  PageHeader,
+  Pager,
+  StatusBadge,
+  TableFrame,
+  TableSearchBar,
+} from '../components/parts';
+import {
+  CAPTION_CLASS,
+  matchesSearchQuery,
+  TABLE_CLASS,
+  TD_CLASS,
+  TH_CLASS,
+} from '../components/tableStyles';
 import {
   ASSOCIATION_FIELDS,
   associationServerErrors,
   emptyAssociation,
+  fromAssociation,
   validateAssociation,
   type AssociationDraft,
   type AssociationField,
 } from '../forms';
-import { ASSOCIATION_TYPES, associationTypeLabel } from '../labels';
-import { useAssociations, useCreateAssociation } from '../queries';
+import { ASSOCIATION_FILTERS, ASSOCIATION_TYPES, associationTypeLabel } from '../labels';
+import type { Association } from '../api';
+import {
+  useAssociations,
+  useChangeAssociationStatus,
+  useCreateAssociation,
+  useUpdateAssociation,
+} from '../queries';
 
 const FORM_ID = 'nueva-asociacion';
+const EDIT_FORM_ID = 'editar-asociacion';
+const ALL_STATUS = 'TODAS';
+const VALID_STATUS = new Set<string>(['ACTIVE', 'SUSPENDED']);
 
-interface FormProps {
-  readonly onCreated: (legalName: string) => void;
+function associationStatusFrom(raw: string | null): 'ACTIVE' | 'SUSPENDED' | null {
+  return raw !== null && VALID_STATUS.has(raw) ? (raw as 'ACTIVE' | 'SUSPENDED') : null;
 }
 
-/** Alta de asociación (ADR-0006 §3): valida en el cliente y traduce el 409 y el 422 del servidor. */
-function AssociationForm({ onCreated }: FormProps) {
+interface FormProps {
+  readonly formId?: string;
+  readonly initial?: Association;
+  readonly onSaved: (legalName: string) => void;
+}
+
+/** Alta o edición de asociación (ADR-0006 §3, ADR-0047 §2): valida en el cliente y traduce el 409 y el 422 del servidor. */
+function AssociationForm({ formId = FORM_ID, initial, onSaved }: FormProps) {
   const create = useCreateAssociation();
+  const update = useUpdateAssociation();
+  const isBusy = create.isPending || update.isPending;
+  const activeError = initial ? update.error : create.error;
+  const isError = initial ? update.isError : create.isError;
   const formRef = useRef<HTMLFormElement>(null);
-  const [draft, setDraft] = useState<AssociationDraft>(emptyAssociation);
+  const [draft, setDraft] = useState<AssociationDraft>(() =>
+    initial ? fromAssociation(initial) : emptyAssociation(),
+  );
   const [errors, setErrors] = useState<FieldErrors<AssociationField>>({});
 
   const set = (field: AssociationField) => (value: string) => {
@@ -58,6 +94,18 @@ function AssociationForm({ onCreated }: FormProps) {
     if (first) (formRef.current?.elements.namedItem(first) as HTMLElement | null)?.focus();
   }
 
+  function handleError(error: unknown) {
+    if (error instanceof ApiError && error.status === 409) {
+      const next = { nit: 'Ya existe una asociación registrada con este NIT.' };
+      setErrors(next);
+      focusFirst(next);
+    } else if (error instanceof ApiError && error.invalidParams.length > 0) {
+      const next = associationServerErrors(error.invalidParams);
+      setErrors(next);
+      focusFirst(next);
+    }
+  }
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const result = validateAssociation(draft);
@@ -67,36 +115,38 @@ function AssociationForm({ onCreated }: FormProps) {
       return;
     }
     setErrors({});
+    if (initial) {
+      update.mutate(
+        { id: initial.id, body: result.body },
+        {
+          onSuccess: (association) => {
+            onSaved(association.legalName);
+          },
+          onError: handleError,
+        },
+      );
+      return;
+    }
     create.mutate(result.body, {
       onSuccess: (association) => {
-        onCreated(association.legalName);
+        onSaved(association.legalName);
       },
-      onError: (error) => {
-        if (error instanceof ApiError && error.status === 409) {
-          const next = { nit: 'Ya existe una asociación registrada con este NIT.' };
-          setErrors(next);
-          focusFirst(next);
-        } else if (error instanceof ApiError && error.invalidParams.length > 0) {
-          const next = associationServerErrors(error.invalidParams);
-          setErrors(next);
-          focusFirst(next);
-        }
-      },
+      onError: handleError,
     });
   }
 
   const handled =
-    create.error instanceof ApiError &&
-    (create.error.status === 409 || Object.keys(errors).length > 0);
+    activeError instanceof ApiError &&
+    (activeError.status === 409 || Object.keys(errors).length > 0);
 
   return (
     <form
-      id={FORM_ID}
+      id={formId}
       ref={formRef}
       noValidate
       onSubmit={handleSubmit}
       className="grid gap-5"
-      aria-busy={create.isPending}
+      aria-busy={isBusy}
     >
       <TextField label="Razón social" autoComplete="organization" {...input('legalName')} />
       <div className="grid grid-cols-2 gap-4">
@@ -156,19 +206,48 @@ function AssociationForm({ onCreated }: FormProps) {
         error={errors.contactPhone}
         onChange={set('contactPhone')}
       />
-      {create.isError && !handled && <ProblemNotice error={create.error} />}
+      {isError && !handled && <ProblemNotice error={activeError} />}
     </form>
   );
 }
 
-/** Asociaciones comunitarias: lista paginada y alta (ADR-0042 §2). */
+/** Asociaciones comunitarias: lista paginada, alta y edición en ventana emergente (ADR-0042 §2, ADR-0047 §2). */
 export function AssociationsPage() {
   const [params, setParams] = useSearchParams();
+  const statusFilter = associationStatusFrom(params.get('estado'));
+  const statusParam = statusFilter ?? ALL_STATUS;
   const page = Math.max(Number.parseInt(params.get('pagina') ?? '1', 10) || 1, 1) - 1;
   const associations = useAssociations(page);
+  const changeStatus = useChangeAssociationStatus();
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Association | null>(null);
   const [created, setCreated] = useState<string | null>(null);
-  const items = associations.data?.items ?? [];
+  const [query, setQuery] = useState('');
+  const allItems = associations.data?.items ?? [];
+  const items = allItems.filter(
+    (item) =>
+      (statusFilter === null || item.status === statusFilter) &&
+      matchesSearchQuery(query, [
+        item.legalName,
+        item.nit,
+        item.rntNumber,
+        associationTypeLabel(item.associationType),
+        item.municipalityCode,
+        item.contactEmail,
+        item.contactPhone,
+        item.status === 'ACTIVE' ? 'Activa' : 'Suspendida',
+      ]),
+  );
+
+  const hrefFor = (next: { estado?: string; pagina?: number }) => {
+    const queryParams = new URLSearchParams();
+    const targetStatus = next.estado ?? statusParam;
+    if (targetStatus !== ALL_STATUS) queryParams.set('estado', targetStatus);
+    const nextPage = next.pagina ?? (next.estado === undefined ? page + 1 : 1);
+    if (nextPage > 1) queryParams.set('pagina', String(nextPage));
+    const search = queryParams.toString();
+    return search ? `?${search}` : '';
+  };
 
   return (
     <>
@@ -184,18 +263,43 @@ export function AssociationsPage() {
             }}
           >
             <Icon name="plus" />
-            Nueva asociación
+            <span className="hidden sm:inline">Nueva asociación</span>
           </Button>
         }
       />
 
       {created && (
         <div className="mt-4">
-          <Notice tone="success">Se registró «{created}».</Notice>
+          <Notice tone="success">{created}</Notice>
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <nav aria-label="Filtrar asociaciones por estado">
+          <ul className="flex flex-wrap gap-2">
+            {ASSOCIATION_FILTERS.map((filter) => {
+              const value = filter.value ?? ALL_STATUS;
+              const current = value === statusParam;
+              return (
+                <li key={value}>
+                  <Link
+                    to={hrefFor({ estado: value })}
+                    aria-current={current ? 'true' : undefined}
+                    className="inline-flex min-h-11 items-center rounded-full border-2 border-border bg-canvas px-4 font-semibold text-ink hover:bg-surface-subtle aria-[current=true]:border-brand aria-[current=true]:bg-brand aria-[current=true]:text-on-brand"
+                  >
+                    {filter.text}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div className="w-full sm:max-w-xs">
+          <TableSearchBar label="Buscar en asociaciones" value={query} onChange={setQuery} />
+        </div>
+      </div>
+
+      <div className="mt-4">
         {associations.isError ? (
           <ProblemNotice
             error={associations.error}
@@ -204,7 +308,7 @@ export function AssociationsPage() {
             }}
           />
         ) : (
-          <TableFrame>
+          <TableFrame title="Asociaciones registradas" count={associations.data?.totalElements}>
             <table className={TABLE_CLASS}>
               <caption className={CAPTION_CLASS}>
                 Asociaciones registradas
@@ -238,23 +342,28 @@ export function AssociationsPage() {
                   <th scope="col" className={TH_CLASS}>
                     Estado
                   </th>
+                  <th scope="col" className={TH_CLASS}>
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {associations.isPending && (
-                  <EmptyRow columns={7}>
+                  <EmptyRow columns={8}>
                     <span role="status">Cargando asociaciones…</span>
                     <Skeleton className="mx-auto mt-3 h-6 w-2/3" />
                   </EmptyRow>
                 )}
                 {associations.isSuccess && items.length === 0 && (
-                  <EmptyRow columns={7}>
-                    Aún no hay asociaciones. Registra la primera con «Nueva asociación».
+                  <EmptyRow columns={8}>
+                    {allItems.length === 0
+                      ? 'Aún no hay asociaciones. Registra la primera con «Nueva asociación».'
+                      : 'No hay asociaciones que coincidan con este filtro.'}
                   </EmptyRow>
                 )}
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <th scope="row" className={`${TD_CLASS} font-semibold`}>
+                    <th scope="row" className={`${TD_CLASS} font-semibold text-ink`}>
                       {item.legalName}
                     </th>
                     <td className={`${TD_CLASS} whitespace-nowrap tabular-nums`}>{item.nit}</td>
@@ -273,6 +382,19 @@ export function AssociationsPage() {
                         {item.status === 'ACTIVE' ? 'Activa' : 'Suspendida'}
                       </StatusBadge>
                     </td>
+                    <td className={TD_CLASS}>
+                      <Button
+                        variant="secondary"
+                        aria-label={`Gestionar ${item.legalName}`}
+                        onClick={() => {
+                          setCreated(null);
+                          setEditing(item);
+                        }}
+                      >
+                        <Icon name="edit" />
+                        <span className="hidden sm:inline">Gestionar</span>
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -286,7 +408,7 @@ export function AssociationsPage() {
             totalPages={associations.data.totalPages}
             totalElements={associations.data.totalElements}
             onChange={(next) => {
-              setParams(next > 0 ? { pagina: String(next + 1) } : {});
+              setParams(hrefFor({ pagina: next + 1 }).slice(1));
             }}
           />
         )}
@@ -307,21 +429,94 @@ export function AssociationsPage() {
                 setCreating(false);
               }}
             >
+              <Icon name="close" />
               Cancelar
             </Button>
             <Button type="submit" form={FORM_ID} className="flex-1">
+              <Icon name="check" />
               Registrar asociación
             </Button>
           </>
         }
       >
         <AssociationForm
-          onCreated={(legalName) => {
+          onSaved={(legalName) => {
             setCreating(false);
-            setCreated(legalName);
+            setCreated(`Se registró «${legalName}».`);
           }}
         />
       </BottomSheet>
+
+      {editing && (
+        <BottomSheet
+          open
+          onClose={() => {
+            setEditing(null);
+          }}
+          title={editing.legalName}
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => {
+                  setEditing(null);
+                }}
+              >
+                <Icon name="close" />
+                Cancelar
+              </Button>
+              <Button type="submit" form={EDIT_FORM_ID} className="flex-1">
+                <Icon name="check" />
+                Guardar cambios
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-ink-muted">Estado actual:</span>
+                <StatusBadge tone={editing.status === 'ACTIVE' ? 'success' : 'danger'}>
+                  {editing.status === 'ACTIVE' ? 'Activa' : 'Suspendida'}
+                </StatusBadge>
+              </div>
+              <Button
+                variant="secondary"
+                disabled={changeStatus.isPending}
+                onClick={() => {
+                  const action = editing.status === 'ACTIVE' ? 'suspend' : 'activate';
+                  changeStatus.mutate(
+                    { id: editing.id, action },
+                    {
+                      onSuccess: (updated) => {
+                        setEditing(null);
+                        setCreated(
+                          updated.status === 'ACTIVE'
+                            ? `Se reactivó «${updated.legalName}».`
+                            : `Se suspendió «${updated.legalName}».`,
+                        );
+                      },
+                    },
+                  );
+                }}
+              >
+                <Icon name={editing.status === 'ACTIVE' ? 'pause' : 'refresh'} />
+                {editing.status === 'ACTIVE' ? 'Suspender asociación' : 'Activar asociación'}
+              </Button>
+            </div>
+            <AssociationForm
+              key={editing.id}
+              formId={EDIT_FORM_ID}
+              initial={editing}
+              onSaved={(legalName) => {
+                setEditing(null);
+                setCreated(`Se actualizaron los datos de «${legalName}».`);
+              }}
+            />
+          </div>
+        </BottomSheet>
+      )}
     </>
   );
 }

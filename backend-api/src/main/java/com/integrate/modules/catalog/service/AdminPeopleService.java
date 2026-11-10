@@ -2,7 +2,9 @@ package com.integrate.modules.catalog.service;
 
 import com.integrate.common.payload.PageResponse;
 import com.integrate.modules.auth.entity.DocType;
+import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.model.ClientInfo;
+import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -41,6 +43,21 @@ public interface AdminPeopleService {
     /** @param status filtro opcional por estado de acreditación */
     PageResponse<AdminLinkManagerResponse> listLinkManagers(AccreditationStatus status, Pageable pageable,
                                                             UUID adminId, ClientInfo client);
+
+    /**
+     * Cuentas abiertas paginadas, con el correo en claro (ADR-0048 §1). Deja una fila de acceso sensible.
+     *
+     * @param role filtro opcional por rol vigente
+     */
+    PageResponse<AdminUserResponse> listUsers(RoleCode role, Pageable pageable, UUID adminId, ClientInfo client);
+
+    /**
+     * Crea una cuenta de turista (ADR-0048 §2).
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code AUTH_USER_ALREADY_EXISTS} (409),
+     *         {@code VALIDATION_FAILED} (422)
+     */
+    AdminUserResponse createUser(AdminUserCreateRequest request, UUID adminId);
 
     /** @param associationId filtro opcional por asociación */
     PageResponse<AdminHostResponse> listHosts(UUID associationId, Pageable pageable, UUID adminId,

@@ -53,6 +53,9 @@ export interface AdminExperience {
   readonly meetingPoint: string | null;
   readonly latitude: number | null;
   readonly longitude: number | null;
+  readonly routeType?: 'OUT_AND_BACK' | 'LOOP' | 'POINT_TO_POINT' | null;
+  readonly distanceKm?: number | null;
+  readonly roundTripMinutes?: number | null;
   readonly stops: readonly ExperienceStop[];
   readonly maxCapacityPerSlot: number;
   readonly unitPriceCop: number;
@@ -62,6 +65,28 @@ export interface AdminExperience {
   readonly createdAt: string;
   readonly meetingPointCheck: MeetingPointCheck | null;
 }
+
+export interface ExperienceUpdateRequest {
+  readonly title: string;
+  readonly description: string;
+  readonly safetyGuidelines: string;
+  readonly physicalIntensity: 'LOW' | 'MEDIUM' | 'HIGH';
+  readonly durationMinutes: number;
+  readonly municipalityCode: string;
+  readonly vereda?: string | null;
+  readonly meetingPoint: string;
+  readonly latitude?: number | null;
+  readonly longitude?: number | null;
+  readonly maxCapacityPerSlot: number;
+  readonly unitPriceCop: number;
+  readonly categoryCodes?: readonly string[];
+  readonly routeType?: 'OUT_AND_BACK' | 'LOOP' | 'POINT_TO_POINT' | null;
+  readonly distanceKm?: number | null;
+  readonly roundTripMinutes?: number | null;
+  readonly stops?: readonly ExperienceStop[];
+}
+
+export type AssociationAction = 'suspend' | 'activate';
 
 /** Transiciones de moderación; `confirm-meeting-point` acepta un punto dudoso (ADR-0030 §4). */
 export type ModerationAction =
@@ -158,6 +183,17 @@ export function moderateExperience(
   });
 }
 
+export function updateAdminExperience(
+  http: HttpClient,
+  id: string,
+  body: ExperienceUpdateRequest,
+): Promise<AdminExperience> {
+  return http.request<AdminExperience>(`/v1/admin/experiences/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body,
+  });
+}
+
 export function listAssociations(
   http: HttpClient,
   page: number,
@@ -174,6 +210,27 @@ export function createAssociation(
   body: AssociationRequest,
 ): Promise<Association> {
   return http.request<Association>('/v1/admin/associations', { method: 'POST', body });
+}
+
+export function updateAssociation(
+  http: HttpClient,
+  id: string,
+  body: AssociationRequest,
+): Promise<Association> {
+  return http.request<Association>(`/v1/admin/associations/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body,
+  });
+}
+
+export function changeAssociationStatus(
+  http: HttpClient,
+  id: string,
+  action: AssociationAction,
+): Promise<Association> {
+  return http.request<Association>(`/v1/admin/associations/${encodeURIComponent(id)}/${action}`, {
+    method: 'POST',
+  });
 }
 
 /** Medianoche de Bogotá (UTC−5, sin horario de verano) como instante ISO. */
@@ -301,6 +358,45 @@ export function searchUsers(http: HttpClient, criterion: UserCriterion): Promise
   return http.request<Page<AdminUser>>(`/v1/admin/users/search?${query.toString()}`);
 }
 
+/** Código de rol sin prefijo; `null` lista todas las cuentas (ADR-0048 §1). */
+export type UserRole = 'TOURIST' | 'HOST' | 'LINK_MANAGER' | 'ADMIN';
+
+export function listUsers(
+  http: HttpClient,
+  role: UserRole | null,
+  page: number,
+  signal?: AbortSignal,
+): Promise<Page<AdminUser>> {
+  const query = pageQuery(page);
+  if (role) query.set('role', role);
+  return http.request<Page<AdminUser>>(`/v1/admin/users?${query.toString()}`, withSignal(signal));
+}
+
+export interface UserCreateRequest {
+  readonly email: string;
+  readonly password: string;
+  readonly fullName: string;
+  readonly docType: DocType;
+  readonly docNumber: string;
+  readonly phone: string;
+}
+
+export function createUser(http: HttpClient, body: UserCreateRequest): Promise<AdminUser> {
+  return http.request<AdminUser>('/v1/admin/users', { method: 'POST', body });
+}
+
+export interface AdminExperienceCreateRequest {
+  readonly hostProfileId: string;
+  readonly experience: ExperienceUpdateRequest;
+}
+
+export function createAdminExperience(
+  http: HttpClient,
+  body: AdminExperienceCreateRequest,
+): Promise<AdminExperience> {
+  return http.request<AdminExperience>('/v1/admin/experiences', { method: 'POST', body });
+}
+
 export function getUserDetail(
   http: HttpClient,
   userId: string,
@@ -336,6 +432,14 @@ export function listHosts(
   if (associationId) query.set('associationId', associationId);
   return http.request<Page<AdminHost>>(
     `/v1/admin/host-profiles?${query.toString()}`,
+    withSignal(signal),
+  );
+}
+
+/** Anfitriones elegibles al crear una experiencia: la primera página del tamaño máximo (50). */
+export function listHostOptions(http: HttpClient, signal?: AbortSignal): Promise<Page<AdminHost>> {
+  return http.request<Page<AdminHost>>(
+    '/v1/admin/host-profiles?page=0&size=50',
     withSignal(signal),
   );
 }

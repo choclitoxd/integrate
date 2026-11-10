@@ -148,6 +148,9 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
       'aria-current',
       'page',
     );
+    const accountLink = within(nav).getByRole('link', { name: 'Mi cuenta' });
+    expect(accountLink.className).toContain('whitespace-nowrap');
+    expect(accountLink.closest('li')?.className).toContain('border-brand-border');
     // Sin los apartados del turista ni enlace de «Volver al sitio».
     expect(screen.queryByRole('link', { name: 'Explorar' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
@@ -183,7 +186,7 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
     expect(within(nav).queryByRole('link', { name: 'Explorar' })).toBeNull();
   });
 
-  it('redirige al administrador desde / y /mis-experiencias hacia /admin y conserva su barra en /cuenta', async () => {
+  it('redirige al administrador desde / y /mis-experiencias hacia /admin, y /cuenta hacia /admin/cuenta', async () => {
     const fromRoot = renderApp('/', adminRoutes(), ADMIN);
     await waitFor(() => {
       expect(fromRoot.router.state.location.pathname).toBe('/admin');
@@ -196,19 +199,32 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
     });
     fromBookings.unmount();
 
-    renderApp(
+    const account = renderApp(
       '/cuenta',
       adminRoutes({
         '/v1/me/consents': {
           policyVersion: 'v0.1',
           consents: [
-            { purpose: 'CORE_SERVICE', state: 'VALID' },
-            { purpose: 'HEALTH_EMERGENCY', state: 'MISSING' },
+            {
+              purpose: 'PERSONAL_DATA',
+              state: 'VALID',
+              policyVersion: 'v0.1',
+              occurredAt: '2026-10-09T10:00:00Z',
+            },
+            {
+              purpose: 'HEALTH_EMERGENCY',
+              state: 'MISSING',
+              policyVersion: null,
+              occurredAt: null,
+            },
           ],
         },
       }),
       ADMIN,
     );
+    await waitFor(() => {
+      expect(account.router.state.location.pathname).toBe('/admin/cuenta');
+    });
     expect(await screen.findByRole('heading', { level: 1, name: 'Mi cuenta' })).toBeVisible();
     const nav = screen.getByRole('navigation', { name: 'Navegación de administración' });
     expect(within(nav).getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute(
@@ -229,28 +245,86 @@ describe('consola de administración (ADR-0042, ADR-0044)', () => {
     admin.unmount();
     const withTarget = renderApp('/ingresar?volver=%2Fcuenta', adminRoutes(), ADMIN);
     await waitFor(() => {
-      expect(withTarget.router.state.location.pathname).toBe('/cuenta');
+      expect(withTarget.router.state.location.pathname).toBe('/admin/cuenta');
     });
   });
 });
 
 describe('moderación de experiencias', () => {
-  it('lista la cola por revisar y abre la ficha con las acciones del estado', async () => {
+  it('lista la cola por revisar y abre la ficha en ventana emergente desde la columna Acciones', async () => {
     stubMatchMedia(LAPTOP);
     const { router } = renderApp('/admin/experiencias', adminRoutes(), ADMIN);
 
     const table = await screen.findByRole('table', { name: /Por revisar/ });
-    await userEvent.click(await within(table).findByRole('link', { name: experience.title }));
+    expect(await within(table).findByRole('rowheader', { name: experience.title })).toBeVisible();
+    await userEvent.click(
+      within(table).getByRole('button', { name: `Gestionar ${experience.title}` }),
+    );
     expect(router.state.location.search).toBe('?estado=PENDING_REVIEW&ver=e-1');
 
-    const ficha = screen.getByRole('complementary', { name: 'Ficha de la experiencia' });
+    const ficha = screen.getByRole('dialog', { name: experience.title });
     expect(within(ficha).getByRole('heading', { level: 2, name: experience.title })).toBeVisible();
     expect(within(ficha).getByText('a 820 m de la dirección escrita')).toBeVisible();
     expect(
-      within(ficha)
-        .getAllByRole('button')
-        .map((button) => button.textContent),
-    ).toEqual(['Confirmar el punto de encuentro', 'Aprobar y publicar', 'Rechazar']);
+      within(ficha).getByRole('button', { name: 'Confirmar el punto de encuentro' }),
+    ).toBeVisible();
+    expect(within(ficha).getByRole('button', { name: 'Aprobar y publicar' })).toBeVisible();
+    expect(within(ficha).getByRole('button', { name: 'Rechazar' })).toBeVisible();
+    expect(within(ficha).getByRole('button', { name: 'Guardar cambios' })).toBeVisible();
+  });
+
+  it('permite al administrador editar y guardar los datos de una experiencia desde la ventana emergente', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    const updatedExperience = {
+      ...experience,
+      title: 'Sendero de la Memoria Renovado',
+      unitPriceCop: 95000,
+    };
+    const { http } = renderApp(
+      '/admin/experiencias?ver=e-1',
+      adminRoutes({
+        '/v1/admin/experiences/e-1': (_url: URL, options: RequestOptions) =>
+          options.method === 'PUT' ? updatedExperience : experience,
+      }),
+      ADMIN,
+    );
+    const ficha = await screen.findByRole('dialog', { name: experience.title });
+    const titleInput = within(ficha).getByRole('textbox', { name: 'Título' });
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Sendero de la Memoria Renovado');
+
+    const priceInput = within(ficha).getByRole('textbox', { name: 'Precio por persona (COP)' });
+    await user.clear(priceInput);
+    await user.type(priceInput, '95000');
+
+    await user.click(within(ficha).getByRole('button', { name: 'Guardar cambios' }));
+
+    expect(
+      await screen.findByText('Se guardaron los cambios de «Sendero de la Memoria Renovado».'),
+    ).toBeVisible();
+    expect(http.calls).toContainEqual([
+      '/v1/admin/experiences/e-1',
+      {
+        method: 'PUT',
+        body: {
+          title: 'Sendero de la Memoria Renovado',
+          description: experience.description,
+          safetyGuidelines: experience.safetyGuidelines,
+          physicalIntensity: experience.physicalIntensity,
+          durationMinutes: experience.durationMinutes,
+          municipalityCode: experience.municipalityCode,
+          vereda: experience.vereda,
+          meetingPoint: experience.meetingPoint,
+          latitude: experience.latitude,
+          longitude: experience.longitude,
+          maxCapacityPerSlot: experience.maxCapacityPerSlot,
+          unitPriceCop: 95000,
+          categoryCodes: experience.categoryCodes,
+          stops: experience.stops,
+        },
+      },
+    ]);
   });
 
   it('explica el bloqueo por punto de encuentro y permite confirmarlo', async () => {
@@ -263,7 +337,7 @@ describe('moderación de experiencias', () => {
       }),
       ADMIN,
     );
-    const ficha = await screen.findByRole('complementary', { name: 'Ficha de la experiencia' });
+    const ficha = await screen.findByRole('dialog', { name: experience.title });
 
     await userEvent.click(within(ficha).getByRole('button', { name: 'Aprobar y publicar' }));
     const approve = screen.getByRole('dialog', { name: 'Aprobar y publicar' });
@@ -274,8 +348,9 @@ describe('moderación de experiencias', () => {
     );
     await userEvent.click(within(approve).getByRole('button', { name: 'Cancelar' }));
 
+    const reopenedFicha = await screen.findByRole('dialog', { name: experience.title });
     await userEvent.click(
-      within(ficha).getByRole('button', { name: 'Confirmar el punto de encuentro' }),
+      within(reopenedFicha).getByRole('button', { name: 'Confirmar el punto de encuentro' }),
     );
     const confirm = screen.getByRole('dialog', { name: 'Confirmar el punto de encuentro' });
     await userEvent.click(within(confirm).getByRole('button', { name: 'Confirmar punto' }));
@@ -296,7 +371,7 @@ describe('moderación de experiencias', () => {
       adminRoutes({ '/v1/admin/experiences/e-1/reject': experience }),
       ADMIN,
     );
-    const ficha = await screen.findByRole('complementary', { name: 'Ficha de la experiencia' });
+    const ficha = await screen.findByRole('dialog', { name: experience.title });
     await userEvent.click(within(ficha).getByRole('button', { name: 'Rechazar' }));
     const dialog = screen.getByRole('dialog', { name: 'Rechazar' });
 
@@ -326,7 +401,7 @@ describe('moderación de experiencias', () => {
       }),
       ADMIN,
     );
-    const ficha = await screen.findByRole('complementary', { name: 'Ficha de la experiencia' });
+    const ficha = await screen.findByRole('dialog', { name: experience.title });
     await userEvent.click(within(ficha).getByRole('button', { name: 'Aprobar y publicar' }));
     const dialog = screen.getByRole('dialog', { name: 'Aprobar y publicar' });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Aprobar y publicar' }));
@@ -338,7 +413,10 @@ describe('moderación de experiencias', () => {
   it('filtra por estado desde la URL', async () => {
     stubMatchMedia(LAPTOP);
     const { http, router } = renderApp('/admin/experiencias', adminRoutes(), ADMIN);
-    await screen.findByRole('table', { name: /Por revisar/ });
+    const table = await screen.findByRole('table', { name: /Por revisar/ });
+    expect(table.className).toContain('bg-transparent');
+    expect(table.querySelector('caption')?.className).toContain('sr-only');
+    expect(screen.getByRole('searchbox', { name: 'Buscar en experiencias' })).toBeVisible();
     const filters = screen.getByRole('navigation', { name: 'Filtrar por estado' });
     await userEvent.click(within(filters).getByRole('link', { name: 'Suspendidas' }));
     expect(router.state.location.search).toBe('?estado=SUSPENDED');
@@ -445,6 +523,50 @@ describe('asociaciones', () => {
     await waitFor(() => {
       expect(nit).toHaveFocus();
     });
+  });
+
+  it('permite editar una asociación existente desde la ventana emergente de Gestionar', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    const { http } = renderApp(
+      '/admin/asociaciones',
+      adminRoutes({
+        '/v1/admin/associations/a-1': (_url: URL, options: RequestOptions) =>
+          options.method === 'PUT'
+            ? { ...association, legalName: 'Asociación Campesina Renovada' }
+            : association,
+      }),
+      ADMIN,
+    );
+
+    const table = await screen.findByRole('table', { name: /Asociaciones registradas/ });
+    await user.click(
+      await within(table).findByRole('button', { name: `Gestionar ${association.legalName}` }),
+    );
+    const dialog = screen.getByRole('dialog', { name: association.legalName });
+    const legalNameInput = within(dialog).getByRole('textbox', { name: 'Razón social' });
+    await user.clear(legalNameInput);
+    await user.type(legalNameInput, 'Asociación Campesina Renovada');
+    await user.click(within(dialog).getByRole('button', { name: 'Guardar cambios' }));
+
+    expect(
+      await screen.findByText('Se actualizaron los datos de «Asociación Campesina Renovada».'),
+    ).toBeVisible();
+    expect(http.calls).toContainEqual([
+      '/v1/admin/associations/a-1',
+      {
+        method: 'PUT',
+        body: {
+          legalName: 'Asociación Campesina Renovada',
+          nit: association.nit,
+          rntNumber: association.rntNumber,
+          associationType: association.associationType,
+          municipalityCode: association.municipalityCode,
+          contactEmail: association.contactEmail,
+          contactPhone: association.contactPhone,
+        },
+      },
+    ]);
   });
 });
 

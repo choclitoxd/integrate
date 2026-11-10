@@ -55,6 +55,16 @@ export function associationTypeLabel(type: AssociationType): string {
   return ASSOCIATION_TYPES.find((option) => option.value === type)?.label ?? type;
 }
 
+/** Filtros por estado para asociaciones; `null` = todas. */
+export const ASSOCIATION_FILTERS: readonly {
+  value: 'ACTIVE' | 'SUSPENDED' | null;
+  text: string;
+}[] = [
+  { value: null, text: 'Todas' },
+  { value: 'ACTIVE', text: 'Activas' },
+  { value: 'SUSPENDED', text: 'Suspendidas' },
+];
+
 export const SEVERITY: Readonly<Record<AuditSeverity, Label>> = {
   INFO: { text: 'Informativa', tone: 'neutral' },
   WARNING: { text: 'Advertencia', tone: 'warning' },
@@ -67,6 +77,15 @@ export const INTENSITY: Readonly<Record<'LOW' | 'MEDIUM' | 'HIGH', string>> = {
   MEDIUM: 'Media',
   HIGH: 'Alta',
 };
+
+export const INTENSITY_OPTIONS: readonly {
+  value: 'LOW' | 'MEDIUM' | 'HIGH';
+  label: string;
+}[] = [
+  { value: 'LOW', label: 'Baja' },
+  { value: 'MEDIUM', label: 'Media' },
+  { value: 'HIGH', label: 'Alta' },
+];
 
 export const MANAGER_STATUS: Readonly<Record<'ACTIVE' | 'SUSPENDED' | 'REVOKED', Label>> = {
   ACTIVE: { text: 'Vigente', tone: 'success' },

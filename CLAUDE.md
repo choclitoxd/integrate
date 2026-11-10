@@ -23,6 +23,13 @@ Para cualquier petición de desarrollo, nueva funcionalidad, módulo o cambio es
 Para cualquier desarrollo, creación de componentes, vistas o interacción con la PWA cliente, es **OBLIGATORIO** adherirse a la directiva de frontend en [`docs/rules/frontend-rules.md`](file:///c:/Users/victx/OneDrive/Documentos/U/Ing3/Proyecto/integrate/docs/rules/frontend-rules.md) (diseño Mobile-First 360–430 px, tokens de color certificados para contraste solar WCAG AAA, áreas táctiles $\ge 44 \times 44$ px, fronteras arquitectónicas de capas y superación obligatoria de los 5 comandos del Quality Gate).
 Toda interacción con Git, commits y subida de cambios debe regirse estrictamente por `@docs/rules/git-workflow.md` y la política de secretos `@docs/security/security_secrets_policy.md`.
 
+## Coordinación de cambios en curso (obligatorio)
+
+- **Antes de editar** cualquier archivo, leer `docs/status/EN-CURSO.md`. Si el área está ocupada por otra fila, **no editarla**: preguntar al desarrollador primero.
+- **Al empezar** un cambio, agregar una fila en `docs/status/EN-CURSO.md` (quién, área, qué, desde cuándo). **Al terminar**, quitarla o marcarla `Terminado`.
+- **Archivos modificados que no son míos:** si `git status` muestra cambios en archivos que no toqué en esta sesión, no comitearlos, no revertirlos ni "arreglarlos" sin preguntar.
+- Un cambio que el desarrollador hace mientras trabajamos se considera vigente: releer el archivo antes de editarlo.
+
 ## Precedencia sobre skills de diseño (Impeccable y similares)
 
 La skill `impeccable` (`.claude/skills/impeccable/`) y cualquier otra skill de diseño (`frontend-design`, `make-interfaces-feel-better`, etc.) son **subordinadas** a `docs/rules/frontend-rules.md` (`FE-DIR-001`). Ante cualquier conflicto gana FE-DIR-001, sin excepción. Para Impeccable, FE-DIR-001 cuenta como el "brief fijado" que su propia regla "The brief wins" obliga a respetar. En concreto:

@@ -1,4 +1,4 @@
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 
 import {
   AccountPage,
@@ -215,6 +215,17 @@ export const routes: RouteObject[] = [
             handle: adminWide,
           },
           { path: 'auditoria', lazy: adminAuditPage, handle: adminWide },
+          // El perfil del administrador vive dentro del panel: /admin/cuenta (ADR-0044 enmendado).
+          {
+            path: 'cuenta',
+            element: (
+              <RequireSession roles={['ROLE_ADMIN']}>
+                <AccountPage />
+              </RequireSession>
+            ),
+          },
+          // Una ruta desconocida dentro del panel vuelve a su inicio, no a la página pública de no encontrada.
+          { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
       {

@@ -85,4 +85,25 @@ public class CommunityAssociation {
     public boolean isActive() {
         return status == AssociationStatus.ACTIVE && deletedAt == null;
     }
+
+    /** Actualiza los datos administrativos de la asociación comunitaria (ADR-0047 §2). */
+    public void update(String nit, String rntNumber, String legalName, AssociationType type, String municipalityCode,
+                       String address, String contactEmail, String contactPhone) {
+        this.nit = nit;
+        this.rntNumber = rntNumber;
+        this.legalName = legalName;
+        this.associationType = type;
+        this.municipalityCode = municipalityCode;
+        this.address = address;
+        this.contactEmail = contactEmail;
+        this.contactPhone = contactPhone;
+    }
+
+    public void suspend() {
+        this.status = AssociationStatus.SUSPENDED;
+    }
+
+    public void activate() {
+        this.status = AssociationStatus.ACTIVE;
+    }
 }

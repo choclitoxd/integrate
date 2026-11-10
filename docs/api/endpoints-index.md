@@ -30,11 +30,12 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 ## Administración — rol ADMIN
 | Método y ruta | Controlador | ADR |
 |---|---|---|
-| POST, GET `/admin/associations`; POST `/admin/host-profiles` | `AdminCatalogController` | ADR-0006, ADR-0007 |
-| GET `/admin/experiences`; POST `/admin/experiences/{id}/approve\|reject\|suspend\|reinstate\|retire` | `AdminCatalogController` | ADR-0006 |
+| POST, GET `/admin/associations`; PUT `/admin/associations/{id}`; POST `/admin/associations/{id}/suspend\|activate`; POST `/admin/host-profiles` | `AdminCatalogController` | ADR-0006, ADR-0007, ADR-0047 |
+| GET `/admin/experiences`; POST `/admin/experiences`; PUT `/admin/experiences/{id}`; POST `/admin/experiences/{id}/approve\|reject\|suspend\|reinstate\|retire` | `AdminCatalogController` | ADR-0006, ADR-0047, ADR-0048 |
 | POST `/admin/experiences/{id}/meeting-point/confirm` | `AdminCatalogController` | ADR-0030 |
 | POST `/admin/link-managers`; POST `/admin/link-managers/{id}/suspend\|reinstate\|revoke` | `AdminLinkManagerController` | ADR-0007 |
 | GET `/admin/audit`, `/admin/audit/export`, `/admin/audit/verify` | `AuditController` (módulo `audit`) | ADR-0035 |
+| GET `/admin/users?role=`, POST `/admin/users` | `AdminPeopleController` | ADR-0048 |
 | GET `/admin/users/search?email=\|docType=&document=`, `/admin/users/{id}` | `AdminPeopleController` | ADR-0043 §1 |
 | GET `/admin/link-managers`, `/admin/host-profiles` | `AdminPeopleController` | ADR-0043 §1 |
 | GET `/admin/incidents`, `/admin/incidents/{id}`; POST `/admin/incidents/{id}/take\|resolve\|dismiss` | `AdminIncidentController` (módulo `offline`) | ADR-0043 §2, ADR-0045 §1 |

@@ -1,6 +1,7 @@
 package com.integrate.modules.auth.service.impl;
 
 import com.integrate.modules.auth.entity.DocType;
+import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.entity.User;
 import com.integrate.modules.auth.repository.UserRepository;
 import com.integrate.modules.auth.repository.UserRoleRepository;
@@ -13,6 +14,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +64,15 @@ public class UserDirectoryImpl implements UserDirectory {
         return userRoleRepository.findHistory(userId).stream()
                 .map(row -> new RoleHistoryEntry(row.getCode(), row.getRevokedAt(), row.getRevokedBy()))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AccountView> listAccounts(RoleCode role, Pageable pageable) {
+        Page<User> page = role == null
+                ? userRepository.findOpenAccounts(pageable)
+                : userRepository.findOpenAccountsByRole(role, pageable);
+        return page.map(this::view);
     }
 
     private AccountView view(User user) {

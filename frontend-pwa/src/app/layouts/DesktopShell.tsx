@@ -21,37 +21,48 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
     <div className="flex min-h-dvh flex-col bg-canvas">
       <SkipLink targetId={MAIN_CONTENT_ID} />
       <header className="sticky top-0 z-20 bg-brand text-on-brand">
-        <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-8 px-8">
-          <Link to={homeTo} className="rounded-sm py-2 text-2xl font-bold tracking-tight">
+        <div
+          className={`mx-auto flex min-h-16 w-full items-center justify-between gap-6 px-6 xl:px-8 ${admin ? 'max-w-7xl' : 'max-w-6xl'}`}
+        >
+          <Link to={homeTo} className="shrink-0 rounded-sm py-2 text-2xl font-bold tracking-tight">
             Intégrate
           </Link>
-          <nav aria-label={navLabel}>
-            <ul className="flex gap-2">
-              {navItems.map((item) => (
-                <Fragment key={item.to}>
-                  {admin && item.to === '/cuenta' && (
-                    <li className="xl:hidden">
-                      <AdminModules items={navItems.slice(1, -1)} />
-                    </li>
-                  )}
-                  <li
-                    className={
-                      admin && item.to !== '/admin' && item.to !== '/cuenta'
-                        ? 'hidden xl:block'
-                        : undefined
-                    }
-                  >
-                    <NavLink
-                      to={item.to}
-                      end
-                      className={`inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg font-semibold text-on-brand hover:bg-brand-hover aria-[current=page]:bg-canvas aria-[current=page]:text-brand ${admin ? 'px-2' : 'px-4'}`}
+          <nav aria-label={navLabel} className={admin ? 'flex-1' : undefined}>
+            <ul className={`flex items-center ${admin ? 'justify-end gap-1.5' : 'gap-2'}`}>
+              {navItems.map((item) => {
+                const isAdminHome = admin && item.to === '/admin';
+                const isAdminAccount = admin && item.to === '/admin/cuenta';
+                const isAdminModule = admin && !isAdminHome && !isAdminAccount;
+                return (
+                  <Fragment key={item.to}>
+                    {isAdminAccount && (
+                      <li className="xl:hidden">
+                        <AdminModules items={navItems.slice(1, -1)} />
+                      </li>
+                    )}
+                    <li
+                      className={
+                        isAdminModule
+                          ? 'hidden xl:block'
+                          : isAdminHome
+                            ? 'xl:ml-auto'
+                            : isAdminAccount
+                              ? 'ml-1 border-l border-brand-border pl-3 xl:ml-auto xl:pl-4'
+                              : undefined
+                      }
                     >
-                      <Icon name={item.icon} size={20} />
-                      {item.label}
-                    </NavLink>
-                  </li>
-                </Fragment>
-              ))}
+                      <NavLink
+                        to={item.to}
+                        end
+                        className={`inline-flex min-h-11 min-w-11 shrink-0 items-center whitespace-nowrap rounded-lg font-semibold text-on-brand hover:bg-brand-hover aria-[current=page]:bg-canvas aria-[current=page]:text-brand ${admin ? 'gap-1.5 px-3 text-sm' : 'gap-2 px-4'}`}
+                      >
+                        <Icon name={item.icon} size={admin ? 16 : 20} />
+                        {item.label}
+                      </NavLink>
+                    </li>
+                  </Fragment>
+                );
+              })}
             </ul>
           </nav>
         </div>

@@ -16,7 +16,7 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
   const { flow, backTo, loading } = useShellRoute();
   const admin = navItems === ADMIN_NAV_ITEMS;
   const primaryItems = admin
-    ? navItems.filter((item) => item.to === '/admin' || item.to === '/cuenta')
+    ? navItems.filter((item) => item.to === '/admin' || item.to === '/admin/cuenta')
     : navItems;
 
   return (
@@ -71,7 +71,7 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
             >
               {primaryItems.map((item) => (
                 <Fragment key={item.to}>
-                  {admin && item.to === '/cuenta' && (
+                  {admin && item.to === '/admin/cuenta' && (
                     <li className="flex-auto text-ink-muted">
                       <AdminModules items={navItems.slice(1, -1)} mobile />
                     </li>

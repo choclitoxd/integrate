@@ -150,6 +150,19 @@ public class Experience {
         return pointChanged;
     }
 
+    /**
+     * Edición administrativa de los campos de la experiencia (ADR-0047 §1): conserva el {@code status} actual.
+     *
+     * @return {@code true} si cambió el punto de encuentro, sus coordenadas o su municipio
+     */
+    public boolean editByAdmin(ExperienceContent content) {
+        boolean pointChanged = !java.util.Objects.equals(meetingPoint, content.meetingPoint())
+                || !java.util.Objects.equals(municipalityCode, content.municipalityCode())
+                || differs(latitude, content.latitude()) || differs(longitude, content.longitude());
+        apply(content);
+        return pointChanged;
+    }
+
     /** Mueve el estado de verificación; solo lo invoca el servicio con el resultado del autómata (ADR-0030). */
     public void moveMeetingPointCheck(MeetingPointState target) {
         this.meetingPointCheckStatus = target;

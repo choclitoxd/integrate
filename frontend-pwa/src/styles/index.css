@@ -204,6 +204,19 @@
     box-shadow: none !important;
   }
 
+  /* Campos de texto, selects y controles de formulario: foco limpio con borde de marca, sin el contorno amarillo/negro */
+  input:focus-visible,
+  input:focus,
+  select:focus-visible,
+  select:focus,
+  textarea:focus-visible,
+  textarea:focus,
+  [role='combobox']:focus-visible,
+  [role='combobox']:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

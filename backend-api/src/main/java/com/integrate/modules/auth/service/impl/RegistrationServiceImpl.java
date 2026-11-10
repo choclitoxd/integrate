@@ -57,6 +57,21 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
+    public RegisteredUser registerByAdmin(AdminAccountCommand command) {
+        PasswordPolicy.check(command.password(), "password");
+        String fullName = IdentityWriter.requireFullName(command.fullName(), "fullName");
+        String email = Emails.normalize(command.email());
+        if (userRepository.existsByEmailIgnoreCase(email)
+                || identityProtection.documentExists(command.docType(), command.docNumber())) {
+            throw AuthErrors.userAlreadyExists();
+        }
+        User user = identityWriter.persist(User.register(email, passwordEncoder.encode(command.password()), fullName,
+                command.docType(), command.docNumber(), command.phone()), TOURIST_ROLES);
+        return new RegisteredUser(user.getId(), user.getEmail(), claims(TOURIST_ROLES));
+    }
+
+    @Override
+    @Transactional
     public BootstrapOutcome bootstrapAdmin(AdminBootstrapCommand command) {
         if (userRoleRepository.existsActiveAssignment(RoleCode.ADMIN)) {
             return BootstrapOutcome.ADMIN_ALREADY_EXISTS;

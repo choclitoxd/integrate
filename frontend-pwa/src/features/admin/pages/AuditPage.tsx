@@ -7,8 +7,22 @@ import { Button, Icon, ProblemNotice, Select, Skeleton, TextField } from '@/shar
 
 import { exportAudit, type AuditFilters, type AuditRecord, type AuditSeverity } from '../api';
 import { ChainVerifier } from '../components/ChainVerifier';
-import { EmptyRow, Notice, PageHeader, Pager, StatusBadge, TableFrame } from '../components/parts';
-import { CAPTION_CLASS, TABLE_CLASS, TD_CLASS, TH_CLASS } from '../components/tableStyles';
+import {
+  EmptyRow,
+  Notice,
+  PageHeader,
+  Pager,
+  StatusBadge,
+  TableFrame,
+  TableSearchBar,
+} from '../components/parts';
+import {
+  CAPTION_CLASS,
+  matchesSearchQuery,
+  TABLE_CLASS,
+  TD_CLASS,
+  TH_CLASS,
+} from '../components/tableStyles';
 import { formatInstant, SEVERITY, shortId } from '../labels';
 import { useAuditSearch } from '../queries';
 
@@ -93,9 +107,21 @@ export function AuditPage() {
   const [moduleError, setModuleError] = useState<string | undefined>();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<unknown>(null);
+  const [query, setQuery] = useState('');
   // Tras "Limpiar" el formulario se vuelve a montar con los campos vacíos.
   const [formKey, setFormKey] = useState(0);
-  const items = audit.data?.items ?? [];
+  const allItems = audit.data?.items ?? [];
+  const items = allItems.filter((record) =>
+    matchesSearchQuery(query, [
+      record.id,
+      record.module,
+      record.action,
+      SEVERITY[record.severity].text,
+      record.entityName,
+      record.entityId,
+      record.actorId ?? 'Sistema',
+    ]),
+  );
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -221,7 +247,13 @@ export function AuditPage() {
         </div>
       </form>
 
-      <div className="mt-6">
+      <div className="mt-6 flex justify-end">
+        <div className="w-full sm:max-w-xs">
+          <TableSearchBar label="Buscar en bitácora" value={query} onChange={setQuery} />
+        </div>
+      </div>
+
+      <div className="mt-4">
         {audit.isError ? (
           <ProblemNotice
             error={audit.error}
@@ -230,7 +262,10 @@ export function AuditPage() {
             }}
           />
         ) : (
-          <TableFrame>
+          <TableFrame
+            title="Registros, del más reciente al más antiguo"
+            count={audit.data?.totalElements}
+          >
             <table className={TABLE_CLASS}>
               <caption className={CAPTION_CLASS}>
                 Registros, del más reciente al más antiguo

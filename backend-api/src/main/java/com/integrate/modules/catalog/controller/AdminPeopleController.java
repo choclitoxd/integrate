@@ -5,6 +5,8 @@ import com.integrate.common.exception.ErrorCode;
 import com.integrate.common.payload.PageResponse;
 import com.integrate.common.web.PageRequests;
 import com.integrate.modules.auth.entity.DocType;
+import com.integrate.modules.auth.entity.RoleCode;
+import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -12,10 +14,12 @@ import com.integrate.modules.catalog.dto.response.AdminUserResponse;
 import com.integrate.modules.catalog.entity.AccreditationStatus;
 import com.integrate.modules.catalog.service.AdminPeopleService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -25,6 +29,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,6 +66,28 @@ public class AdminPeopleController {
         return noStore(byEmail
                 ? service.searchByEmail(email, adminId, RequestClients.from(request))
                 : service.searchByDocument(docType, document, adminId, RequestClients.from(request)));
+    }
+
+    /**
+     * Cuentas abiertas paginadas, opcionalmente por rol vigente (ADR-0048 §1). Sin {@code role} lista todas.
+     */
+    @GetMapping("/users")
+    public ResponseEntity<PageResponse<AdminUserResponse>> listUsers(
+            @AuthenticationPrincipal Jwt jwt, HttpServletRequest request,
+            @RequestParam(required = false) RoleCode role,
+            @RequestParam(required = false) @Min(0) Integer page,
+            @RequestParam(required = false) @Min(1) @Max(50) Integer size) {
+        return noStore(service.listUsers(role, PageRequests.newestFirst(page, size), Actors.subject(jwt),
+                RequestClients.from(request)));
+    }
+
+    /** Alta de una cuenta de turista por el administrador (ADR-0048 §2). */
+    @PostMapping("/users")
+    public ResponseEntity<AdminUserResponse> createUser(@AuthenticationPrincipal Jwt jwt,
+                                                        @Valid @RequestBody AdminUserCreateRequest request) {
+        AdminUserResponse created = service.createUser(request, Actors.subject(jwt));
+        return ResponseEntity.created(URI.create("/api/v1/admin/users/" + created.userId()))
+                .cacheControl(CacheControl.noStore()).body(created);
     }
 
     @GetMapping("/users/{id}")

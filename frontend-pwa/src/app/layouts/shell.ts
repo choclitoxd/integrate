@@ -23,7 +23,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
   { to: '/admin/incidentes', label: 'Incidentes', icon: 'alert' },
   { to: '/admin/liquidaciones', label: 'Liquidaciones', icon: 'clock' },
   { to: '/admin/auditoria', label: 'Auditoría', icon: 'shield' },
-  { to: '/cuenta', label: 'Mi cuenta', icon: 'user' },
+  { to: '/admin/cuenta', label: 'Mi cuenta', icon: 'user' },
 ];
 
 /**

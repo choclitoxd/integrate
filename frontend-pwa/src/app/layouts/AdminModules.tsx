@@ -14,7 +14,7 @@ export function AdminModules({
   const active = !!useMatch('/admin/:module');
   const style = mobile
     ? 'flex min-h-14 w-full min-w-11 flex-col items-center justify-center gap-0.5 rounded-lg px-2 text-xs font-semibold'
-    : 'inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-4 font-semibold hover:bg-brand-hover';
+    : 'inline-flex min-h-11 min-w-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-semibold hover:bg-brand-hover';
   return (
     <>
       <button

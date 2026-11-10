@@ -1,15 +1,22 @@
 package com.integrate.modules.catalog.service.impl;
 
+import com.integrate.common.audit.AuditEntry;
+import com.integrate.common.audit.AuditEntry.Severity;
+import com.integrate.common.audit.AuditTrail;
 import com.integrate.common.audit.SensitiveAccessRecorder;
 import com.integrate.common.audit.SensitiveAccessRecorder.Access;
 import com.integrate.common.payload.PageResponse;
 import com.integrate.modules.auth.entity.DocType;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.AssistedAccountService;
+import com.integrate.modules.auth.service.RegistrationService;
+import com.integrate.modules.auth.service.RegistrationService.AdminAccountCommand;
 import com.integrate.modules.auth.service.UserDirectory;
 import com.integrate.modules.auth.service.UserDirectory.AccountView;
 import com.integrate.modules.auth.service.UserDirectory.UserSummary;
 import com.integrate.modules.auth.service.model.ClientInfo;
+import com.integrate.modules.auth.service.model.RegisteredUser;
+import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -57,6 +64,8 @@ public class AdminPeopleServiceImpl implements AdminPeopleService {
     private final CommunityAssociationRepository associationRepository;
     private final SensitiveAccessRecorder accessRecorder;
     private final LookupRateLimiter rateLimiter;
+    private final RegistrationService registration;
+    private final AuditTrail auditTrail;
 
     // ------------------------------------------------------------------------------------------------ búsqueda
 
@@ -109,6 +118,31 @@ public class AdminPeopleServiceImpl implements AdminPeopleService {
     }
 
     // ------------------------------------------------------------------------------------------------ listados
+
+    @Override
+    @Transactional
+    public PageResponse<AdminUserResponse> listUsers(RoleCode role, Pageable pageable, UUID adminId,
+                                                     ClientInfo client) {
+        Page<AccountView> page = users.listAccounts(role, pageable);
+        List<AdminUserResponse> items = page.getContent().stream().map(account -> summary(account, false)).toList();
+        record("ADMIN_USER_LIST", List.of("fullName", "email"),
+                items.stream().map(item -> item.userId().toString()).toList(), adminId, client);
+        return PageResponse.from(page, items);
+    }
+
+    @Override
+    @Transactional
+    public AdminUserResponse createUser(AdminUserCreateRequest request, UUID adminId) {
+        RegisteredUser created = registration.registerByAdmin(new AdminAccountCommand(request.email(),
+                request.password(), request.fullName(), request.docType(), request.docNumber(), request.phone()));
+        AdminUserResponse response = summary(users.findAccount(created.userId())
+                .orElseThrow(() -> CatalogErrors.notFound("User")), false);
+        // Debe ser lo último de la transacción (encadenamiento de la bitácora); sin datos personales.
+        auditTrail.record(new AuditEntry("catalog", "admin_people", created.userId().toString(),
+                "USER_CREATED_BY_ADMIN", Severity.INFO, adminId, null, null,
+                Map.of("userId", created.userId().toString())));
+        return response;
+    }
 
     @Override
     @Transactional

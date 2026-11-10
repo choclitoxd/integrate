@@ -1,9 +1,15 @@
 import { buttonClassName, Icon } from '@/shared/ui';
 
-import type { ExperienceDetail } from '../api/types';
+import type { ExperienceDetail, PhysicalIntensity } from '../api/types';
 import { placeLabel } from '../labels';
 import { useCategories } from '../queries';
 import { MeetingPointMap } from './MeetingPointMap';
+
+const AUDIENCE_LABELS: Record<PhysicalIntensity, string> = {
+  LOW: 'Apta para principiantes.',
+  MEDIUM: 'Requiere una condición física moderada.',
+  HIGH: 'Requiere buena condición física.',
+};
 
 function MapLinks({ latitude, longitude }: { latitude: number; longitude: number }) {
   const coords = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
@@ -78,6 +84,19 @@ export function DetailSections({ detail }: { detail: ExperienceDetail }) {
           Sobre la experiencia
         </h2>
         <p className="mt-2 max-w-prose whitespace-pre-line text-ink">{detail.description}</p>
+        <p className="mt-3 max-w-prose text-ink-muted">
+          {AUDIENCE_LABELS[detail.summary.physicalIntensity]}
+        </p>
+      </section>
+
+      <section aria-labelledby="aporte" className="mt-8 rounded-xl bg-surface px-4 py-4">
+        <h2 id="aporte" className="text-lg font-bold text-ink">
+          Tu aporte a la comunidad
+        </h2>
+        <p className="mt-2 max-w-prose text-ink">
+          El 85 % del pago llega directamente a la asociación o al anfitrión que organiza la
+          experiencia.
+        </p>
       </section>
 
       <section aria-labelledby="encuentro" className="mt-8">

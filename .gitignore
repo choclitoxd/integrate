@@ -265,3 +265,8 @@ docs/testers/
 *.pdf.credentials
 infra/postgres/seed/import_testers.sql
 
+# Temporales de pruebas y Cloudflare
+.wrangler/
+.test-tmp/
+**/.test-tmp/
+

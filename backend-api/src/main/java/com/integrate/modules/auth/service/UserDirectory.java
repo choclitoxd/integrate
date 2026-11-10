@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 /**
  * Lectura de datos de contacto de usuarios para otros módulos (guía §5.1). La usa {@code catalog}
  * para el listado de anfitriones del gestor (ADR-0007 §1) y para las consultas de personas del
@@ -31,6 +32,13 @@ public interface UserDirectory {
 
     /** Todas las asignaciones de rol del usuario, vigentes y revocadas, de la más antigua a la más reciente. */
     List<RoleHistoryEntry> roleHistory(UUID userId);
+
+    /**
+     * Cuentas abiertas paginadas (ADR-0048 §1).
+     *
+     * @param role si no es {@code null}, solo las cuentas con ese rol vigente
+     */
+    Page<AccountView> listAccounts(RoleCode role, Pageable pageable);
 
     record UserSummary(UUID userId, String fullName, String email, String phone, DocType docType, String docNumber,
                        CredentialStatus credentialStatus) {

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useOnlineStatus } from '@/shared/offline';
-import { BottomSheet, Button, ProblemNotice, Skeleton } from '@/shared/ui';
+import { BottomSheet, Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 import { OperationConnection, OperationFilter, OperationTable } from '../components/OperationParts';
-import { Notice, PageHeader, Pager } from '../components/parts';
-import { TD_CLASS } from '../components/tableStyles';
+import { EmptyRow, Notice, PageHeader, Pager, TableSearchBar } from '../components/parts';
+import { matchesSearchQuery, TD_CLASS } from '../components/tableStyles';
 import { formatCop, formatInstant } from '../labels';
 import {
   useOperationAction,
@@ -25,8 +25,16 @@ function PayoutSheet({ id, close }: { id: string; close: () => void }) {
   const reconcile = useOperationAction<Reconciliation>('payout-batches', id);
   const receipt = useReceipt(id);
   const online = useOnlineStatus();
+  const [disbursementQuery, setDisbursementQuery] = useState('');
   const batch = detail.data?.batch;
   const disbursements = detail.data?.disbursements ?? [];
+  const filteredDisbursements = disbursements.filter((item) =>
+    matchesSearchQuery(disbursementQuery, [
+      item.id,
+      item.amountCop,
+      item.status === 'PAID' ? 'Pagada' : 'Liberada',
+    ]),
+  );
   const result = reconcile.data;
   const error = reconcile.error ?? receipt.error;
   const items = [
@@ -73,18 +81,33 @@ function PayoutSheet({ id, close }: { id: string; close: () => void }) {
             )}
           </dl>
           {disbursements.length > 0 && (
-            <OperationTable
-              caption="Dispersiones"
-              headings={['Identificador', 'Importe', 'Estado']}
-            >
-              {disbursements.map((item) => (
-                <tr key={item.id}>
-                  <td className={TD_CLASS}>{item.id}</td>
-                  <td className={TD_CLASS}>{formatCop(item.amountCop)}</td>
-                  <td className={TD_CLASS}>{item.status === 'PAID' ? 'Pagada' : 'Liberada'}</td>
-                </tr>
-              ))}
-            </OperationTable>
+            <div className="grid gap-3">
+              <div className="flex justify-end">
+                <div className="w-full sm:max-w-xs">
+                  <TableSearchBar
+                    label="Buscar en dispersiones"
+                    value={disbursementQuery}
+                    onChange={setDisbursementQuery}
+                  />
+                </div>
+              </div>
+              <OperationTable
+                caption="Dispersiones"
+                count={disbursements.length}
+                headings={['Identificador', 'Importe', 'Estado']}
+              >
+                {filteredDisbursements.length === 0 && (
+                  <EmptyRow columns={3}>No hay dispersiones que coincidan.</EmptyRow>
+                )}
+                {filteredDisbursements.map((item) => (
+                  <tr key={item.id}>
+                    <td className={TD_CLASS}>{item.id}</td>
+                    <td className={TD_CLASS}>{formatCop(item.amountCop)}</td>
+                    <td className={TD_CLASS}>{item.status === 'PAID' ? 'Pagada' : 'Liberada'}</td>
+                  </tr>
+                ))}
+              </OperationTable>
+            </div>
           )}
           <OperationConnection />
           {error && <ProblemNotice error={error} />}
@@ -137,6 +160,7 @@ export function PayoutsPage() {
   const [associationPage, setAssociationPage] = useState(0);
   const [selectedAssociation, setSelectedAssociation] = useState<{ id: string; label: string }>();
   const [id, setId] = useState('');
+  const [query, setQuery] = useState('');
   const status = params.get('status') ?? '';
   const associationId = params.get('associationId') ?? '';
   const options = useAssociations(associationPage);
@@ -148,6 +172,9 @@ export function PayoutsPage() {
       selectedAssociation?.id === associationId ? selectedAssociation.label : associationId;
   }
   const list = useOperationList<Batch>('payout-batches', { status, associationId }, page);
+  const filteredItems = (list.data?.items ?? []).filter((item) =>
+    matchesSearchQuery(query, [item.id, item.associationName, states[item.status]]),
+  );
   function filter(key: string, value: string) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
@@ -162,7 +189,7 @@ export function PayoutsPage() {
         title="Liquidaciones"
         description="Consulta las dispersiones a las asociaciones y concilia lotes enviados."
       />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid items-start gap-3 sm:grid-cols-3">
         <OperationFilter
           label="Estado"
           options={states}
@@ -191,6 +218,10 @@ export function PayoutsPage() {
             />
           )}
         </div>
+        <div className="grid min-w-0 gap-2">
+          <span className="font-semibold text-ink">Buscar</span>
+          <TableSearchBar label="Buscar en liquidaciones" value={query} onChange={setQuery} />
+        </div>
       </div>
       {options.isError && (
         <ProblemNotice
@@ -216,9 +247,13 @@ export function PayoutsPage() {
           ) : (
             <OperationTable
               caption="Lotes de liquidación"
+              count={list.data.totalElements}
               headings={['Asociación', 'Estado', 'Neto', 'Envío', 'Lote']}
             >
-              {list.data.items.map((item) => (
+              {filteredItems.length === 0 && (
+                <EmptyRow columns={5}>No hay liquidaciones con estos filtros.</EmptyRow>
+              )}
+              {filteredItems.map((item) => (
                 <tr key={item.id}>
                   <td className={TD_CLASS}>{item.associationName}</td>
                   <td className={TD_CLASS}>{states[item.status]}</td>
@@ -232,7 +267,8 @@ export function PayoutsPage() {
                         setId(item.id);
                       }}
                     >
-                      Ver
+                      <Icon name="eye" />
+                      <span className="hidden sm:inline">Ver</span>
                     </Button>
                   </td>
                 </tr>

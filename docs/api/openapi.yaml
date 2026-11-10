@@ -44,6 +44,76 @@ tags:
     description: Sincronización por lotes de validaciones de campo (RF-17, RF-18, RNF-06).
 
 paths:
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      operationId: getOwnProfile
+      summary: Consulta nombre y teléfono de la cuenta autenticada.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Perfil propio. Cache-Control no-store.
+          headers:
+            Cache-Control: { schema: { type: string, const: no-store } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnProfile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    patch:
+      tags: [Auth]
+      operationId: updateOwnProfile
+      summary: Actualiza nombre y teléfono de la cuenta autenticada.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OwnProfile' }
+      responses:
+        '200':
+          description: Perfil actualizado. Cache-Control no-store.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnProfile' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /api/v1/auth/me/password:
+    post:
+      tags: [Auth]
+      operationId: changeOwnPassword
+      summary: Cambia la contraseña y revoca las sesiones de refresco.
+      description: Los access tokens emitidos siguen vigentes hasta su expiración (máximo 15 minutos).
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string, writeOnly: true }
+                newPassword: { type: string, writeOnly: true, minLength: 12, maxLength: 128 }
+      responses:
+        '204':
+          description: Contraseña cambiada; se elimina la cookie refresh.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SetRefreshCookie' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429':
+          description: Demasiados intentos; Retry-After indica los segundos de espera.
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+
   /api/v1/auth/login:
     post:
       tags: [Auth]
@@ -893,6 +963,52 @@ paths:
                     properties:
                       items: { type: array, items: { $ref: '#/components/schemas/Association' } }
 
+  /api/v1/admin/associations/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Admin]
+      operationId: updateAssociation
+      summary: Actualiza los datos de una asociación comunitaria (ADR-0047 §2).
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssociationRequest' }
+      responses:
+        '200':
+          description: Asociación actualizada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Association' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CatalogConflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/admin/associations/{id}/{action}:
+    post:
+      tags: [Admin]
+      operationId: changeAssociationStatus
+      summary: Suspende o reactiva una asociación comunitaria (ADR-0047 §2).
+      description: '`suspend`: ACTIVE → SUSPENDED · `activate`: SUSPENDED → ACTIVE.'
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: action, in: path, required: true, schema: { type: string, enum: [suspend, activate] } }
+      responses:
+        '200':
+          description: Asociación con estado actualizado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Association' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+
   /api/v1/admin/host-profiles:
     post:
       tags: [Admin]
@@ -957,6 +1073,80 @@ paths:
                     properties:
                       items: { type: array, items: { $ref: '#/components/schemas/AdminHost' } }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/admin/users:
+    get:
+      tags: [Admin]
+      operationId: listAdminUsers
+      summary: Cuentas abiertas paginadas, opcionalmente por rol vigente (ADR-0048 §1).
+      description: >
+        Sin `role` lista todas las cuentas. El correo sale en claro; nunca documento ni celular. Cada consulta queda
+        en la bitácora como acceso sensible (`ADMIN_USER_LIST`). No se almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema: { type: string, enum: [TOURIST, HOST, LINK_MANAGER, ADMIN] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de cuentas.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageMeta'
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/AdminUser' } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    post:
+      tags: [Admin]
+      operationId: createAdminUser
+      summary: Alta de una cuenta de turista por el administrador (ADR-0048 §2).
+      description: >
+        No inicia sesión ni altera la sesión del administrador. El titular otorga sus consentimientos al ingresar.
+        El rol de anfitrión o de gestor se otorga después con `/admin/host-profiles` o `/admin/link-managers`.
+        Queda en la bitácora como `USER_CREATED_BY_ADMIN`.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName, docType, docNumber, phone]
+              properties:
+                email: { type: string, maxLength: 254 }
+                password: { type: string, minLength: 12, maxLength: 128 }
+                fullName: { type: string, minLength: 3, maxLength: 150 }
+                docType: { $ref: '#/components/schemas/DocType' }
+                docNumber: { type: string, pattern: '^[A-Za-z0-9]{4,20}$' }
+                phone: { type: string, pattern: '^\+[1-9][0-9]{7,14}$' }
+      responses:
+        '201':
+          description: Cuenta creada.
+          headers:
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: El correo o el documento ya están registrados (`AUTH_USER_ALREADY_EXISTS`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/admin/users/search:
@@ -1120,6 +1310,37 @@ paths:
         '409': { $ref: '#/components/responses/InvalidStatusTransition' }
 
   /api/v1/admin/experiences:
+    post:
+      tags: [Admin]
+      operationId: createAdminExperience
+      summary: Crea una experiencia a nombre de un anfitrión y la deja en revisión (ADR-0048 §2).
+      description: >
+        Queda en `PENDING_REVIEW` (se verifica el punto de encuentro) lista para aprobarse o rechazarse.
+        Registra `EXPERIENCE_CREATED_BY_ADMIN` en la bitácora.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hostProfileId, experience]
+              properties:
+                hostProfileId: { type: string, format: uuid }
+                experience: { $ref: '#/components/schemas/ExperienceRequest' }
+      responses:
+        '201':
+          description: Experiencia creada.
+          headers:
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
     get:
       tags: [Admin]
       operationId: listExperiencesForModeration
@@ -1141,6 +1362,35 @@ paths:
                   - type: object
                     properties:
                       items: { type: array, items: { $ref: '#/components/schemas/HostExperience' } }
+
+  /api/v1/admin/experiences/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Admin]
+      operationId: updateAdminExperience
+      summary: Actualiza los datos de una experiencia conservando su estado actual (ADR-0047 §1).
+      description: |
+        Permite editar cualquier experiencia que no esté en estado `RETIRED` (si está `RETIRED` responde 409
+        `CATALOG_INVALID_STATUS_TRANSITION`). Conserva el estado actual (una experiencia `APPROVED` sigue publicada)
+        y registra `EXPERIENCE_UPDATED_BY_ADMIN` en la bitácora de auditoría.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExperienceRequest' }
+      responses:
+        '200':
+          description: Experiencia actualizada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostExperience' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/admin/experiences/{id}/meeting-point/confirm:
     post:
@@ -1385,6 +1635,45 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/BookingLockResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/bookings/{bookingId}/meeting-point:
+    get:
+      tags: [Booking]
+      operationId: getBookingMeetingPoint
+      summary: Punto de encuentro exacto de una reserva confirmada propia (ADR-0046 §1 y §4).
+      description: |
+        Solo `ROLE_TOURIST`, solo sobre sus propias reservas y solo en estado `CONFIRMED`. Cualquier otro caso
+        (ajena, inexistente, pendiente o cancelada) responde 404. Las coordenadas se omiten (`null`) si el punto
+        está en revisión o no es fiable. Respuesta `Cache-Control: no-store`.
+      security:
+        - bearerAuth: []
+      x-required-roles: [ROLE_TOURIST]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Punto de encuentro exacto de la reserva confirmada.
+          headers:
+            X-Trace-Id:
+              $ref: '#/components/headers/XTraceId'
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [meetingPoint, coordinatesTrusted]
+                properties:
+                  meetingPoint: { type: string }
+                  latitude: { type: number, nullable: true }
+                  longitude: { type: number, nullable: true }
+                  coordinatesTrusted: { type: boolean }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -2579,6 +2868,1429 @@ components:
       schema: { type: string }
 
   schemas:
+    OwnProfile:
+      type: object
+      required: [fullName, phone]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+
+    AdminIncident:
+      type: object
+      required: [id, status, severity, type, financialImpactCop, createdAt, bookingId, voucherId, resolutionNotes, resolvedBy, resolvedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [OPEN, IN_REVIEW, RESOLVED, DISMISSED] }
+        severity: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        type: { type: string, enum: [OVER_REDEMPTION_COMMUNITY_PROTECTED, DUPLICATE_OFFLINE_REDEMPTION, CLOCK_SKEW_FUTURE_SCAN] }
+        financialImpactCop: { type: [number, 'null'] }
+        createdAt: { type: string, format: date-time }
+        bookingId: { type: string, format: uuid }
+        voucherId: { type: string, format: uuid }
+        resolutionNotes: { type: [string, 'null'] }
+        resolvedBy: { type: [string, 'null'], format: uuid }
+        resolvedAt: { type: [string, 'null'], format: date-time }
+
+    IncidentResolution:
+      type: object
+      required: [resolutionNotes]
+      properties:
+        resolutionNotes: { type: string, minLength: 1, maxLength: 2000 }
+
+    AdminIncidentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminIncident' }
+
+    AdminPayout:
+      type: object
+      required: [id, associationId, associationName, status, grossCop, gatewayFeeCop, platformFeeCop, netCommunityCop, disbursementCount, createdAt, submittedAt, paidAt, failureReason, receiptId]
+      properties:
+        id: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string }
+        status: { type: string, enum: [OPEN, SUBMITTED, PAID, FAILED] }
+        grossCop: { type: number }
+        gatewayFeeCop: { type: number }
+        platformFeeCop: { type: number }
+        netCommunityCop: { type: number }
+        disbursementCount: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        submittedAt: { type: [string, 'null'], format: date-time }
+        paidAt: { type: [string, 'null'], format: date-time }
+        failureReason: { type: [string, 'null'] }
+        receiptId: { type: [string, 'null'], format: uuid }
+
+    AdminPayoutPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminPayout' }
+
+    AdminPayoutDisbursement:
+      type: object
+      required: [id, status, amountCop]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string }
+        amountCop: { type: number }
+
+    AdminPayoutDetail:
+      type: object
+      required: [batch, disbursements]
+      properties:
+        batch: { $ref: '#/components/schemas/AdminPayout' }
+        disbursements: { type: array, items: { $ref: '#/components/schemas/AdminPayoutDisbursement' } }
+
+    AdminPayoutReceipt:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time }
+
+    AdminPayoutReconciliation:
+      type: object
+      required: [batch, lookupStatus]
+      properties:
+        batch: { $ref: '#/components/schemas/AdminPayout' }
+        lookupStatus: { type: string, enum: [CHECKED, UNAVAILABLE, ALREADY_CLOSED] }
+
+    # ---------- Tipos comunes ----------
+    DocType:
+      type: string
+      enum: [CC, CE, PA, PPT, TI]
+      description: Tipo de documento de identidad colombiano o extranjero.
+    DocNumber:
+      type: string
+      pattern: '^[A-Za-z0-9]{4,20}$'
+    PhoneE164:
+      type: string
+      pattern: '^\+[1-9][0-9]{7,14}$'
+      example: '+573001234567'
+    RoleClaim:
+      type: string
+      enum: [ROLE_TOURIST, ROLE_HOST, ROLE_LINK_MANAGER, ROLE_ADMIN]
+    ConsentPurpose:
+      type: string
+      enum: [PERSONAL_DATA, SENSITIVE_VICTIM, HEALTH_EMERGENCY]
+    CopAmount:
+      type: integer
+      format: int64
+      minimum: 0
+      description: Pesos colombianos sin centavos.
+
+    # ---------- Offline (ADR-0032) ----------
+    OfflineRevocations:
+      type: object
+      description: Lista delta de revocación y su marca de agua para la siguiente descarga.
+      required: [items, watermark]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [voucherId, jti, shortCode, revokedAt]
+            properties:
+              voucherId: { type: string, format: uuid }
+              jti: { type: string, format: uuid }
+              shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$' }
+              revokedAt: { type: string, format: date-time }
+              revocationReason: { type: string, nullable: true }
+        watermark:
+          type: string
+          format: date-time
+          nullable: true
+          description: Mayor `revokedAt` devuelto, o el `since` recibido; nulo si no hay ni uno ni otro.
+
+    # ---------- Errores (RFC 9457) ----------
+    ProblemDetails:
+      type: object
+      description: Error en formato RFC 9457 (`application/problem+json`).
+      required: [type, title, status, traceId]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: '`about:blank` para errores de protocolo o `https://api.integrate.co/problems/<slug>`.'
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code:
+          type: string
+          description: Código estable de negocio (ver el catálogo en dtos_contrato_api.md §2).
+          pattern: '^[A-Z][A-Z0-9_]+$'
+        traceId: { type: string }
+        invalidParams:
+          type: array
+          items: { $ref: '#/components/schemas/InvalidParam' }
+      additionalProperties: true
+    InvalidParam:
+      type: object
+      required: [name, reason]
+      properties:
+        name:
+          type: string
+          description: Ruta del campo con notación de punto o índice, p. ej. `participants[1].docNumber`.
+        reason: { type: string }
+    AccountLockedProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          required: [lockedUntil]
+          properties:
+            lockedUntil: { type: string, format: date-time }
+    BookingConflictProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            availableSlots:
+              type: [integer, 'null']
+              description: Cupos restantes al momento del rechazo (solo para BOOKING_INSUFFICIENT_SLOTS).
+    ConsentRequiredProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          required: [requiredPurposes, policyVersion]
+          properties:
+            requiredPurposes:
+              type: array
+              items: { $ref: '#/components/schemas/ConsentPurpose' }
+            policyVersion: { type: string }
+
+    # ---------- Auth ----------
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[^\x00]+$'
+          description: No admite caracteres nulos; nunca se registra en logs.
+    AuthenticatedUser:
+      type: object
+      required: [id, email, fullName, roles]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        roles:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/RoleClaim' }
+    AuthTokenResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn, user, requiresConsentUpdate, pendingPolicyVersion, pendingPurposes]
+      properties:
+        accessToken: { type: string, description: JWT RS256. }
+        tokenType: { type: string, const: Bearer }
+        expiresIn: { type: integer, const: 900, description: Segundos de vida del access token. }
+        user: { $ref: '#/components/schemas/AuthenticatedUser' }
+        requiresConsentUpdate: { type: boolean }
+        pendingPolicyVersion: { type: [string, 'null'] }
+        pendingPurposes:
+          type: array
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+
+    ConsentAcceptance:
+      type: object
+      additionalProperties: false
+      required: [policyVersion, purposes]
+      description: Aceptación expresa de finalidades sobre la versión vigente de la política (RF-02).
+      properties:
+        policyVersion:
+          type: string
+          maxLength: 20
+          description: Debe ser la versión vigente (`is_current`).
+        purposes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+    PrivacyPolicy:
+      type: object
+      required: [version, title, documentUrl, effectiveFrom, contentSha256]
+      properties:
+        version: { type: string, pattern: '^v[0-9]+\.[0-9]+$' }
+        title: { type: string, maxLength: 200 }
+        documentUrl: { type: string, format: uri, pattern: '^https://' }
+        effectiveFrom: { type: string, format: date-time }
+        contentSha256: { type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 del documento publicado. }
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, fullName, docType, docNumber, phone, consent]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          pattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+          description: Único sin distinguir mayúsculas; se guarda en minúsculas.
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          pattern: '^[^\x00]+$'
+          description: NIST SP 800-63B (sin reglas de composición). Se almacena como Argon2id; nunca va a logs.
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        consent:
+          allOf:
+            - $ref: '#/components/schemas/ConsentAcceptance'
+          description: '`purposes` debe incluir `PERSONAL_DATA`; un turista no puede otorgar `SENSITIVE_VICTIM`.'
+    RegisterResponse:
+      type: object
+      required: [userId, email, roles]
+      properties:
+        userId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { type: string, const: ROLE_TOURIST }
+    ConsentState:
+      type: string
+      enum: [VALID, OUTDATED, REVOKED, MISSING]
+      description: |
+        `VALID` otorgado sobre la política vigente; `OUTDATED` sobre una versión anterior (debe revalidarse);
+        `REVOKED` el último acto fue una revocación; `MISSING` nunca otorgado.
+    ConsentStatusResponse:
+      type: object
+      required: [currentPolicyVersion, consents, requiresConsentUpdate, pendingPurposes]
+      properties:
+        currentPolicyVersion:
+          type: [string, 'null']
+          description: '`null` si no hay ninguna política publicada.'
+        consents:
+          type: array
+          items:
+            type: object
+            required: [purpose, state, policyVersion, occurredAt]
+            properties:
+              purpose: { $ref: '#/components/schemas/ConsentPurpose' }
+              state: { $ref: '#/components/schemas/ConsentState' }
+              policyVersion: { type: [string, 'null'] }
+              occurredAt: { type: [string, 'null'], format: date-time }
+        requiresConsentUpdate:
+          type: boolean
+          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST).'
+        pendingPurposes:
+          type: array
+          items: { $ref: '#/components/schemas/ConsentPurpose' }
+
+    VictimData:
+      type: object
+      additionalProperties: false
+      required: [victimCondition]
+      description: Datos sensibles (Ley 1448 de 2011). Se cifran con AES-256-GCM y nunca se devuelven en respuestas.
+      properties:
+        victimCondition: { type: boolean }
+        ruvRegistrationNumber: { type: [string, 'null'], maxLength: 40 }
+        victimizationType: { type: [string, 'null'], maxLength: 80 }
+        supportDocS3Key: { type: [string, 'null'], maxLength: 512 }
+    AssistedConsent:
+      type: object
+      additionalProperties: false
+      required: [policyVersion, purposes, physicalConsentFormS3Key]
+      properties:
+        policyVersion:
+          type: string
+          maxLength: 20
+          description: Debe ser la versión vigente (`is_current`).
+        purposes:
+          type: array
+          minItems: 2
+          uniqueItems: true
+          description: Debe contener exactamente `PERSONAL_DATA` y `SENSITIVE_VICTIM`.
+          items:
+            type: string
+            enum: [PERSONAL_DATA, SENSITIVE_VICTIM]
+        physicalConsentFormS3Key:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Llave S3 del formato físico firmado (PDF), subido previamente.
+    AssistedHostRegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [fullName, docType, docNumber, phone, victimData, consent]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        email:
+          type: [string, 'null']
+          format: email
+          maxLength: 254
+          description: Opcional. Si se omite, el servidor genera `h-<10 caracteres>@comunidad.integrate.co` (ADR-0038 §1).
+        linkManagerId:
+          type: [string, 'null']
+          format: uuid
+          description: |
+            ID del perfil `link_manager_profiles` al que se vincula el anfitrión. Obligatorio si invoca
+            `ROLE_ADMIN`; se ignora (se usa el gestor autenticado) si invoca `ROLE_LINK_MANAGER`.
+        victimData: { $ref: '#/components/schemas/VictimData' }
+        consent: { $ref: '#/components/schemas/AssistedConsent' }
+    AssistedHostRegistrationResponse:
+      type: object
+      required: [userId, hostProfileId, associationId, assignmentId, linkManagerId, email, emailIsSynthetic, roles, credentialStatus, consent]
+      properties:
+        userId: { type: string, format: uuid }
+        hostProfileId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        assignmentId: { type: integer, format: int64 }
+        linkManagerId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        emailIsSynthetic: { type: boolean }
+        roles:
+          type: array
+          items: { type: string, const: ROLE_HOST }
+        credentialStatus: { type: string, const: PENDING_RESET }
+        consent:
+          type: object
+          required: [channel, policyVersion, purposes, capturedBy, capturedAt]
+          properties:
+            channel: { type: string, const: ASSISTED_PROXY }
+            policyVersion: { type: string }
+            purposes:
+              type: array
+              items: { $ref: '#/components/schemas/ConsentPurpose' }
+            capturedBy: { type: string, format: uuid }
+            capturedAt: { type: string, format: date-time }
+
+    # ---------- Enrolamiento asistido (ADR-0007) ----------
+    ForgotPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [token, newPassword]
+      properties:
+        token: { type: string, maxLength: 128, description: 'Token del fragmento del enlace (43 caracteres Base64 URL).' }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
+    ActivationRequest:
+      type: object
+      additionalProperties: false
+      required: [email, code, newPassword]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        code: { type: string, maxLength: 20, description: 'Código entregado por el gestor (XXXXX-XXXXX).' }
+        newPassword: { type: string, minLength: 12, maxLength: 128 }
+    DocumentUploadRequest:
+      type: object
+      additionalProperties: false
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [PHYSICAL_CONSENT_FORM, VICTIM_SUPPORT_DOC] }
+    DocumentUploadResponse:
+      type: object
+      required: [s3Key, uploadUrl, contentType, maxSizeBytes, expiresAt]
+      properties:
+        s3Key: { type: string, maxLength: 512 }
+        uploadUrl: { type: string, format: uri, description: URL `PUT` firmada; vence en `expiresAt`. }
+        contentType: { type: string, const: application/pdf }
+        maxSizeBytes: { type: integer, format: int64, const: 5242880 }
+        expiresAt: { type: string, format: date-time }
+    ManagedHost:
+      type: object
+      required: [hostProfileId, userId, fullName, email, emailIsSynthetic, phone, docType, docNumberLast4, credentialStatus, assignedSince]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email:
+          type: string
+          description: >-
+            Correo de acceso. Los correos sintéticos opacos (`h-xxxxxxxxxx@comunidad.integrate.co`) se muestran
+            completos. Los anteriores a ADR-0038 (`{tipo}{documento}@comunidad.integrate.co`) se muestran
+            **enmascarados** (`cc••••1142@comunidad.integrate.co`) para no revelar el número de documento, por lo
+            que en ese caso no es un correo válido sino una etiqueta.
+        emailIsSynthetic: { type: boolean }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumberLast4: { type: string, maxLength: 4 }
+        credentialStatus: { type: string, enum: [ACTIVE, PENDING_RESET] }
+        assignedSince: { type: string, format: date-time }
+    ActivationCode:
+      type: object
+      required: [code, expiresAt]
+      properties:
+        code: { type: string, pattern: '^[0-9A-HJKMNP-TV-Z]{5}-[0-9A-HJKMNP-TV-Z]{5}$' }
+        expiresAt: { type: string, format: date-time }
+    LinkManagerRequest:
+      type: object
+      additionalProperties: false
+      required: [userId, associationId, accreditedOn]
+      properties:
+        userId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        accreditedOn: { type: string, format: date }
+    LinkManager:
+      type: object
+      required: [linkManagerId, userId, associationId, accreditationStatus, accreditedOn]
+      properties:
+        linkManagerId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        associationId: { type: string, format: uuid }
+        accreditationStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
+
+    AdminUser:
+      type: object
+      description: Cuenta vista por el administrador (ADR-0043 §1). Sin celular, documento completo ni datos de víctima.
+      required: [userId, fullName, email, emailMasked, status, roles]
+      properties:
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, description: En claro si se buscó por correo; enmascarado (`j***@dominio`) si se buscó por documento. }
+        emailMasked: { type: boolean }
+        status: { type: string }
+        roles: { type: array, items: { type: string, example: TOURIST } }
+        hostProfileId: { type: string, format: uuid, nullable: true }
+        linkManagerId: { type: string, format: uuid, nullable: true }
+        linkManagerStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED], nullable: true }
+    AdminUserDetail:
+      type: object
+      required: [userId, fullName, maskedEmail, status, docType, docNumberLast4, roles, roleHistory]
+      properties:
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        maskedEmail: { type: string }
+        status: { type: string }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumberLast4: { type: string, minLength: 1, maxLength: 4 }
+        roles: { type: array, items: { type: string } }
+        hostProfileId: { type: string, format: uuid, nullable: true }
+        linkManagerId: { type: string, format: uuid, nullable: true }
+        linkManagerStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED], nullable: true }
+        roleHistory:
+          type: array
+          items:
+            type: object
+            required: [role]
+            properties:
+              role: { type: string }
+              revokedAt: { type: string, format: date-time, nullable: true }
+              revokedBy: { type: string, format: uuid, nullable: true }
+    AdminLinkManager:
+      type: object
+      required: [linkManagerId, userId, fullName, associationId, accreditationStatus, accreditedOn]
+      properties:
+        linkManagerId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, nullable: true }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string, nullable: true }
+        accreditationStatus: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
+        accreditedByName: { type: string, nullable: true }
+    AdminHost:
+      type: object
+      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, createdAt]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, nullable: true }
+        emailIsSynthetic: { type: boolean }
+        associationId: { type: string, format: uuid }
+        associationName: { type: string, nullable: true }
+        verified: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    # ---------- Catalog ----------
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }
+    Place:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, description: Código DANE (2 dígitos departamento, 5 municipio). }
+        name: { type: string }
+    PhysicalIntensity:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+    ExperienceStatus:
+      type: string
+      enum: [DRAFT, PENDING_REVIEW, REJECTED, APPROVED, SUSPENDED, RETIRED]
+    ReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    ExperienceSummary:
+      type: object
+      description: Tarjeta pública. Sin datos del anfitrión (R-05).
+      required: [id, title, physicalIntensity, durationMinutes, stopsCount, currency, unitPriceCop, maxCapacityPerSlot, municipality, department, associationName, categoryCodes]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'], description: Distancia total del recorrido en km (ADR-0022). }
+        roundTripMinutes: { type: [integer, 'null'], description: Tiempo total de ida y vuelta; nulo si durationMinutes ya lo cubre. }
+        stopsCount: { type: integer, minimum: 0 }
+        currency: { type: string, const: COP }
+        unitPriceCop: { $ref: '#/components/schemas/CopAmount' }
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30 }
+        municipality: { $ref: '#/components/schemas/Place' }
+        department: { $ref: '#/components/schemas/Place' }
+        associationName: { type: string }
+        categoryCodes: { type: array, items: { type: string } }
+    ExperienceDetail:
+      description: Ficha pública. La ubicación es aproximada y las paradas detalladas se reservan para la gestión.
+      type: object
+      required: [summary, description, safetyGuidelines, meetingPoint, timezone]
+      properties:
+        summary: { $ref: '#/components/schemas/ExperienceSummary' }
+        description: { type: string }
+        safetyGuidelines: { type: string }
+        vereda: { type: 'null' }
+        meetingPoint: { type: string, description: Referencia municipal sin dirección exacta. }
+        latitude: { type: [number, 'null'], multipleOf: 0.01 }
+        longitude: { type: [number, 'null'], multipleOf: 0.01 }
+        timezone: { type: string, const: America/Bogota }
+        stops: { type: array, maxItems: 0, items: { $ref: '#/components/schemas/RouteStop' } }
+        meetingPointCoordinatesTrusted:
+          type: boolean
+          description: |
+            `true` cuando puede dibujarse el mapa público aproximado. En otro caso se muestra el municipio.
+    RouteType:
+      type: string
+      description: LOOP (circular), OUT_AND_BACK (ida y vuelta por el mismo camino) o ONE_WAY (ADR-0022).
+      enum: [LOOP, OUT_AND_BACK, ONE_WAY]
+    RouteStop:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: [string, 'null'], maxLength: 500 }
+    ExperienceRequest:
+      type: object
+      required: [title, description, safetyGuidelines, physicalIntensity, durationMinutes, municipalityCode, meetingPoint, maxCapacityPerSlot, unitPriceCop]
+      properties:
+        title: { type: string, minLength: 5, maxLength: 200 }
+        description: { type: string, maxLength: 10000 }
+        safetyGuidelines: { type: string, maxLength: 5000 }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer, minimum: 15, maximum: 4320 }
+        municipalityCode: { type: string, pattern: '^[0-9]{5}$', description: Debe existir en DIVIPOLA. }
+        vereda: { type: [string, 'null'], maxLength: 150 }
+        meetingPoint: { type: string, maxLength: 500 }
+        latitude: { type: [number, 'null'], minimum: -90, maximum: 90, description: Junto con longitude o ninguna. }
+        longitude: { type: [number, 'null'], minimum: -180, maximum: 180 }
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30, description: Capacidad de carga ambiental (RF-05). }
+        unitPriceCop: { type: integer, format: int64, minimum: 1 }
+        categoryCodes: { type: array, maxItems: 5, uniqueItems: true, items: { type: string } }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'], exclusiveMinimum: 0, maximum: 500, description: Distancia total en km (ADR-0022). }
+        roundTripMinutes: { type: [integer, 'null'], minimum: 15, maximum: 4320 }
+        stops: { type: array, maxItems: 10, items: { $ref: '#/components/schemas/RouteStop' }, description: Paradas en orden de visita. }
+    HostExperience:
+      type: object
+      description: Experiencia vista por su anfitrión o por el administrador.
+      properties:
+        id: { type: string, format: uuid }
+        hostId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        safetyGuidelines: { type: string }
+        physicalIntensity: { $ref: '#/components/schemas/PhysicalIntensity' }
+        durationMinutes: { type: integer }
+        municipalityCode: { type: string }
+        vereda: { type: [string, 'null'] }
+        meetingPoint: { type: string }
+        latitude: { type: [number, 'null'] }
+        longitude: { type: [number, 'null'] }
+        routeType: { oneOf: [{ $ref: '#/components/schemas/RouteType' }, { type: 'null' }] }
+        distanceKm: { type: [number, 'null'] }
+        roundTripMinutes: { type: [integer, 'null'] }
+        stops: { type: array, items: { $ref: '#/components/schemas/RouteStop' } }
+        maxCapacityPerSlot: { type: integer }
+        unitPriceCop: { type: integer, format: int64 }
+        timezone: { type: string }
+        categoryCodes: { type: array, items: { type: string } }
+        status: { $ref: '#/components/schemas/ExperienceStatus' }
+        rejectionReason: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        meetingPointCheck: { $ref: '#/components/schemas/MeetingPointCheck' }
+    MeetingPointCheck:
+      type: object
+      description: |
+        Resultado del autómata de verificación del punto de encuentro (ADR-0030). La sugerencia nunca se aplica sola.
+        Solo `MATCH`, `REVIEW`, `UNVERIFIED` y `CONFIRMADO` permiten aprobar.
+      required: [status]
+      properties:
+        status: { type: string, enum: [PENDIENTE, VERIFICANDO, MATCH, REVIEW, MISMATCH, UNVERIFIED, CONFIRMADO, CORREGIDO] }
+        distanceMeters: { type: [integer, 'null'], description: Distancia entre lo declarado y la dirección geocodificada. }
+        suggestedLatitude: { type: [number, 'null'] }
+        suggestedLongitude: { type: [number, 'null'] }
+        checkedAt: { type: [string, 'null'], format: date-time }
+    HostSchedule:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        localDate: { type: string, format: date }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        localStartTime: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$' }
+        localEndTime: { type: string, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$' }
+        totalSlots: { type: integer }
+        availableSlots: { type: integer }
+        status: { type: string, enum: [OPEN, CLOSED, CANCELLED] }
+        cancellationReason: { type: [string, 'null'] }
+    AssociationRequest:
+      type: object
+      required: [nit, rntNumber, legalName, associationType, municipalityCode, contactEmail, contactPhone]
+      properties:
+        nit: { type: string, pattern: '^[0-9]{6,12}-[0-9]$' }
+        rntNumber: { type: string, pattern: '^[0-9]{3,20}$' }
+        legalName: { type: string, minLength: 3, maxLength: 200 }
+        associationType: { type: string, enum: [JUNTA_ACCION_COMUNAL, COOPERATIVA_CAMPESINA, ASOCIACION_VICTIMAS, OTRA] }
+        municipalityCode: { type: string, pattern: '^[0-9]{5}$' }
+        address: { type: [string, 'null'], maxLength: 250 }
+        contactEmail: { type: string, format: email }
+        contactPhone: { $ref: '#/components/schemas/PhoneE164' }
+    Association:
+      allOf:
+        - $ref: '#/components/schemas/AssociationRequest'
+        - type: object
+          required: [id, status]
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [ACTIVE, SUSPENDED] }
+    ScheduleAvailability:
+      type: object
+      required: [scheduleId, localDate, startTime, endTime, localStartTime, localEndTime, totalSlots, availableSlots, status]
+      properties:
+        scheduleId: { type: string, format: uuid }
+        localDate: { type: string, format: date }
+        startTime: { type: string, format: date-time, description: UTC (sufijo Z). }
+        endTime: { type: string, format: date-time, description: UTC (sufijo Z). }
+        localStartTime:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$'
+          description: Hora local America/Bogota sin offset (descriptiva).
+        localEndTime:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$'
+        totalSlots: { type: integer, minimum: 1, maximum: 30 }
+        availableSlots: { type: integer, minimum: 0, maximum: 30 }
+        status: { type: string, const: OPEN }
+    ExperienceAvailabilityResponse:
+      type: object
+      required: [experienceId, title, timezone, currency, unitPriceCop, maxCapacityPerSlot, dateFrom, dateTo, schedules]
+      properties:
+        experienceId: { type: string, format: uuid }
+        title: { type: string }
+        timezone: { type: string, const: America/Bogota }
+        currency: { type: string, const: COP }
+        unitPriceCop:
+          allOf: [{ $ref: '#/components/schemas/CopAmount' }]
+          description: Tarifa única por persona (sin tarifas diferenciadas en el MVP).
+        maxCapacityPerSlot: { type: integer, minimum: 1, maximum: 30 }
+        dateFrom: { type: string, format: date }
+        dateTo: { type: string, format: date }
+        schedules:
+          type: array
+          items: { $ref: '#/components/schemas/ScheduleAvailability' }
+
+    # ---------- Booking ----------
+    EmergencyContact:
+      type: object
+      additionalProperties: false
+      required: [fullName, phone]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        phone: { $ref: '#/components/schemas/PhoneE164' }
+    BookingParticipant:
+      type: object
+      additionalProperties: false
+      required: [fullName, docType, docNumber, medicalEps, isHolder]
+      properties:
+        fullName: { type: string, minLength: 3, maxLength: 150 }
+        docType: { $ref: '#/components/schemas/DocType' }
+        docNumber: { $ref: '#/components/schemas/DocNumber' }
+        medicalEps: { type: string, minLength: 2, maxLength: 120, description: Se cifra (AES-256-GCM). }
+        isHolder: { type: boolean, description: Exactamente un participante debe ser titular. }
+    BookingLockRequest:
+      type: object
+      additionalProperties: false
+      required: [scheduleId, requestedSlots, emergencyContact, participants]
+      properties:
+        scheduleId: { type: string, format: uuid }
+        requestedSlots: { type: integer, format: int32, minimum: 1, maximum: 10 }
+        emergencyContact: { $ref: '#/components/schemas/EmergencyContact' }
+        participants:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: |
+            `participants.length == requestedSlots`, `(docType, docNumber)` único en el arreglo y exactamente
+            un `isHolder = true`.
+          items: { $ref: '#/components/schemas/BookingParticipant' }
+    BookingLockResponse:
+      type: object
+      required: [bookingId, status, scheduleId, experienceId, lockedSlots, unitPriceCop, totalAmountCop, currency, createdAt, expiresAt, ttlSecondsRemaining]
+      properties:
+        bookingId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT]
+          description: |
+            Siempre `PENDING` en el 201. En la reproducción idempotente (200) y en `GET /bookings/{bookingId}` es el
+            estado actual de la reserva (ADR-0008 §5).
+        scheduleId: { type: string, format: uuid }
+        experienceId: { type: string, format: uuid }
+        lockedSlots: { type: integer, minimum: 1, maximum: 10 }
+        unitPriceCop: { $ref: '#/components/schemas/CopAmount' }
+        totalAmountCop: { $ref: '#/components/schemas/CopAmount' }
+        currency: { type: string, const: COP }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time, description: createdAt + 15 min. }
+        ttlSecondsRemaining:
+          type: integer
+          minimum: 0
+          maximum: 900
+          description: Se recalcula en cada respuesta; 0 si la reserva ya no está `PENDING`.
+
+    # ---------- Payments ----------
+    GatewayStatus:
+      type: string
+      enum: [APPROVED, DECLINED, VOIDED, ERROR]
+    CanonicalPaymentEvent:
+      type: object
+      additionalProperties: false
+      required: [eventId, provider, transactionId, bookingId, amountCop, status, timestamp]
+      properties:
+        eventId: { type: string, minLength: 1, maxLength: 100, description: Clave de idempotencia junto con provider. }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        transactionId: { type: string, minLength: 1, maxLength: 100 }
+        bookingId: { type: string, format: uuid }
+        amountCop: { $ref: '#/components/schemas/CopAmount' }
+        status: { $ref: '#/components/schemas/GatewayStatus' }
+        timestamp: { type: string, format: date-time }
+    WompiEvent:
+      type: object
+      description: Evento nativo de Wompi (subconjunto usado por el adaptador). Se admiten campos adicionales.
+      required: [event, data, timestamp]
+      additionalProperties: true
+      properties:
+        event: { type: string, example: transaction.updated }
+        data:
+          type: object
+          required: [transaction]
+          properties:
+            transaction:
+              type: object
+              required: [id, reference, amount_in_cents, status]
+              additionalProperties: true
+              properties:
+                id: { type: string }
+                reference: { type: string, description: 'paymentId (UUID) del intento; ADR-0009.' }
+                amount_in_cents: { type: integer, format: int64 }
+                currency: { type: string, const: COP }
+                status: { type: string, enum: [APPROVED, DECLINED, VOIDED, ERROR, PENDING] }
+                payment_method_type: { type: string }
+        environment: { type: string }
+        signature:
+          type: object
+          properties:
+            properties: { type: array, items: { type: string } }
+            checksum: { type: string }
+        timestamp: { type: integer, format: int64 }
+        sent_at: { type: string, format: date-time }
+    WebhookAck:
+      type: object
+      required: [received, duplicate, provider]
+      properties:
+        received: { type: boolean, const: true }
+        duplicate: { type: boolean }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        eventId:
+          type: [string, 'null']
+          description: Nulo solo en un evento de Wompi que no es de transacciones (ignorado).
+        paymentStatus:
+          type: [string, 'null']
+          enum: [INITIATED, PENDING, APPROVED, REJECTED, ERROR, VOIDED, null]
+        bookingStatus:
+          type: [string, 'null']
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT, null]
+          description: |
+            Estado de la reserva tras el evento. Una aprobación tardía deja `paymentStatus = APPROVED` con la
+            reserva en `EXPIRED` (o el estado que tuviera) y ordena el reembolso del 100% (`LATE_APPROVAL`).
+
+    MyBookingSummary:
+      type: object
+      required: [bookingId, status, experienceId, experienceTitle, startTime, endTime, timezone, slots, totalAmountCop, hasVoucher]
+      properties:
+        bookingId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, PAYMENT_FAILED, EXPIRED, CANCELLED_REFUNDED, CANCELLED_NO_REFUND,
+                 CANCELLED_BY_PLATFORM, EXECUTED, NO_SHOW, SYNC_CONFLICT]
+        experienceId: { type: string, format: uuid }
+        experienceTitle: { type: string }
+        municipality: { type: [string, 'null'] }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        timezone: { type: string, example: America/Bogota }
+        slots: { type: integer, minimum: 1 }
+        totalAmountCop: { $ref: '#/components/schemas/CopAmount' }
+        hasVoucher: { type: boolean, description: true para CONFIRMED y EXECUTED. }
+
+    VoucherResponse:
+      type: object
+      required: [voucherId, jti, bookingId, shortCode, status, issuedAt, expiresAt, validDate, pdfStatus]
+      properties:
+        voucherId: { type: string, format: uuid }
+        jti: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        shortCode: { type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$', description: Código de contingencia (ingreso manual). }
+        status: { type: string, enum: [ISSUED, REVOKED, CONSUMED, EXPIRED] }
+        issuedAt: { type: string, format: date-time, description: Claim iat (segundos). }
+        expiresAt: { type: string, format: date-time, description: Fin de la franja + 24 h (claim exp). }
+        validDate: { type: string, format: date, description: Fecha local (America/Bogota) en la que el QR es válido. }
+        token:
+          type: [string, 'null']
+          description: JWT compacto RS256 del QR, re-derivado y verificado; null si ya no se puede re-derivar.
+        pdfStatus: { type: string, enum: [READY, GENERATING] }
+        pdfUrl: { type: [string, 'null'], format: uri, description: URL prefirmada de 5 min; null mientras se genera. }
+        pdfUrlExpiresAt: { type: [string, 'null'], format: date-time }
+
+    PaymentStartRequest:
+      type: object
+      additionalProperties: false
+      required: [paymentMethod]
+      properties:
+        paymentMethod: { type: string, enum: [PSE, CARD, NEQUI, DAVIPLATA] }
+    PaymentSimulationRequest:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, enum: [APPROVED, DECLINED, VOIDED, ERROR] }
+    PaymentCheckoutResponse:
+      type: object
+      required: [paymentId, bookingId, provider, paymentMethod, status, amountCop, currency, bookingExpiresAt, checkout]
+      properties:
+        paymentId: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        provider: { type: string, enum: [MOCK_GATEWAY, WOMPI] }
+        paymentMethod: { type: string, enum: [PSE, CARD, NEQUI, DAVIPLATA] }
+        status: { type: string, enum: [INITIATED, PENDING] }
+        amountCop: { $ref: '#/components/schemas/CopAmount' }
+        currency: { type: string, const: COP }
+        bookingExpiresAt: { type: string, format: date-time, description: El pago debe completarse antes. }
+        checkout:
+          type: object
+          required: [type]
+          additionalProperties: true
+          description: Datos propios de la pasarela (ver `startBookingPayment`).
+          properties:
+            type: { type: string, enum: [MOCK, WOMPI] }
+
+    # ---------- Offline ----------
+    OfflineValidationItem:
+      type: object
+      additionalProperties: false
+      required: [localValidationId, voucherId, scannedAt, shortCode, channel]
+      properties:
+        localValidationId: { type: string, format: uuid, description: UUIDv4 generado en la PWA. }
+        voucherId: { type: string, format: uuid, description: '`jti` del voucher.' }
+        scannedAt: { type: string, format: date-time, description: Reloj del dispositivo en UTC. }
+        signatureHash:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+          description: SHA-256 en hex de la firma leída del QR. Obligatorio si channel = OFFLINE_PWA; se omite en MANUAL_CODE.
+        shortCode:
+          type: string
+          pattern: '^[A-HJ-NP-Z2-9]{8}$'
+          description: 8 caracteres sin ambigüedades (sin I, O, 0, 1).
+        channel: { type: string, enum: [OFFLINE_PWA, MANUAL_CODE] }
+      if:
+        properties: { channel: { const: OFFLINE_PWA } }
+      then:
+        required: [signatureHash]
+    OfflineSyncBatchRequest:
+      type: object
+      additionalProperties: false
+      required: [syncBatchId, deviceId, deviceSentAt, validations]
+      properties:
+        syncBatchId: { type: string, format: uuid, description: Clave de idempotencia del lote. }
+        deviceId:
+          type: string
+          maxLength: 64
+          pattern: '^[A-Za-z0-9._-]{4,64}$'
+          description: '`offline.devices.device_identifier` (no es la PK UUID).'
+        deviceSentAt: { type: string, format: date-time }
+        validations:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: '`localValidationId` único dentro del lote.'
+          items: { $ref: '#/components/schemas/OfflineValidationItem' }
+    ServerOutcome:
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED_REVOKED
+        - REJECTED_DUPLICATE
+        - REJECTED_OUT_OF_DATE
+        - REJECTED_CLOCK_SKEW
+        - REJECTED_UNKNOWN_VOUCHER
+    IncidentType:
+      type: string
+      enum:
+        - OVER_REDEMPTION_COMMUNITY_PROTECTED
+        - DUPLICATE_OFFLINE_REDEMPTION
+        - CLOCK_SKEW_FUTURE_SCAN
+    OfflineSyncItemResult:
+      type: object
+      required: [localValidationId, voucherId, status, serverOutcome, bookingStatus, incidentType, incidentId, message]
+      properties:
+        localValidationId: { type: string, format: uuid }
+        voucherId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [CONFIRMED, CONFLICT, REJECTED]
+          description: |
+            CONFIRMED = canje aceptado; CONFLICT = rechazado y con incidente para el Administrador;
+            REJECTED = rechazado sin incidente.
+        serverOutcome: { $ref: '#/components/schemas/ServerOutcome' }
+        bookingStatus:
+          type: [string, 'null']
+          enum: [CONFIRMED, EXECUTED, NO_SHOW, SYNC_CONFLICT, CANCELLED_REFUNDED, CANCELLED_NO_REFUND, CANCELLED_BY_PLATFORM, null]
+        incidentType:
+          oneOf:
+            - $ref: '#/components/schemas/IncidentType'
+            - type: 'null'
+        incidentId: { type: [string, 'null'], format: uuid }
+        message: { type: string }
+    OfflineSyncBatchResponse:
+      type: object
+      required: [syncBatchId, deviceId, replayed, deviceSentAt, serverReceivedAt, processedAt, clockSkewSeconds, summary, items]
+      properties:
+        syncBatchId: { type: string, format: uuid }
+        deviceId: { type: string }
+        replayed: { type: boolean, description: true si es una reproducción idempotente de un lote ya procesado. }
+        deviceSentAt: { type: string, format: date-time }
+        serverReceivedAt: { type: string, format: date-time }
+        processedAt: { type: string, format: date-time }
+        clockSkewSeconds:
+          type: integer
+          description: serverReceivedAt − deviceSentAt (informativo, para que la PWA corrija su reloj).
+        summary:
+          type: object
+          required: [received, confirmed, conflicts, rejected]
+          properties:
+            received: { type: integer, minimum: 1, maximum: 100 }
+            confirmed: { type: integer, minimum: 0 }
+            conflicts: { type: integer, minimum: 0 }
+            rejected: { type: integer, minimum: 0 }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OfflineSyncItemResult' }
+
+  responses:
+    BadRequest:
+      description: JSON mal formado o tipos incompatibles (error de protocolo).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: 'JSON parse error: Unexpected character (''}'') at line 3.'
+            instance: /api/v1/bookings/lock
+            code: MALFORMED_REQUEST
+            traceId: c4b9-8f21-4d1a
+    Unauthorized:
+      description: Token ausente, inválido o expirado.
+      headers:
+        WWW-Authenticate:
+          schema: { type: string, example: 'Bearer error="invalid_token"' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/authentication-required
+            title: Authentication Required
+            status: 401
+            code: AUTH_TOKEN_INVALID
+            traceId: c4b9-8f21-4d1a
+    InvalidCredentials:
+      description: Email o contraseña incorrectos (mensaje genérico, no revela cuál falló).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/invalid-credentials
+            title: Invalid Credentials
+            status: 401
+            detail: Email or password is incorrect.
+            instance: /api/v1/auth/login
+            code: AUTH_INVALID_CREDENTIALS
+            traceId: c4b9-8f21-4d1a
+    RefreshTokenInvalid:
+      description: |
+        Refresh token ausente, expirado, revocado o ya rotado. Fuerza un nuevo login y borra la cookie.
+        Si el token ya había sido rotado hace más de 10 s (reutilización), se revocan además todas las
+        sesiones del titular (`REUSE_DETECTED`, ADR-0005 §5).
+      headers:
+        Set-Cookie:
+          $ref: '#/components/headers/ClearRefreshCookie'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/refresh-token-invalid
+            title: Refresh Token Invalid
+            status: 401
+            code: AUTH_REFRESH_TOKEN_INVALID
+            traceId: c4b9-8f21-4d1a
+    Forbidden:
+      description: El rol del invocador no autoriza la operación (RBAC).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/forbidden
+            title: Forbidden
+            status: 403
+            code: RBAC_FORBIDDEN
+            traceId: c4b9-8f21-4d1a
+    LookupRateLimited:
+      description: Se superó el límite de 20 búsquedas de personas por minuto por administrador (ADR-0043 §1).
+      headers:
+        Retry-After:
+          description: Segundos hasta que se reabre la ventana.
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/admin-lookup-rate-limited
+            title: Too Many Lookups
+            status: 429
+            code: ADMIN_LOOKUP_RATE_LIMITED
+            traceId: c4b9-8f21-4d1a
+    AccountSuspended:
+      description: La cuenta está SUSPENDED o ANONYMIZED.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/account-suspended
+            title: Account Suspended
+            status: 403
+            code: AUTH_ACCOUNT_SUSPENDED
+            traceId: c4b9-8f21-4d1a
+    DeviceForbidden:
+      description: Rol no autorizado o dispositivo no registrado, revocado o de otro usuario.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/device-not-authorized
+            title: Device Not Authorized
+            status: 403
+            code: OFFLINE_DEVICE_NOT_AUTHORIZED
+            traceId: c4b9-8f21-4d1a
+    PrivacyPolicyNotPublished:
+      description: No hay ninguna política de tratamiento de datos vigente.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/privacy-policy-not-published
+            title: Privacy Policy Not Published
+            status: 404
+            code: PRIVACY_POLICY_NOT_PUBLISHED
+            traceId: c4b9-8f21-4d1a
+    NotFound:
+      description: Recurso inexistente o no visible para el invocador.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/resource-not-found
+            title: Resource Not Found
+            status: 404
+            code: RESOURCE_NOT_FOUND
+            traceId: c4b9-8f21-4d1a
+    InvalidStatusTransition:
+      description: Transición de estado de la experiencia no permitida (incluye `currentStatus`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/invalid-status-transition
+            title: Invalid Status Transition
+            status: 409
+            detail: Cannot approve an experience in status APPROVED
+            code: CATALOG_INVALID_STATUS_TRANSITION
+            currentStatus: APPROVED
+            traceId: c4b9-8f21-4d1a
+    ScheduleConflict:
+      description: Franja con inicio duplicado, cancelación con cupos vendidos o franja no cancelable.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/schedule-conflict
+            title: Schedule Conflict
+            status: 409
+            code: CATALOG_SCHEDULE_CONFLICT
+            invalidParams:
+              - { name: 'schedules[1].localStart', reason: a schedule already starts at this time }
+            traceId: c4b9-8f21-4d1a
+    CatalogConflict:
+      description: Asociación con NIT o RNT ya registrados (`CATALOG_ASSOCIATION_EXISTS`) o perfil de anfitrión vigente / asociación inactiva (`CATALOG_HOST_PROFILE_EXISTS`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    ExperienceNotApproved:
+      description: Experiencia no APPROVED consultada desde un panel autorizado (ADMIN o LINK_MANAGER).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/experience-not-approved
+            title: Experience Not Approved
+            status: 409
+            detail: Experience is SUSPENDED; availability is not published.
+            code: CATALOG_EXPERIENCE_NOT_APPROVED
+            traceId: c4b9-8f21-4d1a
+    BookingConflict:
+      description: |
+        Conflicto de negocio en el bloqueo: `BOOKING_INSUFFICIENT_SLOTS`, `BOOKING_SCHEDULE_NOT_BOOKABLE`
+        o `IDEMPOTENCY_KEY_REUSED`.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/BookingConflictProblem' }
+          examples:
+            cuposInsuficientes:
+              value:
+                type: https://api.integrate.co/problems/insufficient-slots
+                title: Insufficient Available Slots
+                status: 409
+                detail: The requested schedule does not have 4 available slots.
+                instance: /api/v1/bookings/lock
+                code: BOOKING_INSUFFICIENT_SLOTS
+                traceId: c4b9-8f21-4d1a
+                availableSlots: 2
+                invalidParams:
+                  - name: requestedSlots
+                    reason: Exceeds current availability (2 remaining)
+            claveReutilizada:
+              value:
+                type: https://api.integrate.co/problems/idempotency-key-reused
+                title: Idempotency Key Reused
+                status: 409
+                detail: Idempotency-Key was already used with a different payload.
+                code: IDEMPOTENCY_KEY_REUSED
+                traceId: c4b9-8f21-4d1a
+    UserAlreadyExists:
+      description: Ya existe un usuario con ese (docType, docNumber) o email.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/user-already-exists
+            title: User Already Exists
+            status: 409
+            code: AUTH_USER_ALREADY_EXISTS
+            traceId: c4b9-8f21-4d1a
+    SyncBatchMismatch:
+      description: Se reenvió un syncBatchId ya procesado con un payload distinto (posible manipulación).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/sync-batch-payload-mismatch
+            title: Sync Batch Payload Mismatch
+            status: 409
+            code: SYNC_BATCH_PAYLOAD_MISMATCH
+            traceId: c4b9-8f21-4d1a
+    EnrollmentForbidden:
+      description: Rol no autorizado (`RBAC_FORBIDDEN`) o gestor sin acreditación `ACTIVE` aunque su JWT conserve el rol (`ENROLLMENT_MANAGER_NOT_ACTIVE`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/manager-not-active
+            title: Link Manager Not Active
+            status: 403
+            code: ENROLLMENT_MANAGER_NOT_ACTIVE
+            traceId: c4b9-8f21-4d1a
+    ResetTokenInvalid:
+      description: Token de restablecimiento inexistente, vencido, usado, reemplazado o de una cuenta no apta (misma respuesta).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/reset-token-invalid
+            title: Password Reset Token Invalid
+            status: 401
+            code: AUTH_RESET_TOKEN_INVALID
+            traceId: c4b9-8f21-4d1a
+    ActivationInvalid:
+      description: Código de activación inválido, vencido, consumido o agotado, o correo inexistente (misma respuesta).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/activation-invalid
+            title: Activation Code Invalid
+            status: 401
+            code: AUTH_ACTIVATION_INVALID
+            traceId: c4b9-8f21-4d1a
+    LinkManagerConflict:
+      description: El usuario ya tiene una acreditación vigente (`ENROLLMENT_MANAGER_EXISTS`) o la asociación está inactiva (`CATALOG_HOST_PROFILE_EXISTS`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/manager-exists
+            title: Link Manager Already Exists
+            status: 409
+            code: ENROLLMENT_MANAGER_EXISTS
+            traceId: c4b9-8f21-4d1a
+    DocumentInvalid:
+      description: Validación de campos (`VALIDATION_FAILED`) o PDF del enrolamiento no subido, de otro tipo, que no es PDF, que excede 5 MB o que ya respalda otro registro (`ENROLLMENT_DOCUMENT_INVALID`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/document-invalid
+            title: Document Invalid
+            status: 422
+            code: ENROLLMENT_DOCUMENT_INVALID
+            invalidParams:
+              - { name: consent.physicalConsentFormS3Key, reason: the document has not been uploaded }
+            traceId: c4b9-8f21-4d1a
+    UnprocessableEntity:
+      description: Errores semánticos de validación, campo por campo.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/validation-failed
+            title: Validation Failed
+            status: 422
+            detail: One or more fields are invalid.
+            instance: /api/v1/bookings/lock
+            code: VALIDATION_FAILED
+            traceId: c4b9-8f21-4d1a
+            invalidParams:
+              - name: requestedSlots
+                reason: Must be greater than 0
+              - name: participants
+                reason: Size must equal requestedSlots (2)
+    WebhookUnprocessable:
+      description: Evento válido en firma pero inaplicable (reserva desconocida o provider inconsistente).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/payment-booking-not-found
+            title: Payment Booking Not Found
+            status: 422
+            detail: bookingId a9b8c7d6-e5f4-3210-fedc-ba9876543210 does not exist.
+            code: PAYMENT_BOOKING_NOT_FOUND
+            traceId: c4b9-8f21-4d1a
+    WebhookSignatureInvalid:
+      description: Firma HMAC inválida o X-Timestamp fuera de la ventana de ±300 s.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/webhook-signature-invalid
+            title: Webhook Signature Invalid
+            status: 401
+            code: WEBHOOK_SIGNATURE_INVALID
+            traceId: c4b9-8f21-4d1a
+    AccountLocked:
+      description: Cuenta bloqueada temporalmente por 5 intentos fallidos en 10 minutos.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/AccountLockedProblem' }
+          example:
+            type: https://api.integrate.co/problems/account-locked
+            title: Account Temporarily Locked
+            status: 423
+            detail: Too many failed login attempts. Try again later.
+            instance: /api/v1/auth/login
+            code: AUTH_ACCOUNT_LOCKED
+            traceId: c4b9-8f21-4d1a
+            lockedUntil: '2026-10-05T01:45:00Z'
+    ConsentRequired:
+      description: Falta el consentimiento HEALTH_EMERGENCY para tratar datos médicos y de emergencia.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ConsentRequiredProblem' }
+          example:
+            type: https://api.integrate.co/problems/consent-required
+            title: Consent Required
+            status: 428
+            detail: The health and emergency data clause must be accepted before locking slots.
+            code: CONSENT_HEALTH_EMERGENCY_REQUIRED
+            traceId: c4b9-8f21-4d1a
+            requiredPurposes: [HEALTH_EMERGENCY]
+            policyVersion: v1.0
+    LockTimeout:
+      description: La franja está bajo contención y se superó lock_timeout (2 s). Reintentar.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+          example:
+            type: https://api.integrate.co/problems/concurrency-lock-timeout
+            title: Concurrency Lock Timeout
+            status: 503
+            code: CONCURRENCY_LOCK_TIMEOUT
+            traceId: c4b9-8f21-4d1a
+ }
     AdminIncident:
       type: object
       required: [id, status, severity, type, financialImpactCop, createdAt, bookingId, voucherId, resolutionNotes, resolvedBy, resolvedAt]

@@ -4,27 +4,39 @@ import { useHttpClient } from '@/shared/api';
 
 import {
   accreditLinkManager,
+  changeAssociationStatus,
   changeLinkManagerStatus,
   createAssociation,
+  createAdminExperience,
   createHostProfile,
+  createUser,
   getUserDetail,
   listAdminExperiences,
   listAssociationOptions,
   listAssociations,
+  listHostOptions,
   listHosts,
   listLinkManagers,
+  listUsers,
   moderateExperience,
   searchAudit,
   searchUsers,
+  updateAdminExperience,
+  updateAssociation,
   verifyAudit,
   type AccreditRequest,
+  type AdminExperienceCreateRequest,
+  type AssociationAction,
   type AssociationRequest,
   type AuditFilters,
   type ExperienceStatus,
+  type ExperienceUpdateRequest,
   type LinkManagerStatus,
   type ManagerAction,
   type ModerationAction,
+  type UserCreateRequest,
   type UserCriterion,
+  type UserRole,
 } from './api';
 
 /** Bajo `['me', …]`: se borra al cerrar sesión (ADR-0013 §2). */
@@ -34,6 +46,7 @@ export const adminKeys = {
   audit: ['me', 'admin', 'audit'] as const,
   managers: ['me', 'admin', 'link-managers'] as const,
   hosts: ['me', 'admin', 'hosts'] as const,
+  users: ['me', 'admin', 'users'] as const,
   detail: ['me', 'admin', 'user-detail'] as const,
 };
 
@@ -64,6 +77,16 @@ export function useModerateExperience() {
   });
 }
 
+export function useUpdateAdminExperience() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { readonly id: string; readonly body: ExperienceUpdateRequest }) =>
+      updateAdminExperience(http, id, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.experiences }),
+  });
+}
+
 export function useAssociations(page: number) {
   const http = useHttpClient();
   return useQuery({
@@ -80,6 +103,26 @@ export function useCreateAssociation() {
   return useMutation({
     mutationFn: (body: AssociationRequest) => createAssociation(http, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.associations }),
+  });
+}
+
+export function useUpdateAssociation() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { readonly id: string; readonly body: AssociationRequest }) =>
+      updateAssociation(http, id, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.associations }),
+  });
+}
+
+export function useChangeAssociationStatus() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action }: { readonly id: string; readonly action: AssociationAction }) =>
+      changeAssociationStatus(http, id, action),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.associations }),
   });
 }
 
@@ -117,6 +160,41 @@ export function useSearchUser() {
   return useMutation({ mutationFn: (criterion: UserCriterion) => searchUsers(http, criterion) });
 }
 
+/**
+ * Listado de cuentas por rol (ADR-0048 §1). Cada consulta queda en la bitácora como acceso sensible:
+ * no se refresca sola al volver a la ventana ni se conserva al salir de la pantalla.
+ */
+export function useUsers(role: UserRole | null, page: number) {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.users, role ?? 'ALL', page],
+    queryFn: ({ signal }) => listUsers(http, role, page, signal),
+    placeholderData: keepPreviousData,
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+export function useCreateUser() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UserCreateRequest) => createUser(http, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.users }),
+  });
+}
+
+export function useCreateAdminExperience() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AdminExperienceCreateRequest) => createAdminExperience(http, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.experiences }),
+  });
+}
+
 /** Historial de roles; no se conserva al salir de la pantalla (lleva datos personales). */
 export function useUserDetail(userId: string) {
   const http = useHttpClient();
@@ -146,6 +224,18 @@ export function useHosts(associationId: string | null, page: number) {
     queryFn: ({ signal }) => listHosts(http, associationId, page, signal),
     placeholderData: keepPreviousData,
     staleTime: 0,
+  });
+}
+
+/** Anfitriones para elegir al crear una experiencia (ADR-0048 §2); lleva datos personales: no se conserva. */
+export function useHostOptions() {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: [...adminKeys.hosts, 'options'],
+    queryFn: ({ signal }) => listHostOptions(http, signal),
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   });
 }
 

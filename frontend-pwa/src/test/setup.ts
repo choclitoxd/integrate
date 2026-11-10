@@ -1,8 +1,11 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
+
+// Las rutas diferidas (`lazy()`) y múltiples archivos en jsdom pueden tardar >1 s en el primer import en frío.
+configure({ asyncUtilTimeout: 5000 });
 
 // jsdom no implementa showModal()/close() de <dialog>; se emula lo que usa BottomSheet.
 if (typeof HTMLDialogElement.prototype.showModal !== 'function') {

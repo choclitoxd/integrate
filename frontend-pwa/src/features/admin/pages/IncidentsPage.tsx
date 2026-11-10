@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useOnlineStatus } from '@/shared/offline';
-import { BottomSheet, Button, ProblemNotice, Skeleton } from '@/shared/ui';
+import { BottomSheet, Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 import { OperationConnection, OperationFilter, OperationTable } from '../components/OperationParts';
-import { Notice, PageHeader, Pager } from '../components/parts';
-import { operationFieldClass, TD_CLASS } from '../components/tableStyles';
+import { EmptyRow, Notice, PageHeader, Pager, TableSearchBar } from '../components/parts';
+import { matchesSearchQuery, operationFieldClass, TD_CLASS } from '../components/tableStyles';
 import { formatCop, formatInstant } from '../labels';
 import {
   useOperationAction,
@@ -181,10 +181,21 @@ export function IncidentsPage() {
   const [params, setParams] = useSearchParams();
   const [page, setPage] = useState(0);
   const [id, setId] = useState('');
+  const [query, setQuery] = useState('');
   const status = params.get('status') ?? '';
   const severity = params.get('severity') ?? '';
   const type = params.get('type') ?? '';
   const list = useOperationList<Incident>('incidents', { status, severity, type }, page);
+  const filteredItems = (list.data?.items ?? []).filter((item) =>
+    matchesSearchQuery(query, [
+      item.id,
+      types[item.type],
+      states[item.status],
+      severities[item.severity],
+      item.bookingId,
+      item.voucherId,
+    ]),
+  );
   function filter(key: string, value: string) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
@@ -199,7 +210,7 @@ export function IncidentsPage() {
         title="Incidentes de sincronización"
         description="Revisa y cierra conflictos registrados durante la sincronización."
       />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <OperationFilter
           label="Estado"
           options={states}
@@ -224,6 +235,10 @@ export function IncidentsPage() {
             filter('type', value);
           }}
         />
+        <div className="grid min-w-0 gap-2">
+          <span className="font-semibold text-ink">Buscar</span>
+          <TableSearchBar label="Buscar en incidentes" value={query} onChange={setQuery} />
+        </div>
       </div>
       {list.isPending && <Skeleton className="h-24" />}
       {list.isError && (
@@ -241,9 +256,13 @@ export function IncidentsPage() {
           ) : (
             <OperationTable
               caption="Incidentes registrados"
+              count={list.data.totalElements}
               headings={['Tipo', 'Estado', 'Severidad', 'Impacto', 'Fecha', 'Caso']}
             >
-              {list.data.items.map((item) => (
+              {filteredItems.length === 0 && (
+                <EmptyRow columns={6}>No hay incidentes con estos filtros.</EmptyRow>
+              )}
+              {filteredItems.map((item) => (
                 <tr key={item.id}>
                   <td className={TD_CLASS}>{types[item.type]}</td>
                   <td className={TD_CLASS}>{states[item.status]}</td>
@@ -258,7 +277,8 @@ export function IncidentsPage() {
                         setId(item.id);
                       }}
                     >
-                      Ver
+                      <Icon name="eye" />
+                      <span className="hidden sm:inline">Ver</span>
                     </Button>
                   </td>
                 </tr>

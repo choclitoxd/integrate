@@ -177,7 +177,10 @@ function PasswordForm() {
       }
       await changePassword(http, { currentPassword, newPassword });
       await store.finishPasswordChange();
-      void navigate('/ingresar', { replace: true });
+      void navigate('/ingresar', {
+        replace: true,
+        state: { notice: 'Tu contraseña cambió. Ingresa de nuevo.' },
+      });
     } catch (error) {
       if (error instanceof ApiError && error.status === 422) {
         const mapped = serverFieldErrors(error.invalidParams, [

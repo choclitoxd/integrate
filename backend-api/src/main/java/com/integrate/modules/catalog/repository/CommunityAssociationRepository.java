@@ -10,5 +10,9 @@ public interface CommunityAssociationRepository extends JpaRepository<CommunityA
 
     boolean existsByNitOrRntNumber(String nit, String rntNumber);
 
+    boolean existsByIdNotAndNit(UUID id, String nit);
+
+    boolean existsByIdNotAndRntNumber(UUID id, String rntNumber);
+
     Page<CommunityAssociation> findByDeletedAtIsNull(Pageable pageable);
 }

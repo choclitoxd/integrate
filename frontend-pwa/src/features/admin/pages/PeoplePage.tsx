@@ -1,18 +1,42 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
-import { Button, ProblemNotice, Select, Skeleton } from '@/shared/ui';
+import { Button, Icon, ProblemNotice, Select, Skeleton, type IconName } from '@/shared/ui';
 
 import type { AdminLinkManager, LinkManagerStatus, ManagerAction } from '../api';
 import { ManagerStatusDialog } from '../components/ManagerStatusDialog';
 import { PersonSearch } from '../components/PersonSearch';
-import { EmptyRow, Notice, PageHeader, Pager, StatusBadge, TableFrame } from '../components/parts';
-import { CAPTION_CLASS, TABLE_CLASS, TD_CLASS, TH_CLASS } from '../components/tableStyles';
+import {
+  EmptyRow,
+  Notice,
+  PageHeader,
+  Pager,
+  StatusBadge,
+  TableFrame,
+  TableSearchBar,
+} from '../components/parts';
+import {
+  CAPTION_CLASS,
+  matchesSearchQuery,
+  TABLE_CLASS,
+  TD_CLASS,
+  TH_CLASS,
+} from '../components/tableStyles';
+import { parsePersonSearchQuery } from '../forms';
 import { formatInstant, MANAGER_FILTERS, MANAGER_STATUS } from '../labels';
-import { useAssociationOptions, useHosts, useLinkManagers } from '../queries';
+import { useAssociationOptions, useHosts, useLinkManagers, useSearchUser } from '../queries';
+
+import { NewUserSheet } from '../components/NewUserSheet';
 
 const STATUSES = new Set<string>(['ACTIVE', 'SUSPENDED', 'REVOKED']);
 const ALL = 'TODOS';
+
+type PeopleView = 'todos' | 'turistas' | 'gestores' | 'anfitriones';
+
+function viewFrom(raw: string | null): PeopleView {
+  if (raw === 'turistas' || raw === 'gestores' || raw === 'anfitriones') return raw;
+  return 'todos';
+}
 
 /** `?estado=`: sin parámetro se abren los gestores vigentes; "TODOS" quita el filtro. */
 function statusFrom(raw: string | null): LinkManagerStatus | null {
@@ -36,6 +60,12 @@ const ACTION_LABEL: Readonly<Record<ManagerAction, string>> = {
   revoke: 'Revocar',
 };
 
+const ACTION_ICON: Readonly<Record<ManagerAction, IconName>> = {
+  suspend: 'pause',
+  reinstate: 'refresh',
+  revoke: 'close',
+};
+
 function dayText(isoDate: string): string {
   return formatInstant(`${isoDate}T12:00:00-05:00`).split(',')[0] ?? isoDate;
 }
@@ -45,36 +75,76 @@ function ManagersTable() {
   const status = statusFrom(params.get('estado'));
   const page = pageFrom(params);
   const managers = useLinkManagers(status, page);
+  const lookup = useSearchUser();
   const [dialog, setDialog] = useState<{ manager: AdminLinkManager; action: ManagerAction } | null>(
     null,
   );
   const [result, setResult] = useState<string | null>(null);
-  const items = managers.data?.items ?? [];
+  const [query, setQuery] = useState('');
+  const [resolvedUserId, setResolvedUserId] = useState<string | null | undefined>(undefined);
+  const allItems = managers.data?.items ?? [];
+  const items = allItems.filter((manager) => {
+    if (resolvedUserId !== undefined) {
+      return resolvedUserId !== null && manager.userId === resolvedUserId;
+    }
+    return matchesSearchQuery(query, [
+      manager.fullName,
+      manager.email,
+      manager.associationName,
+      manager.accreditedByName,
+      MANAGER_STATUS[manager.accreditationStatus].text,
+    ]);
+  });
   const statusParam = status ?? ALL;
+
+  function handleSearchChange(next: string) {
+    setQuery(next);
+    setResolvedUserId(undefined);
+  }
+
+  function handleSearchSubmit(submitted: string) {
+    const parsed = parsePersonSearchQuery(submitted, 'CC');
+    if (!parsed.ok) return;
+    lookup.mutate(parsed.criterion, {
+      onSuccess: (foundPage) => {
+        setResolvedUserId(foundPage.items[0]?.userId ?? null);
+      },
+    });
+  }
 
   return (
     <>
-      <nav aria-label="Filtrar gestores por estado" className="mt-4">
-        <ul className="flex flex-wrap gap-2">
-          {MANAGER_FILTERS.map((filter) => {
-            const value = filter.value ?? ALL;
-            return (
-              <li key={value}>
-                <Link
-                  to={`?vista=gestores&estado=${value}`}
-                  aria-current={value === statusParam ? 'true' : undefined}
-                  onClick={() => {
-                    setResult(null);
-                  }}
-                  className="inline-flex min-h-11 items-center rounded-full border-2 border-border bg-canvas px-4 font-semibold text-ink hover:bg-surface-subtle aria-[current=true]:border-brand aria-[current=true]:bg-brand aria-[current=true]:text-on-brand"
-                >
-                  {filter.text}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <nav aria-label="Filtrar gestores por estado">
+          <ul className="flex flex-wrap gap-2">
+            {MANAGER_FILTERS.map((filter) => {
+              const value = filter.value ?? ALL;
+              return (
+                <li key={value}>
+                  <Link
+                    to={`?vista=gestores&estado=${value}`}
+                    aria-current={value === statusParam ? 'true' : undefined}
+                    onClick={() => {
+                      setResult(null);
+                    }}
+                    className="inline-flex min-h-11 items-center rounded-full border-2 border-border bg-canvas px-4 font-semibold text-ink hover:bg-surface-subtle aria-[current=true]:border-brand aria-[current=true]:bg-brand aria-[current=true]:text-on-brand"
+                  >
+                    {filter.text}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div className="w-full sm:max-w-xs">
+          <TableSearchBar
+            label="Buscar en gestores de enlace"
+            value={query}
+            onChange={handleSearchChange}
+            onSubmitSearch={handleSearchSubmit}
+          />
+        </div>
+      </div>
 
       {result && (
         <div className="mt-4">
@@ -91,7 +161,7 @@ function ManagersTable() {
             }}
           />
         ) : (
-          <TableFrame>
+          <TableFrame title="Gestores de enlace" count={managers.data?.totalElements}>
             <table className={TABLE_CLASS}>
               <caption className={CAPTION_CLASS}>
                 Gestores de enlace
@@ -167,7 +237,8 @@ function ManagersTable() {
                                 setDialog({ manager, action });
                               }}
                             >
-                              {ACTION_LABEL[action]}
+                              <Icon name={ACTION_ICON[action]} />
+                              <span className="hidden sm:inline">{ACTION_LABEL[action]}</span>
                             </Button>
                           ))}
                           {ACTIONS[manager.accreditationStatus].length === 0 && (
@@ -189,11 +260,11 @@ function ManagersTable() {
             totalPages={managers.data.totalPages}
             totalElements={managers.data.totalElements}
             onChange={(next) => {
-              const query = new URLSearchParams(params);
-              query.set('vista', 'gestores');
-              if (next > 0) query.set('pagina', String(next + 1));
-              else query.delete('pagina');
-              setParams(query);
+              const queryParams = new URLSearchParams(params);
+              queryParams.set('vista', 'gestores');
+              if (next > 0) queryParams.set('pagina', String(next + 1));
+              else queryParams.delete('pagina');
+              setParams(queryParams);
             }}
           />
         )}
@@ -223,7 +294,21 @@ function HostsTable() {
   const page = pageFrom(params);
   const hosts = useHosts(associationId, page);
   const associations = useAssociationOptions();
-  const items = hosts.data?.items ?? [];
+  const lookup = useSearchUser();
+  const [query, setQuery] = useState('');
+  const [resolvedUserId, setResolvedUserId] = useState<string | null | undefined>(undefined);
+  const allItems = hosts.data?.items ?? [];
+  const items = allItems.filter((host) => {
+    if (resolvedUserId !== undefined) {
+      return resolvedUserId !== null && host.userId === resolvedUserId;
+    }
+    return matchesSearchQuery(query, [
+      host.fullName,
+      host.email,
+      host.associationName,
+      host.verified ? 'Verificado' : 'Sin verificar',
+    ]);
+  });
   const options = [
     { value: '', label: 'Todas las asociaciones' },
     ...(associations.data?.items ?? []).map((association) => ({
@@ -232,9 +317,24 @@ function HostsTable() {
     })),
   ];
 
+  function handleSearchChange(next: string) {
+    setQuery(next);
+    setResolvedUserId(undefined);
+  }
+
+  function handleSearchSubmit(submitted: string) {
+    const parsed = parsePersonSearchQuery(submitted, 'CC');
+    if (!parsed.ok) return;
+    lookup.mutate(parsed.criterion, {
+      onSuccess: (foundPage) => {
+        setResolvedUserId(foundPage.items[0]?.userId ?? null);
+      },
+    });
+  }
+
   return (
     <>
-      <div className="mt-4 max-w-md">
+      <div className="mt-4 grid items-end gap-3 sm:grid-cols-[minmax(0,24rem)_minmax(0,20rem)] sm:justify-between">
         <Select
           label="Filtrar por asociación"
           size="lg"
@@ -248,6 +348,12 @@ function HostsTable() {
             );
           }}
         />
+        <TableSearchBar
+          label="Buscar en anfitriones"
+          value={query}
+          onChange={handleSearchChange}
+          onSubmitSearch={handleSearchSubmit}
+        />
       </div>
 
       <div className="mt-4">
@@ -259,7 +365,7 @@ function HostsTable() {
             }}
           />
         ) : (
-          <TableFrame>
+          <TableFrame title="Anfitriones" count={hosts.data?.totalElements}>
             <table className={TABLE_CLASS}>
               <caption className={CAPTION_CLASS}>
                 Anfitriones
@@ -324,11 +430,11 @@ function HostsTable() {
             totalPages={hosts.data.totalPages}
             totalElements={hosts.data.totalElements}
             onChange={(next) => {
-              const query = new URLSearchParams(params);
-              query.set('vista', 'anfitriones');
-              if (next > 0) query.set('pagina', String(next + 1));
-              else query.delete('pagina');
-              setParams(query);
+              const queryParams = new URLSearchParams(params);
+              queryParams.set('vista', 'anfitriones');
+              if (next > 0) queryParams.set('pagina', String(next + 1));
+              else queryParams.delete('pagina');
+              setParams(queryParams);
             }}
           />
         )}
@@ -337,37 +443,61 @@ function HostsTable() {
   );
 }
 
-/** Personas de la consola: búsqueda exacta, altas y las listas de gestores y anfitriones (ADR-0043 §1). */
+const PEOPLE_VIEWS: readonly [PeopleView, string][] = [
+  ['todos', 'Todos'],
+  ['turistas', 'Turistas'],
+  ['gestores', 'Gestores de enlace'],
+  ['anfitriones', 'Anfitriones'],
+];
+
+/** Personas de la consola: selector de rol (Todos, Turistas, Gestores de enlace, Anfitriones) con buscador y altas (ADR-0043, ADR-0048). */
 export function PeoplePage() {
   const [params] = useSearchParams();
-  const view = params.get('vista') === 'anfitriones' ? 'anfitriones' : 'gestores';
+  const view = viewFrom(params.get('vista'));
+  const [newUserOpen, setNewUserOpen] = useState(false);
+  const [newNotice, setNewNotice] = useState<string | null>(null);
+
+  const actionText =
+    view === 'gestores'
+      ? 'Nuevo gestor'
+      : view === 'anfitriones'
+        ? 'Nuevo anfitrión'
+        : 'Nuevo usuario';
 
   return (
     <>
       <title>Personas · Administración · Intégrate</title>
       <PageHeader
         title="Personas"
-        description="Convierte a una persona en anfitrión, acredita gestores de enlace y gestiona su estado."
+        description="Elige el grupo a consultar, busca por correo o documento y administra acreditaciones."
+        actions={
+          <Button
+            onClick={() => {
+              setNewNotice(null);
+              setNewUserOpen(true);
+            }}
+          >
+            <Icon name="plus" />
+            <span className="hidden sm:inline">{actionText}</span>
+          </Button>
+        }
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-6">
-        <PersonSearch />
+      {newNotice && (
+        <div className="mt-4">
+          <Notice tone="success">{newNotice}</Notice>
+        </div>
+      )}
 
-        <section aria-labelledby="listas-titulo">
-          <h2 id="listas-titulo" className="text-xl font-bold text-ink">
-            Gestores y anfitriones
-          </h2>
-          <nav aria-label="Lista" className="mt-3">
+      <section aria-label="Gestión de personas" className="mt-6">
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold text-ink-muted">Roles</p>
+          <nav aria-label="Roles">
             <ul className="flex flex-wrap gap-2">
-              {(
-                [
-                  ['gestores', 'Gestores de enlace'],
-                  ['anfitriones', 'Anfitriones'],
-                ] as const
-              ).map(([value, text]) => (
+              {PEOPLE_VIEWS.map(([value, text]) => (
                 <li key={value}>
                   <Link
-                    to={`?vista=${value}`}
+                    to={value === 'todos' ? '?vista=todos' : `?vista=${value}`}
                     aria-current={view === value ? 'true' : undefined}
                     className="inline-flex min-h-11 items-center rounded-lg border-2 border-border bg-canvas px-4 font-semibold text-ink hover:bg-surface-subtle aria-[current=true]:border-brand aria-[current=true]:bg-brand-soft aria-[current=true]:text-brand"
                   >
@@ -377,14 +507,31 @@ export function PeoplePage() {
               ))}
             </ul>
           </nav>
-          <div className="mt-3">
-            <Notice tone="info" role="note">
-              Ver estas listas también queda registrado en la bitácora de auditoría.
-            </Notice>
-          </div>
-          {view === 'gestores' ? <ManagersTable /> : <HostsTable />}
-        </section>
-      </div>
+        </div>
+
+        <div className="mt-4">
+          <Notice tone="info" role="note">
+            Cada búsqueda o listado consultado aquí queda registrado en la bitácora de auditoría.
+          </Notice>
+        </div>
+
+        {view === 'todos' && <PersonSearch roleFilter={null} />}
+        {view === 'turistas' && <PersonSearch roleFilter="TOURIST" />}
+        {view === 'gestores' && <ManagersTable />}
+        {view === 'anfitriones' && <HostsTable />}
+      </section>
+
+      {newUserOpen && (
+        <NewUserSheet
+          onClose={() => {
+            setNewUserOpen(false);
+          }}
+          onCreated={(fullName) => {
+            setNewUserOpen(false);
+            setNewNotice(`Se creó la cuenta de «${fullName}».`);
+          }}
+        />
+      )}
     </>
   );
 }
