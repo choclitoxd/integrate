@@ -2,7 +2,14 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { ApiError, useHttpClient } from '@/shared/api';
 
-import { getBooking, getVoucher, listMyBookings, type Booking, type MyBookingsScope } from './api';
+import {
+  getBooking,
+  getMeetingPoint,
+  getVoucher,
+  listMyBookings,
+  type Booking,
+  type MyBookingsScope,
+} from './api';
 import { monotonicNow } from './countdown';
 
 /** Reserva con el instante monotónico de su llegada, ancla de la cuenta regresiva (ADR-0016 §2). */
@@ -14,6 +21,7 @@ export interface BookingView extends Booking {
 export const bookingKeys = {
   booking: (id: string) => ['me', 'booking', id] as const,
   voucher: (id: string) => ['me', 'voucher', id] as const,
+  meetingPoint: (id: string) => ['me', 'meeting-point', id] as const,
   mine: (scope: MyBookingsScope) => ['me', 'bookings', scope] as const,
 };
 
@@ -57,6 +65,21 @@ export function useVoucher(bookingId: string, enabled: boolean) {
       if (data?.pdfStatus === 'GENERATING' && dataUpdateCount < PDF_MAX_POLLS) return PDF_POLL_MS;
       return false;
     },
+  });
+}
+
+/**
+ * Punto exacto y paradas (ADR-0049): solo existen para la reserva confirmada (si no, 404), así que se
+ * consulta únicamente con `enabled`. Sin caché compartida: se pide en cada visita (`staleTime: 0`).
+ */
+export function useMeetingPoint(bookingId: string, enabled: boolean) {
+  const http = useHttpClient();
+  return useQuery({
+    queryKey: bookingKeys.meetingPoint(bookingId),
+    queryFn: ({ signal }) => getMeetingPoint(http, bookingId, signal),
+    enabled,
+    staleTime: 0,
+    retry: false,
   });
 }
 

@@ -101,6 +101,33 @@ export function getBooking(http: HttpClient, id: string, signal?: AbortSignal): 
   return http.request<Booking>(`/v1/bookings/${encodeURIComponent(id)}`, signal ? { signal } : {});
 }
 
+/** Parada del recorrido, en orden (ADR-0049). */
+export interface MeetingPointStop {
+  readonly position: number;
+  readonly name: string;
+  readonly description: string | null;
+}
+
+/** Punto exacto y paradas de una reserva confirmada propia (ADR-0046 §1, ADR-0049). Nunca cacheable. */
+export interface MeetingPoint {
+  readonly meetingPoint: string;
+  readonly latitude: number | null;
+  readonly longitude: number | null;
+  readonly coordinatesTrusted: boolean;
+  readonly stops: readonly MeetingPointStop[];
+}
+
+export function getMeetingPoint(
+  http: HttpClient,
+  bookingId: string,
+  signal?: AbortSignal,
+): Promise<MeetingPoint> {
+  return http.request<MeetingPoint>(
+    `/v1/bookings/${encodeURIComponent(bookingId)}/meeting-point`,
+    signal ? { signal } : {},
+  );
+}
+
 export type PaymentMethod = 'PSE' | 'CARD' | 'NEQUI' | 'DAVIPLATA';
 
 export type CheckoutData =
