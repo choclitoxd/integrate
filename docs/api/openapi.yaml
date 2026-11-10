@@ -1668,12 +1668,22 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [meetingPoint, coordinatesTrusted]
+                required: [meetingPoint, coordinatesTrusted, stops]
                 properties:
                   meetingPoint: { type: string }
                   latitude: { type: number, nullable: true }
                   longitude: { type: number, nullable: true }
                   coordinatesTrusted: { type: boolean }
+                  stops:
+                    type: array
+                    description: Paradas del recorrido en orden (ADR-0049). Vacía si la experiencia no define ninguna.
+                    items:
+                      type: object
+                      required: [position, name]
+                      properties:
+                        position: { type: integer, minimum: 1 }
+                        name: { type: string }
+                        description: { type: string, nullable: true }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -4290,7 +4300,6 @@ components:
             status: 503
             code: CONCURRENCY_LOCK_TIMEOUT
             traceId: c4b9-8f21-4d1a
- }
     AdminIncident:
       type: object
       required: [id, status, severity, type, financialImpactCop, createdAt, bookingId, voucherId, resolutionNotes, resolvedBy, resolvedAt]

@@ -55,7 +55,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | POST `/bookings/{bookingId}/payment` | `PaymentCheckoutController` | ADR-0009, ADR-0016 |
 | POST `/bookings/{bookingId}/cancel` | `BookingCancellationController` | ADR-0034 (regla 72 h, reembolsos) |
 | GET `/bookings/{bookingId}/voucher` | `VoucherController` | ADR-0010, ADR-0017 |
-| GET `/bookings/{bookingId}/meeting-point` | `BookingController` | ADR-0046 §1 y §4 (solo `CONFIRMED`, `no-store`) |
+| GET `/bookings/{bookingId}/meeting-point` | `BookingController` | ADR-0046 §1 y §4, ADR-0049 (punto exacto y paradas; solo `CONFIRMED`, `no-store`) |
 | POST `/payments/webhook/mock`, `/payments/webhook/wompi` (público, idempotente) | `PaymentWebhookController` | ADR-0009, ADR-0029 |
 | POST `/dev/payments/{paymentId}/simulate` (solo demo) | `DevPaymentSimulatorController` | ADR-0029 |
 

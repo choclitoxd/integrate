@@ -14,6 +14,9 @@ public interface ExperienceStopRepository extends JpaRepository<ExperienceStop, 
     /** Paradas de varias experiencias en orden, para mapear páginas sin N+1. */
     List<ExperienceStop> findByExperienceIdInOrderByExperienceIdAscPositionAsc(Collection<UUID> experienceIds);
 
+    /** Paradas de una experiencia en orden, para la consulta autorizada de la reserva confirmada (ADR-0049). */
+    List<ExperienceStop> findByExperienceIdOrderByPositionAsc(UUID experienceId);
+
     @Modifying(flushAutomatically = true)
     @Query("delete from ExperienceStop s where s.experienceId = :experienceId")
     void deleteByExperienceId(@Param("experienceId") UUID experienceId);

@@ -411,7 +411,8 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.meetingPoint").isString())
                 .andExpect(jsonPath("$.latitude").value(5.123456))
                 .andExpect(jsonPath("$.longitude").value(-75.654321))
-                .andExpect(jsonPath("$.coordinatesTrusted").value(true));
+                .andExpect(jsonPath("$.coordinatesTrusted").value(true))
+                .andExpect(jsonPath("$.stops").isEmpty());
 
         // Coordenadas dudosas: el punto textual sigue, las coordenadas no.
         jdbc.update("UPDATE catalog.experiences SET meeting_point_check_status = 'MISMATCH' WHERE id = ?::uuid",
@@ -429,6 +430,44 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/bookings/" + UUID.randomUUID() + "/meeting-point")
                         .header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void confirmedBookingListsTheRouteStopsInOrderWhilePublicDetailKeepsThemHidden() throws Exception {
+        String scheduleId = schedule(4);
+        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 1))
+                .andExpect(status().isCreated()));
+        String meetingPointUrl = "/api/v1/bookings/" + bookingId + "/meeting-point";
+        // Se insertan fuera de orden: la respuesta debe ordenarlas por posición (ADR-0049).
+        jdbc.update("INSERT INTO catalog.experience_stops (experience_id, position, name, description) "
+                + "VALUES (?::uuid, 2, 'Beneficiadero', 'Proceso del café')", experienceId);
+        jdbc.update("INSERT INTO catalog.experience_stops (experience_id, position, name, description) "
+                + "VALUES (?::uuid, 1, 'Mirador del cafetal', 'Vista del paisaje')", experienceId);
+
+        // PENDING: ni el dueño ve las paradas antes de confirmar.
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", bookingId);
+
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.stops.length()").value(2))
+                .andExpect(jsonPath("$.stops[0].position").value(1))
+                .andExpect(jsonPath("$.stops[0].name").value("Mirador del cafetal"))
+                .andExpect(jsonPath("$.stops[0].description").value("Vista del paisaje"))
+                .andExpect(jsonPath("$.stops[1].position").value(2))
+                .andExpect(jsonPath("$.stops[1].name").value("Beneficiadero"));
+
+        // Otro turista no accede, y la ficha pública sigue sin paradas (ADR-0046 §1).
+        String otherEmail = uniqueEmail("otro-paradas");
+        registerTourist(otherEmail, true);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/experiences/" + experienceId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stops").isEmpty());
     }
 
     // ------------------------------------------------------------- worker TTL

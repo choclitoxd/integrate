@@ -6,6 +6,7 @@ import com.integrate.modules.catalog.entity.Municipality;
 import com.integrate.modules.catalog.entity.Schedule;
 import com.integrate.modules.catalog.repository.DepartmentRepository;
 import com.integrate.modules.catalog.repository.ExperienceRepository;
+import com.integrate.modules.catalog.repository.ExperienceStopRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
 import com.integrate.modules.catalog.service.ScheduleDirectory;
@@ -30,6 +31,7 @@ public class ScheduleDirectoryImpl implements ScheduleDirectory {
 
     private final ScheduleRepository scheduleRepository;
     private final ExperienceRepository experienceRepository;
+    private final ExperienceStopRepository experienceStopRepository;
     private final MunicipalityRepository municipalityRepository;
     private final DepartmentRepository departmentRepository;
 
@@ -72,8 +74,13 @@ public class ScheduleDirectoryImpl implements ScheduleDirectory {
                     .orElseThrow(() -> new IllegalStateException("Schedule " + scheduleId + " has no experience"));
             boolean trusted = experience.getMeetingPointCheckStatus().coordinatesTrusted()
                     && experience.getLatitude() != null && experience.getLongitude() != null;
+            List<OperationalLocation.Stop> stops = experienceStopRepository
+                    .findByExperienceIdOrderByPositionAsc(experience.getId()).stream()
+                    .map(stop -> new OperationalLocation.Stop(stop.getPosition(), stop.getName(), stop.getDescription()))
+                    .toList();
             return new OperationalLocation(experience.getMeetingPoint(),
-                    trusted ? experience.getLatitude() : null, trusted ? experience.getLongitude() : null, trusted);
+                    trusted ? experience.getLatitude() : null, trusted ? experience.getLongitude() : null, trusted,
+                    stops);
         });
     }
 
