@@ -80,6 +80,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0039](architecture/adr/ADR-0039-proteger-identidad-y-punto-de-encuentro.md) | Protección del documento, celular y punto de encuentro (H-01) | Aceptado |
 | [0040](architecture/adr/ADR-0040-publicar-politica-y-exigir-consentimiento-inicial.md) | Política accesible y consentimiento inicial (H-02) | Aceptado |
 | [0041](architecture/adr/ADR-0041-respaldar-y-restaurar-postgresql.md) | Respaldo externo y restauración de PostgreSQL (H-03) | Aceptado |
+| [0042](architecture/adr/ADR-0042-consola-de-administracion-con-shell-propio.md) | Consola de administración con shell propio (H-09); Fase 1 implementada | Aceptado |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 

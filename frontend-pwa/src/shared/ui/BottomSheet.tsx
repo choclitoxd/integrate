@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
+import { useFormFactor } from '@/shared/lib';
+
 import { Icon } from './Icon';
 
 interface BottomSheetProps {
@@ -17,7 +19,8 @@ interface BottomSheetProps {
 }
 
 /**
- * Hoja inferior modal sobre <dialog> nativo (ADR-0012 §6): showModal() atrapa el foco, deja el
+ * Hoja inferior modal sobre <dialog> nativo (ADR-0012 §6; en computador, diálogo centrado):
+ * showModal() atrapa el foco, deja el
  * fondo inerte, cierra con Esc y devuelve el foco al disparador. El contenido solo se monta
  * abierto. `onClose` solo se llama cuando cierra el usuario (Esc, toque fuera, botón Cerrar).
  * Al cerrar, anima el descenso hacia abajo (260 ms) de forma simétrica a la apertura.
@@ -34,6 +37,9 @@ export function BottomSheet({
   const closingFromProp = useRef(false);
   const titleId = useId();
   const [closing, setClosing] = useState(false);
+  // En computador (pantalla ancha con ratón) una hoja pegada al borde inferior queda lejos de la vista
+  // y del puntero: se muestra como diálogo centrado (ADR-0020 §2). En celular y tablet no cambia.
+  const centered = useFormFactor() === 'desktop';
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -102,13 +108,20 @@ export function BottomSheet({
       }}
       // Cierre por toque fuera de la hoja donde el navegador lo soporta (light dismiss).
       {...{ closedby: dismissible ? 'any' : 'none' }}
-      className={`sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl bg-surface-elevated p-0 text-ink not-open:hidden backdrop:bg-surface-inverse/60${
+      data-placement={centered ? 'center' : 'bottom'}
+      className={`${
+        centered
+          ? 'sheet sheet-center fixed inset-0 m-auto flex h-fit max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border-2 border-border-subtle shadow-2xl'
+          : 'sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl'
+      } bg-surface-elevated p-0 text-ink not-open:hidden backdrop:bg-surface-inverse/60${
         closing ? ' closing' : ''
       }`}
     >
       {open && (
         <>
-          <header className="flex items-center justify-between gap-4 border-b border-border-subtle py-2 pr-2 pl-5">
+          <header
+            className={`flex items-center justify-between gap-4 border-b border-border-subtle py-2 pr-2 ${centered ? 'pl-6' : 'pl-5'}`}
+          >
             <h2 id={titleId} className="text-lg font-bold">
               {title}
             </h2>
@@ -128,11 +141,15 @@ export function BottomSheet({
           </header>
           {/* `flex-auto` (basis: content), no `flex-1` (basis: 0%): con el <dialog> de altura automática,
               Safari/iOS toma la base 0% y deja el cuerpo casi sin altura (solo se veía el encabezado). */}
-          <div className="min-h-0 flex-auto overflow-y-auto overscroll-contain px-5 py-5">
+          <div
+            className={`min-h-0 flex-auto overflow-y-auto overscroll-contain py-5 ${centered ? 'px-6' : 'px-5'}`}
+          >
             {children}
           </div>
           {footer && (
-            <footer className="flex gap-3 border-t border-border-subtle px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <footer
+              className={`flex gap-3 border-t border-border-subtle pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${centered ? 'px-6' : 'px-5'}`}
+            >
               {footer}
             </footer>
           )}

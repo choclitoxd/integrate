@@ -10,8 +10,9 @@ import { MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
  * del contenido (o en el panel lateral de las vistas dedicadas), nunca en una barra fija al fondo.
  */
 export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProps) {
-  const { wide, loading } = useShellRoute();
+  const { wide, centerOnDesktop, loading } = useShellRoute();
   const column = wide ? 'max-w-6xl px-8' : 'max-w-md px-4';
+  const verticalLayout = centerOnDesktop ? 'grid content-center py-6' : 'pt-6 pb-12';
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
@@ -48,7 +49,7 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
       <main
         id={MAIN_CONTENT_ID}
         tabIndex={-1}
-        className={`mx-auto w-full flex-1 pt-6 pb-12 ${column}`}
+        className={`mx-auto w-full flex-1 ${verticalLayout} ${column}`}
       >
         {children ?? <Outlet />}
       </main>

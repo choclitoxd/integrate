@@ -263,4 +263,5 @@ qa/k6/results/
 # Credenciales para testers: nunca al repositorio (SEC-DIR-004)
 docs/testers/
 *.pdf.credentials
+infra/postgres/seed/import_testers.sql
 

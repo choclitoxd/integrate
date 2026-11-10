@@ -1,3 +1,4 @@
+import { useFormFactor } from '@/shared/lib';
 import { hasRole, useSession } from '@/shared/session';
 
 import { AppShell, type NavItem } from './AppShell';
@@ -8,6 +9,7 @@ import { AppShell, type NavItem } from './AppShell';
  */
 export function TouristLayout() {
   const session = useSession();
+  const formFactor = useFormFactor();
   const navItems: readonly NavItem[] = [
     { to: '/', label: 'Explorar', icon: 'compass' },
     // Las reservas son del turista: a un visitante o a un gestor sin ese rol le llevaría a un muro.
@@ -16,6 +18,16 @@ export function TouristLayout() {
       : []),
     ...(hasRole(session, 'ROLE_LINK_MANAGER')
       ? [{ to: '/gestor', label: 'Gestor', icon: 'route' } as const]
+      : []),
+    // La consola es de escritorio (ADR-0042 §4): en la barra inferior del celular va el rótulo corto.
+    ...(hasRole(session, 'ROLE_ADMIN')
+      ? [
+          {
+            to: '/admin',
+            label: formFactor === 'desktop' ? 'Administración' : 'Admin',
+            icon: 'shield',
+          } as const,
+        ]
       : []),
     session.status === 'authenticated'
       ? { to: '/cuenta', label: 'Mi cuenta', icon: 'user' }

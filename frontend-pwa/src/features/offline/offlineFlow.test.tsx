@@ -645,7 +645,11 @@ describe('Fase 2.2 · Padrón, validación QR, contingencia y sincronización PW
 
     // 1. Descarga el padrón desde /gestor
     await userEvent.click(screen.getByRole('button', { name: 'Descargar padrón de hoy' }));
-    expect(await screen.findByText(/Padrón descargado para 2026-10-30/)).toBeVisible();
+    expect(
+      await screen.findByText(
+        `Padrón descargado para ${rosterDto.rosterDate}: 1 voucher y 1 clave pública listos para operar sin red.`,
+      ),
+    ).toBeVisible();
 
     // 2. Abre /gestor/validar y verifica el token QR
     await userEvent.click(screen.getByRole('link', { name: /Validar QR en campo/ }));

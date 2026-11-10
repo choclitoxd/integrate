@@ -15,10 +15,12 @@ export interface NavItem {
  * Metadatos de ruta para el shell (ADR-0012 §1). Una ruta `flow` tiene acción fija propia: el shell
  * móvil oculta la navegación inferior y ofrece "Atrás" hacia `back` si no hay historial. Una ruta
  * `wide` tiene vista de escritorio dedicada (ADR-0020 §4): el shell de escritorio no la estrecha.
+ * `centerOnDesktop` centra el contenido en el espacio vertical disponible en escritorio.
  */
 export interface ShellHandle {
   readonly flow?: boolean;
   readonly wide?: boolean;
+  readonly centerOnDesktop?: boolean;
   readonly back?: (params: Readonly<Record<string, string | undefined>>) => string;
 }
 
@@ -46,6 +48,7 @@ export function useShellRoute() {
   return {
     flow: handle.flow === true,
     wide: handle.wide === true,
+    centerOnDesktop: handle.centerOnDesktop === true,
     backTo: handle.back?.(leaf?.params ?? {}),
     loading,
   };

@@ -26,6 +26,7 @@ Todo código generado para el frontend debe ceñirse estrictamente a las 7 direc
    - Todo botón, enlace, input o control interactivo debe tener un área táctil mínima de **$\ge 44 \times 44\text{ px}$** (`min-h-11 min-w-11` o con padding compensatorio).
    - Separación mínima entre elementos táctiles interactivos de $\ge 8\text{ px}$ para evitar pulsaciones erróneas en campo.
 4. **Ubicación de la acción principal (enmendada, ADR-0020):** las acciones transaccionales primarias (ej. "Pagar", "Reservar", "Crear cuenta", "Mostrar QR") van **dentro del contenido, justo después de los datos que confirman**, a ancho completo (≥ 44 px de alto) y con el total o el resumen encima cuando lo hay. Quedan **prohibidas las barras fijas de acción al fondo de la pantalla** (`fixed … bottom-0`): en celular quedan lejos de los datos y en computador flotan bajo el pie de página. La única pieza fija inferior permitida es la navegación del shell móvil, y las hojas y diálogos modales. En las vistas de escritorio dedicadas, la acción puede ir además en un panel lateral fijo (*sticky aside*). La prueba `src/app/noFixedActionBars.test.ts` hace cumplir esta regla.
+5. **Vista de computador (regla de diseño por ámbito):** toda pantalla, hoja o componente se revisa en **celular y en computador por separado**; no se acepta una pieza que solo se ve bien en celular. En computador (`desktop`), el contenido de una sola columna se centra en la pantalla y no queda pegado al borde inferior ni estirado a todo el ancho; las hojas modales (`BottomSheet`) se muestran como diálogo centrado (ADR-0020 §2), mientras que en celular y tablet siguen pegadas al borde inferior. Toda pieza nueva se verifica en ambos factores de forma antes de darla por terminada (ver la sección de verificación de la Directiva 7).
 
 ---
 
@@ -140,6 +141,7 @@ npm run build
 | :--- | :--- | :--- |
 | **Diseño / CSS** | Tokens certificados (`bg-brand`, `text-ink`, `border-border`) | Hexadecimales arbitrarios (`#22c55e`, `#3b82f6`) o clases Tailwind no mapeadas a `@theme` |
 | **Viewport** | Mobile-First (320–480 px); en `desktop` (`useFormFactor`) `DesktopShell` y vistas `pages/desktop/` diferidas | Layouts anchos en la vista móvil, scroll horizontal a 320 px, o detección por User-Agent |
+| **Vista de computador** | Cada pieza revisada en celular **y** en computador; en `desktop`, una columna centrada y las hojas modales como diálogo centrado | Piezas que solo se ven bien en celular: anclados abajo, estirados a todo el ancho o con el contenido pegado al borde inferior en pantalla ancha |
 | **Accesibilidad** | Foco doble anillo `:focus-visible`, contraste AAA $\ge 7:1$, `min-h-11` | `outline-none` sin reemplazo, fuentes pequeñas de bajo contraste, botones táctiles $< 44\text{ px}$ |
 | **Arquitectura** | Importar de `@/features/<feature>` por su `index.ts` | Importaciones profundas `@/features/a/internal/File` o `shared` importando de `features` |
 | **Seguridad** | Access token en memoria, refresh token en cookie HttpOnly | Guardar tokens en `localStorage`/IndexedDB; poner secretos en `.env` |

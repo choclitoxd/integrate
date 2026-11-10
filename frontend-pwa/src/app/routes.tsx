@@ -91,6 +91,37 @@ const enrollmentPage = async () => {
   return { Component: EnrollmentPage };
 };
 
+/*
+ * Consola de administración (ADR-0042 §2): el shell y la feature `admin` viajan en un chunk propio
+ * que ni el turista ni el gestor descargan.
+ */
+const adminLayout = async () => {
+  const { AdminLayout } = await import('./layouts/AdminLayout');
+  return {
+    element: (
+      <RequireSession roles={['ROLE_ADMIN']}>
+        <AdminLayout />
+      </RequireSession>
+    ),
+  };
+};
+const adminHomePage = async () => {
+  const { AdminHomePage } = await import('@/features/admin');
+  return { Component: AdminHomePage };
+};
+const adminExperiencesPage = async () => {
+  const { ExperiencesPage } = await import('@/features/admin');
+  return { Component: ExperiencesPage };
+};
+const adminAssociationsPage = async () => {
+  const { AssociationsPage } = await import('@/features/admin');
+  return { Component: AssociationsPage };
+};
+const adminAuditPage = async () => {
+  const { AuditPage } = await import('@/features/admin');
+  return { Component: AuditPage };
+};
+
 /**
  * Árbol de rutas por rol (ADR-0012 §4, ADR-0013 §6). Separado del router para montarlo en
  * memoria en las pruebas.
@@ -131,7 +162,7 @@ export const routes: RouteObject[] = [
             ),
             handle: slotsHandle,
           },
-          { path: 'ingresar', element: <LoginPage /> },
+          { path: 'ingresar', element: <LoginPage />, handle: { centerOnDesktop: true } },
           { path: 'registro', element: <RegisterPage />, handle: toCatalog },
           { path: 'activar', element: <ActivatePage />, handle: toCatalog },
           { path: 'recuperar-contrasena', element: <ForgotPasswordPage />, handle: toLogin },
@@ -163,6 +194,16 @@ export const routes: RouteObject[] = [
           { path: 'cola', lazy: syncQueuePage, handle: toManagerHome },
           { path: 'anfitriones', lazy: hostsPage },
           { path: 'anfitriones/enrolamiento', lazy: enrollmentPage, handle: toHosts },
+        ],
+      },
+      {
+        path: '/admin',
+        lazy: adminLayout,
+        children: [
+          { index: true, lazy: adminHomePage },
+          { path: 'experiencias', lazy: adminExperiencesPage },
+          { path: 'asociaciones', lazy: adminAssociationsPage },
+          { path: 'auditoria', lazy: adminAuditPage },
         ],
       },
       {

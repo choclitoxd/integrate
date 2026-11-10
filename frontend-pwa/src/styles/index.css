@@ -109,6 +109,29 @@
     animation: backdrop-out 260ms ease-out forwards;
   }
 
+  /* En computador la hoja es un diálogo centrado: aparece con un fundido corto, sin subir desde abajo. */
+  dialog.sheet-center[open] {
+    animation: dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  dialog.sheet-center.closing {
+    animation: dialog-out 200ms ease-in forwards;
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.97);
+    }
+  }
+
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.97);
+    }
+  }
+
   @keyframes sheet-in {
     from {
       transform: translateY(100%);
