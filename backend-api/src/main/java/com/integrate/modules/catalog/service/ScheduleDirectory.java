@@ -1,5 +1,6 @@
 package com.integrate.modules.catalog.service;
 
+import com.integrate.modules.catalog.service.model.OperationalLocation;
 import com.integrate.modules.catalog.service.model.ScheduleSummary;
 import java.util.Collection;
 import java.util.Map;
@@ -20,4 +21,10 @@ public interface ScheduleDirectory {
      * franjas inexistentes no aparecen en el resultado.
      */
     Map<UUID, ScheduleSummary> describeAll(Collection<UUID> scheduleIds);
+
+    /**
+     * Punto de encuentro exacto de la franja (ADR-0046 §1). Solo para consultas autorizadas de la reserva confirmada
+     * de su titular: nunca para proyecciones públicas. Vacío si la franja no existe.
+     */
+    Optional<OperationalLocation> operationalLocation(UUID scheduleId);
 }

@@ -9,6 +9,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 |---|---|---|---|
 | POST `/auth/login`, `/auth/register`, `/auth/activate`, `/auth/refresh`, `/auth/logout` | `AuthController` | público / sesión | ADR-0005, ADR-0013 |
 | POST `/auth/forgot-password`, `/auth/reset-password` | `AuthController` | público | ADR-0014 |
+| GET, PATCH `/auth/me`; POST `/auth/me/password` | `OwnAccountController` | autenticado | ADR-0046 |
 | GET `/privacy-policies/current` | `PrivacyPolicyController` | público | ADR-0013 |
 | GET, POST `/me/consents` | `MeConsentController` | autenticado | ADR-0013, ADR-0035 |
 
@@ -53,6 +54,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | POST `/bookings/{bookingId}/payment` | `PaymentCheckoutController` | ADR-0009, ADR-0016 |
 | POST `/bookings/{bookingId}/cancel` | `BookingCancellationController` | ADR-0034 (regla 72 h, reembolsos) |
 | GET `/bookings/{bookingId}/voucher` | `VoucherController` | ADR-0010, ADR-0017 |
+| GET `/bookings/{bookingId}/meeting-point` | `BookingController` | ADR-0046 §1 y §4 (solo `CONFIRMED`, `no-store`) |
 | POST `/payments/webhook/mock`, `/payments/webhook/wompi` (público, idempotente) | `PaymentWebhookController` | ADR-0009, ADR-0029 |
 | POST `/dev/payments/{paymentId}/simulate` (solo demo) | `DevPaymentSimulatorController` | ADR-0029 |
 

@@ -8,6 +8,7 @@ import static com.integrate.modules.auth.AuthTestData.uniqueDocNumber;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -386,6 +387,47 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/bookings/" + bookingId).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
                 .andExpect(status().isNotFound());
         mvc.perform(get("/api/v1/bookings/" + UUID.randomUUID()).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void exactMeetingPointIsOnlyForTheOwnersConfirmedBooking() throws Exception {
+        String scheduleId = schedule(4);
+        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 1))
+                .andExpect(status().isCreated()));
+        String meetingPointUrl = "/api/v1/bookings/" + bookingId + "/meeting-point";
+
+        // PENDING: ni el dueño accede al punto exacto antes de confirmar.
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+
+        jdbc.update("UPDATE catalog.experiences SET latitude = 5.123456, longitude = -75.654321, "
+                + "meeting_point_check_status = 'MATCH' WHERE id = ?::uuid", experienceId);
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", bookingId);
+
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.meetingPoint").isString())
+                .andExpect(jsonPath("$.latitude").value(5.123456))
+                .andExpect(jsonPath("$.longitude").value(-75.654321))
+                .andExpect(jsonPath("$.coordinatesTrusted").value(true));
+
+        // Coordenadas dudosas: el punto textual sigue, las coordenadas no.
+        jdbc.update("UPDATE catalog.experiences SET meeting_point_check_status = 'MISMATCH' WHERE id = ?::uuid",
+                experienceId);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.latitude").doesNotExist())
+                .andExpect(jsonPath("$.coordinatesTrusted").value(false));
+
+        // Otro turista y un id inexistente responden como inexistente.
+        String otherEmail = uniqueEmail("otro-punto");
+        registerTourist(otherEmail, true);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/bookings/" + UUID.randomUUID() + "/meeting-point")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
                 .andExpect(status().isNotFound());
     }
 

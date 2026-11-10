@@ -3,6 +3,7 @@ package com.integrate.modules.booking.controller;
 import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.booking.dto.request.BookingLockRequest;
 import com.integrate.modules.booking.dto.response.BookingLockResponse;
+import com.integrate.modules.booking.dto.response.MeetingPointResponse;
 import com.integrate.modules.booking.service.BookingLockService;
 import com.integrate.modules.booking.service.BookingQueryService;
 import com.integrate.modules.booking.service.model.LockOutcome;
@@ -13,6 +14,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,6 +58,14 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public BookingLockResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID bookingId) {
         return queryService.get(UUID.fromString(jwt.getSubject()), bookingId);
+    }
+
+    /** Punto exacto solo para la reserva confirmada del propio turista (ADR-0046 §1); nunca cacheable. */
+    @GetMapping("/{bookingId}/meeting-point")
+    public ResponseEntity<MeetingPointResponse> meetingPoint(@AuthenticationPrincipal Jwt jwt,
+                                                             @PathVariable UUID bookingId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(queryService.meetingPoint(UUID.fromString(jwt.getSubject()), bookingId));
     }
 
     /** IP de {@code getRemoteAddr()}, nunca {@code X-Forwarded-For} leído a mano (mismo criterio que {@code auth}). */
