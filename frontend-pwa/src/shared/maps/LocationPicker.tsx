@@ -249,14 +249,14 @@ export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
         </p>
       ) : (
         <>
+          {status === 'loading' && <p className="text-sm text-ink-muted">Cargando mapa…</p>}
+          {/* Google Maps controla el contenido de este contenedor: no debe tener hijos de React. */}
           <div
             ref={containerRef}
             role="region"
             aria-label="Mapa para ubicar el punto de encuentro"
             className="h-64 w-full overflow-hidden rounded-lg border-2 border-border bg-canvas"
-          >
-            {status === 'loading' && <p className="p-4 text-sm text-ink-muted">Cargando mapa…</p>}
-          </div>
+          />
           <p className="text-sm text-ink-muted">Mueve el pin al punto exacto antes de guardar.</p>
           <div>
             <Button

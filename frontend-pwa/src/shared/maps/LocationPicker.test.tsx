@@ -40,3 +40,51 @@ describe('LocationPicker sin llave de Google Maps', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('enlace corto');
   });
 });
+
+describe('LocationPicker con llave de Google Maps', () => {
+  class FakeMap {
+    // Google Maps reemplaza el contenido del contenedor al crear el mapa; React no debe depender de él.
+    constructor(element: HTMLElement) {
+      element.replaceChildren(document.createElement('div'));
+    }
+    setCenter = vi.fn();
+    setZoom = vi.fn();
+    addListener = vi.fn();
+  }
+  class FakeMarker {
+    setPosition = vi.fn();
+    addListener = vi.fn();
+  }
+  class FakeAutocomplete {
+    addListener = vi.fn();
+    getPlace = vi.fn(() => ({}));
+  }
+
+  beforeEach(() => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_BROWSER_KEY', 'llave-de-prueba');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    delete window.google;
+  });
+
+  it('crea el mapa y muestra "Usar mi ubicación" cuando la API está disponible', async () => {
+    window.google = {
+      maps: { Map: FakeMap, Marker: FakeMarker, places: { Autocomplete: FakeAutocomplete } },
+    };
+    render(<LocationPicker lat={null} lng={null} onChange={vi.fn()} />);
+    expect(await screen.findByRole('button', { name: 'Usar mi ubicación' })).toBeInTheDocument();
+    expect(screen.queryByText('El mapa no está disponible', { exact: false })).toBeNull();
+  });
+
+  it('no se rompe si la API cargó sin la librería de lugares: cae al modo manual', async () => {
+    window.google = {
+      maps: { Map: FakeMap, Marker: FakeMarker },
+    } as unknown as NonNullable<Window['google']>;
+    render(<LocationPicker lat={4.6} lng={-74.1} onChange={vi.fn()} />);
+    expect(
+      await screen.findByText('El mapa no está disponible', { exact: false }),
+    ).toBeInTheDocument();
+  });
+});
