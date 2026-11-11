@@ -5,6 +5,8 @@ import { Icon, SkipLink } from '@/shared/ui';
 
 import { ADMIN_NAV_ITEMS, MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
 import { AdminModules } from './AdminModules';
+import { useModulesActive } from './modulesActive';
+import { isAccountItem } from './navOrder';
 import { RoleIndicator } from './RoleIndicator';
 
 /**
@@ -15,6 +17,10 @@ import { RoleIndicator } from './RoleIndicator';
 export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProps) {
   const { wide, centerOnDesktop, loading } = useShellRoute();
   const admin = navItems === ADMIN_NAV_ITEMS;
+  // Con ambos roles de zona la barra no cabe por debajo de `xl`: se agrupa bajo «Módulos» (ADR-0067).
+  const roleModules = admin ? [] : navItems.filter((item) => item.group);
+  const collapse = new Set(roleModules.map((item) => item.group)).size > 1;
+  const modulesActive = useModulesActive(roleModules);
   const column = wide ? 'max-w-6xl px-8' : 'max-w-md px-4';
   const verticalLayout = centerOnDesktop ? 'grid content-center py-6' : 'pt-6 pb-12';
 
@@ -37,8 +43,19 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
                 const isAdminHome = admin && item.to === '/admin';
                 const isAdminAccount = admin && item.to === '/admin/cuenta';
                 const isAdminModule = admin && !isAdminHome && !isAdminAccount;
+                const isRoleModule = collapse && !!item.group;
                 return (
                   <Fragment key={item.to}>
+                    {collapse && isAccountItem(item) && (
+                      <li className="xl:hidden">
+                        <AdminModules
+                          items={roleModules}
+                          title="Módulos"
+                          icon="grid"
+                          active={modulesActive}
+                        />
+                      </li>
+                    )}
                     {isAdminAccount && (
                       <li className="xl:hidden">
                         <AdminModules items={navItems.slice(1, -1)} />
@@ -46,7 +63,7 @@ export function DesktopShell({ navLabel, navItems, homeTo, children }: ShellProp
                     )}
                     <li
                       className={
-                        isAdminModule
+                        isAdminModule || isRoleModule
                           ? 'hidden xl:block'
                           : isAdminHome
                             ? 'xl:ml-auto'

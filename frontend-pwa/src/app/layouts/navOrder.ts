@@ -1,7 +1,7 @@
 import type { NavItem } from './shell';
 
 /** «Mi cuenta» (`/cuenta`, `/anfitrion/cuenta`, `/admin/cuenta`…) o «Ingresar» cuando no hay sesión. */
-function isAccountItem(item: NavItem): boolean {
+export function isAccountItem(item: NavItem): boolean {
   return item.to === '/ingresar' || item.to === '/cuenta' || item.to.endsWith('/cuenta');
 }
 

@@ -6,6 +6,25 @@ import { catalogRoutes } from '@/test/fixtures';
 import { LAPTOP, stubMatchMedia } from '@/test/matchMedia';
 import { renderApp } from '@/test/renderApp';
 
+/** Abre la hoja «Módulos» de la barra (ADR-0067) y devuelve el diálogo. */
+async function openModules() {
+  await userEvent.click(screen.getByRole('button', { name: 'Módulos' }));
+  return screen.findByRole('dialog', { name: 'Módulos' });
+}
+
+/** Cierra la hoja con su botón: jsdom no simula la tecla Esc de un <dialog> nativo. */
+async function closeModules(modules: HTMLElement) {
+  await userEvent.click(within(modules).getByRole('button', { name: 'Cerrar' }));
+  await waitFor(() => {
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+}
+
+const labelsOf = (scope: HTMLElement) =>
+  within(scope)
+    .getAllByRole('link')
+    .map((link) => link.textContent.trim());
+
 describe('routes', () => {
   it('abre en el catálogo del turista con landmarks y navegación inferior', async () => {
     renderApp('/', catalogRoutes);
@@ -46,68 +65,59 @@ describe('routes', () => {
 
   it('mantiene las opciones del gestor al volver a Explorar y deja «Mi cuenta» a la derecha', async () => {
     const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
-    const links = () =>
-      within(screen.getByRole('navigation'))
-        .getAllByRole('link')
-        .map((link) => link.textContent);
-    const expected = ['Explorar', 'Jornada', 'Validar QR', 'Anfitriones', 'Mi cuenta'];
-    expect(links()).toEqual(expected);
-    await userEvent.click(screen.getByRole('link', { name: 'Jornada' }));
+    // ADR-0067: los módulos del gestor viven en «Módulos»; la barra queda corta y «Mi cuenta» al final.
+    const expected = ['Explorar', 'Mi cuenta'];
+    expect(labelsOf(screen.getByRole('navigation'))).toEqual(expected);
+    const modules = await openModules();
+    expect(labelsOf(modules)).toEqual(['Jornada', 'Validar QR', 'Anfitriones']);
+    await userEvent.click(within(modules).getByRole('link', { name: 'Jornada' }));
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/gestor');
     });
-    expect(links()).toEqual(expected);
+    expect(labelsOf(screen.getByRole('navigation'))).toEqual(expected);
     await userEvent.click(screen.getByRole('link', { name: 'Explorar' }));
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/');
     });
-    expect(links()).toEqual(expected);
+    expect(labelsOf(screen.getByRole('navigation'))).toEqual(expected);
   });
 
   it('muestra el panel del gestor solo con ROLE_LINK_MANAGER', async () => {
     const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
-    await userEvent.click(screen.getByRole('link', { name: 'Jornada' }));
-    expect(router.state.location.pathname).toBe('/gestor');
+    const modules = await openModules();
+    await userEvent.click(within(modules).getByRole('link', { name: 'Jornada' }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/gestor');
+    });
     expect(screen.getByRole('heading', { level: 1, name: 'Panel de jornada' })).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Navegación del gestor' })).toBeInTheDocument();
   });
 
   it('mantiene las opciones del anfitrión al volver a Explorar y deja «Mi cuenta» a la derecha', async () => {
-    const user = userEvent.setup();
     const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST', 'ROLE_HOST'] });
-    const links = () =>
-      within(screen.getByRole('navigation', { name: 'Navegación principal' }))
-        .getAllByRole('link')
-        .map((link) => link.textContent);
-    const expected = [
-      'Explorar',
-      'Mis experiencias',
-      'Anfitrión',
-      'Mis métricas',
-      'Experiencias del anfitrión',
-      'Mi cuenta',
-    ];
-    expect(links()).toEqual(expected);
-    await user.click(screen.getByRole('link', { name: 'Anfitrión' }));
+    const nav = () => screen.getByRole('navigation', { name: 'Navegación principal' });
+    // ADR-0067: la barra del anfitrión cabe en 4 entradas; sus módulos van en la hoja «Módulos».
+    const expected = ['Explorar', 'Mis experiencias', 'Mi cuenta'];
+    expect(labelsOf(nav())).toEqual(expected);
+    expect(within(nav()).getByRole('button', { name: 'Módulos' })).toBeVisible();
+    const modules = await openModules();
+    expect(labelsOf(modules)).toEqual(['Anfitrión', 'Mis métricas', 'Experiencias del anfitrión']);
+    await userEvent.click(within(modules).getByRole('link', { name: 'Anfitrión' }));
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Reservas confirmadas' }),
     ).toBeVisible();
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/anfitrion');
     });
-    expect(links()).toEqual(expected);
-    await user.click(
-      within(screen.getByRole('navigation', { name: 'Navegación principal' })).getByRole('link', {
-        name: 'Explorar',
-      }),
-    );
+    expect(labelsOf(nav())).toEqual(expected);
+    await userEvent.click(within(nav()).getByRole('link', { name: 'Explorar' }));
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Experiencias comunitarias' }),
     ).toBeVisible();
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/');
     });
-    expect(links()).toEqual(expected);
+    expect(labelsOf(nav())).toEqual(expected);
   });
 
   it.each([
@@ -130,14 +140,17 @@ describe('routes', () => {
   it('el panel del gestor lleva a enrolar y a sus anfitriones (ADR-0018 §1)', async () => {
     const { router } = renderApp('/gestor', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
     const nav = screen.getByRole('navigation', { name: 'Navegación del gestor' });
-    expect(within(nav).getByRole('link', { name: 'Jornada' })).toHaveAttribute(
+    expect(within(nav).getByRole('button', { name: 'Módulos' })).toBeVisible();
+    const modules = await openModules();
+    expect(within(modules).getByRole('link', { name: 'Jornada' })).toHaveAttribute(
       'aria-current',
       'page',
     );
-    expect(within(nav).getByRole('link', { name: 'Anfitriones' })).toHaveAttribute(
+    expect(within(modules).getByRole('link', { name: 'Anfitriones' })).toHaveAttribute(
       'href',
       '/gestor/anfitriones',
     );
+    await closeModules(modules);
     await userEvent.click(screen.getByRole('link', { name: /Enrolar anfitrión/ }));
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/gestor/anfitriones/enrolamiento');
@@ -160,35 +173,55 @@ describe('routes', () => {
   });
 
   it('todo anfitrión y gestor es también turista: ven Explorar y Mis experiencias (ADR-0064)', async () => {
-    const labels = async (name: string) =>
-      within(await screen.findByRole('navigation', { name }))
-        .getAllByRole('link')
-        .map((link) => link.textContent);
-
     const host = renderApp('/anfitrion', catalogRoutes, { roles: ['ROLE_HOST', 'ROLE_TOURIST'] });
-    expect(await labels('Navegación principal')).toEqual([
-      'Explorar',
-      'Mis experiencias',
-      'Anfitrión',
-      'Mis métricas',
-      'Experiencias del anfitrión',
-      'Mi cuenta',
-    ]);
+    expect(
+      labelsOf(await screen.findByRole('navigation', { name: 'Navegación principal' })),
+    ).toEqual(['Explorar', 'Mis experiencias', 'Mi cuenta']);
     host.unmount();
 
     renderApp('/gestor', catalogRoutes, { roles: ['ROLE_LINK_MANAGER', 'ROLE_TOURIST'] });
-    expect(await labels('Navegación del gestor')).toEqual([
-      'Explorar',
-      'Mis experiencias',
-      'Jornada',
-      'Validar QR',
-      'Anfitriones',
-      'Mi cuenta',
-    ]);
+    expect(
+      labelsOf(await screen.findByRole('navigation', { name: 'Navegación del gestor' })),
+    ).toEqual(['Explorar', 'Mis experiencias', 'Mi cuenta']);
     expect(screen.getByRole('link', { name: 'Mis experiencias' })).toHaveAttribute(
       'href',
       '/mis-experiencias',
     );
+  });
+
+  it('«Módulos» agrupa las entradas del anfitrión en una hoja sin encabezados (ADR-0067)', async () => {
+    renderApp('/', catalogRoutes, { roles: ['ROLE_HOST', 'ROLE_TOURIST'] });
+    const modules = await openModules();
+    expect(within(modules).queryByRole('heading', { level: 3 })).toBeNull();
+    expect(within(modules).getByRole('link', { name: 'Mis métricas' })).toHaveAttribute(
+      'href',
+      '/anfitrion/metricas',
+    );
+    expect(
+      within(modules).getByRole('link', { name: 'Experiencias del anfitrión' }),
+    ).toHaveAttribute('href', '/anfitrion/experiencias');
+  });
+
+  it('con ambos roles de zona, «Módulos» separa las entradas por rol con un encabezado cada uno (ADR-0067)', async () => {
+    renderApp('/', catalogRoutes, { roles: ['ROLE_HOST', 'ROLE_LINK_MANAGER', 'ROLE_TOURIST'] });
+    const modules = await openModules();
+    expect(within(modules).getByRole('heading', { level: 3, name: 'Anfitrión' })).toBeVisible();
+    expect(
+      within(modules).getByRole('heading', { level: 3, name: 'Gestor de enlace' }),
+    ).toBeVisible();
+    expect(labelsOf(modules)).toEqual([
+      'Anfitrión',
+      'Mis métricas',
+      'Experiencias del anfitrión',
+      'Jornada',
+      'Validar QR',
+      'Anfitriones',
+    ]);
+  });
+
+  it('quien no tiene rol de zona no ve «Módulos» (ADR-0067)', () => {
+    renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
+    expect(screen.queryByRole('button', { name: 'Módulos' })).toBeNull();
   });
 
   it('un turista ve "Mis experiencias" en la barra; un visitante, no', () => {
