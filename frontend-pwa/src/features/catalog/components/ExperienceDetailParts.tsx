@@ -112,8 +112,8 @@ export function ExperienceGuarantees({ variant = 'full' }: { variant?: 'full' | 
         <li className="flex items-start gap-2">
           <Icon name="refresh" size={16} className="mt-0.5 shrink-0 text-brand" />
           <span>
-            <strong className="text-ink">Cancelación sin costo:</strong> Cancela hasta 24 horas
-            antes con reembolso total.
+            <strong className="text-ink">Cancelación con reembolso:</strong> Si cancelas con más de
+            72 horas de anticipación te devolvemos el 85 %; con menos tiempo no hay reembolso.
           </span>
         </li>
         <li className="flex items-start gap-2">

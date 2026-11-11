@@ -258,7 +258,7 @@ describe('Mis experiencias, pantalla propia (T-1.14b, ADR-0023)', () => {
     upcomingTab.focus();
     await userEvent.keyboard('{ArrowRight}');
 
-    const pastTab = screen.getByRole('tab', { name: 'Realizadas' });
+    const pastTab = screen.getByRole('tab', { name: 'Historial' });
     expect(pastTab).toHaveFocus();
     expect(pastTab).toHaveAttribute('aria-selected', 'true');
     expect(router.state.location.search).toBe('?tab=realizadas');

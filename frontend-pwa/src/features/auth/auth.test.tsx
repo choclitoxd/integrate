@@ -45,6 +45,14 @@ describe('ingresar (T-1.11)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
   }
 
+  it('ofrece activar la cuenta con el código que entrega el gestor', () => {
+    renderApp('/ingresar', catalogRoutes);
+    expect(screen.getByRole('link', { name: 'Activa tu cuenta' })).toHaveAttribute(
+      'href',
+      '/activar',
+    );
+  });
+
   it('valida en el cliente antes de llamar al servidor', async () => {
     const { http } = renderApp('/ingresar', catalogRoutes);
     await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));

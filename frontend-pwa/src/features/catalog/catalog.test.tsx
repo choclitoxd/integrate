@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError, NetworkError } from '@/shared/api';
 import { addDays, formatLongDate, startOfWeek, todayInBogota } from '@/shared/lib';
@@ -13,6 +13,7 @@ import {
   schedule,
   summary,
 } from '@/test/fixtures';
+import { LAPTOP, stubMatchMedia } from '@/test/matchMedia';
 import { renderApp } from '@/test/renderApp';
 import { pickOption } from '@/test/select';
 
@@ -216,6 +217,23 @@ describe('detalle (T-1.10a)', () => {
     // Garantías de reserva (ADR-0050 §4)
     expect(screen.getByText('Confirmación inmediata')).toBeVisible();
     expect(screen.getByText('Cancelación flexible')).toBeVisible();
+  });
+});
+
+describe('garantía de cancelación (ADR-0034)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('dice la regla real: con más de 72 horas se devuelve el 85 %, no el total', async () => {
+    // La garantía completa vive en la vista de escritorio (ADR-0050); la de celular trae la versión corta.
+    stubMatchMedia(LAPTOP);
+    renderApp(`/experiencias/${EXPERIENCE_ID}`, catalogRoutes);
+    expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
+    expect(screen.getByText(/Cancelación con reembolso:/)).toBeVisible();
+    expect(screen.getByText(/más de 72 horas de anticipación te devolvemos el 85 %/)).toBeVisible();
+    expect(screen.queryByText(/24 horas/)).toBeNull();
+    expect(screen.queryByText(/reembolso total/)).toBeNull();
   });
 });
 
