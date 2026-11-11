@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "docs/api/openapi.yaml": {
-    "mtime": 1794374550.982929,
-    "seen": 1794376476.648786,
-    "ast_hash": "bb2b8ea80c0833429dec465e2b403eb7",
+    "mtime": 1794377575.3878055,
+    "seen": 1794381849.1389832,
+    "ast_hash": "92e156ee87f58fbb2565065f2acfb048",
     "semantic_hash": ""
   },
   "docs/architecture/backend_guidelines.md": {
@@ -192,9 +192,9 @@
     "semantic_hash": "e928a8438336a04a91695c0aa5e06589"
   },
   "backend-api/src/main/java/com/integrate/common/exception/ErrorCode.java": {
-    "mtime": 1794373375.8870773,
-    "seen": 1794374043.6052756,
-    "ast_hash": "27781ac89f3782551a9d13f152070e39",
+    "mtime": 1794381359.941576,
+    "seen": 1794381849.1369803,
+    "ast_hash": "05ec48687730206427b3a0127bc076cd",
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/common/exception/GlobalExceptionHandler.java": {
@@ -1242,9 +1242,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/security/SecurityConfig.java": {
-    "mtime": 1794368387.430532,
-    "seen": 1794368708.0215209,
-    "ast_hash": "78dab242c6ddaaba33724eb680c2fc32",
+    "mtime": 1794381359.9445765,
+    "seen": 1794381849.1379814,
+    "ast_hash": "3c5218046fe9cd40ccb471e0985316a5",
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/db/migration/V11__divipola_municipalities.sql": {
@@ -2628,9 +2628,9 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/api.ts": {
-    "mtime": 1794374626.938675,
-    "seen": 1794376476.5734797,
-    "ast_hash": "9790da232ea2ee946370bdb854116aff",
+    "mtime": 1794381546.7155676,
+    "seen": 1794381849.1379814,
+    "ast_hash": "bd7d3c39b575c3120c76045041a2e9f3",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/auth.test.tsx": {
@@ -2814,9 +2814,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/modules/auth/controller/PasswordResetApiIntegrationTest.java": {
-    "mtime": 1794345585.5952342,
-    "seen": 1794346558.2245543,
-    "ast_hash": "bcaf70fde3e03c72a69664f4154c435c",
+    "mtime": 1794377641.6308692,
+    "seen": 1794381849.1379814,
+    "ast_hash": "eaa8c56394c0ef0cab5adec34fa38995",
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/mail/password-changed.subject.txt": {
@@ -3180,9 +3180,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/quality/security/SensitiveDataAtRestQualityTest.java": {
-    "mtime": 1792401130.3614824,
-    "seen": 1792406457.6238406,
-    "ast_hash": "1dcb4c0802063474c33c226388a55753",
+    "mtime": 1794377372.5394254,
+    "seen": 1794381849.1379814,
+    "ast_hash": "df7a0e051037a0afdf38f74d4fd8029b",
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/quality/security/VoucherTamperDetectionQualityTest.java": {
@@ -3258,9 +3258,9 @@
     "semantic_hash": ""
   },
   "qa/k6/lib/fixtures.js": {
-    "mtime": 1792401130.9030342,
-    "seen": 1792406457.6238406,
-    "ast_hash": "4bd622af63f08a17edffb54966a00532",
+    "mtime": 1794378054.0080898,
+    "seen": 1794381849.1379814,
+    "ast_hash": "5b0afd57af1939323be4065f11460dff",
     "semantic_hash": ""
   },
   "qa/k6/login.js": {
@@ -3804,9 +3804,9 @@
     "semantic_hash": ""
   },
   "infra/scripts/snapdeploy.sh": {
-    "mtime": 1793244529.6605628,
-    "seen": 1793313669.4654884,
-    "ast_hash": "d53d43120fa17e1d11ed3cfc3ffcd76a",
+    "mtime": 1794379364.331545,
+    "seen": 1794381849.1379814,
+    "ast_hash": "181209280e2c0c0c500fd925a413e466",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/lib/phone.test.ts": {
@@ -4614,9 +4614,9 @@
     "semantic_hash": ""
   },
   "docs/api/endpoints-index.md": {
-    "mtime": 1794373458.5532181,
-    "seen": 1794374043.610947,
-    "ast_hash": "3bbfcaca63929ebe6600bcb2ec342889",
+    "mtime": 1794381778.486838,
+    "seen": 1794381849.1389832,
+    "ast_hash": "c1193ffd8781c4289a6318c5180d4319",
     "semantic_hash": ""
   },
   "backend-api/src/main/resources/db/migration/V16__opaque_synthetic_email_and_revoked_manager_roles.sql": {
@@ -7320,15 +7320,15 @@
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/account.test.tsx": {
-    "mtime": 1794345542.9631398,
-    "seen": 1794346558.2245543,
-    "ast_hash": "c0d338751932f4417baaf9c543e3eabc",
+    "mtime": 1794381593.1940892,
+    "seen": 1794381849.1379814,
+    "ast_hash": "ff4e941639548ac2b954c29be053a0b6",
     "semantic_hash": ""
   },
   "frontend-pwa/src/features/auth/components/AccountSettings.tsx": {
-    "mtime": 1794350065.2162263,
-    "seen": 1794351459.6426888,
-    "ast_hash": "e19d7a4e106906b620d7733a0d5e627e",
+    "mtime": 1794381653.7044518,
+    "seen": 1794381849.1379814,
+    "ast_hash": "0ef876599b0bf3b16a673ee15532b704",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/api/accountHttp.test.ts": {
@@ -7518,9 +7518,9 @@
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0055-validar-rendimiento-en-entorno-desplegado.md": {
-    "mtime": 1794365313.7685611,
-    "seen": 1794368708.0215209,
-    "ast_hash": "7badc71b1b9bbe47ee843766101136f7",
+    "mtime": 1794379953.8175232,
+    "seen": 1794381849.1389832,
+    "ast_hash": "c69b7ceac615c9a7895e78778dbc36a3",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0056-crear-experiencia-con-busqueda-y-mapa-google.md": {
@@ -7542,9 +7542,9 @@
     "semantic_hash": "1b262046aa53356278f451b9eb4be728"
   },
   "docs/status/EN-CURSO.md": {
-    "mtime": 1794376376.5053847,
-    "seen": 1794376476.648786,
-    "ast_hash": "c24f97e11c9892c420ae2afe75349daa",
+    "mtime": 1794381778.4888344,
+    "seen": 1794381849.1389832,
+    "ast_hash": "bd285e08046857de7074a60dc11e92d0",
     "semantic_hash": ""
   },
   "frontend-pwa/src/shared/maps/LocationPicker.test.tsx": {
@@ -7620,21 +7620,21 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/auth/service/impl/OwnReauthService.java": {
-    "mtime": 1794372797.1838174,
-    "seen": 1794373039.3059173,
-    "ast_hash": "700e080165c791ac77a9002a5a53d387",
+    "mtime": 1794381359.9425786,
+    "seen": 1794381849.1369803,
+    "ast_hash": "e1621ddb6a9e5fffc0d9d746695f4d9a",
     "semantic_hash": ""
   },
   "backend-api/src/test/java/com/integrate/modules/auth/service/impl/OwnReauthServiceTest.java": {
-    "mtime": 1794372886.893508,
-    "seen": 1794373039.4926307,
-    "ast_hash": "19a5a20f4067e390b4f907a579e7c2c5",
+    "mtime": 1794381359.943577,
+    "seen": 1794381849.1379814,
+    "ast_hash": "9578d9f53ab31dedc188c6e80ab2134a",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0058-confirmar-identidad-antes-de-editar-la-cuenta-propia.md": {
-    "mtime": 1794372920.1525402,
-    "seen": 1794373039.8953407,
-    "ast_hash": "1e5fac486c36c69fd471c6f69453961c",
+    "mtime": 1794381778.4878356,
+    "seen": 1794381849.1389832,
+    "ast_hash": "caf6e00a2d81f3515e9ed294c5e9656c",
     "semantic_hash": ""
   },
   "docs/architecture/adr/ADR-0059-modal-amplio-adaptativo-y-formulario-a-dos-columnas-en-escritorio.md": {
@@ -7656,9 +7656,9 @@
     "semantic_hash": ""
   },
   "backend-api/src/main/java/com/integrate/modules/booking/service/impl/HostBookingServiceImpl.java": {
-    "mtime": 1794374706.5802448,
-    "seen": 1794376476.5734797,
-    "ast_hash": "f7ad9c86812f664b9729b9856a714b89",
+    "mtime": 1794377372.5384135,
+    "seen": 1794381849.1369803,
+    "ast_hash": "eff2c53624de57a458b60710090f35b9",
     "semantic_hash": ""
   },
   "frontend-pwa/src/app/layouts/HostLayout.tsx": {
@@ -7779,6 +7779,24 @@
     "mtime": 1790907060.1579072,
     "seen": 1794376476.6480246,
     "ast_hash": "9378bd03d56baaf78bd738ab3848f142",
+    "semantic_hash": ""
+  },
+  "frontend-pwa/src/features/auth/components/ReauthSheet.tsx": {
+    "mtime": 1794381426.684601,
+    "seen": 1794381849.1379814,
+    "ast_hash": "ac94a84c54b682d123ed1418c05bbec7",
+    "semantic_hash": ""
+  },
+  "qa/k6/smoke-desplegado.js": {
+    "mtime": 1794377025.8332732,
+    "seen": 1794381849.1379814,
+    "ast_hash": "6c36f16d75d2c6427b40847ef3a1a7e1",
+    "semantic_hash": ""
+  },
+  "docs/quality/prueba-carga-desplegada.md": {
+    "mtime": 1794381226.259646,
+    "seen": 1794381849.1389832,
+    "ast_hash": "6d233d4fab76f29abdeed85107ea7705",
     "semantic_hash": ""
   }
 }

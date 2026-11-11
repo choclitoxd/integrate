@@ -1,57 +1,57 @@
 # Graph Report - integrate  (2026-11-11)
 
 ## Corpus Check
-- 1243 files · ~846,694 words
+- 1246 files · ~850,704 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 23 file(s) not represented in the graph (top: (none) 10, .toml 4, .cmd 2)
 
 ## Summary
-- 10830 nodes · 29934 edges · 653 communities (364 shown, 289 thin omitted)
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 2717 edges (avg confidence: 0.86)
+- 10873 nodes · 30023 edges · 679 communities (391 shown, 288 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 2720 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8930325c`
+- Built from commit: `4d550392`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Button
-- ConsentHealthNoticeTest.java
-- PageResponse
-- @testing-library/react
-- org.springframework.transaction.annotation.Transactional
-- org.junit.jupiter.api.Test
 - Icon
-- useHttpClient
-- VoucherApiIntegrationTest.java
+- ConsentHealthNoticeTest.java
+- .listHosts
+- vitest
+- UserRepository
+- QualityIntegrationTest
+- BookingStatusPage.tsx
+- Button
+- RoleCode
 - live-browser.js
 - catalog.test.tsx
 - package.json
-- list
+- uuid
 - .uniqueEmail
-- routes.tsx
-- BookingFormPage.tsx
+- ui/index.ts
+- DocType
 - .decide
 - SlotPickerParts.tsx
 - connectSSE
-- BookingCancellationServiceImpl.java
+- PaymentProvider
 - EnrollmentPage.tsx
-- AuditEntry
+- org.springframework.stereotype.Service
 - admin/api.ts
-- ui/index.ts
+- catalog/queries.ts
 - org.springframework.http.ResponseEntity
 - shared/offline/index.ts
 - ErrorCode
-- github_project_setup.py
+- get_repo
 - modern-screenshot.umd.js
-- AssistedRegistrationController.java
+- DocumentKind
 - el
 - MeetingPointAutomaton.java
 - org.springframework.web.bind.annotation.RestController
 - initPageChat
-- ConsentLedger.java
-- AdminPeopleServiceImpl.java
+- ConsentLedger
+- ClientInfo
 - lib/index.ts
 - initGlobalBar
 - GlobalExceptionHandler.java
@@ -59,22 +59,22 @@
 - DisbursementPayoutIntegrationTest
 - Decisión
 - docs/README.md
-- new-work.md
+- impeccable/SKILL.md
 - validate-skill-bundle.py
-- IdentityRotationPostgresTest.java
-- .issue
+- IdentityCutPostgresTest.java
+- ExperienceForm.tsx
 - Manual de usuario · Intégrate
 - api
 - V3__catalog.sql
-- .status
+- org.junit.jupiter.api.Test
 - handleKeyDown
 - IntegrateOfflineDB
 - applyEditing
 - redemptionEngine.ts
 - ADR-0053-observar-salud-y-fallos-de-la-aplicacion.md
-- SyncBatchServiceImpl.java
+- OfflineQueries
 - devDependencies
-- IncidentResponse
+- AdminIncidentController.java
 - GatewayStatus
 - V5__payments.sql
 - What You Must Do When Invoked
@@ -85,17 +85,17 @@
 - features/offline/index.ts
 - The observation log — storage layout, scripts and rationale
 - mountSvelteComponentVariant
-- MutableClock
+- org.springframework.context.annotation.Bean
 - with
-- AuditController.java
+- AuditQueryServiceImpl.java
 - V2__auth.sql
 - AssistedEnrollmentApiIntegrationTest
 - Contents
-- AssociationResponse
+- AuditEntry
 - people.test.tsx
 - OfflineSyncApiIntegrationTest
-- uuid
-- valid
+- jakarta.persistence.Entity
+- notnull
 - VoucherApiIntegrationTest
 - SecurityConfig.java
 - AccreditationStatus
@@ -103,47 +103,47 @@
 - build-evidence-report.mjs
 - Environments, Activation Setup, and Handoff-Doc Mode
 - LoginRequest
-- BookingConfirmedEvent
+- L
 - integrate
 - ADR-0058: Confirmar la identidad con la contraseña antes de editar la cuenta propia
 - sw.ts
-- org.springframework.stereotype.Component
+- lombok.RequiredArgsConstructor
 - ADR-0054: Unificar la solicitud de información de salud en la aplicación
-- SensitiveAccessArchitectureTest.java
-- EnrollmentDocuments.java
+- Decisión
+- DocumentStorage
 - NotificationIntegrationTest
 - api
-- adapt.md
+- Responsive Design
 - onAnnotDown
 - BookingCancellationApiIntegrationTest
 - spring
-- PayoutConcurrencyTest.java
-- ADR-0026: Desplegar el backend de la demo en SnapDeploy (plan gratuito)
+- SyncBatchServiceImpl.java
+- demo-gratuita.md
 - Guía de desarrollo · Intégrate
-- QrScannerPage.tsx
+- SensitiveDataProperties
 - Scan mode (approach C: auto-extract, then confirm descriptive language)
 - handleManualEditActivity
 - MeetingPointAutomatonTest
-- org.springframework.context.annotation.Bean
-- ADR-0033: Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista
+- StorageConfig.java
+- Decisión
 - MeetingPointApiIntegrationTest
 - crear-usuarios.py
 - compilerOptions
 - fixtures.js
-- experiment_cleanup.py
+- github_project_setup.py
 - onboard.md
-- org.springframework.security.oauth2.jwt.Jwt
+- HostExperienceResponse
 - OfflineApiIntegrationTest
 - booking.bookings
 - Decisión
-- Decisión
+- .activate
 - V7__offline.sql
 - RF-17 Validación Offline de Voucher
 - VoucherPdfRenderer.java
-- impeccable/SKILL.md
+- Operate mode depth (and Read notes)
 - The Toolkit
 - Skill Authoring — structure, taxonomy, licensing, confidentiality, editing rules
-- OutboxDispatcher
+- OutboxDispatcher.java
 - generate-icons.mjs
 - showToast
 - task-observer - One Skill to Rule Them All
@@ -155,28 +155,28 @@
 - createLiveBrowserDomHelpers
 - migrate-log.py
 - Quick Reference
-- BookingStatus
+- .hasVoucher
 - V4__booking.sql
 - .shortCode
-- HostBookingController.java
-- _make_issue
+- AdminConsentFilter.java
+- test_github_project_setup.py
 - createLiveBrowserSessionState
 - MyBookingsApiIntegrationTest
-- BookingLockResponse
+- BookingLockServiceImpl
 - org.springframework.context.annotation.Configuration
 - PayoutBatchResponse
 - V8__audit_notification.sql
+- .completeLogin
 - Decisión
 - Migraciones Flyway V1–V9
 - CatalogApiIntegrationTest
-- EndpointSecuritySweepQualityTest.java
+- EndpointSecuritySweepQualityTest
 - document.md
 - compilerOptions
 - Accessibility (a11y)
 - Core Principles
 - Getting Started with the task-observer meta-skill (aka "One skill to rule them all")
-- test_github_project_setup.py
-- TraceIdFilterTest.java
+- _make_milestone
 - integrate
 - payments
 - DIRECTIVA DE SEGURIDAD Y GESTIÓN DE SECRETOS (SEC-DIR-004)
@@ -186,44 +186,45 @@
 - Animations
 - check-bundle-budget.mjs
 - AuditRedactor
-- lombok.RequiredArgsConstructor
-- IdentityMigration
+- org.springframework.transaction.annotation.Transactional
+- .sync
 - googleMaps.ts
 - Intégrate
 - ActorPropagatingTransactionManager.java
+- org.junit.jupiter.api.Tag
 - CsvWriterTest.java
 - env.ts
 - Common ARIA patterns
 - LCP optimization reference
 - Quick Reference
-- standardcharsets
+- list
 - OpaqueEmailAndRoleMigrationIntegrationTest
 - PasswordResetApiIntegrationTest
 - S3DocumentStorage.java
 - GeocodingPort
 - ADR-0056: Crear y editar la ubicación de una experiencia con búsqueda y mapa de Google Maps
-- vitest
+- quality.ts
 - New visual work
 - optimize.md
 - Signals — what to watch for, in full
 - .title
 - Sections
 - Web quality audit
-- CancellationPolicyTest.java
-- booking.test.tsx
-- Result
+- ExperienceRequest
+- AuthController
+- PayoutProcessor.java
 - V19__versioned_health_consent_notice.sql
 - 3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Brevo
-- Responsive Design
+- P
 - scripts
 - test-postgres-recovery.sh
 - Workflow
-- api-design/SKILL.md
-- CancellationPolicyTest
+- .changePassword
+- CancellationPolicyTest.java
 - Impeccable Asset Producer
 - Surfaces
 - graphify reference: extra exports and benchmark
-- MeetingPointVerifier
+- MeetingPointText
 - application.yml
 - voucher
 - [[path]].ts
@@ -231,11 +232,11 @@
 - ADR-0031: Entorno de pruebas aislado en SnapDeploy y promoción controlada a producción en Hetzner
 - ADR-0029: Habilitar el simulador de la pasarela Mock en la demo desplegada mediante una propiedad explícita
 - Guía de pruebas del ciclo de vida de cada usuario · computador y celular
-- Directrices de Arquitectura Backend, Estructura Modular y Gobernanza Técnica
+- AccessTokenIssuer
 - RF-01 Autenticación y Control de Sesión (JWT)
 - Política Determinista de Protección Comunitaria (85% irrenunciable)
 - RF-12 Procesamiento de Pago y Split Payment
-- TestLabelsCommand
+- offline/api.ts
 - Grep/Glob Patterns to Detect
 - gh CLI (REST) — Quick Commands
 - critique.md
@@ -263,18 +264,18 @@
 - Transition Only What Changes
 - Text Wrapping
 - React Best Practices
-- org.springframework.boot.context.properties.ConfigurationProperties
-- doctor.md
-- Decisión
+- AuthApiIntegrationTest.java
+- SyncDecisionApplier
+- ADR-0015: Formulario móvil de reserva con datos de viajeros solo en memoria, idempotencia por intención y precondición de consentimiento
 - spring
 - meeting-point
 - flyway
 - Operation
-- IdentityProtection
+- User
 - MyBookingSummary
 - Decisión
 - Actor: Gestor de Enlace Comunitario (Proxy Digital)
-- Evidencia del ensayo del corte de identidad (ADR-0046) y simulacro de restauración (ADR-0041)
+- .gatesCutAndIndexPromotionAndEnforcesProtectedUniqueness
 - PROTOCOLO DE FLUJO DE TRABAJO EN GIT Y GOBERNANZA DE CAMBIOS
 - Grep/Glob Patterns to Detect
 - Grep/Glob Patterns to Detect
@@ -290,22 +291,22 @@
 - Visualize: Direction Comps & Asset Production
 - InMemoryVoucherDocumentStorage
 - ADR-0040: Publicar la política y exigir consentimiento inicial
-- Mode
+- org.junit.jupiter.api.DisplayName
 - dispatch
-- MutableClock
-- IdentityProtectionIntegrationTest
+- OwnReauthService
+- .download
 - Ficha Técnica y Delimitación del Esquema de Datos Offline en Cliente (IndexedDB)
 - Flujo de trabajo: `local` → `pruebas` → `main` (producción)
 - 5. Turista
 - mailpit
-- PaymentProperties
+- WorkerDecouplingQualityTest.java
 - Grep/Glob Patterns to Detect
 - Grep/Glob Patterns to Detect
 - GitHub CLI (gh) — Setup and Usage
 - Common Cognitive Load Violations
 - iOS platform
-- ADR-0041: Respaldar y restaurar PostgreSQL fuera del servidor de la API
-- ADR-0038: Cerrar los hallazgos de seguridad del ciclo de vida: correo sintético opaco, rol del gestor revocado y firma del PDF
+- Contrato de API y DTOs – Núcleo Transaccional Intégrate
+- AdminBootstrapCommand
 - 6. Administrador
 - GitHub Milestones — Management
 - web
@@ -313,15 +314,15 @@
 - ADR-0045: Completar y validar la consola de administración
 - graphify reference: query, path, explain
 - ADR-0002: Definición del Stack Base de Construcción y Dependencias del Backend (Spring Boot 4.1.x, Java 21, Maven)
-- Impeccable Documenter
-- PasswordHashingConfig.java
+- 2.3 Fichas Técnicas de los Object Stores
+- jt
 - tokens.ts
 - docker-compose.yml
 - environment
 - Grep/Glob Patterns to Detect
 - Grep/Glob Patterns to Detect
 - V17__prepare_protected_user_identity.sql
-- .on
+- GitHub Workflows
 - Android platform
 - Persona-Based Design Testing
 - Extract Flow
@@ -331,11 +332,11 @@
 - admin
 - logging
 - auth.password_reset_tokens
-- .build
-- PayoutProcessor.java
-- qrDecoder.ts
+- ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*
+- SmtpEmailSender.java
+- OfflineController
 - org.springframework.web.servlet.HandlerExceptionResolver
-- .gatesCutAndIndexPromotionAndEnforcesProtectedUniqueness
+- Task Observer — Continuous Skill Discovery & Improvement
 - localstack
 - postgres
 - Security
@@ -355,27 +356,26 @@
 - expiration
 - storage
 - ADR-0018: Enrolamiento asistido desde el smartphone del Gestor de Enlace, con subida directa a S3 y entrega del código de activación
-- createSessionStore
+- HealthNotice
 - ADR-0028: Publicar el Manual de Usuario como Activo Estático en la PWA (Cloudflare Pages y Local)
 - 8. Anfitrión comunitario
 - graphify reference: add a URL and watch a folder
 - ADR-0049: Entregar las paradas del recorrido junto con el punto de encuentro de la reserva confirmada
 - ADR-0050: Rediseño visual accesible y componentes de confianza en la ficha de experiencia
 - Procedimiento de Ejecución en 2 Pasos
-- 2. Entorno de pruebas y promoción a producción (ADR-0031)
+- 4. Desplegar la PWA en Cloudflare Pages
 - graphify reference: commit hook and native CLAUDE.md integration
 - 5. Usuarios y datos de prueba
 - graphify reference: incremental update and cluster-only
 - Política de Cancelación 72h
-- ADR-0052: Endurecer la publicación de la PWA
-- RoleHistoryRow
+- k
 - healthcheck
 - pages.sh
 - snapdeploy.sh
 - Operable
 - Browser compatibility
 - grill-me/SKILL.md
-- WompiPaymentGatewayAdapter
+- PaymentProperties
 - Diagnostic Scan
 - 12.2 Errores encontrados
 - MeetingPointMap.tsx
@@ -385,11 +385,11 @@
 - 1. Cómo usar esta guía
 - graphify reference: GitHub clone and cross-repo merge
 - ADR-0001: Orquestar la infraestructura local con Docker Compose y variables de entorno segregadas por plantilla
-- PasswordPolicy
+- .registerTourist
 - Manual de usuario
 - ADR-0021: Habilitar recarga en caliente en desarrollo (backend y PWA)
-- ADR-0022: Exponer distancia, paradas y tiempo de ida y vuelta del recorrido de una experiencia
-- GoogleLatLng
+- Decisión
+- ADR-0043: Completar la consola de administración con Personas, Incidentes y Liquidaciones
 - Operación del corte de identidad de ADR-0046
 - uq_users_document_index_next
 - check-b2.sh
@@ -420,6 +420,7 @@
 - restore-postgres.sh
 - frontend-design/SKILL.md
 - catalog.meeting_point_check_history
+- q
 - vite-env.d.ts
 - tsconfig.json
 - 01_create_bucket.sh
@@ -453,13 +454,14 @@
 - js-set-map-lookups.md
 - js-tosorted-immutable.md
 - rendering-activity.md
-- VoucherDocumentStorage
+- Decisión
 - rendering-conditional-render.md
 - rendering-content-visibility.md
 - rendering-hoist-jsx.md
 - rendering-hydration-no-flicker.md
 - rendering-hydration-suppress-warning.md
 - rendering-svg-precision.md
+- .redeem
 - rerender-defer-reads.md
 - rerender-dependencies.md
 - rerender-derived-state.md
@@ -634,35 +636,58 @@
 - weight-match-action.md
 - Actor: Administrador de la Plataforma
 - publicar-politica.sh
+- yt
 - Actor: Anfitrión Comunitario
 - RF-04 Consulta de Catálogo y Aforos
 - RNF-07 Accesibilidad WCAG 2.1 AA / NTC 5854
 - Actor: Turista
 - com.integrate:backend-api
+- .normalize
+- 6.A Camino A · SnapDeploy (plan Free)
+- Seguimiento de hallazgos de TejiendoHogar
+- Cimiento Base: Infraestructura y Persistencia (Fase 0 - Completada)
+- Assigning an id
+- UserDirectoryImpl
+- ADR-0006: Catálogo territorial — experiencias, franjas, moderación y consulta pública
+- dependencies
+- .everyAlterationIsDetected
+- ADR-0055: Validar el rendimiento con carga en un entorno desplegado
+- 1. Producción 24/7 en Hetzner (ADR-0027)
+- 2. Entorno de pruebas y promoción a producción (ADR-0031)
+- Prueba de carga en el entorno desplegado (H-16 · ADR-0055)
+- bolder.md
+- ADR-0048: Listado paginado de cuentas por rol, alta administrativa de usuarios y experiencias, y acciones solo-icono en móvil
+- LocationPicker.test.tsx
+- Adaptation Strategies
+- ActorPropagationConfig.java
+- .protection
+- Use after() for Non-Blocking Operations
+- ConsentAction
+- noFixedActionBars.test.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `Icon()` - 144 edges
-2. `ErrorCode` - 106 edges
-3. `Button()` - 105 edges
+2. `Button()` - 109 edges
+3. `ErrorCode` - 108 edges
 4. `BusinessRuleException` - 103 edges
 5. `ClientInfo` - 92 edges
-6. `ProblemNotice()` - 90 edges
+6. `ProblemNotice()` - 92 edges
 7. `PageResponse` - 86 edges
-8. `4. Bitácora de Avances` - 85 edges
-9. `RoleCode` - 84 edges
-10. `useHttpClient()` - 84 edges
+8. `useHttpClient()` - 86 edges
+9. `4. Bitácora de Avances` - 85 edges
+10. `RoleCode` - 84 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `6. QR y PDF/A (**punto de decisión C**)` --references--> `L()`  [INFERRED]
-  docs/architecture/adr/ADR-0010-voucher-criptografico-jwt-qr-pdf.md → .agents/skills/impeccable/scripts/modern-screenshot.umd.js
-- `Consecuencias` --references--> `L()`  [INFERRED]
-  docs/architecture/adr/ADR-0010-voucher-criptografico-jwt-qr-pdf.md → .agents/skills/impeccable/scripts/modern-screenshot.umd.js
 - `3. Auditoría` --references--> `AuditEntry`  [INFERRED]
   docs/architecture/adr/ADR-0058-confirmar-identidad-antes-de-editar-la-cuenta-propia.md → backend-api/src/main/java/com/integrate/common/audit/AuditEntry.java
 - `Contexto` --references--> `AuditEntry`  [INFERRED]
   docs/architecture/adr/ADR-0058-confirmar-identidad-antes-de-editar-la-cuenta-propia.md → backend-api/src/main/java/com/integrate/common/audit/AuditEntry.java
 - `6. Auditoría (`common/audit`, primer escritor de `audit.audit_trail`)` --references--> `AuditTrail`  [INFERRED]
   docs/architecture/adr/ADR-0008-reserva-concurrente-bloqueo-pesimista-ttl.md → backend-api/src/main/java/com/integrate/common/audit/AuditTrail.java
+- `3. La bitácora no guarda datos personales` --references--> `JpaAuditTrail`  [INFERRED]
+  docs/architecture/adr/ADR-0035-auditoria-habeas-data-consulta-accesos-sensibles-y-cifrado.md → backend-api/src/main/java/com/integrate/common/audit/JpaAuditTrail.java
+- `4. Cifrado AES-256-GCM de datos de víctima (`common/crypto`)` --references--> `SensitiveDataCipher`  [INFERRED]
+  docs/architecture/adr/ADR-0007-enrolamiento-asistido-gestor-enlace.md → backend-api/src/main/java/com/integrate/common/crypto/SensitiveDataCipher.java
 
 ## Import Cycles
 - None detected.
@@ -675,43 +700,43 @@
 - **Salvaguarda del 85% comunitario** — docs_especificacion_tecnica_split_payment_85_15, docs_especificacion_tecnica_community_protection_policy, docs_especificacion_tecnica_cancellation_policy_72h, docs_modelo_relacional_disbursements, docs_modelo_relacional_disbursement_state_machine, docs_modelo_relacional_commission_policies, docs_roadmap_ejecucion_t_3_3_conflict_resolution [INFERRED 0.85]
 - **Operación territorial offline: padrón, validación, sincronización** — docs_especificacion_tecnica_rf_16_descarga_padron, docs_especificacion_tecnica_rf_17_validacion_offline, docs_especificacion_tecnica_rf_18_background_sync_conflictos, docs_especificacion_tecnica_integrateofflinedb, docs_modelo_relacional_offline_validations, docs_modelo_relacional_sync_incidents [INFERRED 0.85]
 
-## Communities (653 total, 289 thin omitted)
+## Communities (679 total, 288 thin omitted)
 
-### Community 0 - "Button"
+### Community 0 - "Icon"
 Cohesion: 0.03
-Nodes (171): Consecuencias, ADR-0057: Edición administrativa de personas y unificación de acciones en ventana emergente, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, ADR-0059: Modal amplio adaptativo y formulario de experiencias a dos columnas en escritorio (+163 more)
+Nodes (180): ADR-0047: Habilitar la edición administrativa de experiencias y asociaciones en ventana emergente con acciones iconográficas, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, Decisión, ADR-0057: Edición administrativa de personas y unificación de acciones en ventana emergente (+172 more)
 
 ### Community 1 - "ConsentHealthNoticeTest.java"
-Cohesion: 0.15
-Nodes (6): PurposeConsent, State, MISSING, OUTDATED, REVOKED, VALID
-
-### Community 2 - "PageResponse"
-Cohesion: 0.11
-Nodes (13): PageResponse, AdminPeopleController, RequestClients, AdminUserCreateRequest, AdminUserUpdateRequest, ActivationCodeResponse, AdminHostResponse, AdminLinkManagerResponse (+5 more)
-
-### Community 3 - "@testing-library/react"
-Cohesion: 0.14
-Nodes (19): ADMIN, hostOption, page(), routes(), touristUser, ADMIN, emptyPage, openFormAndPickPoint() (+11 more)
-
-### Community 4 - "org.springframework.transaction.annotation.Transactional"
-Cohesion: 0.03
-Nodes (46): BusinessRuleException, ConsentChannel, ASSISTED_PROXY, SELF_SERVICE, CredentialStatus, ACTIVE, PENDING_RESET, RefreshToken (+38 more)
-
-### Community 5 - "org.junit.jupiter.api.Test"
-Cohesion: 0.04
-Nodes (27): BookingProperties, Expiration, BookingExpirationService, ExpiredBatch, GeoMath, MeetingPointProperties, MeetingPointTextAndMathTest, FakeGeocoder (+19 more)
-
-### Community 6 - "Icon"
-Cohesion: 0.03
-Nodes (160): ADR-0009, ADR-0046, 4.1 Catálogo público, panel del anfitrión y moderación (ADR-0006), Decisión, Decisión, Notas de implementación (2026-10-09), 3. PWA: mensaje claro si el simulador no está, RequireSession() (+152 more)
-
-### Community 7 - "useHttpClient"
-Cohesion: 0.04
-Nodes (115): Notas de implementación (2026-10-09), Decisión, Notas de implementación (2026-10-09), Notas de implementación (T-1.14a y T-1.14b, 2026-10-18), activateAccount(), ActivationRequest, activationSchema, normalizeActivationCode() (+107 more)
-
-### Community 8 - "VoucherApiIntegrationTest.java"
 Cohesion: 0.07
-Nodes (24): SensitiveDataException, ConsentAcceptance, RegisterRequest, ConsentPurpose, HEALTH_EMERGENCY, PERSONAL_DATA, SENSITIVE_VICTIM, DocType (+16 more)
+Nodes (13): SensitiveAccessRecorder, SensitiveDataCipher, ConsentService, AuthenticatedUser, ConsentStatus, PurposeConsent, State, MISSING (+5 more)
+
+### Community 2 - ".listHosts"
+Cohesion: 0.25
+Nodes (3): ActivationCodeResponse, ManagedHostResponse, GestorHostService
+
+### Community 3 - "vitest"
+Cohesion: 0.12
+Nodes (24): ADMIN, hostOption, page(), routes(), touristUser, ADMIN, emptyPage, openFormAndPickPoint() (+16 more)
+
+### Community 4 - "UserRepository"
+Cohesion: 0.09
+Nodes (29): CredentialStatus, ACTIVE, PENDING_RESET, RevokeReason, ADMIN, LOGOUT, PASSWORD_CHANGE, REUSE_DETECTED (+21 more)
+
+### Community 5 - "QualityIntegrationTest"
+Cohesion: 0.11
+Nodes (10): CapacityParametrizationQualityTest, SplitPaymentExactnessQualityTest, VoucherPdfConformanceQualityTest, WebhookIdempotencyQualityTest, BookingLockLatencyQualityTest, LoginLatencyQualityTest, OverbookingStressQualityTest, IndexedTask (+2 more)
+
+### Community 6 - "BookingStatusPage.tsx"
+Cohesion: 0.03
+Nodes (123): ADR-0009, ADR-0046, Notas de implementación (2026-10-09), Decisión, Decisión, Notas de implementación (2026-10-09), 2.1 Enmienda (2026-10-27): "Mis experiencias" como pantalla propia en la barra, 3. PWA: mensaje claro si el simulador no está (+115 more)
+
+### Community 7 - "Button"
+Cohesion: 0.03
+Nodes (178): Notas de implementación (2026-10-09), Notas de implementación (2026-10-09), 5. Frontend (T-1.13b, FE-DIR-001), Enmienda (aceptada el 2026-10-27), Decisión, ActionCopy, COPY, ManagerStatusDialog() (+170 more)
+
+### Community 8 - "RoleCode"
+Cohesion: 0.10
+Nodes (14): SensitiveDataException, ConsentAcceptance, RegisterRequest, RoleCode, ADMIN, HOST, LINK_MANAGER, TOURIST (+6 more)
 
 ### Community 9 - "live-browser.js"
 Cohesion: 0.03
@@ -719,147 +744,143 @@ Nodes (138): applyGlobalBarLabelState(), applyParamDefaults(), applyParamValue()
 
 ### Community 10 - "catalog.test.tsx"
 Cohesion: 0.06
-Nodes (44): Page, bookingWith(), mockCheckout, renderCheckout(), Scenario, Status, ADR-0029, wompiCheckout (+36 more)
+Nodes (38): Page, booking, consents(), day, fillAll(), fillTraveler(), LockCall, policy (+30 more)
 
 ### Community 11 - "package.json"
+Cohesion: 0.05
+Nodes (40): ADR-0004, ADR-0020, noDeepFeatureImports, description, engines, node, name, private (+32 more)
+
+### Community 12 - "uuid"
 Cohesion: 0.04
-Nodes (47): ADR-0004, ADR-0020, noDeepFeatureImports, dependencies, idb, react, react-dom, react-router (+39 more)
+Nodes (17): LoginFailureReason, ACCOUNT_LOCKED, ACCOUNT_SUSPENDED, BAD_CREDENTIALS, UNKNOWN_USER, LoginAttemptRepository, PasswordResetTokenRepository, RoleHistoryRow (+9 more)
 
-### Community 12 - "list"
-Cohesion: 0.04
-Nodes (11): LoginFailureReason, ACCOUNT_LOCKED, ACCOUNT_SUSPENDED, BAD_CREDENTIALS, UNKNOWN_USER, LoginAttemptRepository, UserDirectoryImpl, BookingHistoryRow (+3 more)
-
-### Community 13 - ".uniqueEmail"
-Cohesion: 0.08
-Nodes (8): RoleCode, ADMIN, HOST, LINK_MANAGER, TOURIST, RegistrationServiceIntegrationTest, AdminPeopleApiIntegrationTest, Notas de implementación (T-1.3, 2026-10-07)
-
-### Community 14 - "routes.tsx"
+### Community 14 - "ui/index.ts"
 Cohesion: 0.03
-Nodes (117): Precedencia sobre skills de diseño (Impeccable y similares), ADR-0012: Shell móvil de la PWA, estado de servidor con TanStack Query y flujo de catálogo y franjas del turista, Alternativas Descartadas, Contexto, Contrato o Esquema Conceptual, Enmienda (2026-10-27): proveedor del mapa incrustado, Notas de implementación (2026-10-09), 5. Frontend (T-1.13b, FE-DIR-001) (+109 more)
+Nodes (124): ADR-0020: Responsive móvil 320–480 px y vistas de escritorio dedicadas por detección de factor de forma, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, Notas de implementación (2026-10-10), Decisión (+116 more)
 
-### Community 15 - "BookingFormPage.tsx"
-Cohesion: 0.10
-Nodes (33): BookingLockRequest, lockSlots(), TravelerCard(), TravelerCardProps, ADR-0015, EPS_SUGGESTIONS, ADR-0015, BookingForm (+25 more)
+### Community 15 - "DocType"
+Cohesion: 0.06
+Nodes (25): ConsentChannel, ASSISTED_PROXY, SELF_SERVICE, ConsentPurpose, HEALTH_EMERGENCY, PERSONAL_DATA, SENSITIVE_VICTIM, DocType (+17 more)
 
 ### Community 16 - ".decide"
-Cohesion: 0.11
-Nodes (16): SyncConflictResolver, Effect, MARK_SYNC_CONFLICT, PERSIST_EVIDENCE, PROTECT_COMMUNITY_SHARE, REDEEM, SyncDecision, SyncFacts (+8 more)
+Cohesion: 0.16
+Nodes (8): Cancelled, ALREADY_IN_CONFLICT, CANCELLED_BY_PLATFORM, CANCELLED_NO_REFUND, CANCELLED_REFUNDED, ISSUED_BUT_CANCELLED, REVOKED_VOUCHER, SyncConflictResolverTest
 
 ### Community 17 - "SlotPickerParts.tsx"
 Cohesion: 0.06
-Nodes (73): Category, ExperienceAvailability, ExperiencePage, PageMeta, RouteStop, RouteType, ScheduleAvailability, ADR-0006 (+65 more)
+Nodes (82): Category, ExperienceAvailability, ExperiencePage, PageMeta, RouteStop, ScheduleAvailability, ADR-0006, ADR-0012 (+74 more)
 
 ### Community 18 - "connectSSE"
 Cohesion: 0.08
 Nodes (86): abortSvelteComponentInjection(), applySavedSessionMeta(), cancelEditing(), cancelEditingToPicking(), cleanup(), cleanupAcceptedSession(), clearHandled(), clearMountErrorCard() (+78 more)
 
-### Community 19 - "BookingCancellationServiceImpl.java"
+### Community 19 - "PaymentProvider"
 Cohesion: 0.03
-Nodes (50): Use useTransition Over Manual Loading States, JpaAuditTrail, BookingPayments, CancellableBooking, PayableBooking, ScheduleSettlement, CancellationResponse, PaymentCheckoutResponse (+42 more)
+Nodes (54): Use useTransition Over Manual Loading States, Severity, CRITICAL, HIGH, INFO, WARNING, PayableBooking, PaymentCheckoutResponse (+46 more)
 
 ### Community 20 - "EnrollmentPage.tsx"
 Cohesion: 0.05
-Nodes (78): Notas de implementación (2026-10-10), enrollmentPage(), hostsPage(), ActivationCode, AssistedRegistration, AssistedRegistrationRequest, CredentialStatus, DocumentKind (+70 more)
+Nodes (75): Notas de implementación (2026-10-10), enrollmentPage(), hostsPage(), ActivationCode, AssistedRegistration, CredentialStatus, DocumentKind, HOSTS_PAGE_SIZE (+67 more)
 
-### Community 21 - "AuditEntry"
-Cohesion: 0.02
-Nodes (50): AuditEntry, Stop, ExperienceAvailabilityResponse, ScheduleAvailability, ExperienceDetailResponse, ExperienceSummaryResponse, MeetingPointCheckResponse, PlaceResponse (+42 more)
+### Community 21 - "org.springframework.stereotype.Service"
+Cohesion: 0.03
+Nodes (50): ExperienceAvailabilityResponse, ScheduleAvailability, ExperienceDetailResponse, ExperienceSummaryResponse, MeetingPointCheckResponse, PlaceResponse, StopResponse, Experience (+42 more)
 
 ### Community 22 - "admin/api.ts"
 Cohesion: 0.03
-Nodes (146): accreditLinkManager(), AccreditRequest, ADMIN_PAGE_SIZE, AdminExperience, AdminExperienceCreateRequest, AdminHost, AdminLinkManager, AdminUser (+138 more)
+Nodes (125): accreditLinkManager(), AccreditRequest, ADMIN_PAGE_SIZE, AdminExperience, AdminExperienceCreateRequest, AdminHost, AdminLinkManager, AdminUserDetail (+117 more)
 
-### Community 23 - "ui/index.ts"
-Cohesion: 0.04
-Nodes (109): Fases propuestas, ExperienceUpdateRequest, ExperienceForm(), focusFirst(), handleSubmit(), ExperienceFormProps, ADR-0048, ADR-0059 (+101 more)
+### Community 23 - "catalog/queries.ts"
+Cohesion: 0.05
+Nodes (84): 4.1 Catálogo público, panel del anfitrión y moderación (ADR-0006), useLocationDetection(), CATALOG_PAGE_SIZE, getAvailability(), getExperience(), listCategories(), listDepartments(), listMunicipalities() (+76 more)
 
 ### Community 24 - "org.springframework.http.ResponseEntity"
-Cohesion: 0.05
-Nodes (15): AuthController, ClientInfos, RefreshCookies, ActivationRequest, ChangeOwnPasswordRequest, ForgotPasswordRequest, AuthTokenResponse, UserResponse (+7 more)
+Cohesion: 0.06
+Nodes (14): ClientInfos, OwnAccountController, ChangeOwnPasswordRequest, ReauthRequest, UpdateOwnProfileRequest, ConsentStatusResponse, PurposeResponse, OwnProfileResponse (+6 more)
 
 ### Community 25 - "shared/offline/index.ts"
 Cohesion: 0.09
-Nodes (63): 3. Presupuesto de cuota (< 10 MB), `StorageManager` y políticas de purga, downloadAndStoreRoster(), refreshRevocationDelta(), ADR-0037, LocalValidationQueueItem, assertQuotaAvailable(), changeListeners, closeOfflineDBForTesting() (+55 more)
+Nodes (54): 3. Presupuesto de cuota (< 10 MB), `StorageManager` y políticas de purga, assertQuotaAvailable(), changeListeners, closeOfflineDBForTesting(), countPendingOutbox(), countStoreRecords(), estimateOfflineUsageBytes(), estimateSerializedBytes() (+46 more)
 
 ### Community 26 - "ErrorCode"
 Cohesion: 0.03
-Nodes (54): ErrorCode, ADMIN_CONSENT_REQUIRED, ADMIN_LOOKUP_RATE_LIMITED, ADMIN_PRIVACY_POLICY_UNAVAILABLE, AUDIT_EXPORT_TOO_LARGE, AUTH_ACCOUNT_LOCKED, AUTH_ACCOUNT_SUSPENDED, AUTH_ACTIVATION_INVALID (+46 more)
+Nodes (61): BusinessRuleException, ErrorCode, ADMIN_CONSENT_REQUIRED, ADMIN_LOOKUP_RATE_LIMITED, ADMIN_PRIVACY_POLICY_UNAVAILABLE, AUDIT_EXPORT_TOO_LARGE, AUTH_ACCOUNT_LOCKED, AUTH_ACCOUNT_SUSPENDED (+53 more)
 
-### Community 27 - "github_project_setup.py"
-Cohesion: 0.08
-Nodes (22): _bulk_update_project_status(), _discover_project_fields(), _ensure_label(), _find_gh_cli(), _find_project_item_id(), get_github(), _get_open_milestone(), get_repo() (+14 more)
+### Community 27 - "get_repo"
+Cohesion: 0.14
+Nodes (13): _ensure_label(), get_github(), _get_open_milestone(), get_repo(), issue_create(), issue_list(), labels(), milestone_close() (+5 more)
 
 ### Community 28 - "modern-screenshot.umd.js"
-Cohesion: 0.06
-Nodes (70): ae(), be(), bt(), Ce(), s(), Ct(), de(), dt() (+62 more)
+Cohesion: 0.19
+Nodes (19): be(), Ct(), Et(), ht(), It(), J(), me(), ne() (+11 more)
 
-### Community 29 - "AssistedRegistrationController.java"
-Cohesion: 0.15
-Nodes (7): Actors, AssistedRegistrationController, AssistedHostRegistrationRequest, DocumentUploadRequest, AssistedHostRegistrationResponse, DocumentUploadResponse, AssistedEnrollmentService
+### Community 29 - "DocumentKind"
+Cohesion: 0.07
+Nodes (15): Actors, PublicCatalogController, DocumentKind, PHYSICAL_CONSENT_FORM, VICTIM_SUPPORT_DOC, DocumentUploadRequest, CategoryResponse, DocumentUploadResponse (+7 more)
 
 ### Community 30 - "el"
 Cohesion: 0.07
 Nodes (57): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+49 more)
 
 ### Community 31 - "MeetingPointAutomaton.java"
-Cohesion: 0.06
-Nodes (21): InvalidMeetingPointTransitionException, MeetingPointEvent, CONFIRMAR, DIST_ALTA, DIST_MEDIA, DIST_MEDIA_TEXTO_COINCIDE, DIST_MEDIA_TEXTO_NO_COINCIDE, DIST_OK (+13 more)
+Cohesion: 0.05
+Nodes (23): InvalidMeetingPointTransitionException, MeetingPointAutomaton, MeetingPointEvent, CONFIRMAR, DIST_ALTA, DIST_MEDIA, DIST_MEDIA_TEXTO_COINCIDE, DIST_MEDIA_TEXTO_NO_COINCIDE (+15 more)
 
 ### Community 32 - "org.springframework.web.bind.annotation.RestController"
-Cohesion: 0.08
-Nodes (18): PageRequests, MeConsentController, OwnAccountController, PrivacyPolicyController, PrivacyPolicyResponse, PrivacyPolicyService, MyBookingsController, GestorController (+10 more)
+Cohesion: 0.10
+Nodes (22): PageRequests, MeConsentController, PrivacyPolicyController, BookingController, HostBookingController, MyBookingsController, AssistedRegistrationController, GestorController (+14 more)
 
 ### Community 33 - "initPageChat"
 Cohesion: 0.09
 Nodes (47): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat(), configureVoiceContext(), expandPageChat() (+39 more)
 
-### Community 34 - "ConsentLedger.java"
-Cohesion: 0.04
-Nodes (25): ConsentAction, GRANTED, REVOKED, PrivacyPolicy, Role, HabeasDataConsentRepository, HealthConsentNoticeRepository, PrivacyPolicyRepository (+17 more)
+### Community 34 - "ConsentLedger"
+Cohesion: 0.11
+Nodes (8): PrivacyPolicy, HabeasDataConsentRepository, PrivacyPolicyRepository, ConsentLedger, ConsentServiceImpl, PrivacyPolicyServiceImpl, IssuedSession, ConsentHealthNoticeTest
 
-### Community 35 - "AdminPeopleServiceImpl.java"
-Cohesion: 0.04
-Nodes (28): Access, SensitiveAccessRecorder, CredentialActivationService, IssuedActivationCode, AccountView, AdminUserUpdateCommand, RoleHistoryEntry, UserDirectory (+20 more)
+### Community 35 - "ClientInfo"
+Cohesion: 0.08
+Nodes (18): PageResponse, ClientInfo, AccountView, AdminUserUpdateCommand, RoleHistoryEntry, UserDirectory, UserSummary, AdminUserCreateRequest (+10 more)
 
 ### Community 36 - "lib/index.ts"
-Cohesion: 0.14
-Nodes (26): DESKTOP_MEDIA_QUERY, FormFactor, ADR-0020, countryByDial(), countryOfE164(), DEFAULT_PHONE_COUNTRY, formatPhoneDisplay(), GENERIC_PHONE_MESSAGE (+18 more)
+Cohesion: 0.08
+Nodes (44): BOGOTA_TIME_ZONE, DESKTOP_MEDIA_QUERY, desktopQuery(), FormFactor, subscribe(), ADR-0020, countryByDial(), countryOfE164() (+36 more)
 
 ### Community 37 - "initGlobalBar"
 Cohesion: 0.07
 Nodes (52): agentHasWorkInFlight(), agentStatusText(), applyLiveBarPreference(), barPaletteForTheme(), brandMarkSvg(), buildDesignHeader(), buildSteerQueueHint(), cursorForInsertAxis() (+44 more)
 
 ### Community 39 - "org.springframework.web.bind.annotation.GetMapping"
-Cohesion: 0.08
-Nodes (13): PublicCatalogController, CategoryResponse, PhysicalIntensity, HIGH, LOW, MEDIUM, CatalogQueryService, SearchCriteria (+5 more)
+Cohesion: 0.12
+Nodes (7): HolderEps, HostBookingService, Summary, Participant, ProbeController, ProbeRequest, ProbeController
 
 ### Community 40 - "DisbursementPayoutIntegrationTest"
-Cohesion: 0.19
+Cohesion: 0.21
 Nodes (5): DisbursementPayoutIntegrationTest, Paid, PayoutConcurrencyTest, Controles automatizados, Evaluación de la consola de administración
 
 ### Community 41 - "Decisión"
-Cohesion: 0.11
-Nodes (16): 1. Alcance y rutas, 2. Acreditación de gestores por el administrador (RF-03), 3. Registro asistido: una sola transacción, 4. Cifrado AES-256-GCM de datos de víctima (`common/crypto`), 5. Documentos en S3: subida prefirmada (`common/storage`), 6. Activación asistida de la cuenta (`PENDING_RESET → ACTIVE`), 7. Errores nuevos (`ErrorCode`), 9. Fuera de alcance (+8 more)
+Cohesion: 0.12
+Nodes (15): 1. Alcance y rutas, 2. Acreditación de gestores por el administrador (RF-03), 3. Registro asistido: una sola transacción, 4. Cifrado AES-256-GCM de datos de víctima (`common/crypto`), 5. Documentos en S3: subida prefirmada (`common/storage`), 6. Activación asistida de la cuenta (`PENDING_RESET → ACTIVE`), 7. Errores nuevos (`ErrorCode`), 9. Fuera de alcance (+7 more)
 
 ### Community 42 - "docs/README.md"
-Cohesion: 0.12
-Nodes (8): Especificación Técnica de Requerimientos Intégrate, Modelo Relacional – Sistema Intégrate, Informe de auditoría cruzada de TejiendoHogar, Cómo ejecutar, Matriz de trazabilidad RNF → prueba, Roadmap Técnico de Ejecución Intégrate (5 fases), Ejecución local en un entorno aislado, Pruebas de carga (k6) · ADR-0019 §5
+Cohesion: 0.09
+Nodes (12): Evidencia local del 9 de noviembre de 2026, Programar el respaldo, Respaldo y recuperación de PostgreSQL, Simulacro de restauración, Especificación Técnica de Requerimientos Intégrate, Modelo Relacional – Sistema Intégrate, Informe de auditoría cruzada de TejiendoHogar, Cómo ejecutar (+4 more)
 
-### Community 43 - "new-work.md"
-Cohesion: 0.07
-Nodes (23): Recommended Actions, Craft (deprecated alias), Apply, Live-mode signature params, Set the spatial thesis, Two isolated assessments, Verify, Visitor mode (+15 more)
+### Community 43 - "impeccable/SKILL.md"
+Cohesion: 0.05
+Nodes (40): Assess Adaptation Challenge, Implement & Verify, Recommended Actions, Craft (deprecated alias), Impeccable Documenter, Input Contract, Output Contract, Workflow (+32 more)
 
 ### Community 44 - "validate-skill-bundle.py"
-Cohesion: 0.08
-Nodes (22): Delivering updated skills, blank_fenced_code(), check_bundle(), check_core_size(), check_dir(), check_frontmatter_shape(), check_markdown_shape(), check_plugin_manifest() (+14 more)
+Cohesion: 0.07
+Nodes (20): blank_fenced_code(), check_bundle(), check_core_size(), check_dir(), check_frontmatter_shape(), check_markdown_shape(), check_plugin_manifest(), check_reference_indexes() (+12 more)
 
-### Community 45 - "IdentityRotationPostgresTest.java"
-Cohesion: 0.06
-Nodes (16): AesGcmSensitiveDataCipher, SensitiveDataProperties, Mock, AesGcmSensitiveDataCipherTest, IdentityProtectionKeysTest, IdentityRotationPostgresTest, Cómo actualizar el seguimiento, Decisiones de arquitectura para brechas de aplicación aún no implementadas (+8 more)
+### Community 45 - "IdentityCutPostgresTest.java"
+Cohesion: 0.10
+Nodes (3): RsaSigningKeysTest, IdentityRotationPostgresTest, TestKeys
 
-### Community 46 - ".issue"
-Cohesion: 0.09
-Nodes (3): ActiveSigningKey, VoucherClaims, Notas de implementación (T-1.8, 2026-10-09)
+### Community 46 - "ExperienceForm.tsx"
+Cohesion: 0.07
+Nodes (44): Fases propuestas, ADR-0059: Modal amplio adaptativo y formulario de experiencias a dos columnas en escritorio, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, ExperienceUpdateRequest (+36 more)
 
 ### Community 47 - "Manual de usuario · Intégrate"
 Cohesion: 0.04
@@ -873,39 +894,39 @@ Nodes (44): build, condition, container_name, env_file, environment, healthcheck
 Cohesion: 0.09
 Nodes (39): catalog.categories, catalog.community_associations, catalog.departments, catalog.experience_categories, catalog.experience_images, catalog.experience_status_history, catalog.experiences, catalog.fn_experience_guard() (+31 more)
 
-### Community 50 - ".status"
-Cohesion: 0.10
-Nodes (4): GlobalExceptionHandlerTest, Participant, ProbeRequest, AuthApiIntegrationTest
+### Community 50 - "org.junit.jupiter.api.Test"
+Cohesion: 0.08
+Nodes (5): ErrorCodeTest, GlobalExceptionHandlerTest, TraceIdFilterTest, AuditApiIntegrationTest, AuthApiIntegrationTest
 
 ### Community 51 - "handleKeyDown"
 Cohesion: 0.14
 Nodes (31): beginNewLiveConfiguration(), cancelInsertConfigure(), clearAnnotations(), clearInsertPicking(), closeTunePopover(), exitConfigureToPicking(), handleClick(), handleKeyDown() (+23 more)
 
 ### Community 52 - "IntegrateOfflineDB"
-Cohesion: 0.06
-Nodes (38): 1. Motor IndexedDB (`IntegrateOfflineDB` v1) con `idb`, 2. Identidad del dispositivo (`X-Device-Id`) y metadatos operativos, 4. Supervivencia de la sesión del Gestor en modo avión (sin persistir tokens), 5. Service Worker con Workbox y Web App Manifest, ADR-0036: Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`), Alternativas Descartadas, Consecuencias, Contexto (+30 more)
+Cohesion: 0.09
+Nodes (29): 1. Motor IndexedDB (`IntegrateOfflineDB` v1) con `idb`, 2. Identidad del dispositivo (`X-Device-Id`) y metadatos operativos, 4. Supervivencia de la sesión del Gestor en modo avión (sin persistir tokens), 5. Service Worker con Workbox y Web App Manifest, ADR-0036: Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`), Alternativas Descartadas, Consecuencias, Contexto (+21 more)
 
 ### Community 53 - "applyEditing"
 Cohesion: 0.06
 Nodes (43): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), collectEditableTextRows(), visit(), collectManualContextPieces(), walk() (+35 more)
 
 ### Community 54 - "redemptionEngine.ts"
-Cohesion: 0.20
-Nodes (19): verifyVoucherJwsSignature(), inMemoryLockChain, redeemVoucherAtomically(), toSummary(), triggerValidationHaptics(), ADR-0037, validateAndRedeemQrToken(), withExclusiveRedeemLock() (+11 more)
+Cohesion: 0.19
+Nodes (27): redeemContingencyOnline(), queueOneAttendance(), inMemoryLockChain, redeemByManualShortCode(), redeemVoucherAtomically(), toSummary(), triggerValidationHaptics(), ADR-0037 (+19 more)
 
 ### Community 55 - "ADR-0053-observar-salud-y-fallos-de-la-aplicacion.md"
-Cohesion: 0.04
-Nodes (40): GET /health gestionado por Actuator HealthEndpoint, Respuesta 503 sin detalle de componentes, Respuesta 200 con status UP, Contrato OpenAPI de GET /api/v1/health, ADR-0025: Ejecutar el backend de la demo en un PC propio y publicarlo con Cloudflare Tunnel, Alternativas Descartadas, Consecuencias, Contexto (+32 more)
+Cohesion: 0.06
+Nodes (32): GET /health gestionado por Actuator HealthEndpoint, Respuesta 503 sin detalle de componentes, Respuesta 200 con status UP, Contrato OpenAPI de GET /api/v1/health, ADR-0053: Observar la disponibilidad y los fallos de la aplicación, Alerta operativa de caída y recuperación, Alternativas Descartadas, Consecuencias (+24 more)
 
-### Community 56 - "SyncBatchServiceImpl.java"
-Cohesion: 0.03
-Nodes (50): BookingConflicts, Channel, MANUAL_CODE, OFFLINE_PWA, OfflineSyncBatchRequest, Validation, Item, OfflineSyncBatchResponse (+42 more)
+### Community 56 - "OfflineQueries"
+Cohesion: 0.16
+Nodes (8): BatchRow, OfflineQueries, RevocationRow, RosterRow, SigningKeyRow, StoredValidation, VoucherFacts, VoucherLock
 
 ### Community 57 - "devDependencies"
 Cohesion: 0.06
 Nodes (33): devDependencies, axe-core, eslint, eslint-config-prettier, @eslint/js, eslint-plugin-jsx-a11y-x, eslint-plugin-react-hooks, eslint-plugin-react-refresh (+25 more)
 
-### Community 58 - "IncidentResponse"
+### Community 58 - "AdminIncidentController.java"
 Cohesion: 0.09
 Nodes (22): AdminIncidentController, Resolution, IncidentResponse, Severity, HIGH, LOW, MEDIUM, Status (+14 more)
 
@@ -918,36 +939,44 @@ Cohesion: 0.10
 Nodes (36): ix_disbursements_association, ix_disbursements_batch, ix_disbursements_due, ix_disbursements_ready, ix_payment_transactions_booking, ix_payment_transactions_open, ix_payment_transactions_policy, ix_payment_webhook_events_payload (+28 more)
 
 ### Community 61 - "What You Must Do When Invoked"
-Cohesion: 0.06
-Nodes (29): graphify reference: transcribe video and audio, Step 2.5 - Transcribe video / audio files (only if video files detected), For /graphify add and --watch, For /graphify query, For the commit hook and native AGENTS.md integration, For --update and --cluster-only, /graphify, Honesty Rules (+21 more)
+Cohesion: 0.08
+Nodes (25): For /graphify add and --watch, For /graphify query, For the commit hook and native AGENTS.md integration, For --update and --cluster-only, /graphify, Honesty Rules, Interpreter guard for subcommands, Part A - Structural extraction for code files (+17 more)
 
 ### Community 62 - "offlineFlow.test.tsx"
-Cohesion: 0.10
-Nodes (28): RFC-7515, RosterResponseDto, base64UrlToBytes(), bytesToBase64Url(), clearCryptoKeyCache(), encodeAsciiBytes(), importedKeyCache, importPublicVerifyKey() (+20 more)
+Cohesion: 0.11
+Nodes (29): RFC-7515, RosterResponseDto, base64UrlToBytes(), bytesToBase64Url(), clearCryptoKeyCache(), encodeAsciiBytes(), importedKeyCache, importPublicVerifyKey() (+21 more)
+
+### Community 63 - "BookingApiIntegrationTest"
+Cohesion: 0.16
+Nodes (3): BookingExpirationService, BookingApiIntegrationTest, ConcurrentTask
 
 ### Community 64 - "live.md"
-Cohesion: 0.08
-Nodes (24): Step 1: Parse the request, Step 2: Reuse the page, then start, Step 3: Generate, Step 4: Accept and close, Cleanup, Exit, First-time setup, Handle `discard` (+16 more)
+Cohesion: 0.07
+Nodes (26): Step 1: Parse the request, Step 2: Reuse the page, then start, Step 3: Generate, Step 4: Accept and close, Cleanup, Exit, First-time setup, Handle `accept` (+18 more)
 
 ### Community 66 - "features/offline/index.ts"
-Cohesion: 0.07
-Nodes (58): 5. Cola de asistencias y sincronización diferida con Backoff Exponencial (T-2.13 · RNF-19), deviceHeaders(), emergencyContactDtoSchema, fetchOfflineRevocations(), fetchOfflineRoster(), OfflineSyncBatchRequestDto, OfflineSyncBatchResponseDto, offlineSyncBatchResponseSchema (+50 more)
+Cohesion: 0.06
+Nodes (55): graphify reference: transcribe video and audio, Step 2.5 - Transcribe video / audio files (only if video files detected), Step 2.5 - Video and audio (only if video files detected), 1. Descarga preventiva del padrón y delta de revocación (T-2.9), 2. Escáner QR (`facingMode: 'environment'`), Web Crypto API y respuesta multimodal (T-2.10), 3. Marcación atómica anti-doble canje (`CONSUMIDO_LOCAL`, T-2.11 · RNF-18), 5. Cola de asistencias y sincronización diferida con Backoff Exponencial (T-2.13 · RNF-19), Decisión (+47 more)
 
 ### Community 67 - "The observation log — storage layout, scripts and rationale"
 Cohesion: 0.07
-Nodes (29): A refused print is not an empty log, A refused snippet is a degraded path, never a skipped step, A structural probe that comes back empty is a stop signal, An empty scan over a non-empty log is a broken command, Archival, Assigning an id, Contents, Editing an existing observation (+21 more)
+Nodes (27): A list entry holding a colon is not portable, A park condition names the result, never your own vehicle, A refused print is not an empty log, A refused snippet is a degraded path, never a skipped step, An empty scan over a non-empty log is a broken command, Archival, Commands inside an observation — run before the file is written, Contents (+19 more)
 
 ### Community 68 - "mountSvelteComponentVariant"
 Cohesion: 0.10
 Nodes (35): acceptedDomAlreadyClean(), applyOriginalAttrsToSvelteAnchor(), clearHandledWrapperReloadStamp(), commitAcceptedSvelteComponentToDom(), componentModuleCandidates(), deferredRecoverySuperseded(), describeMountFailure(), detectDevServerBase() (+27 more)
 
+### Community 69 - "org.springframework.context.annotation.Bean"
+Cohesion: 0.11
+Nodes (5): TimeConfig, PasswordHashingConfig, MutableClock, TestClockConfig, 5. Emisión: asíncrona con barrido durable
+
 ### Community 70 - "with"
 Cohesion: 0.06
 Nodes (34): name, runs-on, steps, concurrency, cancel-in-progress, group, run, jobs (+26 more)
 
-### Community 71 - "AuditController.java"
-Cohesion: 0.17
-Nodes (8): AuditController, AuditRecordResponse, AuditVerifyResponse, Where, AuditQueryService, AuditQueryServiceImpl, AuditCaller, AuditFilter
+### Community 71 - "AuditQueryServiceImpl.java"
+Cohesion: 0.15
+Nodes (10): AuditController, AuditRecordResponse, AuditVerifyResponse, AuditQueries, BrokenLink, Where, AuditQueryService, AuditQueryServiceImpl (+2 more)
 
 ### Community 72 - "V2__auth.sql"
 Cohesion: 0.16
@@ -957,33 +986,33 @@ Nodes (22): auth.habeas_data_consents, auth.login_attempts, auth.privacy_policie
 Cohesion: 0.06
 Nodes (32): 10. Small actionable sets are presented inline AND saved to file, 11. Skills require pruning, not just growth, 12. Use canonical identifiers from source data, never reconstruct from derived fields, 13. Skills that read or write workspace files must maintain a reference index, 14. Scheduled tasks invoke skills; they do not reimplement them, 15. Scheduled task prompts are lightweight orchestrators — intelligence lives in skills, 16. Interrupted operations are partial operations — verify state before retrying, 17. Never suggest manual typing of technical content as a workaround (+24 more)
 
-### Community 75 - "AssociationResponse"
-Cohesion: 0.13
-Nodes (10): AssociationRequest, HostProfileRequest, AssociationResponse, HostProfileResponse, AssociationType, ASOCIACION_VICTIMAS, COOPERATIVA_CAMPESINA, JUNTA_ACCION_COMUNAL (+2 more)
+### Community 75 - "AuditEntry"
+Cohesion: 0.06
+Nodes (18): AuditEntry, AssociationRequest, HostProfileRequest, AssociationResponse, HostProfileResponse, AssociationStatus, ACTIVE, SUSPENDED (+10 more)
 
 ### Community 76 - "people.test.tsx"
 Cohesion: 0.09
 Nodes (23): consents, day, policy, View, VIEWS, ADMIN, adminRoutes(), association (+15 more)
 
-### Community 78 - "uuid"
-Cohesion: 0.08
-Nodes (20): PgDomains, CredentialActivationCode, HabeasDataConsent, HealthConsentNotice, LoginAttempt, PasswordResetToken, UserRole, BookingCancellation (+12 more)
-
-### Community 79 - "valid"
+### Community 78 - "jakarta.persistence.Entity"
 Cohesion: 0.11
-Nodes (3): ReauthRequest, ResetPasswordRequest, UpdateOwnProfileRequest
+Nodes (22): PgDomains, CredentialActivationCode, HabeasDataConsent, HealthConsentNotice, LoginAttempt, PasswordResetToken, RefreshToken, Role (+14 more)
+
+### Community 79 - "notnull"
+Cohesion: 0.12
+Nodes (3): ForgotPasswordRequest, PaymentStartRequest, 6.0 Inicio del pago — `POST /bookings/{bookingId}/payment` (ADR-0009 §3)
 
 ### Community 81 - "SecurityConfig.java"
 Cohesion: 0.08
 Nodes (11): PublicAuthEndpoints, SecurityConfig, 8. Seguridad, contrato y pruebas, 1. Endpoints (públicos, en `PublicAuthEndpoints`), Decisión, ADR-0024: Desplegar un entorno de demostración gratuito en Neon, Koyeb, Cloudflare Pages y Backblaze B2, Alternativas Descartadas, Consecuencias (+3 more)
 
 ### Community 82 - "AccreditationStatus"
-Cohesion: 0.15
-Nodes (9): AdminLinkManagerController, LinkManagerRequest, LinkManagerResponse, AccreditationStatus, ACTIVE, REVOKED, SUSPENDED, LinkManagerAdminService (+1 more)
+Cohesion: 0.16
+Nodes (8): AdminLinkManagerController, LinkManagerRequest, LinkManagerResponse, AccreditationStatus, ACTIVE, REVOKED, SUSPENDED, LinkManagerAdminService
 
 ### Community 83 - "ADR-0019: Suite de pruebas de calidad trazable a los RNF del Plan de Gestión de la Calidad (ISO/IEC 25010)"
 Cohesion: 0.09
-Nodes (19): ADR-0019: Suite de pruebas de calidad trazable a los RNF del Plan de Gestión de la Calidad (ISO/IEC 25010), Alternativas Descartadas, Auditoría axe-core WCAG 2.1 AA (RNF-03), Brecha RNF-29: sin logs JSON estructurados, Presupuesto de bundle PWA < 2,5 MB (RNF-09), Contexto, Contrato o Esquema Conceptual (Opcional), EndpointSecuritySweepTest (RNF-07) (+11 more)
+Nodes (20): 3. Hash de contraseñas: Argon2id directo, ADR-0019: Suite de pruebas de calidad trazable a los RNF del Plan de Gestión de la Calidad (ISO/IEC 25010), Alternativas Descartadas, Auditoría axe-core WCAG 2.1 AA (RNF-03), Brecha RNF-29: sin logs JSON estructurados, Presupuesto de bundle PWA < 2,5 MB (RNF-09), Contexto, Contrato o Esquema Conceptual (Opcional) (+12 more)
 
 ### Community 84 - "build-evidence-report.mjs"
 Cohesion: 0.07
@@ -994,12 +1023,12 @@ Cohesion: 0.07
 Nodes (29): A delegated setup step is not done until you have observed it, A session-start hook (Claude Code and similar harnesses), A stop hook — the per-task backstop as a harness event, A third denial class: an automated content classifier, Activation config — late, intermittent, and why the guard cannot live inside it, Anchoring the workspace, Bundle manifest, Claude Code Projects (+21 more)
 
 ### Community 86 - "LoginRequest"
-Cohesion: 0.11
-Nodes (8): LoginRequest, AuthService, AdminBootstrapCommand, BootstrapOutcome, ADMIN_ALREADY_EXISTS, CREATED, IDENTITY_TAKEN, AuthServiceIntegrationTest
+Cohesion: 0.22
+Nodes (3): LoginRequest, AuthService, AuthServiceIntegrationTest
 
-### Community 87 - "BookingConfirmedEvent"
-Cohesion: 0.06
-Nodes (33): BookingConfirmedEvent, 6.1 `CanonicalPaymentEvent` (Mock, y salida del adaptador Wompi), 6.2 `WebhookAck` (200), 6.3 Modelo de estados, 6. Webhook de pasarela – `POST /payments/webhook/{mock|wompi}`, 5. Mapeo de estados, 10. Pruebas, 11. Fuera de alcance (+25 more)
+### Community 87 - "L"
+Cohesion: 0.13
+Nodes (16): L(), 10. Pruebas, 11. Fuera de alcance, 2. Token: JWT RS256 con claims mínimos (RF-15, RNF-05), 3. Token re-derivable sin guardarlo, 4. Código corto, 6. QR y PDF/A (**punto de decisión C**), 7. Almacenamiento (`common/storage`) (+8 more)
 
 ### Community 88 - "integrate"
 Cohesion: 0.07
@@ -1011,31 +1040,31 @@ Nodes (12): 1. Servidor: marca de reautenticación, 2. Interfaz: vista de solo l
 
 ### Community 90 - "sw.ts"
 Cohesion: 0.09
-Nodes (25): bootstrap(), OFFLINE_SYNC_TAG, registerServiceWorker(), ServiceWorkerRegistrationWithSync, SwBroadcastMessage, SwClientMessage, SyncManagerLike, ADR-0036 (+17 more)
+Nodes (24): OFFLINE_SYNC_TAG, requestBackgroundSync(), ServiceWorkerRegistrationWithSync, SwBroadcastMessage, SwClientMessage, SyncManagerLike, ADR-0036, ExtendableMessageEventLike (+16 more)
 
-### Community 91 - "org.springframework.stereotype.Component"
-Cohesion: 0.08
-Nodes (27): HttpFailureLoggingFilter, TraceIdFilter, AdminBootstrapRunner, BookingVouchers, BookingExecutedEvent, BookingExpirationWorker, MockRefundGateway, PayoutProcessor (+19 more)
+### Community 91 - "lombok.RequiredArgsConstructor"
+Cohesion: 0.03
+Nodes (69): AuditSensitiveAccessRecorder, AuditTrail, JpaAuditTrail, PresignedDownload, VoucherDocumentStorage, AdminBootstrapRunner, IdentityMigrationRunner, BookingParticipantRepository (+61 more)
 
 ### Community 92 - "ADR-0054: Unificar la solicitud de información de salud en la aplicación"
 Cohesion: 0.12
 Nodes (15): ADR-0054: Unificar la solicitud de información de salud en la aplicación, Alternativas Descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión, Implementación en curso, Revisión inicial y decisiones pendientes (+7 more)
 
-### Community 93 - "SensitiveAccessArchitectureTest.java"
-Cohesion: 0.13
-Nodes (9): AuthArchitectureTest, CommonArchitectureTest, ModuleBoundariesTest, SensitiveAccessArchitectureTest, ADR-0008: Reservar cupos con bloqueo pesimista sobre la franja y liberarlos con un worker TTL `SKIP LOCKED`, Alternativas Descartadas, Consecuencias, Contexto (+1 more)
+### Community 93 - "Decisión"
+Cohesion: 0.09
+Nodes (19): AuthArchitectureTest, CommonArchitectureTest, ModuleBoundariesTest, SensitiveAccessArchitectureTest, 10. Puntos de decisión resueltos con el desarrollador (2026-10-09), 11. Fuera de alcance, 1. Alcance y rutas, 3. `POST /bookings/lock`: orden exacto (+11 more)
 
-### Community 94 - "EnrollmentDocuments.java"
-Cohesion: 0.11
-Nodes (10): DocumentStorage, PresignedUpload, StoredObject, DocumentKind, PHYSICAL_CONSENT_FORM, VICTIM_SUPPORT_DOC, EnrollmentDocuments, Entry (+2 more)
+### Community 94 - "DocumentStorage"
+Cohesion: 0.12
+Nodes (15): DocumentStorage, PresignedUpload, StoredObject, Entry, InMemoryDocumentStorage, 1. Correo sintético opaco (E-03), 2. Revocar el rol cuando se revoca la acreditación (E-02), 3. Validar la firma del PDF (E-04) (+7 more)
 
 ### Community 96 - "api"
 Cohesion: 0.08
 Nodes (26): env_file, environment, expose, image, logging, mem_limit, restart, depends_on (+18 more)
 
-### Community 97 - "adapt.md"
-Cohesion: 0.08
-Nodes (22): Assess Adaptation Challenge, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Techniques, Mobile Adaptation (Desktop → Mobile), Adaptation Strategies (+14 more)
+### Community 97 - "Responsive Design"
+Cohesion: 0.09
+Nodes (22): Assess Adaptation Challenge, Breakpoints: Content-Driven, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Detect Input Method, Not Just Screen Size, Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Patterns (+14 more)
 
 ### Community 98 - "onAnnotDown"
 Cohesion: 0.12
@@ -1045,21 +1074,21 @@ Nodes (24): applyPlaceholderDimensions(), beginEditPin(), buildPlaceholderResize
 Cohesion: 0.08
 Nodes (25): import, livereload, restart, locations, format_sql, integrate, payments, properties (+17 more)
 
-### Community 101 - "PayoutConcurrencyTest.java"
-Cohesion: 0.16
-Nodes (3): MoneyRules, SettlementBreakdown, MoneyRulesTest
+### Community 101 - "SyncBatchServiceImpl.java"
+Cohesion: 0.09
+Nodes (8): SyncConflictResolver, Effect, MARK_SYNC_CONFLICT, PERSIST_EVIDENCE, PROTECT_COMMUNITY_SHARE, REDEEM, SyncDecision, SyncFacts
 
-### Community 102 - "ADR-0026: Desplegar el backend de la demo en SnapDeploy (plan gratuito)"
-Cohesion: 0.15
-Nodes (12): ADR-0026: Desplegar el backend de la demo en SnapDeploy (plan gratuito), Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual (Opcional), Decisión, ADR-0027: Alojar el backend 24/7 en un VPS de Hetzner Cloud, Alternativas Descartadas (+4 more)
+### Community 102 - "demo-gratuita.md"
+Cohesion: 0.09
+Nodes (20): ADR-0025: Ejecutar el backend de la demo en un PC propio y publicarlo con Cloudflare Tunnel, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual (Opcional), Decisión, ADR-0026: Desplegar el backend de la demo en SnapDeploy (plan gratuito), Alternativas Descartadas (+12 more)
 
 ### Community 103 - "Guía de desarrollo · Intégrate"
 Cohesion: 0.08
 Nodes (25): 1. Contexto y Qué es "Buscar un Servicio", 1. Requisitos, 2. Prerrequisitos de Software en la Máquina, 2. Variables de entorno, 3. Infraestructura local, 3. Paso a Paso de Configuración y Despliegue, 4. Backend (`backend-api`), 4. Cómo Probar la Búsqueda en el Navegador (+17 more)
 
-### Community 104 - "QrScannerPage.tsx"
-Cohesion: 0.33
-Nodes (7): formatBogotaTime(), ADR-0037, VerdictBanner(), BarcodeDetectorConstructor, QrScannerPage(), ADR-0037, decodeQrFromImageData()
+### Community 104 - "SensitiveDataProperties"
+Cohesion: 0.13
+Nodes (5): AesGcmSensitiveDataCipher, SensitiveDataProperties, ShortCodes, AesGcmSensitiveDataCipherTest, Próximos pasos tras ADR-0046
 
 ### Community 105 - "Scan mode (approach C: auto-extract, then confirm descriptive language)"
 Cohesion: 0.15
@@ -1069,33 +1098,29 @@ Nodes (13): Component translation rules, Narrative mapping, Scan mode (approach 
 Cohesion: 0.19
 Nodes (24): clearStoredManualApplyState(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey(), manualEditEventForCurrentPage(), numberOrNull() (+16 more)
 
-### Community 107 - "MeetingPointAutomatonTest"
-Cohesion: 0.25
-Nodes (3): MeetingPointAutomaton, MeetingPointAutomatonTest, Row
-
-### Community 109 - "ADR-0033: Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista"
-Cohesion: 0.33
-Nodes (5): ADR-0033: Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual
+### Community 109 - "Decisión"
+Cohesion: 0.17
+Nodes (11): 1. Identificación y alcance, 2. Idempotencia y transacción, 4. Puertos entre módulos, 5. Datos y contrato, 6. Pruebas, ADR-0033: Sincronizar por lotes de forma idempotente y resolver los conflictos con una tabla determinista, Alternativas Descartadas, Consecuencias (+3 more)
 
 ### Community 112 - "compilerOptions"
 Cohesion: 0.08
 Nodes (23): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, exactOptionalPropertyTypes, jsx, lib, module, moduleDetection (+15 more)
 
 ### Community 113 - "fixtures.js"
-Cohesion: 0.10
-Nodes (33): 10. Fuera de alcance, 1. Alcance y rutas, 3. Inicio del pago (`POST /bookings/{id}/payment`), 4. Webhook: verificación e idempotencia, 6. Disparo del voucher (T-1.8) sin acoplar módulos, 7. Secretos y configuración (SEC-DIR-004), 8. Errores nuevos (`ErrorCode`), 9. Pruebas (+25 more)
+Cohesion: 0.13
+Nodes (27): ADR-0053, ADR-0054, ADR-0055, ADR-0060, options, setup(), checkout(), options (+19 more)
 
-### Community 114 - "experiment_cleanup.py"
-Cohesion: 0.12
-Nodes (6): _close_issues(), _close_milestones(), _delete_labels(), get_gh(), list_resources(), run()
+### Community 114 - "github_project_setup.py"
+Cohesion: 0.07
+Nodes (15): _close_issues(), _close_milestones(), _delete_labels(), get_gh(), list_resources(), run(), _bulk_update_project_status(), _discover_project_fields() (+7 more)
 
 ### Community 115 - "onboard.md"
 Cohesion: 0.09
 Nodes (22): Assess Onboarding Needs, Context Over Ceremony, Contextual Help, Design Onboarding Experiences, Documentation & Help, Empty State Design, Feature Discovery & Adoption, Guided Tours & Walkthroughs (+14 more)
 
-### Community 116 - "org.springframework.security.oauth2.jwt.Jwt"
-Cohesion: 0.06
-Nodes (30): ConsentStatusResponse, PurposeResponse, AdminCatalogController, HostExperienceController, AdminExperienceCreateRequest, ExperienceRequest, ReasonRequest, ScheduleBatchRequest (+22 more)
+### Community 116 - "HostExperienceResponse"
+Cohesion: 0.11
+Nodes (9): AdminCatalogController, HostExperienceController, ReasonRequest, ScheduleBatchRequest, Slot, HostExperienceResponse, ScheduleResponse, CatalogModerationService (+1 more)
 
 ### Community 118 - "booking.bookings"
 Cohesion: 0.13
@@ -1105,9 +1130,9 @@ Nodes (18): Ley 1581 de 2012 (Habeas Data), RF-02 Captura y Auditoría de Consen
 Cohesion: 0.13
 Nodes (14): 1. Algoritmo (`MeetingPointVerifier`), 1b. Autómata del ciclo de verificación (`MeetingPointAutomaton`), 2. Cuándo corre, 3. Datos (migración nueva, `V15__meeting_point_check.sql`), 4. Aprobación, 5. PWA, 6. Pruebas, ADR-0030: Verificar que la dirección del punto de encuentro coincida con sus coordenadas (+6 more)
 
-### Community 120 - "Decisión"
-Cohesion: 0.17
-Nodes (11): 2. Token y almacenamiento (`V13__password_reset_tokens.sql`), 3. Entrega: enlace con el token en el fragmento, 4. Restablecimiento (una sola transacción), 6. Errores nuevos, 7. Pruebas, ADR-0014: Recuperar la contraseña con un enlace de un solo uso enviado por el outbox de correo, Alternativas Descartadas, Consecuencias (+3 more)
+### Community 120 - ".activate"
+Cohesion: 0.07
+Nodes (13): RefreshTokenCodec, 2. Token y almacenamiento (`V13__password_reset_tokens.sql`), 3. Entrega: enlace con el token en el fragmento, 4. Restablecimiento (una sola transacción), 6. Errores nuevos, 7. Pruebas, ADR-0014: Recuperar la contraseña con un enlace de un solo uso enviado por el outbox de correo, Alternativas Descartadas (+5 more)
 
 ### Community 121 - "V7__offline.sql"
 Cohesion: 0.17
@@ -1118,12 +1143,12 @@ Cohesion: 0.14
 Nodes (22): GET /api/v1/offline/day-roster, Voucher Criptográfico JWT (RS256/Ed25519) en QR, Voucher Criptográfico JWT (RS256/Ed25519) en QR/PDF, IndexedDB Stores (crypto_keys, revoked_vouchers, local_consumed_vouchers), IntegrateOfflineDB (public_signing_keys, revocation_list, operational_roster, local_validations, sync_outbox), RF-15 Emisión de Voucher y Notificación, RF-16 Descarga Preventiva de Padrón y Revocación, RF-17 Validación Offline de Voucher (+14 more)
 
 ### Community 123 - "VoucherPdfRenderer.java"
-Cohesion: 0.07
-Nodes (4): ReceiptPdfRenderer, VoucherDocument, VoucherPdfRenderer, VoucherPdfRendererTest
+Cohesion: 0.06
+Nodes (6): MoneyRules, SettlementBreakdown, VoucherDocument, VoucherPdfRenderer, MoneyRulesTest, VoucherPdfRendererTest
 
-### Community 124 - "impeccable/SKILL.md"
-Cohesion: 0.07
-Nodes (24): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat, Craft floor, Refuse, Verify (+16 more)
+### Community 124 - "Operate mode depth (and Read notes)"
+Cohesion: 0.08
+Nodes (18): Craft floor, Refuse, Verify, Constraints, Failure modes, Flow, $impeccable hooks, Routing (+10 more)
 
 ### Community 125 - "The Toolkit"
 Cohesion: 0.10
@@ -1133,9 +1158,9 @@ Nodes (20): Animate complex properties, Assess What "Extraordinary" Means Here, 
 Cohesion: 0.10
 Nodes (20): Author Attribution Template, Confidentiality layers, Configuration vs process — the three-container rule, Contents, Declaring a block's scope mechanically, Documenting an external tool surface, Editing skills — always start from the live file, Lean Content (+12 more)
 
-### Community 127 - "OutboxDispatcher"
-Cohesion: 0.06
-Nodes (16): Use after() for Non-Blocking Operations, Backoff, Dispatch, NotificationProperties, OutboxMessage, OutboxMessageRepository, Attachment, EmailDeliveryException (+8 more)
+### Community 127 - "OutboxDispatcher.java"
+Cohesion: 0.07
+Nodes (21): Output Contract, FrontendProperties, PasswordResetEmails, Dispatch, NotificationProperties, OutboxMessage, OutboxMessageRepository, Attachment (+13 more)
 
 ### Community 128 - "generate-icons.mjs"
 Cohesion: 0.19
@@ -1181,57 +1206,57 @@ Nodes (10): id_floor_from(), main(), parse_entries(), parse_skill(), parse_statu
 Cohesion: 0.11
 Nodes (18): 10. Predictive Prefetching (MEDIUM), 11. Typography (MEDIUM), 12. Visual Design (HIGH), 1. Animation Principles (CRITICAL), 2. Timing Functions (HIGH), 3. Exit Animations (HIGH), 4. CSS Pseudo Elements (MEDIUM), 5. Audio Feedback (MEDIUM) (+10 more)
 
-### Community 139 - "BookingStatus"
-Cohesion: 0.08
-Nodes (28): BookingStatus, CANCELLED_BY_PLATFORM, CANCELLED_NO_REFUND, CANCELLED_REFUNDED, CONFIRMED, EXECUTED, EXPIRED, NO_SHOW (+20 more)
+### Community 139 - ".hasVoucher"
+Cohesion: 0.21
+Nodes (11): 10. Mis experiencias — `GET /me/bookings` (ADR-0023), 1. Backend (T-1.14a): `GET /api/v1/me/bookings`, 2. Frontend (T-1.14b): sección "Mis experiencias" en Mi cuenta, 3. Fronteras, 4. Pruebas, ADR-0023: Mostrar en "Mi cuenta" las experiencias del turista, con acceso a su voucher y su QR, Alternativas Descartadas, Consecuencias (+3 more)
 
 ### Community 140 - "V4__booking.sql"
 Cohesion: 0.19
 Nodes (15): booking.booking_cancellations, booking.booking_participants, booking.booking_status_history, booking.bookings, booking.fn_participant_guard(), booking.v_schedule_slot_reconciliation, ix_booking_status_history_booking, ix_bookings_pending_expiry (+7 more)
 
 ### Community 141 - ".shortCode"
-Cohesion: 0.04
-Nodes (59): 1. Endpoints, 4. Disponibilidad – `GET /experiences/{id}/availability`, 5.1 `BookingLockRequest`, 5.2 `BookingLockResponse` (201, o 200 con `Idempotency-Replayed: true`), 5.3 Mecanismo transaccional (prevención de sobreventa), 5. Bloqueo pesimista – `POST /bookings/lock`, 7.1 `OfflineSyncBatchRequest`, 7.2 `OfflineSyncBatchResponse` (siempre 200 si el lote es válido) (+51 more)
+Cohesion: 0.08
+Nodes (27): 9. Voucher — `GET /bookings/{bookingId}/voucher` (ADR-0010), 1. Alcance y rutas, ADR-0017: Confirmación móvil con el QR del voucher dibujado en el cliente, pantalla completa sin reposo y PDF/A por URL prefirmada, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, 1. Identificación del dispositivo (+19 more)
 
-### Community 142 - "HostBookingController.java"
-Cohesion: 0.26
-Nodes (4): HostBookingController, HolderEps, HostBookingService, Summary
+### Community 142 - "AdminConsentFilter.java"
+Cohesion: 0.15
+Nodes (3): HttpFailureLoggingFilter, TraceIdFilter, AdminConsentFilter
 
-### Community 143 - "_make_issue"
-Cohesion: 0.09
-Nodes (4): _make_issue(), _make_label(), TestIssueCreate, TestMilestoneStart
+### Community 143 - "test_github_project_setup.py"
+Cohesion: 0.06
+Nodes (6): _make_issue(), _make_label(), TestIssueCreate, TestIssueList, TestLabelsCommand, TestMilestoneStart
 
 ### Community 144 - "createLiveBrowserSessionState"
 Cohesion: 0.22
 Nodes (15): createLiveBrowserSessionState(), clearHandled(), clearScrollY(), clearSession(), isHandled(), loadSession(), markHandled(), nextCheckpointRevision() (+7 more)
 
-### Community 146 - "BookingLockResponse"
-Cohesion: 0.24
-Nodes (5): BookingController, BookingLockResponse, MeetingPointResponse, StopResponse, BookingQueryService
+### Community 146 - "BookingLockServiceImpl"
+Cohesion: 0.10
+Nodes (10): BookingLockRequest, EmergencyContact, BookingLockResponse, EmergencyCiphertexts, BookingLockService, BookingLockServiceImpl, BookingRequestHasher, Canonical (+2 more)
 
 ### Community 147 - "org.springframework.context.annotation.Configuration"
-Cohesion: 0.10
-Nodes (10): TimeConfig, BookingSchedulingConfig, MeetingPointAsyncConfig, DispatchScheduling, OutboxDispatchWorker, PaymentSchedulingConfig, SweepScheduling, VoucherAsyncConfig (+2 more)
+Cohesion: 0.26
+Nodes (7): BookingSchedulingConfig, MeetingPointAsyncConfig, DispatchScheduling, OutboxDispatchWorker, PaymentSchedulingConfig, SweepScheduling, VoucherAsyncConfig
 
 ### Community 148 - "PayoutBatchResponse"
-Cohesion: 0.10
-Nodes (14): AdminPayoutController, PayoutBatchResponse, Status, FAILED, OPEN, PAID, SUBMITTED, Administración — rol ADMIN (+6 more)
+Cohesion: 0.08
+Nodes (20): PayoutBatchResponse, Status, FAILED, OPEN, PAID, SUBMITTED, Disbursement, Detail (+12 more)
 
 ### Community 149 - "V8__audit_notification.sql"
 Cohesion: 0.19
 Nodes (14): audit.audit_trail, audit.chain_head, audit.fn_chain_append(), audit.verify_chain(), ix_audit_trail_action, ix_audit_trail_actor, ix_audit_trail_details, ix_audit_trail_entity (+6 more)
 
 ### Community 151 - "Decisión"
-Cohesion: 0.06
-Nodes (34): 3.1 `LoginRequest` → `LoginRequest.java`, 3.2.1 `RegisterRequest` → `RegisterRequest.java` (`POST /api/v1/auth/register`), 3.2.2.1 Política vigente (`GET /api/v1/privacy-policies/current`, ADR-0013 §1), 3.2.2 Consentimientos del titular (`/api/v1/me/consents`), 3.2.3 Logout, 3.2 `AuthTokenResponse` (login y refresh), 3.3 `AssistedHostRegistrationRequest`, 3.4 `AssistedHostRegistrationResponse` (201) (+26 more)
+Cohesion: 0.11
+Nodes (18): 3.2.2 Consentimientos del titular (`/api/v1/me/consents`), 3.2 `AuthTokenResponse` (login y refresh), 10. Actor de la transacción para PostgreSQL, 11. Estructura y entidades, 12. Pruebas (criterio de aceptación de T-1.1/T-1.2), 1. Validación del access token con el *resource server* de Spring Security (sin filtro JWT propio), 2. Llave de firma de sesión por variable de entorno (SEC-DIR-004), 5. Refresh token rotativo (+10 more)
 
 ### Community 152 - "Migraciones Flyway V1–V9"
 Cohesion: 0.12
 Nodes (13): AuditLogService, Módulos com.integrate (auth, catalog, booking, payment, voucher, offline, audit), Pasarela de Pagos Wompi / ePayco, RF-20 Bitácora Inmutable de Auditoría, RNF-09 Retención de Auditoría 10 años, Stack: Java 21/Spring Boot 3, React 18 PWA, PostgreSQL 16, AWS, audit.audit_trail + chain_head (bitácora encadenada SHA-256, particionada), Guía backend: bloqueo de aforo con idempotency_key y lock_timeout 2s (+5 more)
 
-### Community 154 - "EndpointSecuritySweepQualityTest.java"
-Cohesion: 0.10
-Nodes (4): OpenApiCoverageQualityTest, Endpoint, EndpointSecuritySweepQualityTest, Rule
+### Community 154 - "EndpointSecuritySweepQualityTest"
+Cohesion: 0.25
+Nodes (3): Endpoint, EndpointSecuritySweepQualityTest, Rule
 
 ### Community 155 - "document.md"
 Cohesion: 0.18
@@ -1253,9 +1278,9 @@ Nodes (17): 10. Text Wrapping, 11. Image Outlines, 12. Scale on Press, 13. Skip 
 Cohesion: 0.12
 Nodes (16): Checking in on observations, Checking whether the skill has loaded, Dual-layer activation, Getting kickstarted, Getting Started with the task-observer meta-skill (aka "One skill to rule them all"), How the skill works during a session, Making the skill your own, Open-source vs internal skills (+8 more)
 
-### Community 160 - "test_github_project_setup.py"
-Cohesion: 0.08
-Nodes (4): _make_milestone(), TestIssueList, TestMilestoneCreate, TestMilestoneList
+### Community 160 - "_make_milestone"
+Cohesion: 0.12
+Nodes (3): _make_milestone(), TestMilestoneCreate, TestMilestoneList
 
 ### Community 162 - "integrate"
 Cohesion: 0.12
@@ -1289,21 +1314,25 @@ Nodes (15): Animations, Choosing Between Motion and CSS, Contextual Icon Animati
 Cohesion: 0.11
 Nodes (14): assets, dist, html, largest, metric, ADR-0019, root, rows (+6 more)
 
-### Community 171 - "lombok.RequiredArgsConstructor"
-Cohesion: 0.02
-Nodes (58): Severity, CRITICAL, HIGH, INFO, WARNING, AuditSensitiveAccessRecorder, AuditTrail, SensitiveDataCipher (+50 more)
+### Community 171 - "org.springframework.transaction.annotation.Transactional"
+Cohesion: 0.04
+Nodes (38): StatusReasonContext, MeetingPointResponse, StopResponse, Booking, BookingStatus, CANCELLED_BY_PLATFORM, CANCELLED_NO_REFUND, CANCELLED_REFUNDED (+30 more)
 
-### Community 172 - "IdentityMigration"
-Cohesion: 0.22
-Nodes (4): Coverage, IdentityMigration, LegacyIdentity, IdentityMigrationRunner
+### Community 172 - ".sync"
+Cohesion: 0.14
+Nodes (11): OfflineSyncBatchRequest, OfflineSyncBatchResponse, Summary, DeviceRow, Caller, SyncBatchServiceImpl, SyncBatchService, 7.1 `OfflineSyncBatchRequest` (+3 more)
 
 ### Community 173 - "googleMaps.ts"
-Cohesion: 0.08
-Nodes (31): COLOMBIA_BOX, COLOMBIA_CENTER, componentName(), getGoogleMapsBrowserKey(), GoogleAddressComponent, GoogleAutocompleteInstance, GoogleGeocoderInstance, GoogleMapInstance (+23 more)
+Cohesion: 0.07
+Nodes (28): COLOMBIA_BOX, COLOMBIA_CENTER, componentName(), getGoogleMapsBrowserKey(), GoogleAddressComponent, GoogleAutocompleteInstance, GoogleGeocoderInstance, GoogleLatLng (+20 more)
 
 ### Community 174 - "Intégrate"
 Cohesion: 0.20
 Nodes (10): Arquitectura, Contenido, Cómo contribuir, Documentación, Estado del proyecto, Estructura del repositorio, Inicio rápido, Intégrate (+2 more)
+
+### Community 176 - "org.junit.jupiter.api.Tag"
+Cohesion: 0.15
+Nodes (5): OpenApiCoverageQualityTest, ConsentAuditQualityTest, CredentialStorageQualityTest, SecretRedactionQualityTest, SensitiveDataAtRestQualityTest
 
 ### Community 178 - "env.ts"
 Cohesion: 0.67
@@ -1321,21 +1350,21 @@ Nodes (14): 1. Server response time (TTFB), 2. Resource load time, 3. Render blo
 Cohesion: 0.13
 Nodes (14): 1. Eliminating Waterfalls (CRITICAL), 2. Bundle Size Optimization (CRITICAL), 3. Server-Side Performance (HIGH), 4. Client-Side Data Fetching (MEDIUM-HIGH), 5. Re-render Optimization (MEDIUM), 6. Rendering Performance (MEDIUM), 7. JavaScript Performance (LOW-MEDIUM), 8. Advanced Patterns (LOW) (+6 more)
 
-### Community 182 - "standardcharsets"
+### Community 182 - "list"
 Cohesion: 0.06
-Nodes (6): HmacSha256, ActivationCodes, RefreshTokenCodec, ShortCodes, ErrorCodeTest, ActivationCodesTest
+Nodes (3): HmacSha256, Mock, QualityMetrics
 
 ### Community 186 - "GeocodingPort"
-Cohesion: 0.13
-Nodes (7): Bounds, GeocodingPort, GeocodingUnavailableException, GeoHit, Cached, NominatimGeocoder, 4. Verificación advisoria con Google (ADR-0030)
+Cohesion: 0.15
+Nodes (6): Bounds, GeocodingPort, GeocodingUnavailableException, GeoHit, Cached, NominatimGeocoder
 
 ### Community 187 - "ADR-0056: Crear y editar la ubicación de una experiencia con búsqueda y mapa de Google Maps"
-Cohesion: 0.11
-Nodes (18): 1. Componente `LocationPicker` (frontend), 2. Geocodificación inversa para municipio y vereda, 3. Formulario por pasos, 5. Claves y configuración, 6. Privacidad, ADR-0056: Crear y editar la ubicación de una experiencia con búsqueda y mapa de Google Maps, Alternativas Descartadas, Alternativas descartadas (+10 more)
+Cohesion: 0.10
+Nodes (19): 1. Componente `LocationPicker` (frontend), 2. Geocodificación inversa para municipio y vereda, 3. Formulario por pasos, 4. Verificación advisoria con Google (ADR-0030), 5. Claves y configuración, 6. Privacidad, ADR-0056: Crear y editar la ubicación de una experiencia con búsqueda y mapa de Google Maps, Alternativas Descartadas (+11 more)
 
-### Community 188 - "vitest"
-Cohesion: 0.09
-Nodes (19): BASE_COMPONENTS, SINGLETONS, sources, ALLOWED_FIXED_BOTTOM, sources, fleschSzigriszt(), spanishSyllables(), FakeAutocomplete (+11 more)
+### Community 188 - "quality.ts"
+Cohesion: 0.16
+Nodes (10): BASE_COMPONENTS, SINGLETONS, sources, fleschSzigriszt(), spanishSyllables(), percent(), QualityMetric, TaskMeta (+2 more)
 
 ### Community 189 - "New visual work"
 Cohesion: 0.14
@@ -1350,8 +1379,8 @@ Cohesion: 0.14
 Nodes (13): A command's risk is what it does, not what it was reached for, An unresolved defect is an observation, at a bounded point, Contents, Deferral disguised as diligence, Do NOT log, Instructions handed across a boundary, Second violation — why a barrier, not a rewording, Signals for a NEW skill (+5 more)
 
 ### Community 192 - ".title"
-Cohesion: 0.06
-Nodes (31): Migrating a pre-3.0 single-file log, Procedure, Rollback, What the script does, A list entry holding a colon is not portable, A park condition names the result, never your own vehicle, Commands inside an observation — run before the file is written, Context preservation — the `reference:` field (+23 more)
+Cohesion: 0.10
+Nodes (20): Migrating a pre-3.0 single-file log, Procedure, Rollback, What the script does, How to Log, Session Start Protocol, 2. Formato transversal de errores (RFC 9457), ADR-0003: Estructura base común — errores RFC 9457, catálogo de códigos y trazabilidad `X-Trace-Id` (+12 more)
 
 ### Community 193 - "Sections"
 Cohesion: 0.14
@@ -1361,29 +1390,29 @@ Nodes (13): 10. Predictive Prefetching (prefetch), 11. Typography (type), 12. Vi
 Cohesion: 0.14
 Nodes (14): Accessibility (30% of typical issues), Audit categories, Audit output format, Before every deploy, Best practices (15% of typical issues), How it works, Monthly deep dive, Performance (40% of typical issues) (+6 more)
 
-### Community 195 - "CancellationPolicyTest.java"
-Cohesion: 0.25
-Nodes (5): CancellationPolicy, Decision, Kind, EARLY_REFUND, LATE_NO_REFUND
+### Community 195 - "ExperienceRequest"
+Cohesion: 0.04
+Nodes (17): ExperienceRequest, Stop, ExperienceStatus, APPROVED, DRAFT, PENDING_REVIEW, REJECTED, RETIRED (+9 more)
 
-### Community 196 - "booking.test.tsx"
-Cohesion: 0.22
-Nodes (9): booking, consents(), day, fillAll(), fillTraveler(), LockCall, policy, renderForm() (+1 more)
+### Community 196 - "AuthController"
+Cohesion: 0.12
+Nodes (6): AuthController, RefreshCookies, ActivationRequest, ResetPasswordRequest, AuthTokenResponse, UserResponse
 
-### Community 197 - "Result"
-Cohesion: 0.06
-Nodes (26): MockPayoutGateway, Outcome, COMPLETED, REJECTED, RETRY, PayoutGateway, Result, Outcome (+18 more)
+### Community 197 - "PayoutProcessor.java"
+Cohesion: 0.05
+Nodes (25): MockPayoutGateway, Outcome, COMPLETED, REJECTED, RETRY, PayoutGateway, Result, Outcome (+17 more)
 
 ### Community 198 - "V19__versioned_health_consent_notice.sql"
 Cohesion: 0.29
 Nodes (4): auth.health_consent_notices, booking.fn_booking_health_consent_guard(), trg_booking_health_consent_guard, trg_health_consent_insert_lock
 
 ### Community 199 - "3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Brevo"
-Cohesion: 0.09
-Nodes (23): 10. Operación y seguridad, 11. Limitaciones conocidas, 12. Problemas frecuentes, 1. Requisitos, 2. Neon (base de datos), 3. Backblaze B2 (archivos), 3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Brevo, 4. Brevo (correo) (+15 more)
-
-### Community 200 - "Responsive Design"
 Cohesion: 0.14
-Nodes (11): Breakpoints: Content-Driven, Detect Input Method, Not Just Screen Size, Layout Adaptation Patterns, Mobile-First: Write It Right, Picture Element for Art Direction, Responsive Design, Responsive Images: Get It Right, Safe Areas: Handle the Notch (+3 more)
+Nodes (14): 10. Operación y seguridad, 11. Limitaciones conocidas, 12. Problemas frecuentes, 1. Requisitos, 2. Neon (base de datos), 3. Backblaze B2 (archivos), 3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Brevo, 4. Brevo (correo) (+6 more)
+
+### Community 200 - "P"
+Cohesion: 0.27
+Nodes (4): Picture Element for Art Direction, Responsive Images: Get It Right, srcset with Width Descriptors, P
 
 ### Community 201 - "scripts"
 Cohesion: 0.14
@@ -1397,9 +1426,13 @@ Nodes (13): BACKUP_AGE_RECIPIENT, BACKUP_BUCKET, BACKUP_NOTIFY_FAIL_CONFIG, BACK
 Cohesion: 0.15
 Nodes (8): Agent Prompt Template, Code Optimizer, Critical Principle: No Code Reading Before Analysis, Report Format, Step 1: Detect Stack, Step 2: Spawn 13 Parallel Agents, Step 3: Consolidate Report, Workflow
 
-### Community 204 - "api-design/SKILL.md"
-Cohesion: 0.15
+### Community 204 - ".changePassword"
+Cohesion: 0.14
 Nodes (12): GraphQL, GraphQL, REST, REST, Step 1: Gather the contract, Step 2: Resource and operation naming, Step 3: Methods and status codes, Step 4: Pagination (+4 more)
+
+### Community 205 - "CancellationPolicyTest.java"
+Cohesion: 0.19
+Nodes (6): CancellationPolicy, Decision, Kind, EARLY_REFUND, LATE_NO_REFUND, CancellationPolicyTest
 
 ### Community 206 - "Impeccable Asset Producer"
 Cohesion: 0.11
@@ -1413,9 +1446,9 @@ Nodes (13): Concentric Border Radius, Dark Mode, Example, Image Outlines, Light 
 Cohesion: 0.22
 Nodes (8): graphify reference: extra exports and benchmark, Step 6b - Wiki (only if --wiki flag), Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag), Step 7a - FalkorDB export (only if --falkordb or --falkordb-push flag), Step 7b - SVG export (only if --svg flag), Step 7c - GraphML export (only if --graphml flag), Step 7d - MCP server (only if --mcp flag), Step 8 - Token reduction benchmark (only if total_words > 5000)
 
-### Community 209 - "MeetingPointVerifier"
-Cohesion: 0.33
-Nodes (3): MeetingPointText, MeetingPointVerifier, Verification
+### Community 209 - "MeetingPointText"
+Cohesion: 0.15
+Nodes (3): GeoMath, MeetingPointText, MeetingPointTextAndMathTest
 
 ### Community 210 - "application.yml"
 Cohesion: 0.15
@@ -1445,9 +1478,9 @@ Nodes (8): 2. Despliegue, 4. Pruebas, ADR-0029: Habilitar el simulador de la pas
 Cohesion: 0.22
 Nodes (9): 10. Control de acceso cruzado, 11. Por qué falla: del mensaje a la causa, 13. Límites conocidos de esta versión, 3. Qué debe tener y qué debe ver cada rol, 4. Visitante (sin cuenta), 9. Ciclo completo encadenado, Contenido, Cómo clasificar el error (+1 more)
 
-### Community 217 - "Directrices de Arquitectura Backend, Estructura Modular y Gobernanza Técnica"
-Cohesion: 0.14
-Nodes (14): 1.1 Patrón Arquitectónico, 1.2 Stack Tecnológico Confirmado, 1. Resumen Arquitectónico y Stack Confirmado, 2. Árbol Completo de Directorios (Formato ASCII), 3. Diccionario de Carpetas y Responsabilidades, 4.1 Ubicación Exacta de Componentes Técnicos, 4. Mapeo de Componentes Técnicos y Aislamiento de Esquemas, 5.1 Matriz de Invocación entre Capas (+6 more)
+### Community 217 - "AccessTokenIssuer"
+Cohesion: 0.10
+Nodes (16): AccessTokenIssuer, IssuedToken, 1.1 Patrón Arquitectónico, 1.2 Stack Tecnológico Confirmado, 1. Resumen Arquitectónico y Stack Confirmado, 2. Árbol Completo de Directorios (Formato ASCII), 3. Diccionario de Carpetas y Responsabilidades, 4.1 Ubicación Exacta de Componentes Técnicos (+8 more)
 
 ### Community 218 - "RF-01 Autenticación y Control de Sesión (JWT)"
 Cohesion: 0.15
@@ -1460,6 +1493,10 @@ Nodes (9): POST /api/v1/offline/sync, OfflineSyncService / ConflictResolutionSer
 ### Community 220 - "RF-12 Procesamiento de Pago y Split Payment"
 Cohesion: 0.19
 Nodes (13): POST /api/v1/payments/webhook/{mock|wompi}, NotificationDispatcherService (Email/WhatsApp adapters), Pasarela de Pagos / Split Payment (Wompi / ePayco), PaymentGatewayAdapter (Mock / Wompi), RF-12 Procesamiento de Pago y Split Payment, RNF-06 Idempotencia en Pagos y Sincronización, Servicio de Notificaciones (Gmail/SES/Twilio), notification.notification_outbox (Transactional Outbox) (+5 more)
+
+### Community 221 - "offline/api.ts"
+Cohesion: 0.11
+Nodes (22): deviceHeaders(), emergencyContactDtoSchema, fetchOfflineRevocations(), fetchOfflineRoster(), OfflineSyncBatchRequestDto, OfflineSyncBatchResponseDto, offlineSyncBatchResponseSchema, participantDtoSchema (+14 more)
 
 ### Community 222 - "Grep/Glob Patterns to Detect"
 Cohesion: 0.17
@@ -1526,16 +1563,16 @@ Cohesion: 0.18
 Nodes (11): API (Direct), Common Commands (v2.87.0), Issue Types (Classification), Issues, Labels, Milestones, Projects V2, Pull Requests (+3 more)
 
 ### Community 238 - "colorize.md"
-Cohesion: 0.25
-Nodes (7): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode
+Cohesion: 0.15
+Nodes (10): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Command guidance (+2 more)
 
 ### Community 239 - "renderApp.tsx"
-Cohesion: 0.15
-Nodes (12): consents, renderActivate(), policy, problem(), problem(), renderEnrollment(), page, RequestOptions (+4 more)
+Cohesion: 0.09
+Nodes (19): consents, profile, renderActivate(), policy, problem(), problem(), DocumentUploadTicket, grantConsents() (+11 more)
 
 ### Community 240 - "Decisión"
-Cohesion: 0.20
-Nodes (9): 1. Consulta de la bitácora (`modules/audit/`, solo lectura), 3. La bitácora no guarda datos personales, 4. Alcance del «cifrado AES-256 en reposo», 5. Consentimientos y retención, ADR-0035: Consultar la bitácora de auditoría, registrar los accesos a datos sensibles y fijar el alcance del cifrado, Alternativas Descartadas, Consecuencias, Contrato o Esquema Conceptual (+1 more)
+Cohesion: 0.17
+Nodes (11): 1. Consulta de la bitácora (`modules/audit/`, solo lectura), 2. Registro de accesos a datos sensibles, 3. La bitácora no guarda datos personales, 4. Alcance del «cifrado AES-256 en reposo», 5. Consentimientos y retención, ADR-0035: Consultar la bitácora de auditoría, registrar los accesos a datos sensibles y fijar el alcance del cifrado, Alternativas Descartadas, Consecuencias (+3 more)
 
 ### Community 241 - "clarify.md"
 Cohesion: 0.18
@@ -1569,17 +1606,17 @@ Nodes (10): Caveat, Font Smoothing (macOS), Good vs. Bad, Tabular Numbers, text-
 Cohesion: 0.33
 Nodes (5): Creating a New Rule, Getting Started, React Best Practices, Rule File Structure, Structure
 
-### Community 249 - "org.springframework.boot.context.properties.ConfigurationProperties"
-Cohesion: 0.04
-Nodes (11): KeyPair, RsaSigningKeys, AdminBootstrapProperties, AccessTokenIssuer, IssuedToken, CorsProperties, JwtAccessTokenIssuer, JwtConfig (+3 more)
+### Community 249 - "AuthApiIntegrationTest.java"
+Cohesion: 0.05
+Nodes (7): KeyPair, RsaSigningKeys, AdminBootstrapProperties, CorsProperties, JwtConfig, JwtProperties, Enmienda 2026-11-10 (durante la implementación)
 
-### Community 250 - "doctor.md"
-Cohesion: 0.25
-Nodes (7): Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity, Step 3: Deprecated fields are binding, Step 4: Do not overclaim on truth drift, What this owns, and what it does not
+### Community 250 - "SyncDecisionApplier"
+Cohesion: 0.16
+Nodes (7): Channel, MANUAL_CODE, OFFLINE_PWA, Validation, Applied, BatchContext, SyncDecisionApplier
 
-### Community 251 - "Decisión"
-Cohesion: 0.11
-Nodes (16): 2. Formato transversal de errores (RFC 9457), 10. Puntos de decisión resueltos con el desarrollador (2026-10-09), 11. Fuera de alcance, 1. Alcance y rutas, 3. `POST /bookings/lock`: orden exacto, 4. Cifrado de datos de salud y emergencia, 5. Respuesta y `GET /bookings/{bookingId}`, 6. Auditoría (`common/audit`, primer escritor de `audit.audit_trail`) (+8 more)
+### Community 251 - "ADR-0015: Formulario móvil de reserva con datos de viajeros solo en memoria, idempotencia por intención y precondición de consentimiento"
+Cohesion: 0.33
+Nodes (5): ADR-0015: Formulario móvil de reserva con datos de viajeros solo en memoria, idempotencia por intención y precondición de consentimiento, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual
 
 ### Community 252 - "spring"
 Cohesion: 0.18
@@ -1594,8 +1631,12 @@ Cohesion: 0.18
 Nodes (11): baseline-on-migrate, clean-disabled, default-schema, enabled, locations, password, schemas, url (+3 more)
 
 ### Community 255 - "Operation"
-Cohesion: 0.25
+Cohesion: 0.22
 Nodes (8): Operation, ANONYMIZE, BACKFILL, COUNT_LEGACY_ALIASES, REPLACE_LEGACY_ALIAS, ROTATE, VERIFY, VERIFY_ROTATION
+
+### Community 256 - "User"
+Cohesion: 0.08
+Nodes (9): Access, User, Coverage, IdentityMigration, LegacyIdentity, IdentityProtection, EpsRow, IdentityProtectionIntegrationTest (+1 more)
 
 ### Community 257 - "MyBookingSummary"
 Cohesion: 0.36
@@ -1609,9 +1650,9 @@ Nodes (10): 1. Inventario y límites de H-01, 2. Representación y unicidad, 3. 
 Cohesion: 0.18
 Nodes (9): Actor: Gestor de Enlace Comunitario (Proxy Digital), RF-04 Consulta de Catálogo Territorial y Aforos, RF-05 Registro Autónomo de Propuesta de Experiencia, RF-06 Registro Asistido por Gestor de Enlace, RF-07 Revisión y Autorización de Experiencia, RF-08 Moderación y Suspensión Preventiva, RNF-04 Arquitectura Offline-First y Resiliencia, Máquina de estados de Experiencia (+1 more)
 
-### Community 260 - "Evidencia del ensayo del corte de identidad (ADR-0046) y simulacro de restauración (ADR-0041)"
-Cohesion: 0.18
-Nodes (10): 1. Conteos agregados, 2. Modos de escritura, 3. Semillas, 4. Permisos, 5. Bitácora de accesos sensibles, 6. Hallazgos del ensayo, 7. Simulacro de restauración (ADR-0041, H-03), 8. RNF-01 (cobertura de migración y exposición) (+2 more)
+### Community 260 - ".gatesCutAndIndexPromotionAndEnforcesProtectedUniqueness"
+Cohesion: 0.11
+Nodes (14): Mode, DUAL, LEGACY, PROTECTED, IdentityCutPostgresTest, 1. Conteos agregados, 2. Modos de escritura, 3. Semillas (+6 more)
 
 ### Community 261 - "PROTOCOLO DE FLUJO DE TRABAJO EN GIT Y GOBERNANZA DE CAMBIOS"
 Cohesion: 0.18
@@ -1658,24 +1699,32 @@ Cohesion: 0.20
 Nodes (9): 1. Eliminating Waterfalls (async), 2. Bundle Size Optimization (bundle), 3. Server-Side Performance (server), 4. Client-Side Data Fetching (client), 5. Re-render Optimization (rerender), 6. Rendering Performance (rendering), 7. JavaScript Performance (js), 8. Advanced Patterns (advanced) (+1 more)
 
 ### Community 273 - "ADR-0039: Proteger documento, celular y punto de encuentro"
-Cohesion: 0.09
-Nodes (16): ADR-0039: Proteger documento, celular y punto de encuentro, Alternativas descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión, ADR-0055: Validar el rendimiento con carga en un entorno desplegado, Alternativas Descartadas (+8 more)
+Cohesion: 0.29
+Nodes (6): ADR-0039: Proteger documento, celular y punto de encuentro, Alternativas descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión
 
 ### Community 274 - "Visualize: Direction Comps & Asset Production"
 Cohesion: 0.33
 Nodes (5): After approval: the comp becomes a spec, Generate three compositional options, One approval point, Plates and provenance, Visualize: Direction Comps & Asset Production
 
 ### Community 276 - "ADR-0040: Publicar la política y exigir consentimiento inicial"
-Cohesion: 0.25
-Nodes (7): ADR-0040: Publicar la política y exigir consentimiento inicial, Alternativas descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión, Despliegue por etapas
+Cohesion: 0.08
+Nodes (19): ADR-0040: Publicar la política y exigir consentimiento inicial, Alternativas descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión, Despliegue por etapas, ADR-0041: Respaldar y restaurar PostgreSQL fuera del servidor de la API (+11 more)
 
-### Community 277 - "Mode"
-Cohesion: 0.29
-Nodes (6): Handle `accept`, Required after accept (carbonize), Mode, DUAL, LEGACY, PROTECTED
+### Community 277 - "org.junit.jupiter.api.DisplayName"
+Cohesion: 0.35
+Nodes (3): MeetingPointProperties, FakeGeocoder, MeetingPointVerifierTest
 
 ### Community 278 - "dispatch"
 Cohesion: 0.20
 Nodes (10): initial, max, batch-size, enabled, interval, stale-after, notification, backoff (+2 more)
+
+### Community 279 - "OwnReauthService"
+Cohesion: 0.15
+Nodes (4): Grant, OwnReauthService, MutableClock, OwnReauthServiceTest
+
+### Community 280 - ".download"
+Cohesion: 0.18
+Nodes (11): Item, Item, RevocationsResponse, EmergencyContact, Participant, RosterResponse, SigningKey, Voucher (+3 more)
 
 ### Community 281 - "Ficha Técnica y Delimitación del Esquema de Datos Offline en Cliente (IndexedDB)"
 Cohesion: 0.20
@@ -1693,9 +1742,9 @@ Nodes (10): 5.1 Crear la cuenta, 5.2 Primer ingreso y sesión, 5.3 Recuperar la 
 Cohesion: 0.20
 Nodes (10): MP_SMTP_AUTH_ACCEPT_ANY, MP_SMTP_AUTH_ALLOW_INSECURE, container_name, environment, image, networks, ports, profiles (+2 more)
 
-### Community 285 - "PaymentProperties"
-Cohesion: 0.33
-Nodes (3): PaymentProperties, Simulator, PaymentSimulatorConfigTest
+### Community 285 - "WorkerDecouplingQualityTest.java"
+Cohesion: 0.14
+Nodes (5): BookingProperties, Expiration, ExpiredBatch, WorkerDecouplingQualityTest, ExpirationSweepQualityTest
 
 ### Community 286 - "Grep/Glob Patterns to Detect"
 Cohesion: 0.22
@@ -1717,13 +1766,13 @@ Nodes (9): 1. The Wall of Options, 2. The Memory Bridge, 3. The Hidden Navigatio
 Cohesion: 0.22
 Nodes (9): Color & materials, Components & controls, iOS platform, Layout & structure, Motion, The iOS slop test, Touch targets, Typography (+1 more)
 
-### Community 291 - "ADR-0041: Respaldar y restaurar PostgreSQL fuera del servidor de la API"
-Cohesion: 0.29
-Nodes (6): ADR-0041: Respaldar y restaurar PostgreSQL fuera del servidor de la API, Alternativas descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión
+### Community 291 - "Contrato de API y DTOs – Núcleo Transaccional Intégrate"
+Cohesion: 0.12
+Nodes (18): 1. Endpoints, 3.1 `LoginRequest` → `LoginRequest.java`, 3.2.1 `RegisterRequest` → `RegisterRequest.java` (`POST /api/v1/auth/register`), 3.2.2.1 Política vigente (`GET /api/v1/privacy-policies/current`, ADR-0013 §1), 3.2.3 Logout, 3.3 `AssistedHostRegistrationRequest`, 3.4 `AssistedHostRegistrationResponse` (201), 3.5 Gestor de Enlace y activación asistida (ADR-0007) (+10 more)
 
-### Community 292 - "ADR-0038: Cerrar los hallazgos de seguridad del ciclo de vida: correo sintético opaco, rol del gestor revocado y firma del PDF"
-Cohesion: 0.22
-Nodes (9): 1. Correo sintético opaco (E-03), 2. Revocar el rol cuando se revoca la acreditación (E-02), 4. Pruebas y verificación, ADR-0038: Cerrar los hallazgos de seguridad del ciclo de vida: correo sintético opaco, rol del gestor revocado y firma del PDF, Alternativas Descartadas, Consecuencias, Contrato o Esquema Conceptual, Decisión (+1 more)
+### Community 292 - "AdminBootstrapCommand"
+Cohesion: 0.14
+Nodes (6): AdminAccountCommand, AdminBootstrapCommand, BootstrapOutcome, ADMIN_ALREADY_EXISTS, CREATED, IDENTITY_TAKEN
 
 ### Community 293 - "6. Administrador"
 Cohesion: 0.29
@@ -1753,9 +1802,13 @@ Nodes (5): For /graphify explain, For /graphify path, graphify reference: query,
 Cohesion: 0.33
 Nodes (6): ADR-0002: Definición del Stack Base de Construcción y Dependencias del Backend (Spring Boot 4.1.x, Java 21, Maven), Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
 
-### Community 300 - "Impeccable Documenter"
-Cohesion: 0.40
-Nodes (4): Impeccable Documenter, Input Contract, Output Contract, Workflow
+### Community 300 - "2.3 Fichas Técnicas de los Object Stores"
+Cohesion: 0.13
+Nodes (15): 2.3 Fichas Técnicas de los Object Stores, A. Object Store: `read_only_catalog`, B. Object Store: `operational_roster`, D. Object Store: `public_signing_keys`, Delimitación de Atributos Persistidos, Delimitación de Atributos Persistidos, Delimitación de Atributos Persistidos, Delimitación de Atributos Persistidos y Desnormalización Funcional (+7 more)
+
+### Community 301 - "jt"
+Cohesion: 0.16
+Nodes (14): ae(), de(), dt(), ft(), Ie(), jt(), Lt(), Mt() (+6 more)
 
 ### Community 302 - "tokens.ts"
 Cohesion: 0.36
@@ -1781,9 +1834,9 @@ Nodes (7): Grep/Glob Patterns to Detect, Improvement Strategies, Large Allocatio
 Cohesion: 0.47
 Nodes (3): invalidate_stale_user_identity, uq_users_document_index, uq_users_document_index_next
 
-### Community 308 - ".on"
-Cohesion: 0.12
-Nodes (13): Documentation Routing, GitHub Workflows, Primary Tool: ci_monitor.cjs, References, Structural Principle, Validation Constraint, Version Verification, Constraints (+5 more)
+### Community 308 - "GitHub Workflows"
+Cohesion: 0.25
+Nodes (7): Documentation Routing, GitHub Workflows, Primary Tool: ci_monitor.cjs, References, Structural Principle, Validation Constraint, Version Verification
 
 ### Community 309 - "Android platform"
 Cohesion: 0.25
@@ -1821,17 +1874,21 @@ Nodes (8): console, root, logging, level, pattern, structured, correlation, form
 Cohesion: 0.60
 Nodes (3): auth.password_reset_tokens, ix_password_reset_tokens_user_requested, uq_password_reset_tokens_user_live
 
-### Community 318 - ".build"
+### Community 318 - "ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*"
 Cohesion: 0.12
-Nodes (15): ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, Enmienda (2026-10-05, implementación), Nota de renumeración (2026-10-07) (+7 more)
+Nodes (14): ADR-0004: Boilerplate de `frontend-pwa` — Vite 8 + React 19 + TypeScript 6 + Tailwind CSS 4, estructura por *features*, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión, Enmienda (2026-10-05, implementación), Nota de renumeración (2026-10-07) (+6 more)
 
-### Community 319 - "PayoutProcessor.java"
-Cohesion: 0.08
-Nodes (11): FrontendProperties, PasswordResetEmails, Attachment, EmailRequest, NotificationOutbox, AssociationContact, PayoutQueries, SubmittedBatch (+3 more)
+### Community 320 - "OfflineController"
+Cohesion: 0.24
+Nodes (4): OfflineController, RedeemRequest, ContingencyService, RosterService
 
 ### Community 321 - "org.springframework.web.servlet.HandlerExceptionResolver"
-Cohesion: 0.11
-Nodes (8): AdminConsentFilter, ProblemAccessDeniedHandler, ProblemAuthenticationEntryPoint, ADR-0016: Checkout móvil con cuenta regresiva anclada al servidor y pago por redirección a la pasarela, Alternativas Descartadas, Consecuencias, Contrato o Esquema Conceptual, Notas de implementación (2026-10-09)
+Cohesion: 0.13
+Nodes (8): ProblemAccessDeniedHandler, ProblemAuthenticationEntryPoint, ADR-0016: Checkout móvil con cuenta regresiva anclada al servidor y pago por redirección a la pasarela, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Notas de implementación (2026-10-09)
+
+### Community 322 - "Task Observer — Continuous Skill Discovery & Improvement"
+Cohesion: 0.17
+Nodes (11): Acting on Observations, Archival on Write, Feedback on this skill, Quick Reference, Reference files — load on demand, not up front, Referencing Observations, Surfacing Protocol, Task Observer — Continuous Skill Discovery & Improvement (+3 more)
 
 ### Community 323 - "localstack"
 Cohesion: 0.25
@@ -1874,8 +1931,8 @@ Cohesion: 0.29
 Nodes (6): Checks, in order, Disposition, Impeccable Finish Reviewer, Input Contract, Output Contract, Verdict Pass
 
 ### Community 333 - "Impeccable Manual Edit Applier"
-Cohesion: 0.33
-Nodes (5): Checks, Entry Atomicity, Impeccable Manual Edit Applier, Input Contract, Output Contract
+Cohesion: 0.40
+Nodes (4): Checks, Entry Atomicity, Impeccable Manual Edit Applier, Input Contract
 
 ### Community 334 - "live-browser-ignores.js"
 Cohesion: 0.52
@@ -1886,8 +1943,8 @@ Cohesion: 0.29
 Nodes (5): Common Mistakes, Details that make interfaces feel better, Quick Reference, Reference Files, Review Checklist
 
 ### Community 336 - "Comprehensive Review (scheduled or fallback)"
-Cohesion: 0.29
-Nodes (6): Approval policy, Comprehensive Review (scheduled or fallback), Constraints, Contents, Staged-work reconciliation gate, Steps
+Cohesion: 0.20
+Nodes (8): Approval policy, Comprehensive Review (scheduled or fallback), Constraints, Contents, Delivering updated skills, Staged-work reconciliation gate, Steps, pack()
 
 ### Community 337 - "AGENTS.md"
 Cohesion: 0.40
@@ -1909,9 +1966,9 @@ Nodes (7): storage, access-key-id, endpoint, region, secret-access-key, sensitiv
 Cohesion: 0.29
 Nodes (6): ADR-0018: Enrolamiento asistido desde el smartphone del Gestor de Enlace, con subida directa a S3 y entrega del código de activación, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
 
-### Community 343 - "createSessionStore"
+### Community 343 - "HealthNotice"
 Cohesion: 0.26
-Nodes (10): requestPersistentStorage(), clearOfflineSessionUser(), createSessionStore(), adopt(), clear(), schedule(), setState(), isFieldOperator() (+2 more)
+Nodes (4): PrivacyPolicyResponse, HealthNotice, PublishedPolicy, PrivacyPolicyService
 
 ### Community 344 - "ADR-0028: Publicar el Manual de Usuario como Activo Estático en la PWA (Cloudflare Pages y Local)"
 Cohesion: 0.33
@@ -1937,9 +1994,9 @@ Nodes (6): ADR-0050: Rediseño visual accesible y componentes de confianza en la
 Cohesion: 0.40
 Nodes (5): 1. Paso Previo (ADR), 2. Validación, Procedimiento de Ejecución en 2 Pasos, PROTOCOLO OBLIGATORIO: GENERACIÓN PREVIA DE ADR, Regla de Ejecución
 
-### Community 350 - "2. Entorno de pruebas y promoción a producción (ADR-0031)"
-Cohesion: 0.10
-Nodes (21): 1. Compilar para producción, 1. Producción 24/7 en Hetzner (ADR-0027), 2. Entorno de pruebas y promoción a producción (ADR-0031), 2. Publicar, 3. Proxy `/api` hacia el backend, 4. Desplegar la PWA en Cloudflare Pages, 4. Verificar después de publicar, 5. Desarrollo local (+13 more)
+### Community 350 - "4. Desplegar la PWA en Cloudflare Pages"
+Cohesion: 0.29
+Nodes (7): 1. Compilar para producción, 2. Publicar, 3. Proxy `/api` hacia el backend, 4. Desplegar la PWA en Cloudflare Pages, 4. Verificar después de publicar, 5. Desarrollo local, Errores vistos y su causa
 
 ### Community 351 - "graphify reference: commit hook and native CLAUDE.md integration"
 Cohesion: 0.50
@@ -1957,9 +2014,9 @@ Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphif
 Cohesion: 0.38
 Nodes (5): RF-13 Cancelación con Reembolso (>72h), RF-14 Retención Comunitaria (<=72h / No-Show), booking.booking_cancellations, payments.refunds, T-3.4 Motor de Políticas de Cancelación (72h)
 
-### Community 355 - "ADR-0052: Endurecer la publicación de la PWA"
+### Community 356 - "k"
 Cohesion: 0.29
-Nodes (6): ADR-0052: Endurecer la publicación de la PWA, Alternativas Descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión
+Nodes (11): _e(), er(), fe(), Gt(), k(), Kt(), oe(), qt() (+3 more)
 
 ### Community 357 - "healthcheck"
 Cohesion: 0.48
@@ -1985,9 +2042,9 @@ Nodes (6): Browser compatibility, Character encoding, Doctype declaration, Featu
 Cohesion: 0.33
 Nodes (5): Step 1: Map the decision tree silently, Step 2: Ask Question 1, Step 3: Absorb and branch, Step 4: Continue until the tree is closed, Step 5: Offer to write it up
 
-### Community 364 - "WompiPaymentGatewayAdapter"
-Cohesion: 0.09
-Nodes (6): Animate SVG Wrapper Instead of SVG Element, Wompi, Digests, MockPaymentGatewayAdapter, WompiPaymentGatewayAdapter, WompiPaymentGatewayAdapterTest
+### Community 364 - "PaymentProperties"
+Cohesion: 0.07
+Nodes (9): Animate SVG Wrapper Instead of SVG Element, PaymentProperties, Simulator, Wompi, Digests, MockPaymentGatewayAdapter, WompiPaymentGatewayAdapter, PaymentSimulatorConfigTest (+1 more)
 
 ### Community 365 - "Diagnostic Scan"
 Cohesion: 0.33
@@ -2017,6 +2074,10 @@ Nodes (4): 1.1 Cómo se marca cada paso, 1.2 Qué hacer cuando un paso falla (`�
 Cohesion: 0.33
 Nodes (6): ADR-0001: Orquestar la infraestructura local con Docker Compose y variables de entorno segregadas por plantilla, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
 
+### Community 376 - ".registerTourist"
+Cohesion: 0.12
+Nodes (8): AssistedAccountServiceImpl, Emails, IdentityWriter, PasswordPolicy, RegistrationServiceImpl, PasswordPolicyTest, Notas de implementación (T-1.3, 2026-10-07), Consecuencias
+
 ### Community 377 - "Manual de usuario"
 Cohesion: 0.67
 Nodes (3): Contenido, Mantenimiento, Manual de usuario
@@ -2025,9 +2086,13 @@ Nodes (3): Contenido, Mantenimiento, Manual de usuario
 Cohesion: 0.33
 Nodes (6): ADR-0021: Habilitar recarga en caliente en desarrollo (backend y PWA), Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
 
-### Community 379 - "ADR-0022: Exponer distancia, paradas y tiempo de ida y vuelta del recorrido de una experiencia"
-Cohesion: 0.33
-Nodes (5): ADR-0022: Exponer distancia, paradas y tiempo de ida y vuelta del recorrido de una experiencia, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual
+### Community 379 - "Decisión"
+Cohesion: 0.29
+Nodes (6): ADR-0022: Exponer distancia, paradas y tiempo de ida y vuelta del recorrido de una experiencia, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Decisión
+
+### Community 380 - "ADR-0043: Completar la consola de administración con Personas, Incidentes y Liquidaciones"
+Cohesion: 0.18
+Nodes (11): 1. Personas (`/admin/personas`), 3. Liquidaciones (`/admin/liquidaciones`), 4. Consola en celular, 5. Resumen, navegación y transversales, 6. Evaluación completa de cierre, ADR-0043: Completar la consola de administración con Personas, Incidentes y Liquidaciones, Alternativas Descartadas, Consecuencias (+3 more)
 
 ### Community 381 - "Operación del corte de identidad de ADR-0046"
 Cohesion: 0.33
@@ -2094,8 +2159,8 @@ Cohesion: 0.50
 Nodes (4): Heuristics Scoring Guide, Issue Severity (P0–P3), Reference Material, Score Summary
 
 ### Community 407 - "api/index.ts"
-Cohesion: 0.05
-Nodes (66): ADR-0003, RFC-9457, Decisión, Decisión, Directiva 5: Consumo HTTP Estandarizado y Manejo de Errores (RFC 9457), RequireSessionProps, ADR-0013, ConfigErrorScreen() (+58 more)
+Cohesion: 0.04
+Nodes (85): Precedencia sobre skills de diseño (Impeccable y similares), ADR-0003, RFC-9457, ADR-0012: Shell móvil de la PWA, estado de servidor con TanStack Query y flujo de catálogo y franjas del turista, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual (+77 more)
 
 ### Community 410 - "Enter Animations: Split and Stagger"
 Cohesion: 0.50
@@ -2129,9 +2194,77 @@ Nodes (3): finish(), notify(), backup-postgres.sh script
 Cohesion: 0.50
 Nodes (3): PGDATABASE, PGHOST, restore-postgres.sh script
 
-### Community 456 - "VoucherDocumentStorage"
-Cohesion: 0.08
-Nodes (24): PresignedDownload, VoucherDocumentStorage, Lookup, AdminPayoutService, Detail, LookupStatus, ALREADY_CLOSED, CHECKED (+16 more)
+### Community 422 - "q"
+Cohesion: 0.22
+Nodes (10): q(), 1. Alcance de T-1.3: anfitrión autónomo + moderación del administrador, 2. Municipios DIVIPOLA por migración versionada (`V11__divipola_municipalities.sql`), 3. Alta de asociaciones y anfitriones por el administrador (RF-03, mínimo viable), 4. Experiencias: autoría del anfitrión y máquina de estados, 5. Franjas (`schedules`), 6. Consulta pública (RF-04) — sin JWT, 7. Errores, contrato y estructura (+2 more)
+
+### Community 456 - "Decisión"
+Cohesion: 0.14
+Nodes (13): 1. Alcance, 3. Despachador con reintentos (`@Scheduled`), 4. Transporte (**punto de decisión A**), 5. Plantillas (**punto de decisión B**), 6. Adjuntos, 7. Fronteras y configuración, 8. Pruebas, ADR-0011: Notificar por correo con un transactional outbox y un despachador SMTP con reintentos (+5 more)
+
+### Community 641 - "yt"
+Cohesion: 0.25
+Nodes (9): bt(), Ce(), s(), Ee(), l(), u(), Rt(), vt() (+1 more)
+
+### Community 657 - "6.A Camino A · SnapDeploy (plan Free)"
+Cohesion: 0.22
+Nodes (9): 6.A Camino A · SnapDeploy (plan Free), 6.B.1 Modo `quick` (sin dominio), 6.B.2 Modo `named` (con dominio), 6.B Camino B · Su PC + Cloudflare Tunnel (plan B), 6. Backend, Despertar la API y consumo de horas, Memoria: 512 MB es justo (verificado), Operación diaria (camino B) (+1 more)
+
+### Community 658 - "Seguimiento de hallazgos de TejiendoHogar"
+Cohesion: 0.22
+Nodes (9): Cómo actualizar el seguimiento, Decisiones de arquitectura para brechas de aplicación aún no implementadas, Estado de los hallazgos, Etapa final · Auditoría en la aplicación, H-09 · Edición de cuentas, Orden de trabajo, Registro de avances, Revisión de la consola administrativa en pruebas (+1 more)
+
+### Community 659 - "Cimiento Base: Infraestructura y Persistencia (Fase 0 - Completada)"
+Cohesion: 0.22
+Nodes (9): Cimiento Base: Infraestructura y Persistencia (Fase 0 - Completada), ETAPA 1: Identidades, Reserva Concurrente y Checkout Transaccional (Procesos 1 y 2), Fase 1.1: Backend - Núcleo Transaccional e Identidades (Procesos 1 y 2), Fase 1.2: Frontend - Interfaces PWA Móvil y Portales de Usuario (Procesos 1 y 2), Proceso 1 - Autenticación y Enrolamiento en PWA Móvil:, Proceso 1 - Gestión de Identidades, Autenticación y Enrolamiento:, Proceso 1 - Recuperación de Contraseña (agregado tras el cierre técnico de la Fase 1.1):, Proceso 2 - Catálogo, Reserva Concurrente, Bloqueo de Aforo y Checkout: (+1 more)
+
+### Community 660 - "Assigning an id"
+Cohesion: 0.25
+Nodes (8): A structural probe that comes back empty is a stop signal, Assigning an id, Floor staleness — the floor below the highest active prefix, Resolve each id at its own write time, Run the snippet immediately before every write, Shell portability of the id snippet — why the case patterns are parenthesised, The guard line, the sweep's count and the noclobber create, Why this is the entire concurrency story
+
+### Community 662 - "ADR-0006: Catálogo territorial — experiencias, franjas, moderación y consulta pública"
+Cohesion: 0.25
+Nodes (7): ADR-0006: Catálogo territorial — experiencias, franjas, moderación y consulta pública, Alternativas Descartadas, Consecuencias, Contexto, Contrato o Esquema Conceptual, Nota de renumeración y enmienda de alcance (2026-10-07), Notas de implementación (T-1.3, 2026-10-07)
+
+### Community 663 - "dependencies"
+Cohesion: 0.25
+Nodes (8): dependencies, idb, react, react-dom, react-router, @tanstack/react-query, uqr, zod
+
+### Community 665 - "ADR-0055: Validar el rendimiento con carga en un entorno desplegado"
+Cohesion: 0.29
+Nodes (7): ADR-0055: Validar el rendimiento con carga en un entorno desplegado, Alternativas Descartadas, Consecuencias, Contexto, Criterios de aceptación, Decisión, Precondiciones para ejecutar
+
+### Community 666 - "1. Producción 24/7 en Hetzner (ADR-0027)"
+Cohesion: 0.29
+Nodes (7): 1. Producción 24/7 en Hetzner (ADR-0027), Archivos, Arquitectura, Cómo se creó, Despliegue · Intégrate, Operación, Riesgos asumidos
+
+### Community 667 - "2. Entorno de pruebas y promoción a producción (ADR-0031)"
+Cohesion: 0.29
+Nodes (7): 2. Entorno de pruebas y promoción a producción (ADR-0031), Cambiar la rama que sigue SnapDeploy, Comprobar el aislamiento (obligatorio tras cambiar variables), Flujo, Lista de cierre (la hace el desarrollador), Piezas, Presupuesto de usos de SnapDeploy (5 al día)
+
+### Community 668 - "Prueba de carga en el entorno desplegado (H-16 · ADR-0055)"
+Cohesion: 0.29
+Nodes (7): 2026-11-11 · `integrate-pruebas` · commit `42a3fd0`, 2026-11-11 · Referencia local aislada (no desplegada) · commit `7ce35e3`, Antes de empezar, Ejecución, Plantilla de evidencia (una por corrida), Prueba de carga en el entorno desplegado (H-16 · ADR-0055), Registro de corridas
+
+### Community 669 - "bolder.md"
+Cohesion: 0.33
+Nodes (5): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat
+
+### Community 670 - "ADR-0048: Listado paginado de cuentas por rol, alta administrativa de usuarios y experiencias, y acciones solo-icono en móvil"
+Cohesion: 0.33
+Nodes (5): ADR-0048: Listado paginado de cuentas por rol, alta administrativa de usuarios y experiencias, y acciones solo-icono en móvil, Alternativas Descartadas, Consecuencias, Contexto, Referencias
+
+### Community 671 - "LocationPicker.test.tsx"
+Cohesion: 0.33
+Nodes (4): FakeAutocomplete, FakeGeocoder, FakeMap, FakeMarker
+
+### Community 672 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+
+### Community 676 - "ConsentAction"
+Cohesion: 0.50
+Nodes (3): ConsentAction, GRANTED, REVOKED
 
 ## Ambiguous Edges - Review These
 - `booking.bookings` → `Esquema DDL inicial (spec §6)`  [AMBIGUOUS]
@@ -2140,9 +2273,9 @@ Nodes (24): PresignedDownload, VoucherDocumentStorage, Lookup, AdminPayoutServic
   docs/roadmap_ejecucion.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **2982 isolated node(s):** `new-observation.sh script`, `com.integrate:backend-api`, `INFO`, `WARNING`, `HIGH` (+2977 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3942 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **289 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3003 isolated node(s):** `new-observation.sh script`, `com.integrate:backend-api`, `INFO`, `WARNING`, `HIGH` (+2998 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3967 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **288 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -2151,13 +2284,13 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: semantically_similar_to) - confidence is low._
 - **What is the exact relationship between `Migraciones Flyway V1–V9` and `T-0.4 Migración inicial Flyway (V1__initial_schema.sql)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `4. Bitácora de Avances` connect `org.springframework.stereotype.Component` to `IdentityProtection`, `MyBookingSummary`, `PageResponse`, `Button`, `org.springframework.transaction.annotation.Transactional`, `Icon`, `useHttpClient`, `VoucherApiIntegrationTest.java`, `BookingStatus`, `.shortCode`, `routes.tsx`, `BookingCancellationServiceImpl.java`, `org.springframework.context.annotation.Configuration`, `api/index.ts`, `org.springframework.http.ResponseEntity`, `shared/offline/index.ts`, `modern-screenshot.umd.js`, `PaymentProperties`, `org.springframework.web.bind.annotation.RestController`, `AdminPeopleServiceImpl.java`, `lib/index.ts`, `GlobalExceptionHandler.java`, `org.springframework.web.bind.annotation.GetMapping`, `Decisión`, `lombok.RequiredArgsConstructor`, `.status`, `IntegrateOfflineDB`, `redemptionEngine.ts`, `SyncBatchServiceImpl.java`, `.build`, `PayoutProcessor.java`, `.title`, `features/offline/index.ts`, `Result`, `VoucherDocumentStorage`, `uuid`, `MeetingPointVerifier`, `SecurityConfig.java`, `LoginRequest`, `BookingConfirmedEvent`, `QrScannerPage.tsx`, `IntegrateApplication`, `org.springframework.boot.context.properties.ConfigurationProperties`?**
-  _High betweenness centrality (0.197) - this node is a cross-community bridge._
-- **Why does `init()` connect `initGlobalBar` to `live.md`, `initPageChat`, `onAnnotDown`, `live-browser.js`, `handleManualEditActivity`, `routes.tsx`, `Init flow`, `connectSSE`, `handleKeyDown`, `doctor.md`, `impeccable/SKILL.md`?**
-  _High betweenness centrality (0.113) - this node is a cross-community bridge._
-- **Why does `Precedencia sobre skills de diseño (Impeccable y similares)` connect `routes.tsx` to `AGENTS.md`, `org.springframework.boot.context.properties.ConfigurationProperties`, `initGlobalBar`, `api/index.ts`?**
+- **Why does `4. Bitácora de Avances` connect `lombok.RequiredArgsConstructor` to `User`, `ConsentHealthNoticeTest.java`, `MyBookingSummary`, `Icon`, `BookingStatusPage.tsx`, `Button`, `RoleCode`, `.hasVoucher`, `uuid`, `.shortCode`, `AdminConsentFilter.java`, `DocType`, `ui/index.ts`, `PaymentProvider`, `PayoutBatchResponse`, `api/index.ts`, `shared/offline/index.ts`, `MeetingPointAutomaton.java`, `org.springframework.web.bind.annotation.RestController`, `ClientInfo`, `lib/index.ts`, `GlobalExceptionHandler.java`, `q`, `org.springframework.transaction.annotation.Transactional`, `org.junit.jupiter.api.Test`, `IntegrateOfflineDB`, `redemptionEngine.ts`, `offlineFlow.test.tsx`, `features/offline/index.ts`, `ExperienceRequest`, `AuthController`, `org.springframework.context.annotation.Bean`, `PayoutProcessor.java`, `jakarta.persistence.Entity`, `SecurityConfig.java`, `LoginRequest`, `L`, `AccessTokenIssuer`, `PaymentProperties`, `IntegrateApplication`, `SyncDecisionApplier`, `OutboxDispatcher.java`?**
+  _High betweenness centrality (0.192) - this node is a cross-community bridge._
+- **Why does `init()` connect `initGlobalBar` to `live.md`, `initPageChat`, `onAnnotDown`, `live-browser.js`, `handleManualEditActivity`, `impeccable/SKILL.md`, `Init flow`, `connectSSE`, `handleKeyDown`, `api/index.ts`?**
   _High betweenness centrality (0.108) - this node is a cross-community bridge._
+- **Why does `Precedencia sobre skills de diseño (Impeccable y similares)` connect `api/index.ts` to `AGENTS.md`, `IdentityCutPostgresTest.java`, `initGlobalBar`, `ui/index.ts`?**
+  _High betweenness centrality (0.106) - this node is a cross-community bridge._
 - **What connects `new-observation.sh script`, `com.integrate:backend-api`, `INFO` to the rest of the system?**
-  _2982 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Button` be split into smaller, more focused modules?**
-  _Cohesion score 0.03390894819466248 - nodes in this community are weakly interconnected._
+  _3003 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Icon` be split into smaller, more focused modules?**
+  _Cohesion score 0.03058017916608039 - nodes in this community are weakly interconnected._
