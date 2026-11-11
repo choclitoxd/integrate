@@ -12,6 +12,7 @@
 #   bash infra/scripts/snapdeploy.sh status            # estado, URL y horas gastadas
 #   bash infra/scripts/snapdeploy.sh logs [líneas]     # logs recientes de ejecución
 #   bash infra/scripts/snapdeploy.sh deploys           # últimos despliegues y el error/log de build del más reciente
+#   bash infra/scripts/snapdeploy.sh buildlog [seg]    # tras un push: guarda el log de construcción mientras corre (SnapDeploy lo borra poco después de terminar)
 #   bash infra/scripts/snapdeploy.sh vars              # qué variables tiene el contenedor (solo NOMBRES) y cuáles faltan
 # Más simple: ponga el token en infra/env/.env.snapdeploy y no exporte nada. Opciones por entorno: SNAPDEPLOY_NAME (nombre del contenedor, por defecto integrate-api),
 #   ENV_FILE (por defecto infra/env/.env.demo).
@@ -230,5 +231,28 @@ try:
     d=json.load(sys.stdin); L=d if isinstance(d,list) else d.get('logs',d)
     print('\n'.join(L) if isinstance(L,list) else L)
 except Exception: print('(respuesta no interpretable)')" ;;
-  *) echo "Comando desconocido: $CMD (env | wake | status | logs)"; exit 2 ;;
+  buildlog)  # consulta el despliegue más reciente cada 10 s y conserva la última cola del build que devuelva la API
+    CID=$(container_id) || exit 1
+    OUTF="${BUILDLOG_FILE:-${TMPDIR:-/tmp}/snapdeploy-build-$(date +%Y%m%d-%H%M%S).log}"; MAX="${1:-420}"; T=0; : > "$OUTF"
+    while [ "$T" -le "$MAX" ]; do
+      api GET "/api/mobile/containers/$CID/deployments?limit=1"
+      LAST=$(printf '%s' "$BODY" | pyj "
+import sys,json
+d=json.load(sys.stdin); L=d if isinstance(d,list) else d.get('deployments',d.get('items',[]))
+print((L[0].get('deploymentId') or L[0].get('id') or '') if L else '')" 2>/dev/null)
+      if [ -n "$LAST" ]; then
+        api GET "/api/mobile/deployments/$LAST"
+        printf '%s' "$BODY" | OUTF="$OUTF" pyj "
+import sys,json,os
+d=json.load(sys.stdin); t=d.get('buildLogsTail')
+if t:
+    t=t if isinstance(t,str) else chr(10).join(map(str,t))
+    open(os.environ['OUTF'],'w',encoding='utf-8').write(t)
+print(d.get('status'), d.get('errorCode') or '', len(t or ''))" | tee "$OUTF.estado"
+        case "$(cut -d' ' -f1 "$OUTF.estado")" in COMPLETED|FAILED) break;; esac
+      fi
+      sleep 10; T=$((T+10))
+    done
+    echo "Log del build guardado en: $OUTF ($(wc -c < "$OUTF") bytes)" ;;
+  *) echo "Comando desconocido: $CMD (env | wake | status | logs | deploys | vars | buildlog)"; exit 2 ;;
 esac
