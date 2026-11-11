@@ -3426,7 +3426,7 @@ components:
               occurredAt: { type: [string, 'null'], format: date-time }
         requiresConsentUpdate:
           type: boolean
-          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST).'
+          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST solo si ya tiene constancia de ese consentimiento, ADR-0068).'
         pendingPurposes:
           type: array
           items: { $ref: '#/components/schemas/ConsentPurpose' }
@@ -4841,7 +4841,7 @@ components:
               occurredAt: { type: [string, 'null'], format: date-time }
         requiresConsentUpdate:
           type: boolean
-          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST).'
+          description: '`true` si falta alguna finalidad exigida por rol (`PERSONAL_DATA`; `SENSITIVE_VICTIM` para HOST solo si ya tiene constancia de ese consentimiento, ADR-0068).'
         pendingPurposes:
           type: array
           items: { $ref: '#/components/schemas/ConsentPurpose' }

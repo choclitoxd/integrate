@@ -145,6 +145,45 @@ class ConsentAndBootstrapIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void hostWithoutVictimConsentIsNotAskedForIt() {
+        // ADR-0068: el anfitrión asignado por la administradora no tiene datos de víctima ni constancia del consentimiento.
+        String email = uniqueEmail("host-sin-victima");
+        UUID userId = registrationService.registerTourist(tourist(email), CLIENT).userId();
+        roles.grant(userId, RoleCode.HOST);
+
+        Session session = authService.login(new LoginRequest(email, PASSWORD), CLIENT);
+
+        assertThat(session.consent().requiresConsentUpdate()).isFalse();
+        assertThat(session.consent().pendingPurposes()).isEmpty();
+        assertThat(consentService.status(userId).requiresConsentUpdate()).isFalse();
+    }
+
+    @Test
+    void hostWithVictimConsentMustRenewItWhenThePolicyChanges() {
+        // ADR-0068: quien sí tiene constancia (como el anfitrión del alta asistida) sigue renovándola.
+        String email = uniqueEmail("host-con-victima");
+        UUID userId = registrationService.registerTourist(tourist(email), CLIENT).userId();
+        roles.grant(userId, RoleCode.HOST);
+        consentService.grant(userId, new ConsentAcceptance(DEV_POLICY, Set.of(ConsentPurpose.SENSITIVE_VICTIM)), CLIENT);
+        assertThat(consentService.status(userId).requiresConsentUpdate()).isFalse();
+        publishPolicy("v0.3");
+        try {
+            Session session = authService.login(new LoginRequest(email, PASSWORD), CLIENT);
+
+            assertThat(session.consent().requiresConsentUpdate()).isTrue();
+            assertThat(session.consent().pendingPurposes())
+                    .containsExactlyInAnyOrder(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.SENSITIVE_VICTIM);
+
+            ConsentStatus after = consentService.grant(userId, new ConsentAcceptance("v0.3",
+                    Set.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.SENSITIVE_VICTIM)), CLIENT);
+
+            assertThat(after.requiresConsentUpdate()).isFalse();
+        } finally {
+            restoreDevPolicy();
+        }
+    }
+
+    @Test
     void bootstrapCreatesTheFirstAdminOnlyOnce() {
         String email = uniqueEmail("admin");
         AdminBootstrapCommand command = new AdminBootstrapCommand(email, PASSWORD, "Administrador de plataforma",
