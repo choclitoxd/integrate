@@ -136,7 +136,7 @@ describe('registro (T-1.11)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe('/cuenta');
+      expect(router.state.location.pathname).toBe('/turista/cuenta');
     });
     expect(registered).toEqual({
       email: 'nuevo@ejemplo.com',

@@ -658,7 +658,9 @@ describe('Fase 2.2 · Padrón, validación QR, contingencia y sincronización PW
     ).toBeVisible();
 
     const textarea = screen.getByLabelText('Token QR (JWS compacto)');
-    await userEvent.type(textarea, signed.token);
+    const user = userEvent.setup();
+    await user.click(textarea);
+    await user.paste(signed.token);
     await userEvent.click(
       screen.getByRole('button', { name: 'Verificar firma y registrar ingreso' }),
     );
