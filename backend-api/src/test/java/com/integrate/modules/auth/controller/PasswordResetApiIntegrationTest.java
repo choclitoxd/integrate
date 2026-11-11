@@ -207,6 +207,10 @@ class PasswordResetApiIntegrationTest extends PostgresIntegrationTest {
         forgot(email).andExpect(status().isAccepted());
         String resetToken = tokenFromOutbox(email);
         String ownPassword = "clave-propia-" + UUID.randomUUID();
+        String reauth = JsonPath.read(mvc.perform(post("/api/v1/auth/me/reauth")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"password\":\"" + PASSWORD + "\"}")).andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString(), "$.reauthToken");
         CountDownLatch start = new CountDownLatch(1);
         CompletableFuture<Integer> reset = CompletableFuture.supplyAsync(() -> {
             try { start.await(); return reset(resetToken, NEW_PASSWORD).andReturn().getResponse().getStatus(); }
@@ -216,7 +220,8 @@ class PasswordResetApiIntegrationTest extends PostgresIntegrationTest {
             try {
                 start.await();
                 return mvc.perform(post("/api/v1/auth/me/password")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer).contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer).header("X-Reauth-Token", reauth)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + ownPassword + "\"}"))
                         .andReturn().getResponse().getStatus();
             } catch (Exception ex) { throw new RuntimeException(ex); }

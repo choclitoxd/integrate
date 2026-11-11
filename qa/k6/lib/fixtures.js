@@ -139,7 +139,7 @@ export function lockBody(scheduleId) {
     requestedSlots: 1,
     emergencyContact: { fullName: 'Carlos Gomez', phone: '+573001234567' },
     participants: [
-      { fullName: 'Participante Uno', docType: 'CC', docNumber: '50940000', medicalEps: 'Sura', isHolder: true },
+      { fullName: 'Participante Uno', docType: 'CC', docNumber: '50940000', isHolder: true },
     ],
   };
 }

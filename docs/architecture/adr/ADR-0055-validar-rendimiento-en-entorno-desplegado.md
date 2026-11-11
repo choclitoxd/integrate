@@ -1,6 +1,6 @@
 # ADR-0055: Validar el rendimiento con carga en un entorno desplegado
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-11-11)
 - **Proyecto / Módulo:** Intégrate · backend, PWA y QA de rendimiento
 - **Fecha:** 2026-11-10
 - **Hallazgo relacionado:** H-16
@@ -32,4 +32,12 @@ Cada corrida registrará commit o versión desplegada, fecha, entorno, escenario
 - Se ejecutan los escenarios pertinentes de navegación, autenticación y reserva sin usar datos reales.
 - Se reportan todos los datos de medición requeridos y se comparan con umbrales preexistentes.
 - Un fallo genera una acción de diagnóstico; el hallazgo no se cierra por una corrida local.
+
+## Precondiciones para ejecutar
+
+Procedimiento y plantilla de evidencia: [prueba-carga-desplegada.md](../../quality/prueba-carga-desplegada.md).
+
+- **Entorno:** `pruebas` (SnapDeploy, rama `pruebas`, Neon de pruebas). La corrida solo es válida si el contenedor ejecuta el commit que se declara; una versión desplegada anterior no acredita el estado actual.
+- **Estado al 2026-11-11:** el contenedor configurado en `infra/env/.env.snapdeploy` figura `FAILED` y las construcciones de `pruebas` fallan desde 2026-11-10 sin causa confirmada. Hasta contar con una construcción sana la corrida no se ejecuta; no se registra evidencia de una versión obsoleta como si fuera la vigente.
+- **Costo:** un push a `pruebas` y un `wake` consumen usos del límite diario de SnapDeploy (5); se avisa antes de gastarlos y se apaga el contenedor al terminar.
 

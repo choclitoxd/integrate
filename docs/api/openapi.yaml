@@ -80,6 +80,47 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /api/v1/auth/me/reauth:
+    post:
+      tags: [Auth]
+      operationId: reauthenticateOwnAccount
+      summary: Confirma la identidad con la contraseña y emite un token de reautenticación de corta vida.
+      description: |
+        El token se envía en la cabecera `X-Reauth-Token` al editar los datos de la cuenta (`PATCH /api/v1/auth/me`)
+        o cambiar la contraseña (`POST /api/v1/auth/me/password`) (ADR-0058). Respuesta sin caché.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, writeOnly: true }
+      responses:
+        '200':
+          description: Identidad confirmada.
+          headers:
+            Cache-Control: { schema: { type: string, example: no-store } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reauthToken, expiresAt]
+                properties:
+                  reauthToken: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429':
+          description: Demasiados intentos; Retry-After indica los segundos de espera.
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
   /api/v1/auth/me/password:
     post:
       tags: [Auth]

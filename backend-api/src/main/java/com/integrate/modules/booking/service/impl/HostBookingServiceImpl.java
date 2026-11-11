@@ -1,7 +1,6 @@
 package com.integrate.modules.booking.service.impl;
 
-import com.integrate.common.audit.AuditEntry;
-import com.integrate.common.audit.AuditTrail;
+import com.integrate.common.audit.SensitiveAccessRecorder;
 import com.integrate.common.crypto.SensitiveDataCipher;
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
@@ -12,7 +11,6 @@ import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.booking.entity.BookingParticipant;
 import com.integrate.modules.booking.service.HostBookingService;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -32,13 +30,14 @@ public class HostBookingServiceImpl implements HostBookingService {
     private final JdbcTemplate jdbc;
     private final ConsentService consents;
     private final SensitiveDataCipher cipher;
-    private final AuditTrail audit;
+    private final SensitiveAccessRecorder sensitiveAccess;
 
-    public HostBookingServiceImpl(JdbcTemplate jdbc, ConsentService consents, SensitiveDataCipher cipher, AuditTrail audit) {
+    public HostBookingServiceImpl(JdbcTemplate jdbc, ConsentService consents, SensitiveDataCipher cipher,
+            SensitiveAccessRecorder sensitiveAccess) {
         this.jdbc = jdbc;
         this.consents = consents;
         this.cipher = cipher;
-        this.audit = audit;
+        this.sensitiveAccess = sensitiveAccess;
     }
 
     private record EpsRow(UUID touristId, String docType, String docNumber, byte[] eps, short keyVersion,
@@ -69,8 +68,9 @@ public class HostBookingServiceImpl implements HostBookingService {
         }
         String eps = row.eps() == null ? null : cipher.decrypt(row.eps(),
                 BookingParticipant.epsAad(bookingId, DocType.valueOf(row.docType()), row.docNumber()), row.keyVersion());
-        audit.record(new AuditEntry("booking", "bookings", bookingId.toString(), "SENSITIVE_DATA_ACCESSED",
-                AuditEntry.Severity.INFO, hostId, client.ipAddress(), client.userAgent(), Map.of("purpose", "host_emergency")));
+        sensitiveAccess.record(new SensitiveAccessRecorder.Access("booking", "bookings", bookingId.toString(),
+                "HOST_EMERGENCY", List.of("medicalEps"), List.of(bookingId.toString()), hostId, client.ipAddress(),
+                client.userAgent()));
         return new HolderEps(eps);
     }
 
