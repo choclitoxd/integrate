@@ -66,7 +66,7 @@ El recorrido completo es: **explorar → elegir fecha y franja → ingresar → 
 
 ### 3.1 Crear cuenta e ingresar
 
-#### Crear tu cuenta
+#### 1 Crear tu cuenta
 
 1. En la barra inferior toca **Ingresar** y luego **Crea una gratis**.
 2. Escribe nombre completo, tipo y número de documento, celular (con indicativo, ej. `+57`), correo y una contraseña de **mínimo 12 caracteres**.
@@ -77,7 +77,7 @@ El recorrido completo es: **explorar → elegir fecha y franja → ingresar → 
 
 <p align="center"><img src="img/02-formulario-crea-tu-cuenta-con-campos-de.jpg" alt="Formulario Crea tu cuenta con campos de nombre, documento, celular, correo y contraseña." width="300"><br><em>Crear cuenta</em></p>
 
-#### Ingresar
+#### 2 Ingresar
 
 1. Toca **Ingresar** en la barra inferior (o se abre solo al intentar reservar).
 2. Escribe tu correo y contraseña. El ícono del ojo muestra u oculta la contraseña.
@@ -85,15 +85,17 @@ El recorrido completo es: **explorar → elegir fecha y franja → ingresar → 
 
 <p align="center"><img src="img/03-pantalla-ingresa-a-tu-cuenta-con-campos.jpg" alt="Pantalla Ingresa a tu cuenta con campos de correo y contraseña y botón Ingresar." width="300"><br><em>Ingresar</em></p>
 
-#### Recuperar tu contraseña
+#### 3 Recuperar contraseña
 
-1. En **Ingresar**, toca **¿Olvidaste tu contraseña?** y escribe el correo de tu cuenta.
-2. Si tienes acceso a ese correo, abre el enlace que recibas. Es válido por 15 minutos.
+1. En **Ingresar**, toca **¿Olvidaste tu contraseña?**. Escribe el correo de tu cuenta y toca **Enviar enlace**.
+2. Abre el enlace que recibas en tu correo. Es válido por 15 minutos.
 3. Escribe y repite la nueva contraseña, toca **Guardar contraseña** e ingresa con ella.
+
+<p align="center"><img src="img/recuperar-contrasena.jpg" alt="Formulario Recupera tu contraseña con el campo Correo y el botón Enviar enlace." width="300"><br><em>Recuperar contraseña</em></p>
 
 ### 3.2 Explorar experiencias
 
-#### Catálogo y búsqueda
+#### 4 Catálogo y búsqueda
 
 La pantalla **Explorar** muestra las experiencias aprobadas. Cada tarjeta indica municipio, asociación que organiza, duración, intensidad física, aforo máximo por franja, categoría y precio por persona.
 
@@ -102,7 +104,7 @@ La pantalla **Explorar** muestra las experiencias aprobadas. Cada tarjeta indica
 
 <p align="center"><img src="img/04-catalogo-de-experiencias-comunitarias-co.jpg" alt="Catálogo de experiencias comunitarias con buscador, botón Filtros y tarjeta del Sendero de la memoria del río Calderas." width="300"><br><em>Catálogo</em></p>
 
-#### Filtrar
+#### 5 Filtrar
 
 1. Toca **Filtros**.
 2. Elige **Departamento** (luego se habilita **Municipio**), **Categoría** e **Intensidad física** (Todas, Baja, Media, Alta).
@@ -110,7 +112,7 @@ La pantalla **Explorar** muestra las experiencias aprobadas. Cada tarjeta indica
 
 <p align="center"><img src="img/05-panel-filtrar-experiencias-con-selectore.jpg" alt="Panel Filtrar experiencias con selectores de departamento, municipio y categoría y botones de intensidad física." width="300"><br><em>Filtros</em></p>
 
-#### Detalle de la experiencia
+#### 6 Detalle de la experiencia
 
 Muestra la descripción, el **punto de encuentro** (con enlace a Google Maps), las indicaciones del anfitrión y las recomendaciones de ropa, calzado, hidratación e implementos.
 
@@ -120,7 +122,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 ### 3.3 Reservar
 
-#### Elegir personas, fecha y franja
+#### 7 Elegir personas, fecha y franja
 
 1. Ajusta **Personas** con los botones − y + (hasta 10 por reserva; para grupos más grandes haz varias reservas).
 2. Elige el día en la semana. Los días con punto tienen cupos; los tachados están agotados. Con las flechas o el nombre del mes cambias de semana o abres el mes completo.
@@ -131,7 +133,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 <p align="center"><img src="img/07-pantalla-elige-fecha-y-franja-con-2-pers.jpg" alt="Pantalla Elige fecha y franja con 2 personas, jueves 22 de octubre seleccionado y franja de 9:00 a 12:00; total 90.000 pesos." width="300"><br><em>Fecha y franja</em></p>
 
-#### Datos de los viajeros
+#### 8 Datos de los viajeros
 
 1. Por cada viajero escribe nombre completo, tipo y número de documento. El viajero 1 es el titular y se llena con tus datos. Si la aplicación lo ofrece, el titular puede compartir su **EPS**: es voluntaria, solo la da el titular y el anfitrión de la experiencia podrá consultarla en una emergencia. Puedes reservar sin ella.
 2. Agrega un **contacto de emergencia** que *no* viaje con el grupo (nombre y celular).
@@ -143,7 +145,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 ### 3.4 Pagar
 
-#### Pagar la reserva
+#### 9 Pagar la reserva
 
 1. Tienes **15 minutos** para pagar; el contador lo muestra arriba. Si se vence, los cupos se liberan.
 2. Revisa el resumen: el 85 % del valor va a la asociación comunitaria.
@@ -156,7 +158,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 ### 3.5 Reserva confirmada y voucher
 
-#### Tu voucher
+#### 10 Tu voucher
 
 Con el pago aprobado verás **¡Reserva confirmada!** y el voucher, que también llega a tu correo:
 
@@ -168,7 +170,7 @@ Si el voucher aún está «en emisión», espera unos segundos y toca **Volver a
 
 <p align="center"><img src="img/10-pantalla-reserva-confirmada-con-el-codig.jpg" alt="Pantalla Reserva confirmada con el código QR del voucher y el código de contingencia." width="300"><br><em>Voucher con QR</em></p>
 
-#### Ficha de viaje
+#### 11 Ficha de viaje
 
 Debajo del voucher está la **ficha de viaje**: experiencia, fecha y hora, punto de encuentro, asociación que te recibe, número de viajeros y valor pagado, más las recomendaciones de qué llevar.
 
@@ -176,7 +178,7 @@ Debajo del voucher está la **ficha de viaje**: experiencia, fecha y hora, punto
 
 ### 3.6 Mi cuenta
 
-#### Perfil, autorizaciones y salida
+#### 12 Perfil, autorizaciones y salida
 
 - Toca **Mi cuenta** en la barra inferior para ver tu nombre, correo y roles.
 - En **Autorizaciones de datos** ves el estado de cada autorización. Si los datos de salud están «Sin autorizar», aparece el botón **Autorizar datos de salud para reservar**.
@@ -194,7 +196,7 @@ El Gestor de Enlace es el puente entre Intégrate y la comunidad: registra a los
 
 ### 4.1 Panel de jornada
 
-#### Entrar al portal del gestor
+#### 1 Entrar al portal del gestor
 
 Abre **Jornada** desde **Módulos** en el celular o desde la navegación en computador. Para el enrolamiento, usa estos accesos del **Panel de jornada**:
 
@@ -207,7 +209,7 @@ Desde **Jornada** también puedes descargar el padrón de hoy, validar QR, abrir
 
 ### 4.2 Enrolar un anfitrión
 
-#### Paso 1 · Datos del anfitrión
+#### 2 Paso 1 · Datos del anfitrión
 
 El indicador **En línea** confirma que hay conexión. Nada de lo que escribas se guarda en el teléfono.
 
@@ -217,7 +219,7 @@ El indicador **En línea** confirma que hay conexión. Nada de lo que escribas s
 
 <p align="center"><img src="img/14-formulario-enrolar-anfitrion-paso-1-dato.jpg" alt="Formulario Enrolar anfitrión, paso 1 Datos del anfitrión, con indicador En línea." width="300"><br><em>Enrolar · datos</em></p>
 
-#### Pasos 2 y 3 · Condición y autorización
+#### 3 Pasos 2 y 3 · Condición y autorización
 
 1. **Condición de víctima**: responde Sí o No a si la persona es víctima del conflicto armado (Ley 1448). Es un dato sensible y se cifra. Si respondes **Sí**, puedes añadir el número de registro RUV, el hecho victimizante y un documento soporte en PDF de hasta 5 MB.
 2. **Autorización de datos**: lee la política con la persona y marca las dos autorizaciones obligatorias (datos personales y condición de víctima; se piden siempre, sea o no víctima).
@@ -228,13 +230,13 @@ El indicador **En línea** confirma que hay conexión. Nada de lo que escribas s
 
 ### 4.3 Entregar el código de activación
 
-#### Anfitrión registrado
+#### 4 Anfitrión registrado
 
 Verás el nombre, el correo de acceso y el estado **Pendiente de activación**. Toca **Emitir código de activación**.
 
 <p align="center"><img src="img/16-pantalla-anfitrion-registrado-con-estado.jpg" alt="Pantalla Anfitrión registrado con estado Pendiente de activación y botón Emitir código de activación." width="300"><br><em>Anfitrión registrado</em></p>
 
-#### Código de activación
+#### 5 Código de activación
 
 Aparece un código de 10 caracteres (formato `XXXXX-XXXXX`) que **vence en 72 horas**. Entrégalo **en persona** y explica al anfitrión:
 
@@ -248,7 +250,7 @@ Aparece un código de 10 caracteres (formato `XXXXX-XXXXX`) que **vence en 72 ho
 
 ### 4.4 Mis anfitriones
 
-#### Consultar y reemitir
+#### 6 Consultar y reemitir
 
 En **Anfitriones** ves las personas de tu jurisdicción con su estado:
 
@@ -270,7 +272,7 @@ El documento se muestra enmascarado (solo los últimos 4 dígitos). Con **+ Enro
 
 Si te enroló un Gestor de Enlace, pídele tu correo de acceso y código de activación. Si ya tenías una cuenta y un administrador te asignó el rol de anfitrión, vuelve a ingresar para ver tus opciones.
 
-#### Activar la cuenta
+#### 1 Activar la cuenta
 
 1. Abre la aplicación en `/activar` (el gestor te indica la dirección).
 2. Escribe el **correo** que te indicó el gestor.
@@ -280,7 +282,7 @@ Si te enroló un Gestor de Enlace, pídele tu correo de acceso y código de acti
 
 <p align="center"><img src="img/19-formulario-activa-tu-cuenta-con-campos-d.jpg" alt="Formulario Activa tu cuenta con campos de correo, código de activación, nueva contraseña y confirmación." width="300"><br><em>Activar cuenta</em></p>
 
-#### Cuenta activada
+#### 2 Cuenta activada
 
 Verás **Cuenta activada**. Toca **Ingresar** y entra con tu correo y la contraseña que acabas de crear (ver [3.1](#31-crear-cuenta-e-ingresar)).
 
@@ -288,7 +290,7 @@ Si el código no funciona, aparece: «El código no es válido, venció o ya se 
 
 <p align="center"><img src="img/20-pantalla-cuenta-activada-con-el-boton-in.jpg" alt="Pantalla Cuenta activada con el botón Ingresar." width="300"><br><em>Cuenta activada</em></p>
 
-#### Mi cuenta del anfitrión
+#### 3 Mi cuenta del anfitrión
 
 En **Mi cuenta** aparece el rol «Anfitrión comunitario» y tres autorizaciones: datos personales, **condición de víctima del conflicto armado** (registradas en el enrolamiento) y datos de salud. Si quieres reservar experiencias como viajero, toca **Autorizar datos de salud para reservar**.
 
@@ -296,15 +298,23 @@ En **Mi cuenta** aparece el rol «Anfitrión comunitario» y tres autorizaciones
 
 ### 5.1 Crear y gestionar experiencias
 
+#### 4 Crear una experiencia
+
 1. Abre **Experiencias del anfitrión** desde la navegación de tu rol. En el celular está dentro de **Módulos**.
 2. Toca **Nueva experiencia**, completa los datos solicitados, incluido el punto de encuentro, y toca **Guardar borrador**.
 3. En la lista, toca **Gestionar**. Revisa la ficha y usa **Verificar punto de encuentro** si aparece. Cuando el borrador esté listo, toca **Enviar a revisión**. Si lo rechazan, consulta el motivo, guarda las correcciones y vuelve a enviarlo.
 4. En la ficha, abre **Horarios**. Si el estado lo permite, usa **Añadir horario**, completa los campos y toca **Guardar horario**. Puedes consultar los cupos y cancelar un horario cuando la ficha ofrezca esa acción.
 
+<p align="center"><img src="img/nueva-experiencia.jpg" alt="Formulario Nueva experiencia con campos de título, precio, cupo por fecha y descripción." width="300"><br><em>Nueva experiencia</em></p>
+
 ### 5.2 Consultar reservas y métricas
+
+#### 5 Revisar reservas y métricas
 
 - Abre **Anfitrión** para ver **Reservas confirmadas**. Usa los filtros para encontrar una jornada. Si hay una emergencia y tienes conexión, abre **Consultar EPS en emergencia** en la reserva correspondiente. El dato depende de que el titular lo haya compartido y autorizado.
 - Abre **Mis métricas** y elige el mes para ver reservas, viajeros, ocupación de próximas jornadas y asistencia.
+
+<p align="center"><img src="img/metricas-anfitrion.jpg" alt="Pantalla Mis métricas con selector de mes y tarjetas de reservas, personas, jornadas y cupos." width="300"><br><em>Mis métricas</em></p>
 
 ## 6. Administrador ROLE_ADMIN
 
@@ -365,4 +375,4 @@ Estos resultados corresponden al recorrido de octubre. Las instrucciones añadid
 | Turista | Vista de escritorio del catálogo (1280 px) | Correcto |
 | Turista | Pago rechazado, vencimiento de los 15 min, descarga del PDF del voucher | No probado en esta pasada |
 
-Intégrate · Turismo comunitario en Colombia. Las capturas ilustran el recorrido de octubre con datos ficticios y pueden mostrar una interfaz anterior.
+Intégrate · Turismo comunitario en Colombia. Las capturas de recuperación, nueva experiencia y métricas corresponden a la revisión de noviembre. Las demás proceden del recorrido de octubre con datos ficticios.

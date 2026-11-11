@@ -25,9 +25,9 @@ def slug(t, n=40):
 class P(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.out = []; self.buf = ""; self.lists = []; self.img_n = 0
+        self.out = []; self.buf = ""; self.lists = []; self.img_n = 0; self.named_images = 0
         self.table = None; self.cell = None; self.in_pre = False
-        self.caption = None; self.note = False; self.skip = 0; self.href = None
+        self.caption = None; self.note = False; self.href = None
 
     def w(self, s):
         if self.cell is not None: self.cell += s
@@ -47,7 +47,6 @@ class P(HTMLParser):
     def handle_starttag(self, tag, a):
         a = dict(a)
         cls = a.get("class", "") or ""
-        if tag == "span" and "n" == cls: self.skip += 1; return
         if tag in ("h2", "h3", "h4"):
             self.flush(); self.buf = "#" * (int(tag[1])) + " "
             if a.get("id"): self.anchor = a["id"]
@@ -73,14 +72,19 @@ class P(HTMLParser):
             m = re.match(r"data:image/(\w+);base64,(.*)", a.get("src", ""), re.S)
             alt = a.get("alt", "")
             if m:
-                self.img_n += 1
                 ext = "jpg" if m.group(1) == "jpeg" else m.group(1)
-                name = f"{self.img_n:02d}-{slug(alt)}.{ext}"
+                name = a.get("data-filename")
+                if name:
+                    if not re.fullmatch(r"[a-z0-9-]+\." + ext, name):
+                        raise ValueError(f"Nombre de captura inválido: {name}")
+                    self.named_images += 1
+                else:
+                    self.img_n += 1
+                    name = f"{self.img_n:02d}-{slug(alt)}.{ext}"
                 (img_dir / name).write_bytes(base64.b64decode(m.group(2)))
                 self.pending_img = (alt, f"{img_dir.name}/{name}", a.get("width")); self.h = a.get("height")
 
     def handle_endtag(self, tag):
-        if tag == "span" and self.skip: self.skip -= 1; return
         if tag in ("h2", "h3", "h4", "p"): self.flush()
         elif tag in ("ul", "ol"):
             self.flush("\n"); self.lists.pop()
@@ -110,7 +114,6 @@ class P(HTMLParser):
         elif tag == "figcaption": pass
 
     def handle_data(self, d):
-        if self.skip: return
         if self.table is not None and self.cell is None: return
         self.w(d)
 
@@ -140,4 +143,4 @@ header = (
     "8. [Registro histórico de la prueba del flujo](#8-registro-histórico-de-la-prueba-del-flujo)\n\n"
 )
 out_md.write_text(header + body.strip() + "\n", encoding="utf-8")
-print("images:", p.img_n)
+print("images:", p.img_n + p.named_images)
