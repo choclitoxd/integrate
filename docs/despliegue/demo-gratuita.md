@@ -2,7 +2,7 @@
 
 Guía única de despliegue. Cubre la producción 24/7, el entorno de pruebas, la demo gratuita, la PWA y los usuarios de prueba.
 
-**Índice:** [1. Producción 24/7 (Hetzner)](#1-producción-247-en-hetzner-adr-0027) · [2. Entorno de pruebas y promoción](#2-entorno-de-pruebas-y-promoción-a-producción-adr-0031) · [3. Demo gratuita](#3-demo-gratuita-snapdeploy-neon-pages-b2-y-brevo) · [4. PWA en Cloudflare Pages](#4-desplegar-la-pwa-en-cloudflare-pages) · [5. Usuarios y datos de prueba](#5-usuarios-y-datos-de-prueba)
+**Índice:** [1. Producción 24/7 (Hetzner)](#1-producción-247-en-hetzner-adr-0027) · [2. Entorno de pruebas y promoción](#2-entorno-de-pruebas-y-promoción-a-producción-adr-0031) · [3. Demo gratuita](#3-demo-gratuita-snapdeploy-neon-pages-b2-y-gmail) · [4. PWA en Cloudflare Pages](#4-desplegar-la-pwa-en-cloudflare-pages) · [5. Usuarios y datos de prueba](#5-usuarios-y-datos-de-prueba)
 
 ## 1. Producción 24/7 en Hetzner (ADR-0027)
 
@@ -67,7 +67,7 @@ Cómo se prueba un cambio antes de llevarlo a producción. No contiene secretos:
 | PWA | `https://pruebas.integrate-demo.pages.dev` | `https://integrate-demo.pages.dev` |
 | Rama de Git | `pruebas` | `main` |
 | Variables | `infra/env/.env.demo.pruebas` | `infra/env/.env.demo` (en el servidor: `~/integrate/.env`) |
-| Correos | **Apagados** (`INTEGRATE_NOTIFICATION_DISPATCH_ENABLED=false`) | Brevo |
+| Correos | **Apagados** (`INTEGRATE_NOTIFICATION_DISPATCH_ENABLED=false`) | Gmail SMTP (ADR-0065) |
 
 La rama de Neon copia usuarios reales: trátela como dato sensible. Si se envejece, se restablece desde producción en el panel de Neon («Reset from parent»), con nadie probando.
 
@@ -116,9 +116,9 @@ Por eso, antes de usar el entorno de pruebas:
 - [ ] Al terminar el proyecto: revocar los tokens de Hetzner, SnapDeploy y Cloudflare; regenerar la llave de Google Maps; rotar la contraseña de la rama de Neon. Todos pasaron por el chat.
 - [ ] Administrador pendiente: crear la cuenta cuando haya un correo permanente.
 
-## 3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Brevo
+## 3. Demo gratuita: SnapDeploy, Neon, Pages, B2 y Gmail
 
-> **Vigencia.** La **producción 24/7** corre en Hetzner Cloud ([ADR-0027](../architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md), sección 1 de esta guía). La sección 3 describe SnapDeploy, que ahora es el **entorno de pruebas** (con su propia base de datos), y las piezas compartidas: Neon, Cloudflare Pages, Backblaze B2 y Brevo.
+> **Vigencia.** La **producción 24/7** corre en Hetzner Cloud ([ADR-0027](../architecture/adr/ADR-0027-backend-24-7-en-vps-hetzner.md), sección 1 de esta guía). La sección 3 describe SnapDeploy, que ahora es el **entorno de pruebas** (con su propia base de datos), y las piezas compartidas: Neon, Cloudflare Pages, Backblaze B2 y Gmail SMTP.
 
 Cómo publicar Intégrate en Internet sin costo y sin tarjeta de crédito, según
 [ADR-0026](../architecture/adr/ADR-0026-backend-demo-en-snapdeploy-plan-gratuito.md) (backend en SnapDeploy),
@@ -132,7 +132,7 @@ Cómo publicar Intégrate en Internet sin costo y sin tarjeta de crédito, segú
 | Backend (camino B, plan B) | **Tu PC** con Docker Compose + **Cloudflare Tunnel** | Definido en [`infra/docker/compose.demo.yml`](../../infra/docker/compose.demo.yml); el túnel publica la API por HTTPS sin abrir puertos del router. |
 | PWA | **Cloudflare Pages** | `frontend-pwa/dist` y el proxy [`functions/api/[[path]].ts`](../../frontend-pwa/functions/api/[[path]].ts). |
 | Archivos | **Backblaze B2** | Buckets privados de vouchers y de documentos sensibles (API S3). |
-| Correo | **Brevo SMTP** | Correos transaccionales (300/día). |
+| Correo | **Gmail SMTP** | Correos transaccionales con contraseña de aplicación (unos 500/día, ADR-0065). |
 
 > [!WARNING]
 > Es un entorno de **demostración**, no de producción. En el camino A el contenedor de SnapDeploy
@@ -142,7 +142,7 @@ Cómo publicar Intégrate en Internet sin costo y sin tarjeta de crédito, segú
 > y la política de privacidad es un borrador.
 
 Condiciones de los planes verificadas por última vez: **2026-10-19**. Cambian sin aviso; revíselas al
-crear cada cuenta. Active **2FA** en Neon, Cloudflare, Backblaze, Brevo y GitHub.
+crear cada cuenta. Active **2FA** en Neon, Cloudflare, Backblaze, Google y GitHub.
 
 ### Elija dónde corre el backend
 
@@ -174,11 +174,11 @@ Puede empezar con `quick` y pasar a `named` más adelante sin tocar la PWA. El c
 - `git` y, para el camino B (o para el camino A si SnapDeploy no construye desde el subdirectorio), Docker Desktop. Repositorio en GitHub con `main` actualizada
   (Pages despliega desde ahí).
 - `psql` 15 o superior (o Docker, ver paso 2.3) y `openssl` para generar llaves.
-- Cuentas en Neon, Cloudflare, Backblaze y Brevo.
+- Cuentas en Neon, Cloudflare y Backblaze, y una cuenta de Google con verificación en dos pasos.
 - **Decida ya el nombre del proyecto de Pages**: su URL (`https://<nombre>.pages.dev`) va en
   `FRONTEND_BASE_URL` antes de arrancar el backend.
 
-Orden: **Neon → B2 → Brevo → llaves y `.env.demo` → backend (A o B) → política de privacidad →
+Orden: **Neon → B2 → Gmail → llaves y `.env.demo` → backend (A o B) → política de privacidad →
 Cloudflare Pages → verificación**.
 
 ### 2. Neon (base de datos)
@@ -220,10 +220,10 @@ por rol en el bootstrap.
 3. Anote el endpoint S3 del bucket (p. ej. `https://s3.us-east-005.backblazeb2.com`) y su región
    (`us-east-005`). `StorageConfig` usa *path-style* automáticamente cuando hay endpoint propio.
 
-### 4. Brevo (correo)
+### 4. Gmail (correo)
 
-1. *SMTP & API → SMTP*: copie el **Login** SMTP y genere una **SMTP key**.
-2. *Senders*: verifique el remitente que usará en `MAIL_FROM`.
+1. Active la **verificación en dos pasos** en la cuenta de Google que enviará los correos.
+2. En *Seguridad → Contraseñas de aplicación* genere una contraseña de aplicación para «Intégrate». `MAIL_FROM` es esa misma cuenta (ADR-0065).
 
 ### 5. Llaves y `.env.demo`
 
@@ -263,8 +263,8 @@ LocalStack, sobran: bórrelas). **No** defina `SPRING_PROFILES_ACTIVE=dev`: carg
 | `AWS_ENDPOINT_URL`, `AWS_REGION` | endpoint y región de B2 |
 | `AWS_S3_BUCKET_NAME`, `AWS_S3_SENSITIVE_BUCKET_NAME` | bucket de vouchers · bucket sensible |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | `keyID` y `applicationKey` de B2 |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_AUTH`, `SMTP_STARTTLS` | `smtp-relay.brevo.com`, `587`, `true`, `true` |
-| `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM` | Login SMTP, SMTP key y remitente verificado de Brevo |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_AUTH`, `SMTP_STARTTLS` | `smtp.gmail.com`, `587`, `true`, `true` |
+| `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM` | Cuenta de Gmail, contraseña de aplicación y esa misma cuenta como remitente |
 | `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | Primer ADMIN (12–128 caracteres); bórrelas tras el primer arranque |
 | `TUNNEL_TOKEN` | Solo camino B, modo `named` (paso 6.B.2); en `quick` y en el camino A no se usa |
 
@@ -282,7 +282,7 @@ defina `SERVER_PORT`, el Compose lo fija en 8080.
 Datos del plan según su [documentación oficial](https://snapdeploy.dev/docs/free-tier) (2026-10-19): contenedor
 *Small* de 512 MB y 0,25 vCPU, 100 horas al mes **por cuenta** solo con el contenedor despierto, 10 despliegues
 al día, URL `<nombre>.containers.snapdeploy.app` con HTTPS, conexiones salientes permitidas a los puertos 1 a 27017
-(cubre Neon, 5432, y Brevo, 587). Se duerme a los 15 minutos sin tráfico y **solo despierta cuando una persona abre
+(cubre Neon, 5432, y Gmail, 587). Se duerme a los 15 minutos sin tráfico y **solo despierta cuando una persona abre
 su URL en un navegador**: las llamadas automáticas, incluido el proxy de Pages, reciben un 503 y no lo despiertan.
 Su panel puede diferir de lo que sigue: oriéntese por los nombres, no por la posición.
 
@@ -340,7 +340,7 @@ comprueban con un despliegue real: hágalo en el primero. Si la 1 falla, abandon
 | :---: | :--- | :--- |
 | 1 | El arranque con 0,25 vCPU termina y la plataforma lo da por sano | Flyway aplica las 14 migraciones, aparece `Started IntegrateApplication` y el contenedor queda activo sin reinicios. Anote cuánto tardó. |
 | 2 | La plataforma enruta al puerto 8080 | `https://<url>/api/v1/experiences` responde JSON (no HTML). |
-| 3 | Brevo acepta el envío desde esa red | «Olvidé mi contraseña» con un correo real y llega (revise spam). |
+| 3 | Gmail acepta el envío desde esa red | «Olvidé mi contraseña» con un correo real y llega (revise spam). |
 
 ##### Memoria: 512 MB es justo (verificado)
 
@@ -626,7 +626,7 @@ El anfitrión y el gestor de prueba pertenecen a la asociación «Asociación de
 Las personas reales se capturan con el formulario `infra/forms/formulario-usuarios-reales.html` (no envía nada: descarga un `usuarios-reales.json`) y se cargan con `python infra/scripts/crear-usuarios.py --file <archivo> --apply --experiencia`:
 
 - Crea las asociaciones, registra a cada persona con una **contraseña temporal aleatoria que nunca se guarda ni se imprime** y le asigna su rol (gestor de enlace, anfitrión).
-- Envía a cada persona un correo de «crear contraseña» (Brevo). Cada una elige su propia clave.
+- Envía a cada persona un correo de «crear contraseña» (Gmail). Cada una elige su propia clave.
 - Con `--experiencia` crea, a nombre de cada anfitrión nuevo, la experiencia de ejemplo «Caminata ecológica y cata de café» (baja intensidad, 180 min, 8 cupos, 60 000 COP), la envía a revisión, la aprueba el ADMIN y abre 3 franjas en los próximos días.
 - El informe `*.resultado.json` queda junto al archivo de entrada, sin contraseñas.
 

@@ -14,7 +14,7 @@ Guía corta para no confundir en qué ambiente se está. No contiene secretos (S
 | PWA | `npm run dev` en `localhost:5173` | `https://pruebas.integrate-demo.pages.dev` | `https://integrate-demo.pages.dev` |
 | Variables backend | `infra/env/.env.development` | `infra/env/.env.demo.pruebas` | `infra/env/.env.demo` (servidor: `~/integrate/.env`) |
 | `SPRING_PROFILES_ACTIVE` | `dev` (carga datos semilla) | **NO definir** | **NO definir** |
-| Correos | Mailpit (`localhost:8025`) | Apagados (`INTEGRATE_NOTIFICATION_DISPATCH_ENABLED=false`) | Brevo real |
+| Correos | Mailpit (`localhost:8025`) | Apagados (`INTEGRATE_NOTIFICATION_DISPATCH_ENABLED=false`) | Gmail SMTP real (ADR-0065) |
 | Pagos | `MOCK` + simulador activo | `MOCK` + simulador activo | `MOCK`/Wompi según decisión; simulador `false` con Wompi |
 | Archivos | LocalStack S3 | Backblaze B2 | Backblaze B2 |
 | `VITE_API_BASE_URL` | `/api` (proxy de Vite → `VITE_DEV_API_PROXY_TARGET=http://localhost:8080`) | `/api` (proxy de Pages → `API_ORIGIN` de pruebas) | `/api` (proxy de Pages → `API_ORIGIN` de producción) |
@@ -102,7 +102,7 @@ Solo si pruebas quedó verificado.
 | :--- | :--- | :--- |
 | Base de datos | Rama `pruebas` de Neon | Rama principal de Neon |
 | Variables | `.env.demo.pruebas` | `.env.demo` → `~/integrate/.env` en el servidor |
-| Correo | Apagado | Brevo |
+| Correo | Apagado | Gmail SMTP |
 | Simulador de pagos | Activo | `false` si se usa Wompi |
 | `FRONTEND_BASE_URL` | URL de pruebas | `https://integrate-demo.pages.dev` |
 | `API_ORIGIN` (Pages) | SnapDeploy | `https://2-31-111-240.sslip.io` |

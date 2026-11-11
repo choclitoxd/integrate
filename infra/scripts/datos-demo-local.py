@@ -11,7 +11,7 @@ niega si su host es el de producción (ep-calm-firefly) o si la API no es la del
 Los datos se crean con los mismos endpoints que usa la PWA, así cumplen las reglas de negocio.
 Excepciones hechas por SQL (no hay endpoint): el rol ADMIN, las cuentas de dispersión y la limpieza inicial.
 --emails: JSON {"t_camila": "correo@real", ...} para que algunos turistas reciban de verdad sus vouchers
-(en pruebas el correo sale por Brevo; los @integrate-demo.test rebotan).
+(en pruebas el envío de correos está apagado; con el envío activo, los @integrate-demo.test rebotarían).
 
 SEC-DIR-004: la contraseña común de demo se genera la primera vez y se guarda en
 infra/env/.env.datos-demo[.pruebas] (ignorado por Git). El resultado detallado queda en
