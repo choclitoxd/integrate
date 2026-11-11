@@ -1,4 +1,6 @@
-# Flujo de trabajo: `local` → `pruebas` → `main` (producción)
+# Flujo de trabajo: `local` → `pruebas` → `main` (pruebas). Sin rama de producción (ADR-0066)
+
+> **Vigente desde ADR-0066 (2026-11-11).** `main` es la rama de **pruebas**. `pruebas` no cambia. **No hay rama de producción**: Hetzner y Pages de producción están congelados, y `hetzner.sh deploy` y `pages.sh deploy produccion` se niegan. Lo que sigue describiendo `main` como producción es histórico (ADR-0027 y ADR-0031).
 
 Guía corta para no confundir en qué ambiente se está. No contiene secretos (SEC-DIR-004): las credenciales viven en `infra/env/.env.*`, ignorados por Git.
 
@@ -8,7 +10,7 @@ Guía corta para no confundir en qué ambiente se está. No contiene secretos (S
 
 | | **LOCAL** | **PRUEBAS** | **PRODUCCIÓN** |
 | :--- | :--- | :--- | :--- |
-| Rama de Git | `local` | `pruebas` | `main` |
+| Rama de Git | `local` | `pruebas` | `main` (pruebas; ADR-0066) |
 | Backend | `mvnw spring-boot:run` en `localhost:8080` | SnapDeploy (`integrate-0da6e`) | Hetzner `integrate-api` |
 | Base de datos | PostgreSQL en Docker (`localhost:5432`) | Rama `pruebas` de Neon | Rama principal de Neon |
 | PWA | `npm run dev` en `localhost:5173` | `https://pruebas.integrate-demo.pages.dev` | `https://integrate-demo.pages.dev` |
@@ -25,7 +27,7 @@ Guía corta para no confundir en qué ambiente se está. No contiene secretos (S
 ## 2. Ciclo completo
 
 ```
-rama local ── probar en el PC ──► merge a `pruebas` ──► SnapDeploy + Pages(pruebas) ──► merge a `main` ──► Hetzner + Pages(producción)
+rama local ── probar en el PC ──► merge a `pruebas` ──► SnapDeploy + Pages(pruebas) ──► merge a `main` (pruebas) ── producción congelada (ADR-0066)
  (0 cupo)                         (1 push = 1 despliegue)                              (solo si pruebas OK)
 ```
 
@@ -113,9 +115,11 @@ git merge pruebas
 git push origin main
 ```
 
+> **No ejecutar (ADR-0066):** producción está congelada. Los comandos siguientes se niegan a publicar; se conservan solo como referencia histórica.
+
 ```bash
-bash infra/scripts/hetzner.sh deploy
-bash infra/scripts/pages.sh deploy produccion
+# HISTÓRICO: bash infra/scripts/hetzner.sh deploy
+# HISTÓRICO: bash infra/scripts/pages.sh deploy produccion
 bash infra/scripts/hetzner.sh status
 # Si algo sale mal:
 bash infra/scripts/hetzner.sh rollback
@@ -130,7 +134,7 @@ bash infra/scripts/hetzner.sh rollback
 2. `localhost` en una variable → solo vale en **local**. Si aparece en pruebas o producción, es un error.
 3. Una URL `*.pages.dev` o `*.sslip.io` en `.env.development` → error: local no debe apuntar a pruebas ni a producción.
 4. Nunca apuntar `.env.development` ni `.env.demo.pruebas` a la base de producción de Neon (`ep-calm-firefly-…`).
-5. Ramas: `local` → `pruebas` → `main`. Nunca saltar de `local` a `main`.
+5. Ramas: `local` → `pruebas` → `main`. Nunca saltar de `local` a `main`. `main` no es producción: no se despliega a Hetzner ni a Pages de producción (ADR-0066).
 6. Cada nueva variable de entorno se agrega **con placeholder** a `infra/env/.env.example` y se crea en los tres archivos reales.
 7. Antes de cada `git push`: checklist SEC-DIR-004 §7 (`git status`, `git diff --cached`, cero `.env` en staging).
 
@@ -140,7 +144,7 @@ bash infra/scripts/hetzner.sh rollback
 
 **Pruebas:** cupo SnapDeploy disponible · merge `local` → `pruebas` · build terminado · log solo con host de la rama `pruebas` · `pages.sh deploy pruebas` · contenedor detenido al terminar.
 
-**Producción:** pruebas verificado · merge a `main` · `hetzner.sh deploy` · `pages.sh deploy produccion` · `/api/v1/privacy-policies/current` responde JSON · rollback a mano si falla.
+**Producción:** congelada (ADR-0066): no hay pasos de despliegue hasta que un ADR nuevo cree la rama de producción. · `/api/v1/privacy-policies/current` responde JSON · rollback a mano si falla.
 
 ## 5. Situación actual (2026-11-10)
 

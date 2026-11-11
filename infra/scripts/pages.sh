@@ -27,6 +27,7 @@ target_branch() { case "${1:-}" in produccion) echo main;; pruebas) echo pruebas
 cmd="${1:-}"
 case "$cmd" in
   deploy)
+    [ "${2:-}" != produccion ] || { echo "Producción está congelada: no hay rama de producción (ADR-0066). No se publica." >&2; exit 2; }
     branch="$(target_branch "${2:-}")"
     key=""; [ -f "$MAPS_ENV" ] && key="$(read_var VITE_GOOGLE_MAPS_EMBED_KEY "$MAPS_ENV")"
     echo "== compilando (entorno: ${2}, rama de Pages: $branch)"

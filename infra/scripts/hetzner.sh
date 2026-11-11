@@ -55,6 +55,7 @@ case "$cmd" in
     echo "HTTP: $(curl -s -m 15 -o /dev/null -w '%{http_code}' "$(public_url)/api/v1/privacy-policies/current")"
     ;;
   deploy)
+    echo "Producción está congelada: no hay rama de producción (ADR-0066). No se despliega." >&2; exit 2
     resolve_host
     echo "== construyendo la imagen"
     docker build -t "$IMAGE:vps" backend-api
