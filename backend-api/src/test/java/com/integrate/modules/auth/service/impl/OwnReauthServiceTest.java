@@ -84,7 +84,7 @@ class OwnReauthServiceTest {
         }
         assertThatThrownBy(() -> service.issue(id, PASSWORD, client))
                 .isInstanceOfSatisfying(BusinessRuleException.class,
-                        ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.AUTH_PASSWORD_CHANGE_RATE_LIMITED));
+                        ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.AUTH_REAUTH_RATE_LIMITED));
 
         clock.set(START.plus(OwnReauthService.FAILURE_WINDOW));
         assertThat(service.issue(id, PASSWORD, client).reauthToken()).isNotBlank();

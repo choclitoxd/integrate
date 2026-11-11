@@ -125,10 +125,7 @@ El desarrollador aceptó el ADR sin responder las tres preguntas. Se aplican los
 
 ## Estado de la implementación
 
-- **Hecho:** `OwnReauthService`, `POST /api/v1/auth/me/reauth`, exigencia de `X-Reauth-Token` en `PATCH /auth/me` y `POST /auth/me/password`, pruebas unitarias (4, en verde) y pruebas de integración actualizadas.
-- **No ejecutadas aquí:** las pruebas de integración de `AuthApiIntegrationTest` necesitan Docker (Testcontainers) y en esta máquina Docker no está disponible.
-- **Pendiente, en áreas reclamadas por otra sesión (`EN-CURSO.md`, Codex, ADR-0053 y ADR-0054):**
-  - `common/exception/ErrorCode.java`: códigos `AUTH_REAUTH_REQUIRED` y `AUTH_REAUTH_RATE_LIMITED`.
-  - `security/SecurityConfig.java`: añadir `X-Reauth-Token` a las cabeceras CORS permitidas, necesario para que la PWA en otro origen la envíe.
-  - `frontend-pwa/src/features/auth/*`: interfaz de solo lectura, diálogo de confirmación y temporizador.
-  - `docs/api/endpoints-index.md` y contrato OpenAPI: nuevos endpoints y cabecera.
+- **Backend (hecho):** `OwnReauthService`, `POST /api/v1/auth/me/reauth`, exigencia de `X-Reauth-Token` en `PATCH /auth/me` y `POST /auth/me/password`, códigos `AUTH_REAUTH_REQUIRED` (403) y `AUTH_REAUTH_RATE_LIMITED` (429), cabecera permitida en CORS, 4 pruebas unitarias en verde.
+- **Interfaz (hecho):** datos en solo lectura con "Editar mis datos"; hoja "Confirma que eres tú" (`ReauthSheet`) con enlace a `/recuperar-contrasena`; formulario habilitado con cuenta regresiva y botón "Terminar edición"; sección "Seguridad" con la misma confirmación; si el servidor responde 403 la interfaz vuelve a solo lectura con aviso. Quality Gate de la PWA en verde (typecheck, lint, format, 395 pruebas, build).
+- **Documentación de la API (hecho):** `openapi.yaml` y `endpoints-index.md`.
+- **No ejecutado:** las pruebas de integración de `AuthApiIntegrationTest` (actualizadas) necesitan Docker, que no está disponible en esta máquina. Tampoco se probó en navegador contra un backend real.

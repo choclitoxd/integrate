@@ -112,7 +112,7 @@ public class SecurityConfig {
             cors.setAllowedOrigins(properties.allowedOrigins());
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
             cors.setAllowedHeaders(List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE, "Idempotency-Key",
-                    TraceIdFilter.HEADER));
+                    TraceIdFilter.HEADER, "X-Reauth-Token"));
             cors.setExposedHeaders(List.of(TraceIdFilter.HEADER, HttpHeaders.RETRY_AFTER, HttpHeaders.LOCATION));
             // La cookie refresh_token solo viaja con credenciales.
             cors.setAllowCredentials(true);

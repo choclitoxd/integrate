@@ -86,14 +86,14 @@ public class OwnReauthService {
 
     /** Lanza 403 si el token falta, venció o pertenece a otra persona. */
     public void require(UUID id, String token) {
-        if (token == null || token.isBlank()) throw new BusinessRuleException(ErrorCode.RBAC_FORBIDDEN);
+        if (token == null || token.isBlank()) throw new BusinessRuleException(ErrorCode.AUTH_REAUTH_REQUIRED);
         Instant now = clock.instant();
         Grant grant;
         synchronized (this) {
             grant = grants.get(hash(token));
         }
         if (grant == null || !grant.userId().equals(id) || !grant.expiresAt().isAfter(now)) {
-            throw new BusinessRuleException(ErrorCode.RBAC_FORBIDDEN);
+            throw new BusinessRuleException(ErrorCode.AUTH_REAUTH_REQUIRED);
         }
     }
 
@@ -108,7 +108,7 @@ public class OwnReauthService {
         if (window.size() >= MAX_FAILURES) {
             long retry = Math.max(1, window.peekFirst().plus(FAILURE_WINDOW).getEpochSecond() - now.getEpochSecond());
             audit(id, "OWN_REAUTH_LOCKED", AuditEntry.Severity.WARNING, client);
-            throw new BusinessRuleException(ErrorCode.AUTH_PASSWORD_CHANGE_RATE_LIMITED)
+            throw new BusinessRuleException(ErrorCode.AUTH_REAUTH_RATE_LIMITED)
                     .withHeader(HttpHeaders.RETRY_AFTER, Long.toString(retry));
         }
     }

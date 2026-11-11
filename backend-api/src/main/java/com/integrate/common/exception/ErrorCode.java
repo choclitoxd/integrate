@@ -24,6 +24,8 @@ public enum ErrorCode {
 
     // --- Auth ----------------------------------------------------------------
     AUTH_PASSWORD_CHANGE_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "password-change-rate-limited", "Too Many Attempts"),
+    AUTH_REAUTH_REQUIRED(HttpStatus.FORBIDDEN, "reauth-required", "Reauthentication Required"),
+    AUTH_REAUTH_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "reauth-rate-limited", "Too Many Attempts"),
     AUTH_INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "invalid-credentials", "Invalid Credentials"),
     AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "authentication-required", "Authentication Required"),
     AUTH_REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "refresh-token-invalid", "Refresh Token Invalid"),

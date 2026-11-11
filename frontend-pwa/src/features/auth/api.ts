@@ -71,15 +71,36 @@ export interface AccountProfile {
 export function getAccountProfile(http: HttpClient, signal?: AbortSignal): Promise<AccountProfile> {
   return http.request('/v1/auth/me', signal ? { signal } : {});
 }
+/** Cabecera con la que el servidor reconoce la confirmación de identidad reciente (ADR-0058). */
+const REAUTH_HEADER = 'X-Reauth-Token';
+
+export interface ReauthGrant {
+  readonly reauthToken: string;
+  readonly expiresAt: string;
+}
+/** Confirma la identidad con la contraseña; el token resultante dura unos minutos. */
+export function reauthenticate(http: HttpClient, password: string): Promise<ReauthGrant> {
+  return http.request('/v1/auth/me/reauth', { method: 'POST', body: { password } });
+}
 export function updateAccountProfile(
   http: HttpClient,
   body: AccountProfile,
+  reauthToken: string,
 ): Promise<AccountProfile> {
-  return http.request('/v1/auth/me', { method: 'PATCH', body });
+  return http.request('/v1/auth/me', {
+    method: 'PATCH',
+    body,
+    headers: { [REAUTH_HEADER]: reauthToken },
+  });
 }
 export function changePassword(
   http: HttpClient,
   body: { currentPassword: string; newPassword: string },
+  reauthToken: string,
 ): Promise<void> {
-  return http.request('/v1/auth/me/password', { method: 'POST', body });
+  return http.request('/v1/auth/me/password', {
+    method: 'POST',
+    body,
+    headers: { [REAUTH_HEADER]: reauthToken },
+  });
 }
