@@ -2,6 +2,7 @@ export { ConsentDialog } from './components/ConsentDialog';
 export { ConsentGate } from './components/ConsentGate';
 export { PolicyLink } from './components/PolicyLink';
 export { AccountPage } from './pages/AccountPage';
+export { AccountRedirect } from './pages/AccountRedirect';
 export { ActivatePage } from './pages/ActivatePage';
 export { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 export { LoginPage } from './pages/LoginPage';

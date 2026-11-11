@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 
 import { formatPhoneDisplay, pluralize } from '@/shared/lib';
-import { buttonClassName, Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
+import { buttonClassName, Button, Icon, ProblemNotice, Skeleton, TextField } from '@/shared/ui';
 
 import type { ManagedHost } from '../api';
 import { ActivationCodeIssuer } from '../components/ActivationCodeIssuer';
@@ -65,7 +66,8 @@ function HostCard({ host }: { host: ManagedHost }) {
 
 /** Anfitriones de la jurisdicción del gestor, sin datos de víctima (ADR-0018 §6). */
 export function HostsPage() {
-  const hosts = useManagedHosts();
+  const [filters, setFilters] = useState({ name: '', activation: '' });
+  const hosts = useManagedHosts(filters.name, filters.activation);
   const items = hosts.data?.pages.flatMap((page) => page.items) ?? [];
   const total = hosts.data?.pages[0]?.totalElements ?? 0;
 
@@ -84,6 +86,34 @@ export function HostsPage() {
         Enrolar anfitrión
       </Link>
 
+      <form
+        className="mt-6 grid gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const fields = new FormData(event.currentTarget);
+          const name = fields.get('name');
+          const activation = fields.get('activation');
+          if (typeof name === 'string' && typeof activation === 'string') {
+            setFilters({ name: name.trim(), activation });
+          }
+        }}
+      >
+        <TextField name="name" label="Nombre del anfitrión" maxLength={150} />
+        <label className="grid gap-1 font-semibold">
+          Estado de activación
+          <select
+            name="activation"
+            className="min-h-11 rounded-lg border-2 border-border bg-surface px-3"
+          >
+            <option value="">Todos</option>
+            <option value="ACTIVE">Activo</option>
+            <option value="PENDING_RESET">Pendiente de activación</option>
+          </select>
+        </label>
+        <Button type="submit" variant="secondary">
+          Aplicar filtros
+        </Button>
+      </form>
       <div className="mt-6">
         {hosts.isPending && (
           <div className="grid gap-3" aria-hidden="true">
@@ -102,7 +132,9 @@ export function HostsPage() {
         )}
         {hosts.isSuccess && items.length === 0 && (
           <p className="rounded-xl bg-surface px-4 py-6 text-center text-ink-muted">
-            Aún no tienes anfitriones enrolados.
+            {filters.name || filters.activation
+              ? 'No hay anfitriones que coincidan con los filtros.'
+              : 'Aún no tienes anfitriones enrolados.'}
           </p>
         )}
         {items.length > 0 && (

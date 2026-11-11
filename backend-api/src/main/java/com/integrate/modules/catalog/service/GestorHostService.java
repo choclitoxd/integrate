@@ -1,6 +1,7 @@
 package com.integrate.modules.catalog.service;
 
 import com.integrate.common.payload.PageResponse;
+import com.integrate.modules.auth.entity.CredentialStatus;
 import com.integrate.modules.catalog.dto.response.ActivationCodeResponse;
 import com.integrate.modules.catalog.dto.response.ManagedHostResponse;
 import java.util.UUID;
@@ -10,7 +11,8 @@ import org.springframework.data.domain.Pageable;
 public interface GestorHostService {
 
     /** @throws com.integrate.common.exception.BusinessRuleException {@code ENROLLMENT_MANAGER_NOT_ACTIVE} (403) */
-    PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, Pageable pageable);
+    PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, String name,
+            CredentialStatus activation, Pageable pageable);
 
     /**
      * Emite el código de activación de un anfitrión con asignación vigente del gestor.

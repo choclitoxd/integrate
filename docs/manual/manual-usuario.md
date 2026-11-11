@@ -254,6 +254,8 @@ El documento se muestra enmascarado (solo los últimos 4 dígitos). Con **+ Enro
 
 El anfitrión no se registra solo: su Gestor de Enlace lo enrola y le entrega un código de activación.
 
+Todo anfitrión es también turista: con la misma cuenta puede explorar el catálogo y reservar. En la barra ve **Explorar** y **Mis experiencias** junto a sus propias opciones, y **Mi cuenta** siempre a la derecha. Si ya tenías la sesión abierta cuando se activó esto, cierra sesión y vuelve a ingresar para ver **Mis experiencias**.
+
 #### Activar la cuenta
 
 1. Abre la aplicación en `/activar` (el gestor te indica la dirección).

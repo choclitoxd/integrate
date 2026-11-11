@@ -82,16 +82,12 @@ export interface ReauthGrant {
 export function reauthenticate(http: HttpClient, password: string): Promise<ReauthGrant> {
   return http.request('/v1/auth/me/reauth', { method: 'POST', body: { password } });
 }
+/** Editar los datos propios no pide confirmar la contraseña (ADR-0062). */
 export function updateAccountProfile(
   http: HttpClient,
   body: AccountProfile,
-  reauthToken: string,
 ): Promise<AccountProfile> {
-  return http.request('/v1/auth/me', {
-    method: 'PATCH',
-    body,
-    headers: { [REAUTH_HEADER]: reauthToken },
-  });
+  return http.request('/v1/auth/me', { method: 'PATCH', body });
 }
 export function changePassword(
   http: HttpClient,

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { clearAllOfflineStores, getOfflineDB } from '@/shared/offline';
@@ -17,11 +17,17 @@ const reauth = () => ({
   expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
 });
 
-/** Abre la hoja de confirmación desde `trigger` y escribe la contraseña. */
-async function confirmIdentity(trigger: string, password = 'mi contraseña actual') {
-  await userEvent.click(await screen.findByRole('button', { name: trigger }));
-  await userEvent.type(await screen.findByLabelText('Contraseña'), password);
-  await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+/** Abre la ventana emergente de cambiar la contraseña desde «Mi cuenta». */
+async function openPassword() {
+  await userEvent.click(await screen.findByRole('button', { name: 'Cambiar contraseña' }));
+  await screen.findByRole('dialog', { name: 'Cambiar contraseña' });
+}
+
+/** El botón de enviar de la ventana (comparte nombre con el que la abre). */
+function submitPassword() {
+  return within(screen.getByRole('dialog', { name: 'Cambiar contraseña' })).getByRole('button', {
+    name: 'Cambiar contraseña',
+  });
 }
 
 describe('cuenta propia', () => {
@@ -29,33 +35,35 @@ describe('cuenta propia', () => {
     await clearAllOfflineStores();
   });
   it.each(['ROLE_TOURIST', 'ROLE_HOST', 'ROLE_LINK_MANAGER', 'ROLE_ADMIN'])(
-    'consulta, confirma la identidad y actualiza sus datos para %s',
+    'edita sus datos en una ventana emergente, sin pedir contraseña, para %s',
     async (role) => {
       const { http, session } = renderApp(
         '/cuenta',
         {
           '/v1/me/consents': consents,
-          '/v1/auth/me/reauth': reauth,
           '/v1/auth/me': (_url: URL, options: RequestOptions) =>
             options.method === 'PATCH' ? options.body : profile,
         },
         { roles: [role] },
       );
-      await confirmIdentity('Editar mis datos');
-      const name = await screen.findByLabelText('Nombre completo');
+      await userEvent.click(await screen.findByRole('button', { name: 'Editar mis datos' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Editar mis datos' });
+      const name = within(dialog).getByLabelText('Nombre completo');
       await userEvent.clear(name);
       await userEvent.type(name, 'Nombre Actualizado');
-      await userEvent.click(screen.getByRole('button', { name: 'Guardar datos' }));
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Guardar datos' }));
       await screen.findByText('Tus datos se guardaron.');
+      expect((await screen.findAllByText('Nombre Actualizado')).length).toBeGreaterThan(0);
       const patch = http.calls.find(
         ([path, options]) => path === '/v1/auth/me' && options?.method === 'PATCH',
       );
-      expect(patch?.[1]?.headers).toEqual({ 'X-Reauth-Token': 'token-de-prueba' });
+      expect(patch?.[1]?.headers).toBeUndefined();
+      expect(http.calls.some(([path]) => path === '/v1/auth/me/reauth')).toBe(false);
       expect(session.getState()).toMatchObject({ user: { fullName: 'Nombre Actualizado' } });
     },
   );
-  it('muestra los datos en solo lectura hasta confirmar la contraseña', async () => {
-    const { http } = renderApp(
+  it('muestra los datos en «Mi cuenta» sin formularios hasta abrir la ventana', async () => {
+    renderApp(
       '/cuenta',
       { '/v1/me/consents': consents, '/v1/auth/me': profile },
       { roles: ['ROLE_TOURIST'] },
@@ -64,60 +72,38 @@ describe('cuenta propia', () => {
     expect(await screen.findByText('+57 300 123 4567')).toBeVisible();
     expect(screen.queryByLabelText('Nombre completo')).toBeNull();
     expect(screen.queryByLabelText('Contraseña actual')).toBeNull();
-    expect(http.calls.some(([path]) => path === '/v1/auth/me/reauth')).toBe(false);
   });
-  it('no habilita la edición si la contraseña es incorrecta', async () => {
-    const wrong = new ApiError(
-      {
-        type: 'about:blank',
-        title: 'Datos inválidos',
-        status: 422,
-        invalidParams: [{ name: 'password', reason: 'incorrect password' }],
-      },
-      null,
-    );
-    renderApp(
+  it('cancelar la edición cierra la ventana sin guardar', async () => {
+    const { http } = renderApp(
       '/cuenta',
-      { '/v1/me/consents': consents, '/v1/auth/me': profile, '/v1/auth/me/reauth': wrong },
+      { '/v1/me/consents': consents, '/v1/auth/me': profile },
       { roles: ['ROLE_TOURIST'] },
     );
-    await confirmIdentity('Editar mis datos', 'contraseña equivocada');
-    expect(await screen.findByText('La contraseña no es correcta.')).toBeVisible();
-    expect(screen.queryByLabelText('Nombre completo')).toBeNull();
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar mis datos' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar mis datos' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Nombre completo')).toBeNull();
+    });
+    expect(http.calls.some(([, options]) => options?.method === 'PATCH')).toBe(false);
   });
-  it('vuelve a la vista de solo lectura si el servidor rechaza la confirmación vencida', async () => {
-    const expired = new ApiError(
-      { type: 'about:blank', title: 'Forbidden', status: 403, code: 'AUTH_REAUTH_REQUIRED' },
-      null,
-    );
-    renderApp(
-      '/cuenta',
-      {
-        '/v1/me/consents': consents,
-        '/v1/auth/me/reauth': reauth,
-        '/v1/auth/me': (_url: URL, options: RequestOptions) =>
-          options.method === 'PATCH' ? expired : profile,
-      },
-      { roles: ['ROLE_TOURIST'] },
-    );
-    await confirmIdentity('Editar mis datos');
-    await screen.findByLabelText('Nombre completo');
-    await userEvent.click(screen.getByRole('button', { name: 'Guardar datos' }));
-    expect(await screen.findByText(/Tu confirmación venció/)).toBeVisible();
-    expect(screen.queryByLabelText('Nombre completo')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Editar mis datos' })).toBeVisible();
-  });
-  it('termina la edición a pedido y vuelve a solo lectura', async () => {
-    renderApp(
-      '/cuenta',
-      { '/v1/me/consents': consents, '/v1/auth/me': profile, '/v1/auth/me/reauth': reauth },
-      { roles: ['ROLE_TOURIST'] },
-    );
-    await confirmIdentity('Editar mis datos');
-    expect((await screen.findAllByText(/Puedes editar durante/)).length).toBeGreaterThan(0);
-    await userEvent.click(screen.getByRole('button', { name: 'Terminar edición' }));
-    expect(await screen.findByRole('button', { name: 'Editar mis datos' })).toBeVisible();
-    expect(screen.queryByLabelText('Nombre completo')).toBeNull();
+  it('cada rol tiene «Mi cuenta» en su zona', async () => {
+    const zones = {
+      ROLE_TOURIST: '/turista/cuenta',
+      ROLE_HOST: '/anfitrion/cuenta',
+      ROLE_LINK_MANAGER: '/gestor/cuenta',
+      ROLE_ADMIN: '/admin/cuenta',
+    } as const;
+    for (const [role, zone] of Object.entries(zones)) {
+      const { router, unmount } = renderApp(
+        zone,
+        { '/v1/me/consents': consents, '/v1/auth/me': profile },
+        { roles: [role] },
+      );
+      expect(await screen.findByRole('button', { name: 'Editar mis datos' })).toBeVisible();
+      expect(router.state.location.pathname).toBe(zone);
+      unmount();
+    }
   });
   it('valida y enfoca el primer campo de contraseña antes de enviar', async () => {
     const { http } = renderApp(
@@ -125,9 +111,8 @@ describe('cuenta propia', () => {
       { '/v1/me/consents': consents, '/v1/auth/me': profile, '/v1/auth/me/reauth': reauth },
       { roles: ['ROLE_TOURIST'] },
     );
-    await confirmIdentity('Cambiar contraseña');
-    await screen.findByLabelText('Contraseña actual');
-    await userEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    await openPassword();
+    await userEvent.click(submitPassword());
     await waitFor(() => expect(screen.getByLabelText('Contraseña actual')).toHaveFocus());
     expect(await screen.findByText('Escribe tu contraseña actual.')).toBeVisible();
     expect(http.calls.some(([path]) => path === '/v1/auth/me/password')).toBe(false);
@@ -154,14 +139,14 @@ describe('cuenta propia', () => {
       { '/v1/me/consents': consents, '/v1/auth/me': profile, '/v1/auth/me/reauth': reauth },
       { roles: ['ROLE_LINK_MANAGER'] },
     );
-    await confirmIdentity('Cambiar contraseña');
+    await openPassword();
     await userEvent.type(await screen.findByLabelText('Contraseña actual'), 'contraseña actual');
     await userEvent.type(screen.getByLabelText('Contraseña nueva'), 'contraseña nueva segura');
     await userEvent.type(
       screen.getByLabelText('Confirmar contraseña nueva'),
       'contraseña nueva segura',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    await userEvent.click(submitPassword());
     expect(await screen.findByText(/Hay asistencias pendientes/)).toBeVisible();
     expect(http.calls.some(([path]) => path === '/v1/auth/me/password')).toBe(false);
   });
@@ -185,14 +170,14 @@ describe('cuenta propia', () => {
       },
       { roles: ['ROLE_TOURIST'] },
     );
-    await confirmIdentity('Cambiar contraseña');
+    await openPassword();
     await userEvent.type(await screen.findByLabelText('Contraseña actual'), 'contraseña anterior');
     await userEvent.type(screen.getByLabelText('Contraseña nueva'), 'contraseña nueva segura');
     await userEvent.type(
       screen.getByLabelText('Confirmar contraseña nueva'),
       'contraseña nueva segura',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    await userEvent.click(submitPassword());
     expect(await screen.findByText('La contraseña actual no coincide.')).toBeVisible();
     expect(screen.getByLabelText('Contraseña actual')).toHaveFocus();
     expect(session.getState().status).toBe('authenticated');
@@ -208,14 +193,14 @@ describe('cuenta propia', () => {
       },
       { roles: ['ROLE_TOURIST'] },
     );
-    await confirmIdentity('Cambiar contraseña');
+    await openPassword();
     await userEvent.type(await screen.findByLabelText('Contraseña actual'), 'contraseña anterior');
     await userEvent.type(screen.getByLabelText('Contraseña nueva'), 'contraseña nueva segura');
     await userEvent.type(
       screen.getByLabelText('Confirmar contraseña nueva'),
       'contraseña nueva segura',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
+    await userEvent.click(submitPassword());
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/ingresar');
     });
@@ -223,5 +208,31 @@ describe('cuenta propia', () => {
     expect(session.getState().status).toBe('anonymous');
     const call = http.calls.find(([path]) => path === '/v1/auth/me/password');
     expect(call?.[1]?.headers).toEqual({ 'X-Reauth-Token': 'token-de-prueba' });
+  });
+  it('no cambia la contraseña si la actual es incorrecta', async () => {
+    const wrong = new ApiError(
+      {
+        type: 'about:blank',
+        title: 'Datos inválidos',
+        status: 422,
+        invalidParams: [{ name: 'password', reason: 'incorrect password' }],
+      },
+      null,
+    );
+    const { http } = renderApp(
+      '/cuenta',
+      { '/v1/me/consents': consents, '/v1/auth/me': profile, '/v1/auth/me/reauth': wrong },
+      { roles: ['ROLE_TOURIST'] },
+    );
+    await openPassword();
+    await userEvent.type(screen.getByLabelText('Contraseña actual'), 'contraseña equivocada');
+    await userEvent.type(screen.getByLabelText('Contraseña nueva'), 'contraseña nueva segura');
+    await userEvent.type(
+      screen.getByLabelText('Confirmar contraseña nueva'),
+      'contraseña nueva segura',
+    );
+    await userEvent.click(submitPassword());
+    expect(await screen.findByText('incorrect password')).toBeVisible();
+    expect(http.calls.some(([path]) => path === '/v1/auth/me/password')).toBe(false);
   });
 });

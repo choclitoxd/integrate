@@ -381,9 +381,8 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
         String first = accessToken(registerTourist());
         String second = accessToken(registerTourist());
-        String firstReauth = reauthToken(first);
+        // Editar los datos propios no pide confirmar la contraseña (ADR-0062); cambiarla sí.
         mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
-                        .header(REAUTH_HEADER, firstReauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fullName\":\"Nombre editado\",\"phone\":\"+573001111111\"}"))
                 .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
@@ -391,33 +390,33 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Carlos Restrepo"));
         mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
-                        .header(REAUTH_HEADER, firstReauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fullName\":\"A\",\"phone\":\"bad\"}"))
                 .andExpect(status().isUnprocessableContent());
     }
 
     @Test
-    void ownEditsRequireRecentPasswordConfirmation() throws Exception {
+    void ownPasswordChangeRequiresRecentPasswordConfirmation() throws Exception {
         String first = accessToken(registerTourist());
         String second = accessToken(registerTourist());
-        String body = "{\"fullName\":\"Nombre confirmado\",\"phone\":\"+573001111111\"}";
-        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+        String body = "{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"nueva-clave-"
+                + UUID.randomUUID() + "\"}";
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isForbidden());
         mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"incorrecta\"}"))
                 .andExpect(status().isUnprocessableContent());
         String token = reauthToken(first);
-        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
                         .header(REAUTH_HEADER, "token-inventado").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isForbidden());
-        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second)
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + second)
                         .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isForbidden());
-        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
                         .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Nombre confirmado"));
+                .andExpect(status().isNoContent());
     }
 
     @Test

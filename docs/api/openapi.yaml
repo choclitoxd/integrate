@@ -86,8 +86,8 @@ paths:
       operationId: reauthenticateOwnAccount
       summary: Confirma la identidad con la contraseña y emite un token de reautenticación de corta vida.
       description: |
-        El token se envía en la cabecera `X-Reauth-Token` al editar los datos de la cuenta (`PATCH /api/v1/auth/me`)
-        o cambiar la contraseña (`POST /api/v1/auth/me/password`) (ADR-0058). Respuesta sin caché.
+        El token se envía en la cabecera `X-Reauth-Token` al cambiar la contraseña (`POST /api/v1/auth/me/password`)
+        (ADR-0058). Editar los datos propios (`PATCH /api/v1/auth/me`) ya no lo exige (ADR-0062). Respuesta sin caché.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -468,7 +468,7 @@ paths:
                 linkManagerId: 99999999-8888-4777-8666-555555555555
                 email: h-k7q3m9x2tw@comunidad.integrate.co
                 emailIsSynthetic: true
-                roles: [ROLE_HOST]
+                roles: [ROLE_HOST, ROLE_TOURIST]
                 credentialStatus: PENDING_RESET
                 consent:
                   channel: ASSISTED_PROXY
@@ -605,6 +605,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Size'
+        - { name: name, in: query, description: Fragmento del nombre, schema: { type: string, maxLength: 150 } }
+        - { name: activation, in: query, schema: { type: string, enum: [ACTIVE, PENDING_RESET] } }
       responses:
         '200':
           description: Página de anfitriones.
@@ -1602,15 +1604,90 @@ paths:
         '409': { $ref: '#/components/responses/ExperienceNotApproved' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/host/metrics:
+    get:
+      summary: Métricas mensuales de las experiencias propias del anfitrión
+      description: Mes calendario de America/Bogota según el inicio de la franja. Disponible para el mes actual y los once anteriores.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - name: month
+          in: query
+          schema: { type: string, pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$' }
+      responses:
+        '200':
+          description: Agregados del anfitrión autenticado sin datos de participantes.
+          headers:
+            Cache-Control: { schema: { type: string, example: no-store } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [month, currentMonth, earliestMonth, updatedAt, reservations, people, upcoming, upcomingPeople, ranking, daily, monthly, occupancy]
+                properties:
+                  month: { type: string, example: '2026-11' }
+                  currentMonth: { type: string, example: '2026-11' }
+                  earliestMonth: { type: string, example: '2025-12' }
+                  updatedAt: { type: string, format: date-time }
+                  reservations: { type: integer, format: int64, minimum: 0 }
+                  people: { type: integer, format: int64, minimum: 0 }
+                  upcoming: { type: integer, format: int64, minimum: 0 }
+                  upcomingPeople: { type: integer, format: int64, minimum: 0 }
+                  ranking:
+                    type: array
+                    maxItems: 5
+                    items:
+                      type: object
+                      required: [experienceId, title, reservations, people]
+                      properties:
+                        experienceId: { type: string, format: uuid }
+                        title: { type: string }
+                        reservations: { type: integer, format: int64, minimum: 1 }
+                        people: { type: integer, format: int64, minimum: 1 }
+                  daily:
+                    type: array
+                    description: Reservas y personas por día del mes seleccionado (día de inicio de la franja en Bogotá). Solo días con datos; el cliente completa los demás con cero (ADR-0063).
+                    items:
+                      type: object
+                      required: [date, reservations, people]
+                      properties:
+                        date: { type: string, format: date }
+                        reservations: { type: integer, format: int64, minimum: 1 }
+                        people: { type: integer, format: int64, minimum: 1 }
+                  monthly:
+                    type: array
+                    description: Los doce meses del selector, en orden y con ceros para los meses sin reservas (ADR-0063).
+                    minItems: 12
+                    maxItems: 12
+                    items:
+                      type: object
+                      required: [month, reservations, people]
+                      properties:
+                        month: { type: string, example: '2026-11' }
+                        reservations: { type: integer, format: int64, minimum: 0 }
+                        people: { type: integer, format: int64, minimum: 0 }
+                  occupancy:
+                    type: object
+                    description: Franjas futuras no canceladas del anfitrión. `slots` = cupos ofrecidos; `booked` = cupos con reserva confirmada. Con `slots` en 0 no hay jornadas próximas (ADR-0063).
+                    required: [slots, booked]
+                    properties:
+                      slots: { type: integer, format: int64, minimum: 0 }
+                      booked: { type: integer, format: int64, minimum: 0 }
+        '400': { description: Formato de mes inválido. }
+        '422': { description: Mes fuera del intervalo disponible. }
+        '403': { description: Rol no autorizado. }
   /api/v1/host/bookings:
     get:
       summary: Reservas confirmadas de las experiencias del anfitrión
-      description: Listado paginado mínimo sin EPS. Solo HOST propietario; sin caché.
+      description: Listado paginado mínimo sin EPS. Solo HOST propietario; sin caché. Incluye totales de reservas confirmadas y cupos por franja.
       security: [{ bearerAuth: [] }]
       x-required-roles: [ROLE_HOST]
       parameters:
         - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
         - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: period, in: query, schema: { type: string, enum: [UPCOMING, HISTORY] } }
+        - { name: date, in: query, description: Fecha de inicio de la franja en America/Bogota, schema: { type: string, format: date } }
+        - { name: experience, in: query, description: Fragmento del título de la experiencia, schema: { type: string, maxLength: 200 } }
       responses:
         '200':
           description: Página de reservas confirmadas.
@@ -1626,16 +1703,21 @@ paths:
                     type: array
                     items:
                       type: object
-                      required: [bookingId, experienceTitle, startsAt, holderName]
+                      required: [bookingId, experienceTitle, startsAt, holderName, scheduleId, slotsCount, scheduleBookings, scheduleSlots]
                       properties:
                         bookingId: { type: string, format: uuid }
                         experienceTitle: { type: string }
                         startsAt: { type: string, format: date-time }
                         holderName: { type: string }
+                        scheduleId: { type: string, format: uuid }
+                        slotsCount: { type: integer, minimum: 1 }
+                        scheduleBookings: { type: integer, format: int64, minimum: 1 }
+                        scheduleSlots: { type: integer, format: int64, minimum: 1 }
                   page: { type: integer }
                   size: { type: integer }
                   totalElements: { type: integer }
                   totalPages: { type: integer }
+        '400': { description: Filtros o paginación inválidos. }
         '403': { description: Rol no autorizado. }
   /api/v1/host/bookings/{bookingId}/holder-eps:
     get:

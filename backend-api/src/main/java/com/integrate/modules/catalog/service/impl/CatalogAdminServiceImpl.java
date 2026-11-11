@@ -136,6 +136,8 @@ public class CatalogAdminServiceImpl implements CatalogAdminService {
         }
         // Valida que el usuario exista y esté activo; otorga ROLE_HOST en esta misma transacción.
         roleAssignmentService.grant(request.userId(), RoleCode.HOST);
+        // Todo anfitrión es también turista (ADR-0064); grant es idempotente.
+        roleAssignmentService.grant(request.userId(), RoleCode.TOURIST);
         HostProfile profile;
         try {
             profile = hostProfileRepository.saveAndFlush(HostProfile.create(request.userId(), association.getId()));

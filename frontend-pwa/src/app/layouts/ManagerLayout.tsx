@@ -1,19 +1,15 @@
 import { useEffect } from 'react';
 
 import { useHttpClient } from '@/shared/api';
+import { useSession } from '@/shared/session';
 
-import { AppShell, type NavItem } from './AppShell';
-
-const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/gestor', label: 'Jornada', icon: 'route' },
-  { to: '/gestor/validar', label: 'Validar QR', icon: 'qr' },
-  { to: '/gestor/anfitriones', label: 'Anfitriones', icon: 'users' },
-  { to: '/cuenta', label: 'Mi cuenta', icon: 'user' },
-];
+import { AppShell } from './AppShell';
+import { roleNavigation } from './roleNavigation';
 
 /** Shell del Gestor de Enlace; la ruta exige ROLE_LINK_MANAGER (ADR-0013 §6, ADR-0037 §5.3). */
 export function ManagerLayout() {
   const http = useHttpClient();
+  const session = useSession();
 
   useEffect(() => {
     const triggerFlush = () => {
@@ -51,5 +47,11 @@ export function ManagerLayout() {
     };
   }, [http]);
 
-  return <AppShell navLabel="Navegación del gestor" navItems={NAV_ITEMS} homeTo="/gestor" />;
+  return (
+    <AppShell
+      navLabel="Navegación del gestor"
+      navItems={roleNavigation(session)}
+      homeTo="/gestor"
+    />
+  );
 }

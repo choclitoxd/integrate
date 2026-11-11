@@ -5,7 +5,7 @@ import { PendingSyncLogoutError } from '@/shared/offline';
 import { hasRole, useSession, useSessionStore, type Role } from '@/shared/session';
 import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
-import { AccountSettings } from '../components/AccountSettings';
+import { AccountOverview } from '../components/AccountOverview';
 import { ConsentDialog } from '../components/ConsentDialog';
 import { CONSENT_STATE_LABEL, PURPOSE_COPY } from '../purposes';
 import { useCurrentPolicy, useMyConsents } from '../queries';
@@ -64,7 +64,7 @@ export function AccountPage() {
         </p>
       </section>
 
-      <AccountSettings />
+      <AccountOverview />
 
       <section aria-labelledby="autorizaciones" className="mt-8">
         <h2

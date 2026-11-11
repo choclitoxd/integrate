@@ -8,6 +8,7 @@ export {
   type Role,
   type SessionUser,
 } from './schemas';
+export { accountPathFor } from './accountPath';
 export { SessionContext, useSession, useSessionStore } from './sessionContext';
 export {
   createSessionStore,

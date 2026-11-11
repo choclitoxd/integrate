@@ -411,6 +411,59 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void hostMetricsCountOwnConfirmedReservationsInBogotaMonth() throws Exception {
+        String scheduleId = schedule(4);
+        String id = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 2))
+                .andExpect(status().isCreated()));
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", id);
+        Instant start = jdbc.queryForObject("SELECT start_time FROM catalog.schedules WHERE id = ?::uuid",
+                java.sql.Timestamp.class, scheduleId).toInstant();
+        String otherEmail = userWithRole("metricas-otro-host", RoleCode.HOST);
+        String email = jdbc.queryForObject("""
+                SELECT u.email FROM auth.users u
+                JOIN catalog.host_profiles h ON h.user_id = u.id
+                JOIN catalog.experiences e ON e.host_id = h.id
+                JOIN catalog.schedules s ON s.experience_id = e.id
+                WHERE s.id = ?::uuid
+                """, String.class, scheduleId);
+        clock.set(start.minusSeconds(60));
+        String month = java.time.YearMonth.from(start.atZone(BOGOTA)).toString();
+        mvc.perform(get("/api/v1/host/metrics").param("month", month)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(email))))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.month").value(month))
+                .andExpect(jsonPath("$.reservations").value(1))
+                .andExpect(jsonPath("$.people").value(2))
+                .andExpect(jsonPath("$.upcoming").value(1))
+                .andExpect(jsonPath("$.upcomingPeople").value(2))
+                .andExpect(jsonPath("$.ranking[0].reservations").value(1))
+                .andExpect(jsonPath("$.ranking[0].people").value(2))
+                // Series de las gráficas (ADR-0063): un día con datos, 12 meses continuos y la ocupación futura.
+                .andExpect(jsonPath("$.daily.length()").value(1))
+                .andExpect(jsonPath("$.daily[0].date").value(start.atZone(BOGOTA).toLocalDate().toString()))
+                .andExpect(jsonPath("$.daily[0].reservations").value(1))
+                .andExpect(jsonPath("$.daily[0].people").value(2))
+                .andExpect(jsonPath("$.monthly.length()").value(12))
+                .andExpect(jsonPath("$.monthly[11].month").value(month))
+                .andExpect(jsonPath("$.monthly[11].reservations").value(1))
+                .andExpect(jsonPath("$.monthly[11].people").value(2))
+                .andExpect(jsonPath("$.monthly[0].reservations").value(0))
+                .andExpect(jsonPath("$.occupancy.slots").value(org.hamcrest.Matchers.greaterThanOrEqualTo(4)))
+                .andExpect(jsonPath("$.occupancy.booked").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));
+        mvc.perform(get("/api/v1/host/metrics")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reservations").value(0))
+                .andExpect(jsonPath("$.ranking").isEmpty())
+                .andExpect(jsonPath("$.daily").isEmpty())
+                .andExpect(jsonPath("$.monthly.length()").value(12))
+                .andExpect(jsonPath("$.monthly[?(@.reservations > 0)]").isEmpty())
+                .andExpect(jsonPath("$.occupancy.slots").value(0))
+                .andExpect(jsonPath("$.occupancy.booked").value(0));
+    }
+
+    @Test
     void hostCannotReadEpsWithoutEvidenceOfExactNotice() throws Exception {
         String id = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 1))
                 .andExpect(status().isCreated()));
@@ -421,10 +474,19 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isForbidden()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")));
         mvc.perform(get("/api/v1/host/bookings").header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].bookingId").value(id))
+                .andExpect(jsonPath("$.items[0].slotsCount").value(1))
+                .andExpect(jsonPath("$.items[0].scheduleBookings").value(1))
+                .andExpect(jsonPath("$.items[0].scheduleSlots").value(1))
                 .andExpect(jsonPath("$.items[0].medicalEps").doesNotExist());
         mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(touristToken))).andExpect(status().isForbidden());
         String anotherHost = userWithRole("otro-host", RoleCode.HOST);
         mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(anotherHost)))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/host/bookings").param("period", "UPCOMING")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(anotherHost))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        mvc.perform(get("/api/v1/host/bookings").param("experience", "título inexistente")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
         assertThat(jdbc.queryForObject("SELECT count(*) FROM audit.audit_trail WHERE entity_id = ? AND action = 'SENSITIVE_DATA_ACCESSED'", Long.class, id)).isZero();
     }
 

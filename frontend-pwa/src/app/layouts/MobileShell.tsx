@@ -6,6 +6,7 @@ import { Icon, SkipLink } from '@/shared/ui';
 import { ADMIN_NAV_ITEMS, MAIN_CONTENT_ID, useShellRoute, type ShellProps } from './shell';
 import { AdminModules } from './AdminModules';
 import { BackButton } from './ShellParts';
+import { RoleIndicator } from './RoleIndicator';
 
 /**
  * Shell móvil: columna max-w-md con barra superior, <main> enfocable, pie de créditos y
@@ -37,6 +38,7 @@ export function MobileShell({ navLabel, navItems, homeTo, children }: ShellProps
                 Intégrate
               </span>
             )}
+            <RoleIndicator />
           </div>
           {loading && (
             <div role="status" className="absolute inset-x-0 bottom-0 h-1 bg-accent-soft">

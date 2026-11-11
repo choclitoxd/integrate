@@ -8,6 +8,7 @@ import static com.integrate.modules.auth.AuthTestData.uniqueDocNumber;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -183,7 +184,8 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 // ADR-0038 §1: correo opaco, sin relación con el documento.
                 .andExpect(jsonPath("$.email").value(matchesPattern(OPAQUE_EMAIL)))
                 .andExpect(jsonPath("$.emailIsSynthetic").value(true))
-                .andExpect(jsonPath("$.roles[0]").value("ROLE_HOST"))
+                // ADR-0064: todo anfitrión es también turista.
+                .andExpect(jsonPath("$.roles", containsInAnyOrder("ROLE_HOST", "ROLE_TOURIST")))
                 .andExpect(jsonPath("$.credentialStatus").value("PENDING_RESET"))
                 .andExpect(jsonPath("$.associationId").value(associationId))
                 .andExpect(jsonPath("$.linkManagerId").value(gestor.linkManagerId()))
@@ -196,6 +198,12 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
 
         UUID userId = UUID.fromString(JsonPath.read(json, "$.userId"));
         UUID hostProfileId = UUID.fromString(JsonPath.read(json, "$.hostProfileId"));
+
+        // ADR-0064: los dos roles quedan vigentes en la base, no solo en la respuesta.
+        assertThat(jdbc.queryForList("""
+                SELECT r.code FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
+                 WHERE ur.user_id = ? AND ur.revoked_at IS NULL""", String.class, userId))
+                .containsExactlyInAnyOrder("HOST", "TOURIST");
 
         // Consentimiento: dos actos ASSISTED_PROXY con la terminal y el formato físico del gestor.
         List<Map<String, Object>> consents = jdbc.queryForList("""
@@ -331,6 +339,14 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.items[0].victimCondition").doesNotExist())
                 .andExpect(jsonPath("$.items[0].docNumber").doesNotExist());
         mvc.perform(get("/api/v1/gestor/hosts").header(HttpHeaders.AUTHORIZATION, bearer(other.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(0)));
+        mvc.perform(get("/api/v1/gestor/hosts").param("name", "rosa").param("activation", "PENDING_RESET")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(gestor.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].hostProfileId").value(hostProfileId));
+        mvc.perform(get("/api/v1/gestor/hosts").param("activation", "ACTIVE")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(gestor.token())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(0)));
         action(other.token(), "/api/v1/gestor/hosts/" + hostProfileId + "/activation-code")

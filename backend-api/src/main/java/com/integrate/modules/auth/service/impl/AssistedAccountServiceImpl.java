@@ -29,7 +29,8 @@ public class AssistedAccountServiceImpl implements AssistedAccountService {
 
     private static final Set<ConsentPurpose> REQUIRED_PURPOSES =
             EnumSet.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.SENSITIVE_VICTIM);
-    private static final List<RoleCode> HOST_ROLES = List.of(RoleCode.HOST);
+    /** Todo anfitrión es también turista (ADR-0064): explora y reserva con la misma cuenta. */
+    private static final List<RoleCode> HOST_ROLES = List.of(RoleCode.HOST, RoleCode.TOURIST);
     private static final int UNUSABLE_SECRET_BYTES = 32;
     /** Sin I, O, 0 ni 1 (como los códigos cortos), en minúsculas: 32 símbolos, así que 10 son 50 bits. */
     private static final String SYNTHETIC_EMAIL_ALPHABET = "abcdefghjklmnpqrstuvwxyz23456789";

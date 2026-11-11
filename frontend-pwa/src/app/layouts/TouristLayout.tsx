@@ -4,6 +4,7 @@ import { hasRole, useSession } from '@/shared/session';
 
 import { AppShell, type NavItem } from './AppShell';
 import { ADMIN_NAV_ITEMS } from './shell';
+import { roleNavigation } from './roleNavigation';
 
 const TOURIST_ONLY_PREFIXES = ['/experiencias', '/mis-experiencias', '/reservas'] as const;
 
@@ -19,7 +20,7 @@ export function TouristLayout() {
 
   if (hasRole(session, 'ROLE_ADMIN')) {
     // Su perfil vive en el panel, no en la cuenta de turista: /cuenta le lleva a /admin/cuenta.
-    if (pathname === '/cuenta') {
+    if (pathname === '/cuenta' || pathname === '/turista/cuenta') {
       return <Navigate to="/admin/cuenta" replace />;
     }
     if (
@@ -39,21 +40,6 @@ export function TouristLayout() {
     );
   }
 
-  const navItems: readonly NavItem[] = [
-    { to: '/', label: 'Explorar', icon: 'compass' },
-    // Las reservas son del turista: a un visitante o a un gestor sin ese rol le llevaría a un muro.
-    ...(hasRole(session, 'ROLE_TOURIST')
-      ? [{ to: '/mis-experiencias', label: 'Mis experiencias', icon: 'ticket' } as const]
-      : []),
-    ...(hasRole(session, 'ROLE_HOST')
-      ? [{ to: '/anfitrion', label: 'Anfitrión', icon: 'ticket' } as const]
-      : []),
-    ...(hasRole(session, 'ROLE_LINK_MANAGER')
-      ? [{ to: '/gestor', label: 'Gestor', icon: 'route' } as const]
-      : []),
-    session.status === 'authenticated'
-      ? { to: '/cuenta', label: 'Mi cuenta', icon: 'user' }
-      : { to: '/ingresar', label: 'Ingresar', icon: 'user' },
-  ];
+  const navItems: readonly NavItem[] = roleNavigation(session);
   return <AppShell navLabel="Navegación principal" navItems={navItems} homeTo="/" />;
 }

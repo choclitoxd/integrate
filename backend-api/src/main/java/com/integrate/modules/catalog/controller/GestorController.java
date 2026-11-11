@@ -2,6 +2,7 @@ package com.integrate.modules.catalog.controller;
 
 import com.integrate.common.payload.PageResponse;
 import com.integrate.common.web.PageRequests;
+import com.integrate.modules.auth.entity.CredentialStatus;
 import com.integrate.modules.catalog.dto.request.DocumentUploadRequest;
 import com.integrate.modules.catalog.dto.response.ActivationCodeResponse;
 import com.integrate.modules.catalog.dto.response.DocumentUploadResponse;
@@ -11,6 +12,7 @@ import com.integrate.modules.catalog.service.GestorHostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -53,8 +55,10 @@ public class GestorController {
     @PreAuthorize("hasRole('LINK_MANAGER')")
     public PageResponse<ManagedHostResponse> listHosts(@AuthenticationPrincipal Jwt jwt,
                                                        @RequestParam(required = false) @Min(0) Integer page,
-                                                       @RequestParam(required = false) @Min(1) @Max(50) Integer size) {
-        return hostService.listHosts(Actors.subject(jwt), PageRequests.newestFirst(page, size));
+                                                       @RequestParam(required = false) @Min(1) @Max(50) Integer size,
+                                                       @RequestParam(defaultValue = "") @Size(max = 150) String name,
+                                                       @RequestParam(required = false) CredentialStatus activation) {
+        return hostService.listHosts(Actors.subject(jwt), name, activation, PageRequests.newestFirst(page, size));
     }
 
     /** El código solo existe en esta respuesta: no se guarda en cachés intermedias. */

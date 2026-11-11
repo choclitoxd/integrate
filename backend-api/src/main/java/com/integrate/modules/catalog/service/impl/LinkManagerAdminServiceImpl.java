@@ -53,6 +53,8 @@ public class LinkManagerAdminServiceImpl implements LinkManagerAdminService {
         }
         // Valida que el usuario exista y esté activo; otorga ROLE_LINK_MANAGER en esta misma transacción.
         roleAssignmentService.grant(request.userId(), RoleCode.LINK_MANAGER);
+        // Todo gestor es también turista (ADR-0064); grant es idempotente.
+        roleAssignmentService.grant(request.userId(), RoleCode.TOURIST);
         try {
             return LinkManagerResponse.from(linkManagerRepository.saveAndFlush(LinkManagerProfile.accredit(
                     request.userId(), association.getId(), request.accreditedOn(), adminUserId)));

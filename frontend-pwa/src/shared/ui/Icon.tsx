@@ -91,6 +91,7 @@ const PATHS = {
       <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
+  chart: <path d="M3 21h18M6 21V11M12 21V4M18 21v-6" />,
   backpack: (
     <>
       <path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />

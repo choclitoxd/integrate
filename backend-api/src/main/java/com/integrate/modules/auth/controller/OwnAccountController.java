@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OwnAccountController {
 
-    /** Token de confirmación de identidad (ADR-0058). Lo exigen las ediciones de la cuenta propia. */
+    /** Token de confirmación de identidad (ADR-0058). Solo lo exige el cambio de contraseña (ADR-0062). */
     static final String REAUTH_HEADER = "X-Reauth-Token";
 
     private final OwnAccountService service;
@@ -50,10 +50,8 @@ public class OwnAccountController {
 
     @PatchMapping
     public ResponseEntity<OwnProfileResponse> update(@AuthenticationPrincipal Jwt jwt,
-            @RequestHeader(value = REAUTH_HEADER, required = false) String reauthToken,
             @Valid @RequestBody UpdateOwnProfileRequest request, HttpServletRequest http) {
         UUID id = UUID.fromString(jwt.getSubject());
-        reauth.require(id, reauthToken);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(service.update(id, request, ClientInfos.from(http)));
     }

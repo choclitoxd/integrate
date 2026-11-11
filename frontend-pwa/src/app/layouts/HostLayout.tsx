@@ -1,10 +1,9 @@
-import { AppShell, type NavItem } from './AppShell';
+import { useSession } from '@/shared/session';
 
-const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/anfitrion', label: 'Reservas', icon: 'ticket' },
-  { to: '/cuenta', label: 'Mi cuenta', icon: 'user' },
-];
+import { AppShell } from './AppShell';
+import { roleNavigation } from './roleNavigation';
 
 export function HostLayout() {
-  return <AppShell navLabel="Navegación del anfitrión" navItems={NAV_ITEMS} homeTo="/anfitrion" />;
+  const session = useSession();
+  return <AppShell navLabel="Navegación principal" navItems={roleNavigation(session)} homeTo="/" />;
 }

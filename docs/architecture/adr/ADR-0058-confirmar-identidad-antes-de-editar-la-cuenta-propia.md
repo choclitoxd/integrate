@@ -1,6 +1,6 @@
 # ADR-0058: Confirmar la identidad con la contraseña antes de editar la cuenta propia
 
-- **Estado:** Aceptado (2026-11-10, por el desarrollador). Enmendado en la implementación (ver "Enmienda 2026-11-10")
+- **Estado:** Aceptado (2026-11-10, por el desarrollador). Enmendado en la implementación (ver "Enmienda 2026-11-10") y por ADR-0062 (2026-11-11): editar nombre y celular ya no exige confirmar la contraseña; cambiar la contraseña sí
 - **Proyecto / Módulo:** Intégrate · `backend-api/` (`modules/auth`: `OwnAccountController`, `OwnAccountService`) y `frontend-pwa/` (`features/auth`: `AccountPage`, `AccountSettings`, `PasswordForm`)
 - **Fecha:** 2026-11-10
 - **Relacionado:** ADR-0046 (cifrado de identidad y cuenta propia), ADR-0038 (correo sintético y opaco), ADR-0044 (administración en el AppShell), ADR-0057 (edición administrativa de personas: su bloque de confirmación debe reutilizar este mecanismo si aplica)

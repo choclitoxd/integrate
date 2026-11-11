@@ -10,7 +10,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | GET `/health` | Actuator HealthEndpoint | público (solo estado agregado) | ADR-0053 |
 | POST `/auth/login`, `/auth/register`, `/auth/activate`, `/auth/refresh`, `/auth/logout` | `AuthController` | público / sesión | ADR-0005, ADR-0013 |
 | POST `/auth/forgot-password`, `/auth/reset-password` | `AuthController` | público | ADR-0014 |
-| GET, PATCH `/auth/me`; POST `/auth/me/password` | `OwnAccountController` | autenticado; PATCH y password exigen `X-Reauth-Token` | ADR-0046, ADR-0058 |
+| GET, PATCH `/auth/me`; POST `/auth/me/password` | `OwnAccountController` | autenticado; solo password exige `X-Reauth-Token` (PATCH ya no, ADR-0062) | ADR-0046, ADR-0058, ADR-0062 |
 | POST `/auth/me/reauth` | `OwnAccountController` | autenticado (confirma la contraseña; token de 5 min) | ADR-0058 |
 | GET `/privacy-policies/current` | `PrivacyPolicyController` | público | ADR-0013 |
 | GET, POST `/me/consents` | `MeConsentController` | autenticado | ADR-0013, ADR-0035 |
@@ -25,7 +25,9 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | Método y ruta | ADR |
 |---|---|
 | POST, GET `/host/experiences`; GET, PUT `/host/experiences/{id}` | ADR-0006 |
-| GET `/host/bookings`, `/host/bookings/{bookingId}/holder-eps` | ADR-0060 |
+| GET `/host/bookings` (filtros `period`, `date`, `experience`) | ADR-0060, ADR-0061 |
+| GET `/host/bookings/{bookingId}/holder-eps` | ADR-0060 |
+| GET `/host/metrics` (HostMetricsController, mes opcional; incluye series diaria y mensual y ocupación) | ADR-0061, ADR-0063 |
 | POST `/host/experiences/{id}/submit` | ADR-0006 |
 | POST `/host/experiences/{id}/meeting-point/check` | ADR-0030 |
 | POST, GET `/host/experiences/{id}/schedules`; POST `/host/schedules/{id}/cancel` | ADR-0006 |
@@ -48,7 +50,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | Método y ruta | Controlador | ADR |
 |---|---|---|
 | POST `/auth/register-assisted` (LINK_MANAGER o ADMIN) | `AssistedRegistrationController` | ADR-0007, ADR-0018 |
-| POST `/gestor/uploads` (LINK_MANAGER o ADMIN); GET `/gestor/hosts`; POST `/gestor/hosts/{hostProfileId}/activation-code` | `GestorController` | ADR-0007, ADR-0018 |
+| POST `/gestor/uploads` (LINK_MANAGER o ADMIN); GET `/gestor/hosts` (filtros `name`, `activation`); POST `/gestor/hosts/{hostProfileId}/activation-code` | `GestorController` | ADR-0007, ADR-0018, ADR-0061 |
 
 ## Reservas, pagos y voucher — rol TOURIST (módulos `booking`, `payment`, `voucher`)
 | Método y ruta | Controlador | ADR |

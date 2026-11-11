@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from 'react-router';
 
 import {
   AccountPage,
+  AccountRedirect,
   ActivatePage,
   ForgotPasswordPage,
   LoginPage,
@@ -38,6 +39,8 @@ const slotsHandle: ShellHandle = {
 const toHosts: ShellHandle = { flow: true, back: () => '/gestor/anfitriones' };
 const toManagerHome: ShellHandle = { flow: true, back: () => '/gestor' };
 const adminWide: ShellHandle = { wide: true };
+/** «Mis experiencias» del anfitrión usa el ancho de computador, como la lista del administrador. */
+const hostWide: ShellHandle = { wide: true };
 
 /*
  * Carga diferida (ADR-0018 §1): la reserva (QR incluido) y el portal del Gestor no viajan en el
@@ -84,6 +87,14 @@ const bookingStatus = async () => {
       </RequireSession>
     ),
   };
+};
+const hostExperiencesPage = async () => {
+  const { HostExperiencesPage } = await import('@/features/host');
+  return { Component: HostExperiencesPage };
+};
+const hostMetricsPage = async () => {
+  const { HostMetricsPage } = await import('@/features/host');
+  return { Component: HostMetricsPage };
 };
 const hostBookingsPage = async () => {
   const { HostBookingsPage } = await import('@/features/host');
@@ -171,10 +182,12 @@ export const routes: RouteObject[] = [
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },
           { path: 'mis-experiencias', lazy: myExperiences },
           { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toMyExperiences },
+          // `/cuenta` heredada: lleva a «Mi cuenta» de la zona del rol (ADR-0062).
+          { path: 'cuenta', element: <AccountRedirect /> },
           {
-            path: 'cuenta',
+            path: 'turista/cuenta',
             element: (
-              <RequireSession>
+              <RequireSession roles={['ROLE_TOURIST']}>
                 <AccountPage />
               </RequireSession>
             ),
@@ -188,7 +201,12 @@ export const routes: RouteObject[] = [
             <HostLayout />
           </RequireSession>
         ),
-        children: [{ index: true, lazy: hostBookingsPage }],
+        children: [
+          { index: true, lazy: hostBookingsPage, handle: hostWide },
+          { path: 'experiencias', lazy: hostExperiencesPage, handle: hostWide },
+          { path: 'metricas', lazy: hostMetricsPage, handle: hostWide },
+          { path: 'cuenta', element: <AccountPage /> },
+        ],
       },
       {
         path: '/gestor',
@@ -204,6 +222,7 @@ export const routes: RouteObject[] = [
           { path: 'cola', lazy: syncQueuePage, handle: toManagerHome },
           { path: 'anfitriones', lazy: hostsPage },
           { path: 'anfitriones/enrolamiento', lazy: enrollmentPage, handle: toHosts },
+          { path: 'cuenta', element: <AccountPage /> },
         ],
       },
       {

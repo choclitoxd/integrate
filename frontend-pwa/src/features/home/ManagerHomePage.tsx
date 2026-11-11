@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import { useHttpClient } from '@/shared/api';
+import { formatDateTime, todayInBogota } from '@/shared/lib';
 import { readOfflineMeta, useOfflineStatus } from '@/shared/offline';
 import { Button, Icon, type IconName } from '@/shared/ui';
 
@@ -152,11 +153,26 @@ export function ManagerHomePage() {
 
         <p className="mt-1 text-sm text-ink-muted">
           {rosterMeta
-            ? `Padrón activo para la fecha ${rosterMeta.rosterDate} (${String(rosterCount)} ${
+            ? `${rosterMeta.rosterDate === todayInBogota() ? 'Padrón de hoy' : 'Padrón de otra fecha'}: ${rosterMeta.rosterDate} (${String(rosterCount)} ${
                 rosterCount === 1 ? 'voucher' : 'vouchers'
               }).`
             : 'Aún no has descargado el padrón de reservas de hoy en este dispositivo.'}
         </p>
+        {rosterMeta && (
+          <div className="mt-2 grid gap-1 text-sm text-ink-muted">
+            <p>Generado: {formatDateTime(Date.parse(rosterMeta.generatedAt))}</p>
+            <p>
+              Última consulta de cancelaciones:{' '}
+              {rosterMeta.revocationsCheckedAt
+                ? formatDateTime(Date.parse(rosterMeta.revocationsCheckedAt))
+                : 'Sin fecha registrada'}
+            </p>
+            <p>
+              Las ventas y cancelaciones posteriores a la descarga pueden faltar. Actualiza el
+              padrón cuando tengas conexión.
+            </p>
+          </div>
+        )}
 
         {rosterNotice !== null && (
           <p

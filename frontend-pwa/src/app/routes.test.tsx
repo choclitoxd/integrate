@@ -159,13 +159,42 @@ describe('routes', () => {
     ).toBeVisible();
   });
 
-  it('un turista ve "Mis experiencias" en la barra; un visitante o un gestor sin ese rol, no', () => {
+  it('todo anfitrión y gestor es también turista: ven Explorar y Mis experiencias (ADR-0064)', async () => {
+    const labels = async (name: string) =>
+      within(await screen.findByRole('navigation', { name }))
+        .getAllByRole('link')
+        .map((link) => link.textContent);
+
+    const host = renderApp('/anfitrion', catalogRoutes, { roles: ['ROLE_HOST', 'ROLE_TOURIST'] });
+    expect(await labels('Navegación principal')).toEqual([
+      'Explorar',
+      'Mis experiencias',
+      'Anfitrión',
+      'Mis métricas',
+      'Experiencias del anfitrión',
+      'Mi cuenta',
+    ]);
+    host.unmount();
+
+    renderApp('/gestor', catalogRoutes, { roles: ['ROLE_LINK_MANAGER', 'ROLE_TOURIST'] });
+    expect(await labels('Navegación del gestor')).toEqual([
+      'Explorar',
+      'Mis experiencias',
+      'Jornada',
+      'Validar QR',
+      'Anfitriones',
+      'Mi cuenta',
+    ]);
+    expect(screen.getByRole('link', { name: 'Mis experiencias' })).toHaveAttribute(
+      'href',
+      '/mis-experiencias',
+    );
+  });
+
+  it('un turista ve "Mis experiencias" en la barra; un visitante, no', () => {
     const visitor = renderApp('/', catalogRoutes);
     expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
     visitor.unmount();
-    const manager = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
-    expect(screen.queryByRole('link', { name: 'Mis experiencias' })).toBeNull();
-    manager.unmount();
 
     renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
     const nav = screen.getByRole('navigation', { name: 'Navegación principal' });
@@ -192,7 +221,10 @@ describe('routes', () => {
       [['ROLE_TOURIST'], '/turista/cuenta'],
       [['ROLE_HOST'], '/anfitrion/cuenta'],
       [['ROLE_LINK_MANAGER'], '/gestor/cuenta'],
-      [['ROLE_TOURIST', 'ROLE_HOST'], '/turista/cuenta'],
+      // El rol de zona manda sobre el de turista (ADR-0064): todos son turistas, pero siguen en su zona.
+      [['ROLE_TOURIST', 'ROLE_HOST'], '/anfitrion/cuenta'],
+      [['ROLE_TOURIST', 'ROLE_LINK_MANAGER'], '/gestor/cuenta'],
+      [['ROLE_TOURIST', 'ROLE_HOST', 'ROLE_LINK_MANAGER'], '/anfitrion/cuenta'],
       [['ROLE_ADMIN', 'ROLE_TOURIST'], '/admin/cuenta'],
     ] as const;
     for (const [roles, zone] of cases) {

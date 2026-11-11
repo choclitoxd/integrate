@@ -1,8 +1,8 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, type RequestOptions } from '@/shared/api';
+import { ApiError, NetworkError, type RequestOptions } from '@/shared/api';
 import { renderApp } from '@/test/renderApp';
 import { pickOption } from '@/test/select';
 
@@ -300,6 +300,41 @@ describe('enrolamiento asistido (T-1.12)', () => {
     expect(
       screen.getByText('El enrolamiento necesita conexión. Tus datos siguen aquí.'),
     ).toBeVisible();
+  });
+
+  it('conserva el borrador tras un corte durante el envío y espera un reintento explícito', async () => {
+    stubStorage();
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+    const register = vi
+      .fn<() => unknown>()
+      .mockImplementationOnce(() => {
+        online.mockReturnValue(false);
+        window.dispatchEvent(new Event('offline'));
+        return new NetworkError(new Error('Conexión interrumpida'));
+      })
+      .mockReturnValue(registration);
+    const { bodies } = renderEnrollment(register);
+    const user = userEvent.setup();
+    await fillIdentity(user);
+    await user.click(screen.getByRole('radio', { name: 'No' }));
+    await grantConsents(user);
+    await submit();
+
+    expect(await screen.findByText(/verifica en «Mis anfitriones»/)).toBeVisible();
+    expect(screen.getByLabelText('Nombre completo')).toHaveValue('Rosa Patiño');
+    expect(screen.getByRole('button', { name: 'Registrar anfitrión' })).toBeDisabled();
+    expect(screen.queryByRole('heading', { name: 'Anfitrión registrado' })).toBeNull();
+    expect(JSON.stringify([localStorage, sessionStorage])).not.toContain('1094857483');
+    act(() => {
+      online.mockReturnValue(true);
+      window.dispatchEvent(new Event('online'));
+    });
+    expect(screen.getByRole('button', { name: 'Registrar anfitrión' })).toBeEnabled();
+    expect(bodies).toHaveLength(1);
+    await submit();
+    expect(await screen.findByRole('heading', { name: 'Anfitrión registrado' })).toBeVisible();
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1]).toEqual(bodies[0]);
   });
 
   it.each([

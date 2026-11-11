@@ -91,6 +91,9 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0054](architecture/adr/ADR-0054-unificar-la-solicitud-de-informacion-de-salud.md) | Unificar información de salud en la aplicación (H-14) | Aceptado |
 | [0055](architecture/adr/ADR-0055-validar-rendimiento-en-entorno-desplegado.md) | Validar rendimiento en un entorno desplegado (H-16) | Propuesto |
 | [0060](architecture/adr/ADR-0060-consulta-eps-titular-por-anfitrion.md) | Restringir la consulta de EPS al anfitrión de la experiencia | Aceptado |
+| [0062](architecture/adr/ADR-0062-cuenta-por-rol-y-pagina-de-edicion-separada.md) | Cuenta con ruta por rol y edición en una página separada | Aceptado |
+| [0061](architecture/adr/ADR-0061-operacion-anfitrion-gestor-y-metricas.md) | Completar la operación del anfitrión y del gestor de enlace por entregas | Aceptado |
+| [0064](architecture/adr/ADR-0064-anfitrion-y-gestor-tambien-son-turistas.md) | Todo anfitrión y gestor de enlace es también turista (rol `TOURIST`) | Aceptado |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 
@@ -112,3 +115,4 @@ El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md
 | [Directiva de frontend](rules/frontend-rules.md) | FE-DIR-001 | Cualquier cambio en la PWA. |
 | [Flujo de Git](rules/git-workflow.md) | GIT-WF-001 | Ramas, commits, push y Pull Requests. |
 | [Política de secretos](security/security_secrets_policy.md) | SEC-DIR-004 | Código, configuración, commits y GitHub Actions. |
+
