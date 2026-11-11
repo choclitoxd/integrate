@@ -5,9 +5,13 @@ Uso (desde la raíz del repo):
     python infra/scripts/datos-demo-local.py            # LOCAL: Docker y backend en http://localhost:8081
     python infra/scripts/datos-demo-local.py --pruebas [--emails infra/env/.env.datos-demo.correos.json]
         # PRUEBAS: backend integrate-pruebas despierto + base Neon de .env.demo.pruebas. Borra TODA esa base.
+    python infra/scripts/datos-demo-local.py --hetzner --confirmo-vaciar-hetzner [--emails ...]
+        # HETZNER: API https://2-31-111-240.sslip.io + base Neon de .env.demo (ep-calm-firefly). Borra TODA esa base.
+        #          Sin simulador de pagos: firma el webhook MOCK con PAYMENT_WEBHOOK_SECRET_MOCK de .env.demo.
 
-Protecciones: sin --pruebas solo acepta localhost. Con --pruebas solo acepta la base de .env.demo.pruebas y se
-niega si su host es el de producción (ep-calm-firefly) o si la API no es la del contenedor de pruebas.
+Protecciones: sin --pruebas ni --hetzner solo acepta localhost. Con --pruebas solo acepta la base de .env.demo.pruebas
+(ep-bold-mode) y la API del contenedor de pruebas. Con --hetzner solo acepta la base de .env.demo (ep-calm-firefly) y la
+API del VPS de Hetzner; exige además --confirmo-vaciar-hetzner, porque esa base tuvo cuentas reales (haga antes un pg_dump).
 Los datos se crean con los mismos endpoints que usa la PWA, así cumplen las reglas de negocio.
 Excepciones hechas por SQL (no hay endpoint): el rol ADMIN, las cuentas de dispersión y la limpieza inicial.
 --emails: JSON {"t_camila": "correo@real", ...} para que algunos turistas reciban de verdad sus vouchers
@@ -21,24 +25,42 @@ import datetime as dt, http.cookiejar, json, os, re, secrets, string, subprocess
 
 ROOT = os.getcwd()
 PRUEBAS = '--pruebas' in sys.argv
+HETZNER = '--hetzner' in sys.argv
+if PRUEBAS and HETZNER:
+    sys.exit('Elija --pruebas o --hetzner, no los dos.')
+REMOTO = PRUEBAS or HETZNER
 EMAILS = {}
 if '--emails' in sys.argv:
     EMAILS = json.load(open(sys.argv[sys.argv.index('--emails') + 1], encoding='utf-8'))
-SUF = '.pruebas' if PRUEBAS else ''
+SUF = '.pruebas' if PRUEBAS else ('.hetzner' if HETZNER else '')
 PRUEBAS_API = 'https://integrate-pruebas.containers.snapdeploy.app'
-PRUEBAS_DB = {}
-if PRUEBAS:
+HETZNER_API = 'https://2-31-111-240.sslip.io'
+PRUEBAS_DB = {}   # datos de conexión de la base remota (pruebas o Hetzner)
+MOCK_SECRET = None
+if REMOTO:
     _env = {}
-    for _l in open(os.path.join(ROOT, 'infra/env/.env.demo.pruebas'), encoding='utf-8-sig').read().splitlines():
+    for _l in open(os.path.join(ROOT, 'infra/env/.env.demo.pruebas' if PRUEBAS else 'infra/env/.env.demo'), encoding='utf-8-sig').read().splitlines():
         _m = re.match(r'^([A-Z0-9_]+)=(.*)$', _l)
         if _m: _env[_m.group(1)] = _m.group(2).strip().strip('"')
     _u = re.match(r'jdbc:postgresql://([^/:?]+)(?::(\d+))?/([^?]+)', _env['DATABASE_URL'])
     PRUEBAS_DB = {'host': _u.group(1), 'port': _u.group(2) or '5432', 'db': _u.group(3), 'user': _env['FLYWAY_USER'], 'pw': _env['FLYWAY_PASSWORD']}
-    if 'ep-calm-firefly' in PRUEBAS_DB['host'] or 'ep-bold-mode' not in PRUEBAS_DB['host']:
-        sys.exit('La base de .env.demo.pruebas no es la de pruebas esperada (ep-bold-mode). Se detiene: no se toca producción.')
-    BASE = os.environ.get('INTEGRATE_BASE', PRUEBAS_API).rstrip('/')
-    if BASE != PRUEBAS_API:
-        sys.exit(f'Con --pruebas la API debe ser {PRUEBAS_API}.')
+    MOCK_SECRET = _env.get('PAYMENT_WEBHOOK_SECRET_MOCK')
+    if PRUEBAS:
+        if 'ep-calm-firefly' in PRUEBAS_DB['host'] or 'ep-bold-mode' not in PRUEBAS_DB['host']:
+            sys.exit('La base de .env.demo.pruebas no es la de pruebas esperada (ep-bold-mode). Se detiene: no se toca producción.')
+        BASE = os.environ.get('INTEGRATE_BASE', PRUEBAS_API).rstrip('/')
+        if BASE != PRUEBAS_API:
+            sys.exit(f'Con --pruebas la API debe ser {PRUEBAS_API}.')
+    else:
+        if 'ep-calm-firefly' not in PRUEBAS_DB['host']:
+            sys.exit('La base de .env.demo no es la de Hetzner esperada (ep-calm-firefly). Se detiene.')
+        if '--confirmo-vaciar-hetzner' not in sys.argv:
+            sys.exit('Con --hetzner hay que añadir --confirmo-vaciar-hetzner: se borra TODA la base de Hetzner (haga antes un pg_dump).')
+        if not MOCK_SECRET:
+            sys.exit('Falta PAYMENT_WEBHOOK_SECRET_MOCK en .env.demo (no hay simulador de pagos en Hetzner).')
+        BASE = os.environ.get('INTEGRATE_BASE', HETZNER_API).rstrip('/')
+        if BASE != HETZNER_API:
+            sys.exit(f'Con --hetzner la API debe ser {HETZNER_API}.')
 else:
     BASE = os.environ.get('INTEGRATE_BASE', 'http://localhost:8081').rstrip('/')
     if not (BASE.startswith('http://localhost') or BASE.startswith('http://127.0.0.1')):
@@ -47,7 +69,7 @@ PW_FILE = os.path.join(ROOT, f'infra/env/.env.datos-demo{SUF}')
 OUT = os.path.join(ROOT, f'infra/env/.env.datos-demo{SUF}.resultado.json')
 TODAY = dt.date.today()
 LOG = []
-PAUSE = 0.8 if PRUEBAS else 0   # SnapDeploy/Cloudflare limitan las peticiones por minuto
+PAUSE = 0.8 if REMOTO else 0   # SnapDeploy/Cloudflare limitan las peticiones por minuto
 
 
 def demo_password():
@@ -66,7 +88,7 @@ PW = demo_password()
 
 
 def psql(sql):
-    if PRUEBAS:
+    if REMOTO:
         cmd = ['docker', 'run', '--rm', '-i', '-e', 'PGPASSWORD=' + PRUEBAS_DB['pw'], '-e', 'PGSSLMODE=require', 'postgres:16', 'psql', '-h', PRUEBAS_DB['host'],
                '-p', PRUEBAS_DB['port'], '-U', PRUEBAS_DB['user'], '-d', PRUEBAS_DB['db'], '-v', 'ON_ERROR_STOP=1', '-At']
     else:
@@ -113,7 +135,7 @@ def step(msg):
 # ---------------------------------------------------------------------------
 # 0. Limpieza de la base local (conserva catálogos gobernados por migraciones)
 # ---------------------------------------------------------------------------
-print('== 0. Limpieza de la base ' + ('de PRUEBAS (Neon)' if PRUEBAS else 'local'))
+print('== 0. Limpieza de la base ' + ('de PRUEBAS (Neon)' if PRUEBAS else 'de HETZNER (Neon)' if HETZNER else 'local'))
 # Neon no da superusuario: no se puede usar session_replication_role. Se vacían las tablas de negocio con TRUNCATE (desactivando
 # dentro de la transacción solo trg_forbid_truncate) y luego se borran los usuarios. Si algo falla, no queda nada a medias.
 LIMPIEZA_PRUEBAS = """
@@ -142,7 +164,7 @@ DELETE FROM auth.users;
 UPDATE audit.chain_head SET last_id = 0, last_hash = repeat('0', 64), updated_at = now() WHERE id = 1;
 COMMIT;
 """
-psql(LIMPIEZA_PRUEBAS if PRUEBAS else """
+psql(LIMPIEZA_PRUEBAS if REMOTO else """
 BEGIN;
 SET LOCAL session_replication_role = replica;
 DO $$
@@ -162,7 +184,7 @@ UPDATE audit.chain_head SET last_id = 0, last_hash = repeat('0', 64), updated_at
 COMMIT;
 """)
 print('  ✔ datos de negocio borrados (usuarios, asociaciones, experiencias, reservas, pagos, vouchers, auditoría)')
-if not PRUEBAS:
+if not REMOTO:
     try:
         urllib.request.urlopen(urllib.request.Request('http://localhost:8025/api/v1/messages', method='DELETE'), timeout=10).read()
         print('  ✔ bandeja de Mailpit vaciada')
@@ -492,6 +514,22 @@ EMERG = {'t_camila': ('Gloria Montoya', '+573104456721'), 't_santiago': ('Jorge 
          't_daniel': ('Claudia Peña Rojas', '+573157789012'), 't_sophie': ('Marie Martin', '+33611223344'), 't_juliana': ('Rocío Salazar', '+573186677889')}
 
 
+def webhook_mock(booking_id, total, status):
+    """Hetzner no tiene el simulador de pagos: se envía el webhook MOCK firmado, como haría la pasarela (X-Signature = HMAC-SHA256 de «ts.cuerpo»)."""
+    import base64, hashlib, hmac
+    body = json.dumps({'provider': 'MOCK_GATEWAY', 'eventId': 'demo-' + uuid.uuid4().hex, 'transactionId': 'demo-' + uuid.uuid4().hex[:12], 'bookingId': booking_id,
+                       'amountCop': int(float(total)), 'status': status, 'timestamp': dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}).encode()
+    ts = str(int(time.time()))
+    sig = hmac.new(base64.b64decode(MOCK_SECRET), ts.encode() + b'.' + body, hashlib.sha256).hexdigest()
+    time.sleep(PAUSE)
+    req = urllib.request.Request(BASE + '/api/v1/payments/webhook/mock', data=body, method='POST',
+                                 headers={'Content-Type': 'application/json', 'X-Signature': sig, 'X-Timestamp': ts, 'User-Agent': 'Mozilla/5.0 (integrate-datos-demo)'})
+    try:
+        urllib.request.urlopen(req, timeout=60).read()
+    except urllib.error.HTTPError as e:
+        sys.exit(f'✘ webhook MOCK -> HTTP {e.code}: {e.read().decode("utf-8", "replace")[:600]}')
+
+
 def book(tkey, exp_key, sched, n, method='NEQUI', pay='APPROVED', note=''):
     t = T[tkey]; api = TAPI[tkey]
     parts = [{'fullName': t['nombre'], 'docType': t['documento'].split()[0], 'docNumber': t['documento'].split()[1], 'medicalEps': EPS[tkey] if HEALTH else None, 'isHolder': True}]  # sin aviso de salud publicado, la EPS no se admite (ADR-0054)
@@ -503,7 +541,10 @@ def book(tkey, exp_key, sched, n, method='NEQUI', pay='APPROVED', note=''):
     if pay:
         st, ck = api.call('POST', f"/api/v1/bookings/{b['id']}/payment", {'paymentMethod': method})
         b['paymentId'] = ck['paymentId']; b['historial'].append(f'Pago iniciado por {method}')
-        api.call('POST', f"/api/v1/dev/payments/{ck['paymentId']}/simulate", {'status': pay})
+        if HETZNER:
+            webhook_mock(b['id'], lk['totalAmountCop'], pay)
+        else:
+            api.call('POST', f"/api/v1/dev/payments/{ck['paymentId']}/simulate", {'status': pay})
         b['historial'].append('Pago APROBADO (pasarela de pruebas)' if pay == 'APPROVED' else f'Pago {pay} (pasarela de pruebas)')
     R['reservas'].append(b)
     return b
