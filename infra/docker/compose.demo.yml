@@ -7,7 +7,7 @@
 #   docker compose --env-file ../env/.env.demo -f compose.demo.yml logs cloudflared-quick          # URL quick
 #   docker compose --env-file ../env/.env.demo -f compose.demo.yml --profile quick down            # detener
 #
-# La base es Neon, los archivos Backblaze B2 y el correo Brevo: aquí solo corren la API y el túnel.
+# La base es Neon, los archivos Backblaze B2 y el correo (Gmail SMTP): aquí solo corren la API y el túnel.
 # SEC-DIR-004: este archivo NO contiene credenciales; todas llegan desde infra/env/.env.demo
 # (local, ignorado por Git). Sin --profile solo arranca la API, sin túnel.
 # =============================================================================

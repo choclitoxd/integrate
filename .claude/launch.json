@@ -22,6 +22,16 @@
         "-Dspring-boot.run.arguments=--server.port=8081"
       ],
       "port": 8081
+    },
+    {
+      "name": "backend-api-mailpit",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c", "backend-api\\mvnw.cmd", "-o", "-q", "-f", "backend-api\\pom.xml", "spring-boot:run",
+        "-Dspring-boot.run.profiles=dev",
+        "-Dspring-boot.run.arguments=--server.port=8081 --spring.mail.host=localhost --spring.mail.port=587 --spring.mail.username= --spring.mail.password= --spring.mail.properties.mail.smtp.auth=false --spring.mail.properties.mail.smtp.starttls.enable=false --spring.mail.properties.mail.smtp.starttls.required=false"
+      ],
+      "port": 8081
     }
   ]
 }

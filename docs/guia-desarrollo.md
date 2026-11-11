@@ -37,7 +37,7 @@ cp infra/env/.env.example infra/env/.env.development
 | `SENSITIVE_DATA_KEY_V1` | `openssl rand -base64 32` — respáldela: si se pierde, los datos cifrados son irrecuperables. |
 | `PAYMENT_WEBHOOK_SECRET_MOCK` | `openssl rand -base64 32` |
 | `PAYMENT_PROVIDER` | `MOCK` en local (no se cobra dinero real). |
-| `SMTP_*` | Déjelos apuntando a Mailpit; la plantilla trae ejemplos comentados para Gmail y Brevo. |
+| `SMTP_*` | Déjelos apuntando a Mailpit; la plantilla trae el ejemplo comentado para Gmail (ADR-0065). |
 
 El perfil `dev` del backend importa automáticamente `infra/env/.env.development`, así que no hace falta
 exportar las variables en la terminal.

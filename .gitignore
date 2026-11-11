@@ -272,3 +272,6 @@ infra/postgres/seed/import_testers.sql
 .test-tmp/
 **/.test-tmp/
 
+
+# Datos de demostración locales: credenciales de prueba (no subir)
+docs/datos-de-prueba/
