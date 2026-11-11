@@ -8,7 +8,7 @@ import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 import { AccountSettings } from '../components/AccountSettings';
 import { ConsentDialog } from '../components/ConsentDialog';
 import { CONSENT_STATE_LABEL, PURPOSE_COPY } from '../purposes';
-import { useMyConsents } from '../queries';
+import { useCurrentPolicy, useMyConsents } from '../queries';
 
 const ROLE_LABEL: Readonly<Record<Role, string>> = {
   ROLE_TOURIST: 'Turista',
@@ -26,6 +26,7 @@ export function AccountPage() {
   const store = useSessionStore();
   const navigate = useNavigate();
   const consents = useMyConsents();
+  const policy = useCurrentPolicy();
   const [granting, setGranting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function AccountPage() {
   const visibleConsents = isAdmin
     ? consents.data?.consents.filter((item) => item.purpose !== 'HEALTH_EMERGENCY')
     : consents.data?.consents;
+
   const health = isAdmin
     ? undefined
     : consents.data?.consents.find((item) => item.purpose === 'HEALTH_EMERGENCY');
@@ -112,7 +114,7 @@ export function AccountPage() {
             })}
           </ul>
         )}
-        {health && health.state !== 'VALID' && (
+        {health && health.state !== 'VALID' && policy.data?.healthNotice && (
           <Button
             variant="secondary"
             className="mt-3 w-full"

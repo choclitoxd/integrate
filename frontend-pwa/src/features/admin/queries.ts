@@ -23,9 +23,11 @@ import {
   searchUsers,
   updateAdminExperience,
   updateAssociation,
+  updateUser,
   verifyAudit,
   type AccreditRequest,
   type AdminExperienceCreateRequest,
+  type AdminUserUpdateRequest,
   type AssociationAction,
   type AssociationRequest,
   type AuditFilters,
@@ -274,5 +276,19 @@ export function useChangeManagerStatus() {
     mutationFn: ({ id, action }: { id: string; action: ManagerAction }) =>
       changeLinkManagerStatus(http, id, action),
     onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.managers }),
+  });
+}
+
+/** Actualiza una cuenta de usuario (ADR-0057 §1). */
+export function useUpdateUser() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: AdminUserUpdateRequest }) =>
+      updateUser(http, id, body),
+    onSuccess: (_updated, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.users });
+      void queryClient.invalidateQueries({ queryKey: [...adminKeys.detail, id] });
+    },
   });
 }

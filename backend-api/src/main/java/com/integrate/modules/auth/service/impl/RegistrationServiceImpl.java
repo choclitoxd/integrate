@@ -38,11 +38,24 @@ public class RegistrationServiceImpl implements RegistrationService {
         PasswordPolicy.check(request.password(), "password");
         String fullName = IdentityWriter.requireFullName(request.fullName(), "fullName");
         ConsentAcceptance consent = request.consent();
-        PrivacyPolicy policy = consentLedger.requireCurrentPolicy(consent.policyVersion(), "consent.policyVersion");
+        String noticeVersion = consent.healthNoticeVersion();
+        PrivacyPolicy policy = noticeVersion == null
+                ? consentLedger.requireCurrentPolicy(consent.policyVersion(), "consent.policyVersion")
+                : consentLedger.currentPolicyLockedForHealth()
+                        .filter(current -> current.getVersion().equals(consent.policyVersion()))
+                        .orElseGet(() -> consentLedger.requireCurrentPolicy(consent.policyVersion(),
+                                "consent.policyVersion"));
         if (!consent.purposes().contains(ConsentPurpose.PERSONAL_DATA)) {
             throw AuthErrors.invalidField("consent.purposes", "must include PERSONAL_DATA");
         }
         consentLedger.requireApplicable(consent.purposes(), TOURIST_ROLES, "consent.purposes");
+        if (noticeVersion != null) {
+            if (!consent.purposes().contains(ConsentPurpose.HEALTH_EMERGENCY)) {
+                throw AuthErrors.invalidField("consent.healthNoticeVersion",
+                        "only applies to the HEALTH_EMERGENCY purpose");
+            }
+            consentLedger.requireApprovedNotice(policy, noticeVersion, "consent.healthNoticeVersion");
+        }
 
         String email = Emails.normalize(request.email());
         if (userRepository.existsByEmailIgnoreCase(email)
@@ -51,7 +64,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
         User user = identityWriter.persist(User.register(email, passwordEncoder.encode(request.password()), fullName,
                 request.docType(), request.docNumber(), request.phone()), TOURIST_ROLES);
-        consentLedger.insertGrants(user.getId(), policy, consent.purposes(), Set.of(), client);
+        consentLedger.insertGrants(user.getId(), policy, consent.purposes(), Set.of(), client, noticeVersion);
         return new RegisteredUser(user.getId(), user.getEmail(), claims(TOURIST_ROLES));
     }
 

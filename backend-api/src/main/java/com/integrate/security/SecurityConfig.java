@@ -58,6 +58,8 @@ public class SecurityConfig {
                         // Catálogo público (RF-04, ADR-0006 §6): lectura anónima.
                         .requestMatchers(HttpMethod.GET, "/api/v1/experiences", "/api/v1/experiences/*",
                                 "/api/v1/experiences/*/availability", "/api/v1/catalog/**").permitAll()
+                        // Salud pública acotada (ADR-0053): el actuator no revela componentes ni detalles.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
                         // Política de datos vigente: se lee antes de registrarse (ADR-0013 §1).
                         .requestMatchers(HttpMethod.GET, "/api/v1/privacy-policies/current").permitAll()
                         // Paneles por rol; además @PreAuthorize en cada controlador (defensa en profundidad).

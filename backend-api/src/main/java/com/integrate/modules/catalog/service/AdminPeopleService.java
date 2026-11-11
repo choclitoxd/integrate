@@ -5,6 +5,7 @@ import com.integrate.modules.auth.entity.DocType;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
+import com.integrate.modules.catalog.dto.request.AdminUserUpdateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -58,6 +59,14 @@ public interface AdminPeopleService {
      *         {@code VALIDATION_FAILED} (422)
      */
     AdminUserResponse createUser(AdminUserCreateRequest request, UUID adminId);
+
+    /**
+     * Actualiza los datos de una persona (ADR-0057 §1).
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code RESOURCE_NOT_FOUND} (404),
+     *         {@code AUTH_USER_ALREADY_EXISTS} (409), {@code VALIDATION_FAILED} (422)
+     */
+    AdminUserResponse updateUser(UUID userId, AdminUserUpdateRequest request, UUID adminId);
 
     /** @param associationId filtro opcional por asociación */
     PageResponse<AdminHostResponse> listHosts(UUID associationId, Pageable pageable, UUID adminId,

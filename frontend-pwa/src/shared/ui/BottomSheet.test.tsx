@@ -10,13 +10,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderSheet(props: { onClose?: () => void; dismissible?: boolean } = {}) {
+function renderSheet(
+  props: { onClose?: () => void; dismissible?: boolean; size?: 'md' | 'xl' } = {},
+) {
   return render(
     <BottomSheet
       open
       onClose={props.onClose ?? vi.fn()}
       title="Actualizamos nuestra política de datos"
       dismissible={props.dismissible ?? true}
+      size={props.size}
       footer={<button type="button">Acepto</button>}
     >
       <p>Contenido</p>
@@ -45,6 +48,24 @@ describe('BottomSheet según el dispositivo (ADR-0020 §2)', () => {
     expect(dialog).toHaveClass('sheet-center', 'inset-0', 'm-auto', 'max-w-lg', 'rounded-2xl');
     expect(dialog).not.toHaveClass('bottom-0');
     expect(dialog).not.toHaveClass('rounded-t-2xl');
+  });
+
+  it('en un computador con size="xl" se expande a max-w-5xl (ADR-0059)', () => {
+    stubMatchMedia(LAPTOP);
+    renderSheet({ size: 'xl' });
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-size', 'xl');
+    expect(dialog).toHaveClass('sheet-center', 'max-w-5xl');
+    expect(dialog).not.toHaveClass('max-w-lg');
+  });
+
+  it('en un teléfono con size="xl" conserva la hoja inferior max-w-md sin alteración (ADR-0059)', () => {
+    stubMatchMedia(PHONE);
+    renderSheet({ size: 'xl' });
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-placement', 'bottom');
+    expect(dialog).toHaveClass('max-w-md', 'bottom-0');
+    expect(dialog).not.toHaveClass('max-w-5xl');
   });
 
   it('el contenido, el título y las acciones son los mismos en ambos', () => {

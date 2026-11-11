@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode, type SubmitEvent } from 'react';
 
 import type { FieldErrors } from '@/features/auth';
 import { useDepartments, useMunicipalities } from '@/features/catalog';
@@ -32,6 +32,8 @@ interface ExperienceFormProps {
   readonly pending: boolean;
   /** Error de la última solicitud al servidor, si lo hubo. */
   readonly error: unknown;
+  /** Campo o selector de anfitrión para el alta administrativa (ADR-0048, ADR-0059). */
+  readonly hostSelector?: ReactNode | undefined;
   /**
    * Recibe el cuerpo ya validado. `fail` marca los errores por campo que devuelva el servidor (422).
    * Devuelve `false` desde `beforeSubmit` para impedir el envío (p. ej. falta elegir el anfitrión).
@@ -52,6 +54,7 @@ export function ExperienceForm({
   busyLabel,
   pending,
   error,
+  hostSelector,
   onSubmit,
   beforeSubmit,
 }: ExperienceFormProps) {
@@ -141,149 +144,183 @@ export function ExperienceForm({
       onSubmit={handleSubmit}
       aria-label={ariaLabel}
       aria-busy={pending}
-      className="grid gap-4"
+      className="grid gap-6"
     >
       {heading && <h3 className="font-bold text-ink">{heading}</h3>}
-      <TextField label="Título" {...input('title')} />
-      <div className="grid grid-cols-2 gap-4">
-        <TextField
-          label="Precio por persona (COP)"
-          inputMode="numeric"
-          {...input('unitPriceCop')}
-        />
-        <TextField label="Cupo por fecha" inputMode="numeric" {...input('maxCapacityPerSlot')} />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <TextField label="Duración (minutos)" inputMode="numeric" {...input('durationMinutes')} />
-        <Select
-          label="Intensidad física"
-          name="physicalIntensity"
-          size="lg"
-          value={draft.physicalIntensity}
-          options={INTENSITY_OPTIONS}
-          onChange={(value) => {
-            setDraft((current) => ({
-              ...current,
-              physicalIntensity: value as 'LOW' | 'MEDIUM' | 'HIGH',
-            }));
-          }}
-        />
-      </div>
-      <LocationPicker
-        lat={parseCoordinate(draft.latitude)}
-        lng={parseCoordinate(draft.longitude)}
-        onChange={(point) => {
-          setDraft((current) => ({
-            ...current,
-            latitude: String(point.lat),
-            longitude: String(point.lng),
-            ...(point.address ? { meetingPoint: point.address } : {}),
-          }));
-          detection.detect(point);
-        }}
-      />
-      <LocationSummary
-        status={status}
-        municipality={municipality?.name}
-        department={department?.name}
-        vereda={vereda}
-        confirmed={confirmed}
-        mismatch={mismatch}
-        onConfirm={() => {
-          setConfirmed(true);
-        }}
-        onChange={() => {
-          (formRef.current?.elements.namedItem('municipalityCode') as HTMLElement | null)?.focus();
-        }}
-      />
-      <Select
-        label="Departamento"
-        name="departmentCode"
-        size="lg"
-        searchable
-        searchPlaceholder="Escribe para buscar el departamento…"
-        value={departmentCode}
-        options={departmentOptions}
-        onChange={(value) => {
-          setDepartmentCode(value);
-          setConfirmed(true);
-          setDraft((current) => ({ ...current, municipalityCode: '' }));
-        }}
-      />
-      <div>
-        <Select
-          label="Municipio"
-          name="municipalityCode"
-          size="lg"
-          searchable
-          searchPlaceholder="Escribe para buscar el municipio…"
-          value={draft.municipalityCode}
-          options={municipalityOptions}
-          disabled={!departmentCode}
-          invalid={Boolean(errors.municipalityCode)}
-          describedBy={errors.municipalityCode ? municipalityErrorId : undefined}
-          onChange={(value) => {
-            set('municipalityCode')(value);
-            setConfirmed(true);
-          }}
-        />
-        {errors.municipalityCode && (
-          <p id={municipalityErrorId} className="mt-1 text-sm font-semibold text-danger-text">
-            {errors.municipalityCode}
-          </p>
-        )}
-      </div>
-      <TextField label="Vereda (opcional)" {...input('vereda')} />
-      <TextField label="Dirección o punto de encuentro" {...input('meetingPoint')} />
-      <details className="rounded-lg border-2 border-border-subtle p-3">
-        <summary className="min-h-11 cursor-pointer font-semibold text-ink">Avanzado</summary>
-        <div className="mt-3 grid grid-cols-2 gap-4">
-          <TextField label="Latitud (opcional)" inputMode="decimal" {...input('latitude')} />
-          <TextField label="Longitud (opcional)" inputMode="decimal" {...input('longitude')} />
+
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        {/* Columna 1: Datos Operativos y Contenido */}
+        <div className="grid gap-4">
+          {hostSelector}
+          <TextField label="Título" {...input('title')} />
+          <div className="grid grid-cols-2 gap-4">
+            <TextField
+              label="Precio por persona (COP)"
+              inputMode="numeric"
+              {...input('unitPriceCop')}
+            />
+            <TextField
+              label="Cupo por fecha"
+              inputMode="numeric"
+              {...input('maxCapacityPerSlot')}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <TextField
+              label="Duración (minutos)"
+              inputMode="numeric"
+              {...input('durationMinutes')}
+            />
+            <Select
+              label="Intensidad física"
+              name="physicalIntensity"
+              size="lg"
+              value={draft.physicalIntensity}
+              options={INTENSITY_OPTIONS}
+              onChange={(value) => {
+                setDraft((current) => ({
+                  ...current,
+                  physicalIntensity: value as 'LOW' | 'MEDIUM' | 'HIGH',
+                }));
+              }}
+            />
+          </div>
+          <div>
+            <label htmlFor={descId} className="block font-semibold text-ink">
+              Descripción
+            </label>
+            <textarea
+              id={descId}
+              name="description"
+              rows={4}
+              value={draft.description}
+              aria-invalid={errors.description ? true : undefined}
+              onChange={(event) => {
+                set('description')(event.target.value);
+              }}
+              className={`mt-1.5 ${operationFieldClass}`}
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm font-semibold text-danger-text">{errors.description}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor={safetyId} className="block font-semibold text-ink">
+              Recomendaciones de seguridad
+            </label>
+            <textarea
+              id={safetyId}
+              name="safetyGuidelines"
+              rows={3}
+              value={draft.safetyGuidelines}
+              aria-invalid={errors.safetyGuidelines ? true : undefined}
+              onChange={(event) => {
+                set('safetyGuidelines')(event.target.value);
+              }}
+              className={`mt-1.5 ${operationFieldClass}`}
+            />
+            {errors.safetyGuidelines && (
+              <p className="mt-1 text-sm font-semibold text-danger-text">
+                {errors.safetyGuidelines}
+              </p>
+            )}
+          </div>
         </div>
-      </details>
-      <div>
-        <label htmlFor={descId} className="block font-semibold text-ink">
-          Descripción
-        </label>
-        <textarea
-          id={descId}
-          name="description"
-          rows={3}
-          value={draft.description}
-          aria-invalid={errors.description ? true : undefined}
-          onChange={(event) => {
-            set('description')(event.target.value);
-          }}
-          className={`mt-1.5 ${operationFieldClass}`}
-        />
-        {errors.description && (
-          <p className="mt-1 text-sm font-semibold text-danger-text">{errors.description}</p>
-        )}
+
+        {/* Columna 2: Ubicación geográfica y mapa interactivo */}
+        <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Departamento"
+              name="departmentCode"
+              size="lg"
+              searchable
+              searchPlaceholder="Escribe para buscar…"
+              value={departmentCode}
+              options={departmentOptions}
+              onChange={(value) => {
+                setDepartmentCode(value);
+                setConfirmed(true);
+                setDraft((current) => ({ ...current, municipalityCode: '' }));
+              }}
+            />
+            <div>
+              <Select
+                label="Municipio"
+                name="municipalityCode"
+                size="lg"
+                searchable
+                searchPlaceholder="Escribe para buscar…"
+                value={draft.municipalityCode}
+                options={municipalityOptions}
+                disabled={!departmentCode}
+                invalid={Boolean(errors.municipalityCode)}
+                describedBy={errors.municipalityCode ? municipalityErrorId : undefined}
+                onChange={(value) => {
+                  set('municipalityCode')(value);
+                  setConfirmed(true);
+                }}
+              />
+              {errors.municipalityCode && (
+                <p id={municipalityErrorId} className="mt-1 text-sm font-semibold text-danger-text">
+                  {errors.municipalityCode}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="Vereda (opcional)" {...input('vereda')} />
+            <TextField label="Dirección o punto de encuentro" {...input('meetingPoint')} />
+          </div>
+
+          <LocationPicker
+            lat={parseCoordinate(draft.latitude)}
+            lng={parseCoordinate(draft.longitude)}
+            onChange={(point) => {
+              setDraft((current) => ({
+                ...current,
+                latitude: String(point.lat),
+                longitude: String(point.lng),
+                ...(point.address ? { meetingPoint: point.address } : {}),
+              }));
+              detection.detect(point);
+            }}
+          />
+
+          <LocationSummary
+            status={status}
+            municipality={municipality?.name}
+            department={department?.name}
+            vereda={vereda}
+            confirmed={confirmed}
+            mismatch={mismatch}
+            onConfirm={() => {
+              setConfirmed(true);
+            }}
+            onChange={() => {
+              (
+                formRef.current?.elements.namedItem('municipalityCode') as HTMLElement | null
+              )?.focus();
+            }}
+          />
+
+          <details className="rounded-lg border-2 border-border-subtle p-3">
+            <summary className="min-h-11 cursor-pointer font-semibold text-ink">
+              Avanzado (coordenadas)
+            </summary>
+            <div className="mt-3 grid grid-cols-2 gap-4">
+              <TextField label="Latitud (opcional)" inputMode="decimal" {...input('latitude')} />
+              <TextField label="Longitud (opcional)" inputMode="decimal" {...input('longitude')} />
+            </div>
+          </details>
+        </div>
       </div>
-      <div>
-        <label htmlFor={safetyId} className="block font-semibold text-ink">
-          Recomendaciones de seguridad
-        </label>
-        <textarea
-          id={safetyId}
-          name="safetyGuidelines"
-          rows={2}
-          value={draft.safetyGuidelines}
-          aria-invalid={errors.safetyGuidelines ? true : undefined}
-          onChange={(event) => {
-            set('safetyGuidelines')(event.target.value);
-          }}
-          className={`mt-1.5 ${operationFieldClass}`}
-        />
-        {errors.safetyGuidelines && (
-          <p className="mt-1 text-sm font-semibold text-danger-text">{errors.safetyGuidelines}</p>
-        )}
-      </div>
+
       {error !== null && error !== undefined && Object.keys(errors).length === 0 && (
         <ProblemNotice error={error} />
       )}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 border-t border-border-subtle pt-4">
         <Button type="submit" disabled={pending}>
           <Icon name="check" />
           {pending ? busyLabel : submitLabel}

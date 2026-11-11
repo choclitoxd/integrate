@@ -37,10 +37,7 @@ export function NewUserSheet({ onClose, onCreated }: NewUserSheetProps) {
   function setField<K extends UserField>(key: K, value: UserDraft[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) {
-      setErrors((prev) => {
-        const { [key]: _removed, ...rest } = prev;
-        return rest;
-      });
+      setErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
     }
   }
 

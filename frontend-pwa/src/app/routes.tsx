@@ -17,6 +17,7 @@ import { RequireSession } from './guards/RequireSession';
 import { AdminLayout } from './layouts/AdminLayout';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
+import { HostLayout } from './layouts/HostLayout';
 import { TouristLayout } from './layouts/TouristLayout';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RouteErrorPage } from './pages/RouteErrorPage';
@@ -83,6 +84,10 @@ const bookingStatus = async () => {
       </RequireSession>
     ),
   };
+};
+const hostBookingsPage = async () => {
+  const { HostBookingsPage } = await import('@/features/host');
+  return { Component: HostBookingsPage };
 };
 const hostsPage = async () => {
   const { HostsPage } = await import('@/features/enrollment');
@@ -175,6 +180,15 @@ export const routes: RouteObject[] = [
             ),
           },
         ],
+      },
+      {
+        path: '/anfitrion',
+        element: (
+          <RequireSession roles={['ROLE_HOST']}>
+            <HostLayout />
+          </RequireSession>
+        ),
+        children: [{ index: true, lazy: hostBookingsPage }],
       },
       {
         path: '/gestor',

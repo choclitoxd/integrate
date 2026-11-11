@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui';
 /** Error inesperado al renderizar o cargar una ruta. Nunca muestra stacktraces al usuario. */
 export function RouteErrorPage() {
   const error = useRouteError();
+  console.error('DEBUG Route error caught:', error);
   const traceId = error instanceof ApiError ? error.traceId : undefined;
   const status = isRouteErrorResponse(error) ? error.status : undefined;
 

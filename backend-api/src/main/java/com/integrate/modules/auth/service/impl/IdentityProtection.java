@@ -213,6 +213,29 @@ public class IdentityProtection {
         }
     }
 
+    /** The caller holds the row lock for the duration of the profile transaction. */
+    public void changeDocument(User user, DocType docType, String docNumber) {
+        user.updateDocType(docType);
+        if (mode == Mode.PROTECTED) {
+            protectDocument(user, docNumber);
+        } else if (mode == Mode.DUAL) {
+            protectDocument(user, docNumber);
+            jdbc.update("""
+                    UPDATE auth.users
+                    SET doc_type = ?, doc_number = ?, doc_number_enc = ?, doc_key_version = ?,
+                        document_index = ?, document_index_version = ?, document_index_next = ?,
+                        document_index_next_version = ?
+                    WHERE id = ?
+                    """,
+                    docType.name(), docNumber, user.getEncryptedDocument(), user.getDocumentKeyVersion(),
+                    user.getDocumentIndex(), user.getDocumentIndexVersion(), user.getNextDocumentIndex(),
+                    user.getNextDocumentIndexVersion(), user.getId());
+        } else {
+            jdbc.update("UPDATE auth.users SET doc_type = ?, doc_number = ? WHERE id = ?",
+                    docType.name(), docNumber, user.getId());
+        }
+    }
+
     void protectDocument(User user, String document) {
         short version = cipher.currentKeyVersion();
         user.protectDocument(cipher.encrypt(document, aad(user, "doc_number"), version),

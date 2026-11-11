@@ -1,3 +1,4 @@
+import { useCurrentPolicy } from '@/features/auth';
 import { useAvailability, useExperience } from '@/features/catalog';
 import { formatCop, formatLocalTime, formatLongDate, pluralize } from '@/shared/lib';
 import { Icon } from '@/shared/ui';
@@ -10,6 +11,7 @@ import { useMeetingPoint } from '../queries';
  * recorrido. Sin EPS ni contacto de emergencia.
  */
 export function TripSheet({ booking }: { booking: Booking }) {
+  const policy = useCurrentPolicy();
   const experience = useExperience(booking.experienceId);
   const availability = useAvailability(booking.experienceId);
   const schedule = availability.data?.schedules.find(
@@ -25,6 +27,9 @@ export function TripSheet({ booking }: { booking: Booking }) {
       <h2 id="ficha" className="text-xl font-bold text-ink">
         Ficha de viaje
       </h2>
+      {policy.data?.healthNotice && (
+        <p className="mt-3 text-sm text-ink-muted">{policy.data.healthNotice.body}</p>
+      )}
       <dl className="mt-3 grid gap-3 rounded-xl border-2 border-border-subtle px-4 py-4">
         <div>
           <dt className="text-sm text-ink-muted">Experiencia</dt>

@@ -7,6 +7,7 @@ import com.integrate.common.web.PageRequests;
 import com.integrate.modules.auth.entity.DocType;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
+import com.integrate.modules.catalog.dto.request.AdminUserUpdateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -30,6 +31,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,6 +96,14 @@ public class AdminPeopleController {
     public ResponseEntity<AdminUserDetailResponse> detail(@AuthenticationPrincipal Jwt jwt,
                                                           HttpServletRequest request, @PathVariable UUID id) {
         return noStore(service.detail(id, Actors.subject(jwt), RequestClients.from(request)));
+    }
+
+    /** Actualización de los datos de una persona por el administrador (ADR-0057 §1). */
+    @PutMapping("/users/{id}")
+    public ResponseEntity<AdminUserResponse> updateUser(@AuthenticationPrincipal Jwt jwt,
+                                                        @PathVariable UUID id,
+                                                        @Valid @RequestBody AdminUserUpdateRequest request) {
+        return noStore(service.updateUser(id, request, Actors.subject(jwt)));
     }
 
     @GetMapping("/link-managers")

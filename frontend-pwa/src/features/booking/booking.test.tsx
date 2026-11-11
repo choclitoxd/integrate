@@ -30,6 +30,11 @@ const policy = {
   documentUrl: 'https://integrate.co/politica',
   effectiveFrom: '2026-10-01T00:00:00Z',
   contentSha256: 'a'.repeat(64),
+  healthNotice: {
+    noticeVersion: 'h1',
+    body: 'Aviso publicado de EPS.',
+    contentSha256: 'b'.repeat(64),
+  },
 };
 
 function consents(health: 'VALID' | 'MISSING') {
@@ -88,13 +93,13 @@ async function fillTraveler(index: number, doc: string, eps: string, name?: stri
     await userEvent.type(field, name);
   }
   await userEvent.type(within(card).getByLabelText('Número de documento'), doc);
-  await userEvent.type(within(card).getByLabelText(/^EPS/), eps);
+  if (eps) await userEvent.type(within(card).getByLabelText(/^EPS/), eps);
 }
 
-async function fillAll() {
+async function fillAll(eps = 'Sura') {
   await screen.findByText(/Sendero de la Memoria/);
-  await fillTraveler(1, '1094000111', 'Sura');
-  await fillTraveler(2, '1094000222', 'Sanitas', 'Luis Restrepo');
+  await fillTraveler(1, '1094000111', eps);
+  await fillTraveler(2, '1094000222', '', 'Luis Restrepo');
   const contact = screen.getByRole('group', { name: 'Contacto de emergencia' });
   await userEvent.type(within(contact).getByLabelText('Nombre completo'), 'Carmen Ruiz');
   const phone = within(contact).getByLabelText('Celular');
@@ -153,7 +158,7 @@ describe('formulario de reserva (T-1.10c)', () => {
           fullName: 'Luis Restrepo',
           docType: 'CC',
           docNumber: '1094000222',
-          medicalEps: 'Sanitas',
+          medicalEps: null,
           isHolder: false,
         },
       ],
@@ -167,7 +172,7 @@ describe('formulario de reserva (T-1.10c)', () => {
         Array.from({ length: store.length }, (_, i) => store.getItem(store.key(i) ?? '')),
       )
       .join('|');
-    expect(stored).not.toMatch(/Sanitas|1094000222|Carmen/);
+    expect(stored).not.toMatch(/Sura|1094000222|Carmen/);
   });
 
   it('reintenta con la misma clave tras una caída de red y usa otra si el cuerpo cambia', async () => {
@@ -184,7 +189,7 @@ describe('formulario de reserva (T-1.10c)', () => {
     expect(calls[1]?.key).toBe(calls[0]?.key);
 
     await userEvent.type(
-      within(screen.getByRole('group', { name: /Viajero 2 de 2/ })).getByLabelText(/^EPS/),
+      within(screen.getByRole('group', { name: /Viajero 1 de 2/ })).getByLabelText(/^EPS/),
       ' Plus',
     );
     await submit();
@@ -255,10 +260,50 @@ describe('formulario de reserva (T-1.10c)', () => {
     expect(alert.parentElement).toBe(reveal.mock.contexts.at(-1));
   });
 
+  it('reserva sin EPS ni consentimiento de salud y no muestra EPS para acompañantes', async () => {
+    const { calls, router } = renderForm(() => booking, { health: 'MISSING' });
+    await fillAll('');
+    const second = screen.getByRole('group', { name: /Viajero 2 de 2/ });
+    expect(within(second).queryByLabelText(/^EPS/)).not.toBeInTheDocument();
+    await submit();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/reservas/bk-1');
+    });
+    expect(
+      screen.queryByRole('dialog', { name: 'Autorización necesaria' }),
+    ).not.toBeInTheDocument();
+    expect(calls).toHaveLength(1);
+    const body = calls[0]?.body as { participants: { medicalEps: string | null }[] };
+    expect(body.participants.map((participant) => participant.medicalEps)).toEqual([null, null]);
+  });
+
+  it('permite reservar sin EPS cuando su tratamiento no está disponible', async () => {
+    const { calls, router } = renderForm((_call, n) =>
+      n === 1
+        ? new ApiError(
+            { type: 'about:blank', title: 'x', status: 403, code: 'HEALTH_EPS_UNAVAILABLE' },
+            null,
+          )
+        : booking,
+    );
+    await fillAll();
+    await submit();
+    expect(await screen.findByText(/no está disponible el tratamiento de la EPS/i)).toBeVisible();
+    expect(router.state.location.pathname).toBe('/reservas/nueva');
+    const holder = screen.getByRole('group', { name: /Viajero 1 de 2/ });
+    await userEvent.clear(within(holder).getByLabelText(/^EPS/));
+    await submit();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/reservas/bk-1');
+    });
+    expect(calls).toHaveLength(2);
+    const body = calls[1]?.body as { participants: { medicalEps: string | null }[] };
+    expect(body.participants[0]?.medicalEps).toBeNull();
+  });
+
   it('pide HEALTH_EMERGENCY antes de enviar y continúa al otorgarla', async () => {
     const { calls, router } = renderForm(() => booking, { health: 'MISSING' });
     await fillAll();
-    expect(screen.getByText(/necesitamos tu autorización para tratar la EPS/)).toBeVisible();
     await submit();
     const dialog = screen.getByRole('dialog', { name: 'Autorización necesaria' });
     expect(calls).toHaveLength(0);
@@ -299,8 +344,8 @@ describe('formulario de reserva (T-1.10c)', () => {
     await userEvent.click(within(sheet).getByRole('button', { name: 'Seguir llenando' }));
     expect(router.state.location.pathname).toBe('/reservas/nueva');
     expect(
-      within(screen.getByRole('group', { name: /Viajero 2 de 2/ })).getByLabelText(/^EPS/),
-    ).toHaveValue('Sanitas');
+      within(screen.getByRole('group', { name: /Viajero 1 de 2/ })).getByLabelText(/^EPS/),
+    ).toHaveValue('Sura');
 
     await userEvent.click(screen.getByRole('button', { name: 'Atrás' }));
     await userEvent.click(screen.getByRole('button', { name: 'Salir' }));

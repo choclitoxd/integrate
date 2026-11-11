@@ -385,6 +385,24 @@ export function createUser(http: HttpClient, body: UserCreateRequest): Promise<A
   return http.request<AdminUser>('/v1/admin/users', { method: 'POST', body });
 }
 
+export interface AdminUserUpdateRequest {
+  readonly fullName: string;
+  readonly docType: DocType;
+  readonly docNumber: string;
+  readonly phone: string;
+}
+
+export function updateUser(
+  http: HttpClient,
+  userId: string,
+  body: AdminUserUpdateRequest,
+): Promise<AdminUser> {
+  return http.request<AdminUser>(`/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'PUT',
+    body,
+  });
+}
+
 export interface AdminExperienceCreateRequest {
   readonly hostProfileId: string;
   readonly experience: ExperienceUpdateRequest;

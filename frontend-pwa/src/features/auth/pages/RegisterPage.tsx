@@ -67,6 +67,7 @@ export function RegisterPage() {
   const [errors, setErrors] = useState<FieldErrors<Field>>({});
   const [serverError, setServerError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [healthVersion, setHealthVersion] = useState<string | null>(null);
 
   if (session.status === 'authenticated' && !submitting) {
     return <Navigate to={destination} replace />;
@@ -76,6 +77,10 @@ export function RegisterPage() {
     const first = FIELDS.find((field) => next[field]);
     if (first) (formRef.current?.elements.namedItem(first) as HTMLElement | null)?.focus();
   }
+
+  const healthPair = policy.data?.healthNotice
+    ? `${policy.data.version}:${policy.data.healthNotice.noticeVersion}`
+    : null;
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,7 +94,7 @@ export function RegisterPage() {
       email: data.get('email'),
       password: data.get('password'),
       personalData,
-      healthEmergency,
+      healthEmergency: healthEmergency && healthPair !== null && healthVersion === healthPair,
     });
     setServerError(null);
     if (!parsed.success) {
@@ -112,7 +117,13 @@ export function RegisterPage() {
         docType: form.docType,
         docNumber: form.docNumber,
         phone: form.phone,
-        consent: { policyVersion: policy.data.version, purposes },
+        consent: {
+          policyVersion: policy.data.version,
+          purposes,
+          ...(form.healthEmergency && policy.data.healthNotice
+            ? { healthNoticeVersion: policy.data.healthNotice.noticeVersion }
+            : {}),
+        },
       });
     } catch (error) {
       handleRegisterError(error);
@@ -254,14 +265,20 @@ export function RegisterPage() {
             onChange={setPersonalData}
             error={errors.personalData}
           />
-          <ConsentCheckbox
-            purpose="HEALTH_EMERGENCY"
-            name="healthEmergency"
-            checked={healthEmergency}
-            onChange={setHealthEmergency}
-          />
+          {policy.data?.healthNotice && (
+            <ConsentCheckbox
+              purpose="HEALTH_EMERGENCY"
+              name="healthEmergency"
+              body={policy.data.healthNotice.body}
+              checked={healthEmergency && healthVersion === healthPair}
+              onChange={(checked) => {
+                setHealthEmergency(checked);
+                setHealthVersion(checked ? healthPair : null);
+              }}
+            />
+          )}
           <p className="text-sm text-ink-muted">
-            Si no autorizas los datos de salud ahora, te los pediremos al reservar.
+            Puedes reservar sin proporcionar tu EPS ni aceptar este tratamiento.
           </p>
         </fieldset>
 

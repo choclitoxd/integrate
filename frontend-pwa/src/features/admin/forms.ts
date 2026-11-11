@@ -5,6 +5,7 @@ import type { InvalidParam } from '@/shared/api';
 
 import type {
   AdminExperience,
+  AdminUserUpdateRequest,
   Association,
   AssociationRequest,
   ExperienceUpdateRequest,
@@ -456,6 +457,65 @@ export function userServerErrors(params: readonly InvalidParam[]): FieldErrors<U
   const errors: Partial<Record<UserField, string>> = {};
   for (const param of params) {
     const field = USER_FIELDS.find((name) => name === param.name);
+    if (field) errors[field] ??= 'Revisa este dato: el servidor no lo aceptó.';
+  }
+  return errors;
+}
+
+/* ------------------------------------------------------------------------ edición de usuario (ADR-0057 §1) */
+
+export interface UserEditDraft {
+  readonly fullName: string;
+  readonly docType: DocType;
+  readonly docNumber: string;
+  readonly phone: string;
+}
+
+export type UserEditField = keyof UserEditDraft;
+
+export const USER_EDIT_FIELDS: readonly UserEditField[] = [
+  'fullName',
+  'docType',
+  'docNumber',
+  'phone',
+];
+
+export type UserEditValidation =
+  | { readonly ok: true; readonly body: AdminUserUpdateRequest }
+  | { readonly ok: false; readonly errors: FieldErrors<UserEditField> };
+
+export function validateUserEditDraft(draft: UserEditDraft): UserEditValidation {
+  const errors: Partial<Record<UserEditField, string>> = {};
+  const fullName = draft.fullName.trim();
+  if (fullName.length < 3 || fullName.length > 150) {
+    errors.fullName = 'Escribe un nombre de 3 a 150 caracteres.';
+  }
+  const docNumber = draft.docNumber.trim();
+  if (!DOCUMENT.test(docNumber)) {
+    errors.docNumber = 'El número de documento lleva entre 4 y 20 letras o dígitos, sin espacios.';
+  }
+  const phone = phoneSchema.safeParse(draft.phone);
+  if (!phone.success) {
+    errors.phone = phone.error.issues[0]?.message ?? 'Revisa el celular.';
+  }
+  if (Object.keys(errors).length > 0 || !phone.success) {
+    return { ok: false, errors };
+  }
+  return {
+    ok: true,
+    body: {
+      fullName,
+      docType: draft.docType,
+      docNumber,
+      phone: phone.data,
+    },
+  };
+}
+
+export function userEditServerErrors(params: readonly InvalidParam[]): FieldErrors<UserEditField> {
+  const errors: Partial<Record<UserEditField, string>> = {};
+  for (const param of params) {
+    const field = USER_EDIT_FIELDS.find((name) => name === param.name);
     if (field) errors[field] ??= 'Revisa este dato: el servidor no lo aceptó.';
   }
   return errors;

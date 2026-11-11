@@ -166,3 +166,13 @@ flowchart LR
   C -->|sí| OK[Aprobada]
   C -->|no| E[409 MEETING_POINT_MISMATCH]
 ```
+
+## Enmienda (2026-11-10, ADR-0056)
+
+Aprobada por el desarrollador. Cambia dos puntos de este ADR:
+
+1. **Proveedor de geocodificación por defecto:** Google Geocoding API (clave de servidor `GOOGLE_MAPS_SERVER_KEY`, restringida por API e IP) en lugar de Nominatim. Nominatim queda como implementación alternativa del `GeocodingPort`, activable por configuración.
+2. **Restricción de costo:** la frase "costo cero, sin llaves nuevas" de la sección Contexto deja de aplicar. El uso queda cubierto por la cuenta de facturación de Google Maps Platform y por sus límites diarios y alertas (ADR-0056 §5).
+
+El algoritmo, los umbrales, el autómata y la regla de que el catálogo no se bloquea por un fallo externo no cambian.
+

@@ -367,12 +367,23 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         assertThat(anonymous).isNull();
     }
 
+    private static final String REAUTH_HEADER = "X-Reauth-Token";
+
+    private String reauthToken(String bearer) throws Exception {
+        String body = mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return JsonPath.read(body, "$.reauthToken");
+    }
+
     @Test
     void ownProfileIsAuthenticatedAndCannotSelectAnotherAccount() throws Exception {
         mvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
         String first = accessToken(registerTourist());
         String second = accessToken(registerTourist());
+        String firstReauth = reauthToken(first);
         mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, firstReauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fullName\":\"Nombre editado\",\"phone\":\"+573001111111\"}"))
                 .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
@@ -380,9 +391,47 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Carlos Restrepo"));
         mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, firstReauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fullName\":\"A\",\"phone\":\"bad\"}"))
                 .andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void ownEditsRequireRecentPasswordConfirmation() throws Exception {
+        String first = accessToken(registerTourist());
+        String second = accessToken(registerTourist());
+        String body = "{\"fullName\":\"Nombre confirmado\",\"phone\":\"+573001111111\"}";
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"incorrecta\"}"))
+                .andExpect(status().isUnprocessableContent());
+        String token = reauthToken(first);
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, "token-inventado").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second)
+                        .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Nombre confirmado"));
+    }
+
+    @Test
+    void reauthIsLockedAfterFiveWrongPasswords() throws Exception {
+        String token = accessToken(registerTourist());
+        for (int attempt = 0; attempt < 5; attempt++) {
+            mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"incorrecta\"}"))
+                    .andExpect(status().isUnprocessableContent());
+        }
+        mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists(HttpHeaders.RETRY_AFTER));
     }
 
     @Test
@@ -392,11 +441,14 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         String token = JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
         Cookie cookie = login.getResponse().getCookie("refresh_token");
         String next = "nueva-clave-" + UUID.randomUUID();
+        String reauth = reauthToken(token);
         mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"incorrecta\",\"newPassword\":\"" + next + "\"}"))
                 .andExpect(status().isUnprocessableContent());
         mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + next + "\"}"))
                 .andExpect(status().isNoContent())
@@ -424,7 +476,8 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
             try {
                 start.await();
                 return mvc.perform(post("/api/v1/auth/me/password")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauthToken(token)).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + next + "\"}"))
                         .andReturn();
             } catch (Exception ex) { throw new RuntimeException(ex); }

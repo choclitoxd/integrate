@@ -128,7 +128,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 #### Datos de los viajeros
 
-1. Por cada viajero escribe nombre completo, tipo y número de documento y **EPS** (para la póliza de turismo). El viajero 1 es el titular y se llena con tus datos.
+1. Por cada viajero escribe nombre completo, tipo y número de documento El viajero 1 es el titular y se llena con tus datos. Si la aplicación lo ofrece, el titular puede compartir su **EPS**: es voluntaria, solo la da el titular y el anfitrión de la experiencia podrá consultarla en una emergencia. Puedes reservar sin ella.
 2. Agrega un **contacto de emergencia** que *no* viaje con el grupo (nombre y celular).
 3. Toca **Apartar cupos**.
 

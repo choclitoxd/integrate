@@ -53,6 +53,7 @@ public enum ErrorCode {
     BOOKING_INSUFFICIENT_SLOTS(HttpStatus.CONFLICT, "insufficient-slots", "Insufficient Available Slots"),
     BOOKING_SCHEDULE_NOT_BOOKABLE(HttpStatus.CONFLICT, "schedule-not-bookable", "Schedule Not Bookable"),
     CONSENT_HEALTH_EMERGENCY_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "consent-required", "Consent Required"),
+    HEALTH_EPS_UNAVAILABLE(HttpStatus.FORBIDDEN, "health-eps-unavailable", "EPS Unavailable"),
 
     // --- Payments ------------------------------------------------------------
     WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "webhook-signature-invalid", "Webhook Signature Invalid"),

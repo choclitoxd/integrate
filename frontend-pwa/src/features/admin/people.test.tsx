@@ -138,8 +138,13 @@ describe('Personas · búsqueda en Usuarios (ADR-0043 §1.1)', () => {
     expect(within(table).getByRole('list', { name: 'Roles vigentes' })).toHaveTextContent(
       'Turista',
     );
-    expect(within(table).getByRole('button', { name: 'Convertir en anfitrión' })).toBeVisible();
-    expect(within(table).getByRole('button', { name: 'Acreditar como gestor' })).toBeVisible();
+    expect(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' })).toBeVisible();
+
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    await user.click(within(sheet).getByRole('tab', { name: 'Roles e historial' }));
+    expect(within(sheet).getByRole('button', { name: 'Convertir en anfitrión' })).toBeVisible();
+    expect(within(sheet).getByRole('button', { name: 'Acreditar como gestor' })).toBeVisible();
     expect(http.calls.map(([path]) => path)).toContain(
       '/v1/admin/users/search?email=laura%40ejemplo.com',
     );
@@ -233,22 +238,86 @@ describe('Personas · búsqueda en Usuarios (ADR-0043 §1.1)', () => {
     await within(table).findByRole('rowheader', { name: 'Laura Gómez' });
     expect(http.calls.some(([path]) => path === '/v1/admin/users/u-1')).toBe(false);
 
-    await user.click(within(table).getByRole('button', { name: 'Ver historial de roles' }));
-    const history = await within(table).findByRole('list', { name: 'Historial de roles' });
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    await user.click(within(sheet).getByRole('tab', { name: 'Roles e historial' }));
+    const history = await within(sheet).findByRole('list', { name: 'Historial de roles' });
     expect(within(history).getByText(/Gestor de enlace/)).toBeVisible();
     expect(within(history).getByText(/revocado el/)).toBeVisible();
-    expect(within(table).getByText(/terminado en 4567/)).toBeVisible();
+    expect(within(sheet).getByText(/terminado en 4567/)).toBeVisible();
   });
 });
 
-describe('Personas · altas', () => {
+describe('Personas · altas y edición', () => {
+  it('permite editar nombre, documento y teléfono de una persona desde el diálogo Gestionar', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    const { http } = renderApp(
+      '/admin/personas',
+      routes({
+        '/v1/admin/users/u-1': (_url: URL, options: RequestOptions) => {
+          if (options.method === 'PUT') {
+            return {
+              ...found,
+              fullName: 'Laura Gómez Editada',
+            };
+          }
+          return {
+            userId: 'u-1',
+            fullName: 'Laura Gómez',
+            maskedEmail: 'l***@ejemplo.com',
+            status: 'ACTIVE',
+            docType: 'CC',
+            docNumberLast4: '4567',
+            roles: ['TOURIST'],
+            hostProfileId: null,
+            linkManagerId: null,
+            linkManagerStatus: null,
+            roleHistory: [],
+          };
+        },
+      }),
+      ADMIN,
+    );
+
+    await searchPerson(user);
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    const nameInput = within(sheet).getByRole('textbox', { name: 'Nombre completo' });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Laura Gómez Editada');
+
+    const docInput = within(sheet).getByRole('textbox', { name: 'Número de documento' });
+    await user.clear(docInput);
+    await user.type(docInput, '1098765432');
+
+    const phoneInput = within(sheet).getByRole('textbox', { name: 'Celular de contacto' });
+    await user.clear(phoneInput);
+    await user.type(phoneInput, '3009876543');
+
+    await user.click(within(sheet).getByRole('button', { name: 'Guardar cambios' }));
+
+    expect(
+      await screen.findByText(/Se actualizaron los datos de «Laura Gómez Editada»\./),
+    ).toBeVisible();
+    expect(
+      http.calls.some(([path, options]) => path.endsWith('/u-1') && options?.method === 'PUT'),
+    ).toBe(true);
+  });
+
   it('convierte en anfitrión tras elegir la asociación y avisa del rol diferido', async () => {
     stubMatchMedia(LAPTOP);
     const user = userEvent.setup();
     const { http } = renderApp('/admin/personas', routes(), ADMIN);
 
     await searchPerson(user);
-    await user.click(await screen.findByRole('button', { name: 'Convertir en anfitrión' }));
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    await user.click(within(sheet).getByRole('tab', { name: 'Roles e historial' }));
+    await user.click(within(sheet).getByRole('button', { name: 'Convertir en anfitrión' }));
     const dialog = await screen.findByRole('dialog', { name: 'Convertir en anfitrión' });
     expect(within(dialog).getByText(/vuelva a ingresar o se renueve su sesión/)).toBeVisible();
 
@@ -272,9 +341,6 @@ describe('Personas · altas', () => {
       '/v1/admin/host-profiles',
       { method: 'POST', body: { userId: 'u-1', associationId: ASSOCIATION_ID } },
     ]);
-    const table = screen.getByRole('table', { name: /Usuarios/ });
-    expect(within(table).getByText('Ya es anfitrión.')).toBeVisible();
-    expect(within(table).queryByRole('button', { name: 'Convertir en anfitrión' })).toBeNull();
   });
 
   it('acredita a un gestor con la fecha de hoy y traduce el 409 de acreditación vigente', async () => {
@@ -296,7 +362,11 @@ describe('Personas · altas', () => {
     );
 
     await searchPerson(user);
-    await user.click(await screen.findByRole('button', { name: 'Acreditar como gestor' }));
+    const table = await screen.findByRole('table', { name: /Usuarios/ });
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    await user.click(within(sheet).getByRole('tab', { name: 'Roles e historial' }));
+    await user.click(within(sheet).getByRole('button', { name: 'Acreditar como gestor' }));
     const dialog = await screen.findByRole('dialog', { name: 'Acreditar como gestor de enlace' });
     expect(within(dialog).getByLabelText('Fecha de acreditación')).toHaveValue(todayInBogota());
 
@@ -319,8 +389,6 @@ describe('Personas · altas', () => {
         body: { userId: 'u-1', associationId: ASSOCIATION_ID, accreditedOn: todayInBogota() },
       },
     ]);
-    const table = screen.getByRole('table', { name: /Usuarios/ });
-    expect(within(table).getByText(/Ya tiene acreditación de gestor \(Vigente\)/)).toBeVisible();
   });
 
   it('no ofrece el alta a quien ya es anfitrión o tiene acreditación', async () => {
@@ -344,9 +412,12 @@ describe('Personas · altas', () => {
 
     await searchPerson(user);
     const table = await screen.findByRole('table', { name: /Usuarios/ });
-    expect(await within(table).findByText('Ya es anfitrión.')).toBeVisible();
-    expect(within(table).getByText(/Ya tiene acreditación de gestor \(Suspendido\)/)).toBeVisible();
-    expect(within(table).queryByRole('button', { name: /Convertir|Acreditar/ })).toBeNull();
+    await user.click(within(table).getByRole('button', { name: 'Gestionar a Laura Gómez' }));
+    const sheet = await screen.findByRole('dialog', { name: /Gestionar · Laura Gómez/ });
+    await user.click(within(sheet).getByRole('tab', { name: 'Roles e historial' }));
+    expect(within(sheet).getByText('Ya cuenta con perfil de anfitrión.')).toBeVisible();
+    expect(within(sheet).getByText(/Acreditación de gestor \(Suspendido\)/)).toBeVisible();
+    expect(within(sheet).queryByRole('button', { name: /Convertir|Acreditar/ })).toBeNull();
   });
 });
 

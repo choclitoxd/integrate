@@ -114,7 +114,7 @@ function FichaModal({ experience, open, onClose, onAction, onSaved }: FichaModal
   const update = useUpdateAdminExperience();
 
   return (
-    <BottomSheet open={open} onClose={onClose} title={experience.title}>
+    <BottomSheet open={open} onClose={onClose} title={experience.title} size="xl">
       <div className="grid gap-5">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge tone={status.tone}>{status.text}</StatusBadge>

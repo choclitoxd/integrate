@@ -12,6 +12,11 @@ const policy = {
   documentUrl: 'https://integrate.co/legal/politica-v0.1.pdf',
   effectiveFrom: '2026-10-01T05:00:00Z',
   contentSha256: 'a'.repeat(64),
+  healthNotice: {
+    noticeVersion: 'h1',
+    body: 'Aviso publicado de EPS.',
+    contentSha256: 'b'.repeat(64),
+  },
 };
 
 function problem(status: number, extra: Record<string, unknown> = {}) {
@@ -102,7 +107,7 @@ describe('registro (T-1.11)', () => {
     const personal = screen.getByRole('checkbox', {
       name: /mis datos personales \(obligatorio\)/i,
     });
-    const health = screen.getByRole('checkbox', { name: /datos de salud.*\(opcional\)/i });
+    const health = screen.getByRole('checkbox', { name: /mi EPS.*\(opcional\)/i });
     expect(personal).not.toBeChecked();
     expect(health).not.toBeChecked();
 
@@ -127,7 +132,7 @@ describe('registro (T-1.11)', () => {
     await screen.findByRole('link', { name: /leer la política/i });
     await fillRegister();
     await userEvent.click(screen.getByRole('checkbox', { name: /mis datos personales/i }));
-    await userEvent.click(screen.getByRole('checkbox', { name: /datos de salud/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /mi EPS/i }));
     await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await waitFor(() => {
@@ -140,7 +145,11 @@ describe('registro (T-1.11)', () => {
       docType: 'CC',
       docNumber: '1094857483',
       phone: '+573001234567',
-      consent: { policyVersion: 'v0.1', purposes: ['PERSONAL_DATA', 'HEALTH_EMERGENCY'] },
+      consent: {
+        policyVersion: 'v0.1',
+        purposes: ['PERSONAL_DATA', 'HEALTH_EMERGENCY'],
+        healthNoticeVersion: 'h1',
+      },
     });
     expect(session.getState().status).toBe('authenticated');
   });

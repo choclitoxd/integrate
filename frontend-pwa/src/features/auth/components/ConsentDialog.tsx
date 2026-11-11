@@ -45,15 +45,31 @@ export function ConsentDialog({
   }
 
   const version = policyVersion ?? policy.data?.version;
+  const needsHealth = purposes.includes('HEALTH_EMERGENCY');
+  const healthNotice = policy.data?.healthNotice;
+  const [acceptedVersion, setAcceptedVersion] = useState<string | null>(null);
+  const pair =
+    healthNotice && policy.data ? `${policy.data.version}:${healthNotice.noticeVersion}` : null;
   const allChecked = purposes.every((purpose) => checked.has(purpose));
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!allChecked || !version) {
+    if (
+      !allChecked ||
+      !version ||
+      (needsHealth && (!pair || acceptedVersion !== pair || version !== policy.data?.version))
+    ) {
       setShowErrors(true);
       return;
     }
-    grant.mutate({ policyVersion: version, purposes }, { onSuccess: onGranted });
+    grant.mutate(
+      {
+        policyVersion: version,
+        purposes,
+        ...(needsHealth && healthNotice ? { healthNoticeVersion: healthNotice.noticeVersion } : {}),
+      },
+      { onSuccess: onGranted },
+    );
   }
 
   const required = mode === 'required';
@@ -69,7 +85,16 @@ export function ConsentDialog({
           <Button variant="secondary" className="flex-1" onClick={onDecline}>
             {required ? 'No acepto' : 'Ahora no'}
           </Button>
-          <Button type="submit" form={formId} className="flex-[2]" disabled={grant.isPending}>
+          <Button
+            type="submit"
+            form={formId}
+            className="flex-[2]"
+            disabled={
+              grant.isPending ||
+              (needsHealth &&
+                (!pair || acceptedVersion !== pair || version !== policy.data?.version))
+            }
+          >
             {grant.isPending ? 'Guardando…' : 'Acepto'}
           </Button>
         </>
@@ -82,23 +107,35 @@ export function ConsentDialog({
             : 'Para continuar necesitamos esta autorización. Puedes revisarla en tu cuenta cuando quieras.'}
         </p>
         {policy.data && <PolicyLink policy={policy.data} />}
-        {purposes.map((purpose) => (
-          <ConsentCheckbox
-            key={purpose}
-            purpose={purpose}
-            required
-            checked={checked.has(purpose)}
-            onChange={(value) => {
-              const next = new Set(checked);
-              if (value) next.add(purpose);
-              else next.delete(purpose);
-              setChecked(next);
-            }}
-            error={
-              showErrors && !checked.has(purpose) ? 'Marca la casilla para continuar.' : undefined
-            }
-          />
-        ))}
+        {needsHealth && !healthNotice && (
+          <p role="status">
+            La autorización de EPS no está disponible por ahora. Puedes reservar sin proporcionar
+            EPS.
+          </p>
+        )}
+        {purposes
+          .filter((purpose) => purpose !== 'HEALTH_EMERGENCY' || healthNotice)
+          .map((purpose) => (
+            <ConsentCheckbox
+              key={purpose}
+              purpose={purpose}
+              body={purpose === 'HEALTH_EMERGENCY' ? healthNotice?.body : undefined}
+              required
+              checked={
+                checked.has(purpose) && (purpose !== 'HEALTH_EMERGENCY' || acceptedVersion === pair)
+              }
+              onChange={(value) => {
+                if (purpose === 'HEALTH_EMERGENCY') setAcceptedVersion(value ? pair : null);
+                const next = new Set(checked);
+                if (value) next.add(purpose);
+                else next.delete(purpose);
+                setChecked(next);
+              }}
+              error={
+                showErrors && !checked.has(purpose) ? 'Marca la casilla para continuar.' : undefined
+              }
+            />
+          ))}
         {required && (
           <p className="text-sm text-ink-muted">
             Si no aceptas, cerraremos tu sesión. Tus datos no se modifican.

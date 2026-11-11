@@ -12,7 +12,7 @@ import { bookingFormSchema } from './forms';
 
 /**
  * RNF-13 (Capacidad de interacción · protección contra errores de usuario): el checkout valida en el
- * cliente antes de invocar la API (EPS y contacto de emergencia obligatorios) y avisa cuando el TTL
+ * cliente antes de invocar la API (contacto de emergencia obligatorio y EPS opcional) y avisa cuando el TTL
  * de 15 minutos está por vencer.
  */
 
@@ -22,14 +22,14 @@ const FORM_PATH = `/reservas/nueva?experiencia=${EXPERIENCE_ID}&franja=b&persona
 const valid = {
   participants: [
     { fullName: 'Carlos Restrepo', docType: 'CC', docNumber: '1094000111', medicalEps: 'Sura' },
-    { fullName: 'Luis Restrepo', docType: 'CC', docNumber: '1094000222', medicalEps: 'Sanitas' },
+    { fullName: 'Luis Restrepo', docType: 'CC', docNumber: '1094000222', medicalEps: '' },
   ],
   emergencyName: 'Carmen Ruiz',
   emergencyPhone: '300 765 4321',
 } as const;
 
-type Omission = 'eps1' | 'eps2' | 'emergencyName' | 'emergencyPhone' | 'doc1';
-const OMISSIONS: readonly Omission[] = ['eps1', 'eps2', 'emergencyName', 'emergencyPhone', 'doc1'];
+type Omission = 'emergencyName' | 'emergencyPhone' | 'doc1';
+const OMISSIONS: readonly Omission[] = ['emergencyName', 'emergencyPhone', 'doc1'];
 
 function renderForm() {
   const lockCalls: unknown[] = [];
@@ -41,6 +41,14 @@ function renderForm() {
           schedule('b', day, '07', 5),
         ]),
       [`/v1/experiences/${EXPERIENCE_ID}`]: detail,
+      '/v1/privacy-policies/current': {
+        version: 'v1',
+        healthNotice: {
+          noticeVersion: 'h1',
+          body: 'Aviso publicado de EPS.',
+          contentSha256: 'b'.repeat(64),
+        },
+      },
       '/v1/me/consents': {
         currentPolicyVersion: 'v0.1',
         consents: [
@@ -70,12 +78,11 @@ async function fillExcept(omit: Omission) {
   if (omit !== 'doc1') {
     await userEvent.type(within(first).getByLabelText('Número de documento'), '1094000111');
   }
-  if (omit !== 'eps1') await userEvent.type(within(first).getByLabelText(/^EPS/), 'Sura');
+  await userEvent.type(within(first).getByLabelText(/^EPS/), 'Sura');
   const secondName = within(second).getByLabelText('Nombre completo');
   await userEvent.clear(secondName);
   await userEvent.type(secondName, 'Luis Restrepo');
   await userEvent.type(within(second).getByLabelText('Número de documento'), '1094000222');
-  if (omit !== 'eps2') await userEvent.type(within(second).getByLabelText(/^EPS/), 'Sanitas');
   const contact = screen.getByRole('group', { name: 'Contacto de emergencia' });
   if (omit !== 'emergencyName') {
     await userEvent.type(within(contact).getByLabelText('Nombre completo'), 'Carmen Ruiz');
@@ -91,14 +98,6 @@ describe('[RNF-13] Protección contra errores de usuario en el checkout', () => 
   }) => {
     expect(bookingFormSchema.safeParse(valid).success).toBe(true);
     const variants = [
-      {
-        ...valid,
-        participants: [{ ...valid.participants[0], medicalEps: '' }, valid.participants[1]],
-      },
-      {
-        ...valid,
-        participants: [valid.participants[0], { ...valid.participants[1], medicalEps: ' ' }],
-      },
       { ...valid, emergencyName: '' },
       { ...valid, emergencyPhone: '' },
       { ...valid, emergencyPhone: '123' },
@@ -119,7 +118,7 @@ describe('[RNF-13] Protección contra errores de usuario en el checkout', () => 
       unit: '%',
       threshold: '= 100 %',
       pass: rejected === variants.length,
-      detail: `${String(variants.length)} variantes: sin EPS (titular y acompañante), sin nombre o celular de emergencia, celular inválido, sin documento, nombre corto`,
+      detail: `${String(variants.length)} variantes: sin nombre o celular de emergencia, celular inválido, sin documento, nombre corto`,
     });
     expect(rejected).toBe(variants.length);
   });
@@ -133,7 +132,6 @@ describe('[RNF-13] Protección contra errores de usuario en el checkout', () => 
         const { lockCalls, unmount } = renderForm();
         await fillExcept(omit);
         await userEvent.click(screen.getByRole('button', { name: 'Apartar cupos' }));
-        // Cualquier control marcado: la EPS es un combobox con sugerencias, no un textbox.
         const flagged = document.querySelectorAll('[aria-invalid="true"]').length > 0;
         outcomes.push(
           `${omit}: ${lockCalls.length > 0 ? 'llegó a la API' : flagged ? 'detenido' : 'sin aviso'}`,

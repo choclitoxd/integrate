@@ -182,8 +182,26 @@ server:
     include-binding-errors: never
 
 logging:
-  # traceId publicado en el MDC por TraceIdFilter (ADR-0003); se inserta en el patrón por defecto.
+  structured:
+    format:
+      console: ecs
+  # traceId publicado en el MDC por TraceIdFilter (ADR-0003); ECS lo conserva como campo MDC.
   pattern:
     correlation: "[%X{traceId:-}] "
   level:
     root: INFO
+
+management:
+  endpoints:
+    web:
+      base-path: /api/v1
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+      path-mapping:
+        health: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never

@@ -132,6 +132,10 @@ public class User {
         this.fullName = fullName;
     }
 
+    public void updateDocType(DocType docType) {
+        this.docType = docType;
+    }
+
     /**
      * Anfitrión registrado por un gestor (ADR-0007 §3): {@code PENDING_RESET} con un hash de un secreto
      * aleatorio que nadie conoce. No puede iniciar sesión hasta activar la cuenta.

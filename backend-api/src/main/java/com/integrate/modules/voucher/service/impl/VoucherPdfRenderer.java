@@ -72,9 +72,7 @@ class VoucherPdfRenderer {
                 font = PDType0Font.load(document, ttf, true);
             }
             archivalMetadata(document, voucher);
-            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
-                draw(content, font, page.getMediaBox(), voucher);
-            }
+            draw(document, page, font, voucher);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
             return out.toByteArray();
@@ -83,10 +81,12 @@ class VoucherPdfRenderer {
         }
     }
 
-    private static void draw(PDPageContentStream content, PDType0Font font, PDRectangle box, VoucherDocument v)
+    private static void draw(PDDocument document, PDPage page, PDType0Font font, VoucherDocument v)
             throws IOException {
+        PDPageContentStream content = new PDPageContentStream(document, page);
+        try {
         ZoneId zone = ZoneId.of(v.timezone());
-        float top = box.getHeight() - MARGIN;
+        float top = page.getMediaBox().getHeight() - MARGIN;
         float y = top;
         content.setNonStrokingColor(0.08f, 0.33f, 0.18f);
         y = line(content, font, 20, MARGIN, y, "Voucher oficial · Intégrate");
@@ -94,22 +94,37 @@ class VoucherPdfRenderer {
         y = line(content, font, 11, MARGIN, y - 4, "Turismo comunitario de memoria y paz");
         y -= 14;
 
-        y = line(content, font, 15, MARGIN, y, v.title());
+        y = wrappedLine(content, font, 15, MARGIN, y, v.title());
         y = line(content, font, 11, MARGIN, y - 2, capitalize(DATE.format(v.startTime().atZone(zone)))
                 + " · " + TIME.format(v.startTime().atZone(zone)) + " a " + TIME.format(v.endTime().atZone(zone))
                 + " (hora de Colombia)");
-        y = line(content, font, 11, MARGIN, y, "Punto de encuentro: " + v.meetingPoint());
+        y = wrappedLine(content, font, 11, MARGIN, y, "Punto de encuentro: " + v.meetingPoint());
         if (v.municipality() != null) {
-            y = line(content, font, 11, MARGIN, y, v.municipality()
+            y = wrappedLine(content, font, 11, MARGIN, y, v.municipality()
                     + (v.department() == null ? "" : ", " + v.department()));
         }
         y -= 10;
-        y = line(content, font, 12, MARGIN, y, "Titular: " + v.holderName() + " · " + v.holderDocument());
+        y = wrappedLine(content, font, 12, MARGIN, y, "Titular: " + v.holderName() + " · " + v.holderDocument());
         y = line(content, font, 11, MARGIN, y, "Cupos amparados: " + v.slots());
         for (String participant : v.participantNames()) {
-            y = line(content, font, 10, MARGIN + 12, y, "• " + participant);
+            // A 150-character name can occupy several rows; leave room for it as a unit.
+            if (y < MARGIN + 100) {
+                content.close();
+                page = new PDPage(PDRectangle.A4);
+                document.addPage(page);
+                content = new PDPageContentStream(document, page);
+                y = page.getMediaBox().getHeight() - MARGIN;
+            }
+            y = wrappedLine(content, font, 10, MARGIN + 12, y, "• " + participant);
         }
 
+        if (y - 16 - QR_SIZE - 120 < MARGIN) {
+            content.close();
+            page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            content = new PDPageContentStream(document, page);
+            y = page.getMediaBox().getHeight() - MARGIN;
+        }
         float qrTop = y - 16;
         drawQr(content, v.token(), MARGIN, qrTop - QR_SIZE, QR_SIZE);
         float textX = MARGIN + QR_SIZE + 24;
@@ -122,12 +137,45 @@ class VoucherPdfRenderer {
         line(content, font, 7, textX, ty - 6, "Voucher " + v.jti());
 
         float legalY = qrTop - QR_SIZE - 28;
+        for (String text : wrap("Puedes compartir tu EPS para facilitar la atención en caso de emergencia. "
+                + "El anfitrión de tu experiencia podrá consultarla durante una emergencia. "
+                + "Es voluntario y puedes reservar sin proporcionarla.", 85)) {
+            legalY = line(content, font, 10, MARGIN, legalY, text);
+        }
+        legalY -= 8;
         for (String text : wrap("Documento personal e intransferible. Presente este voucher y el documento de "
                 + "identidad del titular en el punto de encuentro. El código QR está firmado digitalmente por "
                 + "Intégrate y se verifica sin conexión; cualquier alteración lo invalida. Cada voucher se puede "
                 + "usar una sola vez. Sus datos personales se tratan conforme a la Ley 1581 de 2012.", 105)) {
             legalY = line(content, font, 8, MARGIN, legalY, text);
         }
+        } finally {
+            content.close();
+        }
+    }
+
+    private static float wrappedLine(PDPageContentStream content, PDType0Font font, float size, float x, float y,
+                                     String text) throws IOException {
+        float width = PDRectangle.A4.getWidth() - MARGIN - x;
+        StringBuilder row = new StringBuilder();
+        for (String word : text.split("\\s+")) {
+            if (!row.isEmpty() && font.getStringWidth(row + word) * size / 1000 > width) {
+                y = line(content, font, size, x, y, row.toString().stripTrailing());
+                row.setLength(0);
+            }
+            for (int offset = 0; offset < word.length();) {
+                int cp = word.codePointAt(offset);
+                String character = new String(Character.toChars(cp));
+                if (font.getStringWidth(row + character) * size / 1000 > width && !row.isEmpty()) {
+                    y = line(content, font, size, x, y, row.toString().stripTrailing());
+                    row.setLength(0);
+                }
+                row.append(character);
+                offset += Character.charCount(cp);
+            }
+            row.append(' ');
+        }
+        return row.isEmpty() ? y : line(content, font, size, x, y, row.toString().stripTrailing());
     }
 
     /** Un cuadrado negro por módulo activo; el margen de 4 módulos lo aporta la propia matriz. */

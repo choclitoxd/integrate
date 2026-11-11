@@ -16,7 +16,13 @@ function collectPrecacheEntries(distDir: string): { url: string; revision: strin
     for (const item of readdirSync(dir)) {
       const fullPath = join(dir, item);
       const relPath = relative(distDir, fullPath).replace(/\\/g, '/');
-      if (relPath.startsWith('manual/') || relPath === 'manual' || relPath === 'sw.js') continue;
+      if (
+        relPath.startsWith('manual/') ||
+        relPath === 'manual' ||
+        relPath === '_headers' ||
+        relPath === 'sw.js'
+      )
+        continue;
       const stat = statSync(fullPath);
       if (stat.isDirectory()) {
         walk(fullPath);
@@ -122,7 +128,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: { port: 4173, strictPort: true },
-    build: { sourcemap: true },
+    build: { sourcemap: false },
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],

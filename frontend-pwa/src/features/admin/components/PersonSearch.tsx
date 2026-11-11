@@ -6,9 +6,10 @@ import { Button, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { AdminUser, UserRole } from '../api';
 import { parsePersonSearchQuery } from '../forms';
-import { formatInstant, MANAGER_STATUS, roleName } from '../labels';
-import { adminKeys, useSearchUser, useUserDetail, useUsers } from '../queries';
+import { roleName } from '../labels';
+import { adminKeys, useSearchUser, useUsers } from '../queries';
 import { AssignDialog, type AssignKind, type AssignResult } from './AssignDialog';
+import { ManageUserSheet } from './ManageUserSheet';
 import { EmptyRow, Notice, Pager, StatusBadge, TableFrame } from './parts';
 import {
   CAPTION_CLASS,
@@ -33,48 +34,7 @@ const USER_ROLE_FILTERS: readonly { value: string | null; text: string }[] = [
   { value: 'LINK_MANAGER', text: 'Gestores' },
 ];
 
-/** Historial de roles de la cuenta, pedido solo cuando se abre (ADR-0043 §1.5). */
-function RoleHistory({ userId }: { userId: string }) {
-  const detail = useUserDetail(userId);
-  if (detail.isPending) return <p className="mt-2 text-ink-muted">Cargando historial…</p>;
-  if (detail.isError) {
-    return (
-      <div className="mt-2">
-        <ProblemNotice
-          error={detail.error}
-          onRetry={() => {
-            void detail.refetch();
-          }}
-        />
-      </div>
-    );
-  }
-  return (
-    <div className="mt-2 grid gap-1 text-ink">
-      <p className="text-sm text-ink-muted">
-        Documento {detail.data.docType} terminado en {detail.data.docNumberLast4}
-      </p>
-      <ul aria-label="Historial de roles" className="grid gap-1">
-        {detail.data.roleHistory.map((entry, index) => (
-          <li key={`${entry.role}-${String(index)}`}>
-            <span className="font-semibold">{roleName(entry.role)}</span>
-            {entry.revokedAt ? (
-              <span className="text-ink-muted">
-                {' '}
-                · revocado el {formatInstant(entry.revokedAt)}
-              </span>
-            ) : (
-              <span className="text-ink-muted"> · vigente</span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function UserRow({ user, onAssign }: { user: AdminUser; onAssign: (kind: AssignKind) => void }) {
-  const [showHistory, setShowHistory] = useState(false);
+function UserRow({ user, onManage }: { user: AdminUser; onManage: (user: AdminUser) => void }) {
   return (
     <tr>
       <th scope="row" className={`${TD_CLASS} font-semibold`}>
@@ -99,46 +59,15 @@ function UserRow({ user, onAssign }: { user: AdminUser; onAssign: (kind: AssignK
       </td>
       <td className={TD_CLASS}>
         <Button
-          variant="quiet"
-          aria-expanded={showHistory}
+          variant="secondary"
+          aria-label={`Gestionar a ${user.fullName}`}
           onClick={() => {
-            setShowHistory((open) => !open);
+            onManage(user);
           }}
         >
-          {showHistory ? 'Ocultar historial de roles' : 'Ver historial de roles'}
+          <Icon name="edit" />
+          <span className="hidden sm:inline">Gestionar</span>
         </Button>
-        {showHistory && <RoleHistory userId={user.userId} />}
-      </td>
-      <td className={TD_CLASS}>
-        <div className="flex flex-wrap items-center gap-2">
-          {user.hostProfileId ? (
-            <span className="text-sm font-semibold text-ink">Ya es anfitrión.</span>
-          ) : (
-            <Button
-              onClick={() => {
-                onAssign('host');
-              }}
-            >
-              <Icon name="plus" />
-              <span className="hidden sm:inline">Convertir en anfitrión</span>
-            </Button>
-          )}
-          {user.linkManagerId && user.linkManagerStatus ? (
-            <span className="text-sm font-semibold text-ink">
-              Ya tiene acreditación de gestor ({MANAGER_STATUS[user.linkManagerStatus].text}).
-            </span>
-          ) : (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                onAssign('manager');
-              }}
-            >
-              <Icon name="route" />
-              <span className="hidden sm:inline">Acreditar como gestor</span>
-            </Button>
-          )}
-        </div>
       </td>
     </tr>
   );
@@ -164,6 +93,7 @@ export function PersonSearch({ roleFilter = null }: PersonSearchProps) {
   const [activeRole, setActiveRole] = useState<string | null>(roleFilter);
   const [error, setError] = useState<string | undefined>();
   const [found, setFound] = useState<AdminUser | null | undefined>(undefined);
+  const [managingUser, setManagingUser] = useState<AdminUser | null>(null);
   const [assign, setAssign] = useState<AssignKind | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -213,28 +143,29 @@ export function PersonSearch({ roleFilter = null }: PersonSearchProps) {
     setAssign(null);
     setNotice(message);
     void queryClient.invalidateQueries({ queryKey: adminKeys.users });
-    setFound((current) =>
-      current
-        ? result.kind === 'host'
-          ? {
-              ...current,
-              hostProfileId: result.hostProfileId,
-              roles: current.roles.includes('HOST') ? current.roles : [...current.roles, 'HOST'],
-            }
-          : {
-              ...current,
-              linkManagerId: result.linkManagerId,
-              linkManagerStatus: 'ACTIVE',
-              roles: current.roles.includes('LINK_MANAGER')
-                ? current.roles
-                : [...current.roles, 'LINK_MANAGER'],
-            }
-        : current,
-    );
+    const patch = (current: AdminUser) =>
+      result.kind === 'host'
+        ? {
+            ...current,
+            hostProfileId: result.hostProfileId,
+            roles: current.roles.includes('HOST') ? current.roles : [...current.roles, 'HOST'],
+          }
+        : {
+            ...current,
+            linkManagerId: result.linkManagerId,
+            linkManagerStatus: 'ACTIVE' as const,
+            roles: current.roles.includes('LINK_MANAGER')
+              ? current.roles
+              : [...current.roles, 'LINK_MANAGER'],
+          };
+    setFound((current) => (current ? patch(current) : current));
+    setManagingUser((current) => (current ? patch(current) : current));
   }
 
   const activeUser =
-    found ?? (found === undefined && filteredItems.length === 1 ? filteredItems[0] : null);
+    managingUser ??
+    found ??
+    (found === undefined && filteredItems.length === 1 ? filteredItems[0] : null);
 
   return (
     <div>
@@ -339,51 +270,48 @@ export function PersonSearch({ roleFilter = null }: PersonSearchProps) {
                   Roles vigentes
                 </th>
                 <th scope="col" className={TH_CLASS}>
-                  Historial
-                </th>
-                <th scope="col" className={TH_CLASS}>
                   Acciones
                 </th>
               </tr>
             </thead>
             <tbody>
               {search.isPending && (
-                <EmptyRow columns={5}>
+                <EmptyRow columns={4}>
                   <span role="status">Buscando usuario…</span>
                 </EmptyRow>
               )}
               {!search.isPending && found === null && (
-                <EmptyRow columns={5}>
+                <EmptyRow columns={4}>
                   No hay una cuenta con ese dato. Revisa que esté escrito completo; las cuentas de
                   anfitriones enrolados por un gestor no se encuentran por correo.
                 </EmptyRow>
               )}
               {!search.isPending && found && !matchesRoleFilter && (
-                <EmptyRow columns={5}>
+                <EmptyRow columns={4}>
                   La persona encontrada ({found.fullName}) no tiene el rol seleccionado en este
                   filtro.
                 </EmptyRow>
               )}
               {!search.isPending && found && matchesRoleFilter && (
-                <UserRow key={found.userId} user={found} onAssign={setAssign} />
+                <UserRow key={found.userId} user={found} onManage={setManagingUser} />
               )}
               {!search.isPending && found === undefined && (
                 <>
                   {users.isPending && (
-                    <EmptyRow columns={5}>
+                    <EmptyRow columns={4}>
                       <span role="status">Cargando cuentas…</span>
                       <Skeleton className="mx-auto mt-3 h-6 w-2/3" />
                     </EmptyRow>
                   )}
                   {users.isSuccess && filteredItems.length === 0 && (
-                    <EmptyRow columns={5}>
+                    <EmptyRow columns={4}>
                       {query
                         ? 'No hay usuarios que coincidan con la búsqueda.'
                         : 'No hay usuarios registrados en este rol.'}
                     </EmptyRow>
                   )}
                   {filteredItems.map((user) => (
-                    <UserRow key={user.userId} user={user} onAssign={setAssign} />
+                    <UserRow key={user.userId} user={user} onManage={setManagingUser} />
                   ))}
                 </>
               )}
@@ -406,6 +334,25 @@ export function PersonSearch({ roleFilter = null }: PersonSearchProps) {
           />
         )}
       </div>
+
+      {managingUser && (
+        <ManageUserSheet
+          key={managingUser.userId}
+          user={managingUser}
+          onClose={() => {
+            setManagingUser(null);
+          }}
+          onUpdated={(updated, message) => {
+            setManagingUser(null);
+            setNotice(message);
+            void queryClient.invalidateQueries({ queryKey: adminKeys.users });
+            setFound((current) => (current?.userId === updated.userId ? updated : current));
+          }}
+          onAssign={(kind) => {
+            setAssign(kind);
+          }}
+        />
+      )}
 
       {activeUser && assign && (
         <AssignDialog

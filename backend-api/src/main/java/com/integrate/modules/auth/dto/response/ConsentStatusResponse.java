@@ -11,7 +11,8 @@ public record ConsentStatusResponse(String currentPolicyVersion, List<PurposeRes
 
     public static ConsentStatusResponse from(ConsentStatus status) {
         List<PurposeResponse> consents = status.purposes().stream()
-                .map(p -> new PurposeResponse(p.purpose(), p.state(), p.policyVersion(), p.occurredAt()))
+                .map(p -> new PurposeResponse(p.purpose(), p.state(), p.policyVersion(), p.occurredAt(),
+                        p.healthNoticeVersion()))
                 .toList();
         return new ConsentStatusResponse(status.currentPolicyVersion(), consents, status.requiresConsentUpdate(),
                 status.pendingPurposes());
@@ -22,6 +23,6 @@ public record ConsentStatusResponse(String currentPolicyVersion, List<PurposeRes
      * @param occurredAt    instante UTC del último acto ({@code null} si {@code MISSING})
      */
     public record PurposeResponse(ConsentPurpose purpose, ConsentStatus.State state, String policyVersion,
-                                  Instant occurredAt) {
+                                  Instant occurredAt, String healthNoticeVersion) {
     }
 }

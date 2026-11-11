@@ -12,6 +12,7 @@ interface ConsentCheckboxProps {
   readonly required?: boolean;
   readonly error?: string | undefined;
   readonly name?: string;
+  readonly body?: string | undefined;
 }
 
 /**
@@ -25,6 +26,7 @@ export function ConsentCheckbox({
   required = false,
   error,
   name,
+  body,
 }: ConsentCheckboxProps) {
   const bodyId = useId();
   const errorId = useId();
@@ -54,7 +56,7 @@ export function ConsentCheckbox({
         </span>
       </label>
       <p id={bodyId} className="mt-1.5 pl-1 text-sm text-ink-muted">
-        {copy.body}
+        {body ?? copy.body}
       </p>
       {error && (
         <p

@@ -19,7 +19,8 @@ class PrivacyPolicyServiceImpl implements PrivacyPolicyService {
     public PublishedPolicy current() {
         return ledger.currentPolicy()
                 .map(policy -> new PublishedPolicy(policy.getVersion(), policy.getTitle(), policy.getDocumentUrl(),
-                        policy.getEffectiveFrom(), policy.getContentSha256()))
+                        policy.getEffectiveFrom(), policy.getContentSha256(),
+                        ledger.approvedHealthNotice(policy).orElse(null)))
                 .orElseThrow(() -> new BusinessRuleException(ErrorCode.PRIVACY_POLICY_NOT_PUBLISHED));
     }
 }

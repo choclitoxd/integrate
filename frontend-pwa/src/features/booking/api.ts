@@ -7,7 +7,7 @@ export interface BookingParticipant {
   readonly fullName: string;
   readonly docType: DocType;
   readonly docNumber: string;
-  readonly medicalEps: string;
+  readonly medicalEps: string | null;
   readonly isHolder: boolean;
 }
 

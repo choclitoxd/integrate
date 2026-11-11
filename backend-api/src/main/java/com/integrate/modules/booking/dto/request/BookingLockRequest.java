@@ -36,7 +36,7 @@ public record BookingLockRequest(
             @NotBlank @Size(min = 3, max = 150) String fullName,
             @NotNull DocType docType,
             @NotNull @Pattern(regexp = "^[A-Za-z0-9]{4,20}$") String docNumber,
-            @NotBlank @Size(min = 2, max = 120) String medicalEps,
+            @Size(max = 120) String medicalEps,
             @NotNull Boolean isHolder) {
 
         @Override

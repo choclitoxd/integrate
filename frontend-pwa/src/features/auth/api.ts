@@ -11,11 +11,17 @@ export interface PrivacyPolicy {
   readonly documentUrl: string;
   readonly effectiveFrom: string;
   readonly contentSha256: string;
+  readonly healthNotice: {
+    readonly noticeVersion: string;
+    readonly body: string;
+    readonly contentSha256: string;
+  } | null;
 }
 
 export interface ConsentAcceptance {
   readonly policyVersion: string;
   readonly purposes: readonly ConsentPurpose[];
+  readonly healthNoticeVersion?: string;
 }
 
 export interface RegisterRequest {

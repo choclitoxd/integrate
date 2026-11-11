@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -293,6 +294,39 @@ class AdminPeopleApiIntegrationTest extends PostgresIntegrationTest {
                 SELECT details->>'purpose' FROM audit.audit_trail
                  WHERE action = 'SENSITIVE_DATA_ACCESSED' AND actor_id = ? AND details->>'purpose' <> 'IDENTITY_READ'
                  ORDER BY id""", String.class, adminId);
+    }
+
+    @Test
+    void updateUserUpdatesDetailsAndRecordsAudit() throws Exception {
+        String email = uniqueEmail("editar-persona");
+        UUID userId = registrationService.registerTourist(tourist(email), CLIENT).userId();
+
+        String updateBody = """
+                {"fullName":"Persona Editada QA","docType":"CC","docNumber":"987654321","phone":"+573109998877"}
+                """;
+
+        mvc.perform(put("/api/v1/admin/users/" + userId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(touristToken))
+                .contentType(MediaType.APPLICATION_JSON).content(updateBody))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(put("/api/v1/admin/users/" + userId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(adminToken))
+                .contentType(MediaType.APPLICATION_JSON).content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.fullName").value("Persona Editada QA"));
+
+        mvc.perform(get("/api/v1/admin/users/" + userId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullName").value("Persona Editada QA"))
+                .andExpect(jsonPath("$.docNumberLast4").value("4321"));
+
+        Integer auditCount = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM audit.audit_trail WHERE action = 'USER_UPDATED_BY_ADMIN' AND entity_id = ?",
+                Integer.class, userId.toString());
+        assertThat(auditCount).isGreaterThanOrEqualTo(1);
     }
 
     private UUID createAssociation() throws Exception {

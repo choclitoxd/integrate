@@ -17,6 +17,7 @@ import com.integrate.modules.auth.service.UserDirectory.UserSummary;
 import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.auth.service.model.RegisteredUser;
 import com.integrate.modules.catalog.dto.request.AdminUserCreateRequest;
+import com.integrate.modules.catalog.dto.request.AdminUserUpdateRequest;
 import com.integrate.modules.catalog.dto.response.AdminHostResponse;
 import com.integrate.modules.catalog.dto.response.AdminLinkManagerResponse;
 import com.integrate.modules.catalog.dto.response.AdminUserDetailResponse;
@@ -141,6 +142,20 @@ public class AdminPeopleServiceImpl implements AdminPeopleService {
         auditTrail.record(new AuditEntry("catalog", "admin_people", created.userId().toString(),
                 "USER_CREATED_BY_ADMIN", Severity.INFO, adminId, null, null,
                 Map.of("userId", created.userId().toString())));
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public AdminUserResponse updateUser(UUID userId, AdminUserUpdateRequest request, UUID adminId) {
+        AccountView updated = users.updateAccountByAdmin(userId,
+                new UserDirectory.AdminUserUpdateCommand(request.fullName(), request.phone(), request.docType(),
+                        request.docNumber()));
+        AdminUserResponse response = summary(updated, false);
+        // Debe ser lo último de la transacción (encadenamiento de la bitácora); sin datos personales (ADR-0057 §1).
+        auditTrail.record(new AuditEntry("catalog", "admin_people", userId.toString(),
+                "USER_UPDATED_BY_ADMIN", Severity.INFO, adminId, null, null,
+                Map.of("userId", userId.toString())));
         return response;
     }
 

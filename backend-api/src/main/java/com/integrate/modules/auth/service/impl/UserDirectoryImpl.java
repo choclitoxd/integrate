@@ -1,5 +1,7 @@
 package com.integrate.modules.auth.service.impl;
 
+import com.integrate.common.exception.BusinessRuleException;
+import com.integrate.common.exception.ErrorCode;
 import com.integrate.modules.auth.entity.DocType;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.entity.User;
@@ -73,6 +75,24 @@ public class UserDirectoryImpl implements UserDirectory {
                 ? userRepository.findOpenAccounts(pageable)
                 : userRepository.findOpenAccountsByRole(role, pageable);
         return page.map(this::view);
+    }
+
+    @Override
+    @Transactional
+    public AccountView updateAccountByAdmin(UUID userId, AdminUserUpdateCommand command) {
+        User user = userRepository.findByIdForUpdate(userId).filter(u -> !u.isClosed())
+                .orElseThrow(() -> new BusinessRuleException(ErrorCode.RESOURCE_NOT_FOUND, "User not found"));
+        String trimmedDoc = command.docNumber().trim();
+        Optional<User> existing = identityProtection.findByDocument(command.docType(), trimmedDoc);
+        if (existing.isPresent() && !existing.get().getId().equals(userId)) {
+            throw AuthErrors.userAlreadyExists();
+        }
+        user.updateFullName(IdentityWriter.requireFullName(command.fullName(), "fullName"));
+        if (command.phone() != null && !command.phone().isBlank()) {
+            identityProtection.changePhone(user, command.phone().trim());
+        }
+        identityProtection.changeDocument(user, command.docType(), trimmedDoc);
+        return view(user);
     }
 
     private AccountView view(User user) {

@@ -8,6 +8,7 @@ export { LoginPage } from './pages/LoginPage';
 export { RegisterPage } from './pages/RegisterPage';
 export { ResetPasswordPage } from './pages/ResetPasswordPage';
 export { authKeys, useCurrentPolicy, useMyConsents } from './queries';
+export { PURPOSE_COPY } from './purposes';
 export { returnQuery, safeReturnPath } from './returnPath';
 // Reutilizados por la reserva (ADR-0015 §3): mismas reglas de documento y celular que el registro.
 export type { DocType, PrivacyPolicy } from './api';

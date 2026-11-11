@@ -358,7 +358,7 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
         StringBuilder participants = new StringBuilder();
         for (int i = 0; i < slots; i++) {
             participants.append(i == 0 ? "" : ",").append("""
-                    {"fullName":"Participante %d","docType":"CC","docNumber":"4094000%03d","medicalEps":"Sura","isHolder":%s}"""
+                    {"fullName":"Participante %d","docType":"CC","docNumber":"4094000%03d","isHolder":%s}"""
                     .formatted(i, i, i == 0));
         }
         String bookingId = JsonPath.read(mvc.perform(post("/api/v1/bookings/lock")
@@ -414,7 +414,7 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
     private void registerTourist(String email, String fullName) {
         registrationService.registerTourist(new RegisterRequest(email, PASSWORD, fullName, DocType.CC,
                 uniqueDocNumber(), "+573001234567", new ConsentAcceptance(DEV_POLICY,
-                Set.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.HEALTH_EMERGENCY))), CLIENT);
+                Set.of(ConsentPurpose.PERSONAL_DATA))), CLIENT);
     }
 
     private String userWithRole(String prefix, RoleCode role) {

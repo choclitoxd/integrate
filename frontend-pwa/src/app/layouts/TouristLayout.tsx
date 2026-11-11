@@ -45,6 +45,9 @@ export function TouristLayout() {
     ...(hasRole(session, 'ROLE_TOURIST')
       ? [{ to: '/mis-experiencias', label: 'Mis experiencias', icon: 'ticket' } as const]
       : []),
+    ...(hasRole(session, 'ROLE_HOST')
+      ? [{ to: '/anfitrion', label: 'Anfitrión', icon: 'ticket' } as const]
+      : []),
     ...(hasRole(session, 'ROLE_LINK_MANAGER')
       ? [{ to: '/gestor', label: 'Gestor', icon: 'route' } as const]
       : []),

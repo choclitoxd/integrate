@@ -50,7 +50,7 @@ docker compose -f compose.vps.yml logs -f api
 
 ### Riesgos asumidos
 
-- Un solo servidor y sin alta disponibilidad: si cae, cae el backend. Conviene un monitor externo gratuito sobre `/api/v1/privacy-policies/current`.
+- Un solo servidor y sin alta disponibilidad: si cae, cae el backend. Configura el monitor externo sobre `/api/v1/health` (ADR-0053), que devuelve el estado agregado sin revelar detalles de dependencias.
 - `sslip.io` es un servicio de terceros: si dejara de resolver, hay que cambiar `API_HOST` por un dominio propio.
 - **Hetzner es la producción; SnapDeploy es el entorno de pruebas** (ADR-0027). Los dos **no deben compartir base de datos**: con la misma base de Neon los procesos de fondo se duplicarían y las pruebas ensuciarían los datos reales. El entorno de pruebas necesita su propia base (rama o base separada en Neon) y sus propias variables (`ENV_FILE` del script `snapdeploy.sh`); mientras no la tenga, el contenedor de SnapDeploy debe estar detenido, porque cada push a `main` lo reconstruye y lo despierta.
 
@@ -110,7 +110,8 @@ Por eso, antes de usar el entorno de pruebas:
 ### Lista de cierre (la hace el desarrollador)
 
 - [ ] Crear el rol `integrate_api` en la rama `pruebas` y reemplazar el provisional `integrate_owner` en `.env.demo.pruebas`.
-- [ ] Monitor externo gratuito (por ejemplo UptimeRobot) sobre `https://2-31-111-240.sslip.io/api/v1/privacy-policies/current`, cada 5 minutos.
+- [ ] Monitor externo gratuito (por ejemplo UptimeRobot) sobre `https://2-31-111-240.sslip.io/api/v1/health`, cada 5 minutos; configura alerta al canal operativo acordado.
+- [ ] En `pruebas`, simular indisponibilidad y recuperación, confirmar las dos notificaciones y registrar el incidente con la plantilla de [`registro-incidente.md`](../quality/registro-incidente.md). No provocar alertas en producción sin una ventana acordada.
 - [ ] Decidir si se borra el servidor duplicado `integrate-server` de Hetzner (apagado, pero se cobra).
 - [ ] Al terminar el proyecto: revocar los tokens de Hetzner, SnapDeploy y Cloudflare; regenerar la llave de Google Maps; rotar la contraseña de la rama de Neon. Todos pasaron por el chat.
 - [ ] Administrador pendiente: crear la cuenta cuando haya un correo permanente.

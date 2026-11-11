@@ -40,6 +40,17 @@ public interface UserDirectory {
      */
     Page<AccountView> listAccounts(RoleCode role, Pageable pageable);
 
+    /**
+     * Actualiza los datos de una cuenta por el administrador (ADR-0057 §1).
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code RESOURCE_NOT_FOUND} (404),
+     *         {@code AUTH_USER_ALREADY_EXISTS} (409) si el documento ya pertenece a otra cuenta
+     */
+    AccountView updateAccountByAdmin(UUID userId, AdminUserUpdateCommand command);
+
+    record AdminUserUpdateCommand(String fullName, String phone, DocType docType, String docNumber) {
+    }
+
     record UserSummary(UUID userId, String fullName, String email, String phone, DocType docType, String docNumber,
                        CredentialStatus credentialStatus) {
     }

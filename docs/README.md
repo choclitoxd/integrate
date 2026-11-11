@@ -85,6 +85,12 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Aceptado |
 | [0045](architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) | Completar Incidentes y Liquidaciones, corregir la navegación móvil y validar la consola | Aceptado |
 | [0046](architecture/adr/ADR-0046-cifrar-identidad-y-gestionar-cuenta-propia.md) | Completar la protección de identidad y gestionar la cuenta propia | Propuesto |
+| [0051](architecture/adr/ADR-0051-automatizar-controles-de-calidad-y-proteger-ramas.md) | Automatizar controles de calidad y proteger ramas (H-06) | Aceptado |
+| [0052](architecture/adr/ADR-0052-endurecer-el-despliegue-de-la-pwa.md) | Endurecer el despliegue de la PWA (H-07) | Aceptado |
+| [0053](architecture/adr/ADR-0053-observar-salud-y-fallos-de-la-aplicacion.md) | Observar disponibilidad y fallos de la aplicación (H-10) | Aceptado |
+| [0054](architecture/adr/ADR-0054-unificar-la-solicitud-de-informacion-de-salud.md) | Unificar información de salud en la aplicación (H-14) | Aceptado |
+| [0055](architecture/adr/ADR-0055-validar-rendimiento-en-entorno-desplegado.md) | Validar rendimiento en un entorno desplegado (H-16) | Propuesto |
+| [0060](architecture/adr/ADR-0060-consulta-eps-titular-por-anfitrion.md) | Restringir la consulta de EPS al anfitrión de la experiencia | Aceptado |
 
 El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 

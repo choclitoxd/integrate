@@ -276,7 +276,7 @@ paths:
       summary: Estado de consentimiento del titular frente a la política vigente (RF-02, ADR-0005 §6).
       description: |
         Una entrada por finalidad aplicable a los roles del titular (`SENSITIVE_VICTIM` solo con `ROLE_HOST`).
-        La PWA lo consulta antes de reservar para pedir `HEALTH_EMERGENCY` en lugar de recibir un 428.
+        La PWA lo consulta cuando el titular decide aportar EPS para pedir `HEALTH_EMERGENCY` si no está vigente.
       security:
         - bearerAuth: []
       responses:
@@ -1220,6 +1220,49 @@ paths:
               schema: { $ref: '#/components/schemas/AdminUserDetail' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Admin]
+      operationId: updateAdminUser
+      summary: Actualización de datos de una persona por el administrador (ADR-0057 §1).
+      description: >
+        Permite actualizar nombre, celular y documento. El correo se mantiene inmutable.
+        Queda en la bitácora como `USER_UPDATED_BY_ADMIN`. No se almacena en cachés.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, docType, docNumber, phone]
+              properties:
+                fullName: { type: string, minLength: 3, maxLength: 150 }
+                docType: { $ref: '#/components/schemas/DocType' }
+                docNumber: { type: string, pattern: '^[A-Za-z0-9]{4,20}$' }
+                phone: { type: string, pattern: '^\+[1-9][0-9]{7,14}$' }
+      responses:
+        '200':
+          description: Cuenta actualizada.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: El documento ya pertenece a otra cuenta (`AUTH_USER_ALREADY_EXISTS`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/admin/link-managers:
     post:
@@ -1518,6 +1561,66 @@ paths:
         '409': { $ref: '#/components/responses/ExperienceNotApproved' }
         '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
+  /api/v1/host/bookings:
+    get:
+      summary: Reservas confirmadas de las experiencias del anfitrión
+      description: Listado paginado mínimo sin EPS. Solo HOST propietario; sin caché.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        '200':
+          description: Página de reservas confirmadas.
+          headers:
+            Cache-Control: { schema: { type: string, example: no-store } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page, size, totalElements, totalPages]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [bookingId, experienceTitle, startsAt, holderName]
+                      properties:
+                        bookingId: { type: string, format: uuid }
+                        experienceTitle: { type: string }
+                        startsAt: { type: string, format: date-time }
+                        holderName: { type: string }
+                  page: { type: integer }
+                  size: { type: integer }
+                  totalElements: { type: integer }
+                  totalPages: { type: integer }
+        '403': { description: Rol no autorizado. }
+  /api/v1/host/bookings/{bookingId}/holder-eps:
+    get:
+      summary: Consultar EPS voluntaria del titular para una emergencia
+      description: >-
+        Solo HOST propietario y reserva CONFIRMED. Exige consentimiento de salud vigente sobre la versión de
+        política explícitamente aprobada para divulgación al anfitrión. Actualmente se deniega siempre hasta contar con evidencia del aviso aceptado.
+        La solicitud no acredita por sí sola una emergencia. Consulta auditada sin EPS en la auditoría.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      parameters:
+        - { name: bookingId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: EPS del titular o null si no fue suministrada.
+          headers:
+            Cache-Control: { schema: { type: string, example: no-store } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [medicalEps]
+                properties:
+                  medicalEps: { type: [string, "null"] }
+        '403': { description: Rol o divulgación no autorizada. }
+        '404': { description: Reserva inexistente, ajena o no confirmada. }
   /api/v1/bookings/lock:
     post:
       tags: [Booking]
@@ -1537,7 +1640,7 @@ paths:
         descontar cupos, con su `status` **actual** (p. ej. `EXPIRED` si venció el TTL; ADR-0008 §5). Si se repite
         con un payload distinto, o pasadas 24 h, responde 409 `IDEMPOTENCY_KEY_REUSED`.
 
-        **Precondición.** El turista debe haber otorgado el consentimiento `HEALTH_EMERGENCY`; si no, responde 428.
+        **Precondición.** Si el titular aporta EPS, el turista debe tener consentimiento `HEALTH_EMERGENCY` vigente; de lo contrario responde 428. La identidad del titular debe coincidir con la cuenta autenticada; no se admite EPS de acompañantes.
       security:
         - bearerAuth: []
       x-required-roles: [ROLE_TOURIST]
@@ -1563,7 +1666,6 @@ paths:
                 - fullName: María Gómez
                   docType: CC
                   docNumber: '1094000222'
-                  medicalEps: Sanitas
                   isHolder: false
       responses:
         '201':
@@ -3647,12 +3749,12 @@ components:
     BookingParticipant:
       type: object
       additionalProperties: false
-      required: [fullName, docType, docNumber, medicalEps, isHolder]
+      required: [fullName, docType, docNumber, isHolder]
       properties:
         fullName: { type: string, minLength: 3, maxLength: 150 }
         docType: { $ref: '#/components/schemas/DocType' }
         docNumber: { $ref: '#/components/schemas/DocNumber' }
-        medicalEps: { type: string, minLength: 2, maxLength: 120, description: Se cifra (AES-256-GCM). }
+        medicalEps: { type: [string, "null"], maxLength: 120, description: Opcional solo para el titular; vacío equivale a ausencia. Si se proporciona se cifra (AES-256-GCM) y requiere consentimiento vigente. }
         isHolder: { type: boolean, description: Exactamente un participante debe ser titular. }
     BookingLockRequest:
       type: object
@@ -5062,12 +5164,12 @@ components:
     BookingParticipant:
       type: object
       additionalProperties: false
-      required: [fullName, docType, docNumber, medicalEps, isHolder]
+      required: [fullName, docType, docNumber, isHolder]
       properties:
         fullName: { type: string, minLength: 3, maxLength: 150 }
         docType: { $ref: '#/components/schemas/DocType' }
         docNumber: { $ref: '#/components/schemas/DocNumber' }
-        medicalEps: { type: string, minLength: 2, maxLength: 120, description: Se cifra (AES-256-GCM). }
+        medicalEps: { type: [string, "null"], maxLength: 120, description: Opcional solo para el titular; vacío equivale a ausencia. Si se proporciona se cifra (AES-256-GCM) y requiere consentimiento vigente. }
         isHolder: { type: boolean, description: Exactamente un participante debe ser titular. }
     BookingLockRequest:
       type: object

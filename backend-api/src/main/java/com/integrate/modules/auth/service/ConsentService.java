@@ -4,7 +4,9 @@ import com.integrate.modules.auth.dto.request.ConsentAcceptance;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.auth.service.model.ConsentStatus;
+import com.integrate.modules.auth.service.model.HealthConsentGrant;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -26,4 +28,12 @@ public interface ConsentService {
      *         versión no es la vigente o alguna finalidad no aplica a los roles del titular
      */
     ConsentStatus grant(UUID userId, ConsentAcceptance acceptance, ClientInfo client);
+
+    /**
+     * Acto de salud vigente del titular que acredita el aviso aprobado para comunicar la EPS al anfitrión
+     * (ADR-0054, ADR-0060). Vacío si fue revocado, no registra aviso, es de otra política o el aviso no está
+     * aprobado. Debe invocarse dentro de la transacción que captura o divulga la EPS: retiene el acto y la
+     * política hasta su fin.
+     */
+    Optional<HealthConsentGrant> currentHealthGrant(UUID userId);
 }

@@ -61,6 +61,8 @@ const confirmed = {
   createdAt: '2026-10-09T20:00:00Z',
   expiresAt: '2026-10-09T20:15:00Z',
   ttlSecondsRemaining: 0,
+  participants: [{ medicalEps: 'EPS privada de prueba' }],
+  emergencyContact: { fullName: 'Contacto privado de prueba', phone: '+573001234567' },
 };
 
 function renderConfirmed(voucherRoute: unknown, extraRoutes: Record<string, unknown> = {}) {
@@ -68,6 +70,13 @@ function renderConfirmed(voucherRoute: unknown, extraRoutes: Record<string, unkn
     '/reservas/bk-1',
     {
       '/v1/bookings/bk-1': confirmed,
+      '/v1/privacy-policies/current': {
+        healthNotice: {
+          noticeVersion: 'h1',
+          body: 'Aviso publicado de EPS.',
+          contentSha256: 'b'.repeat(64),
+        },
+      },
       '/v1/bookings/bk-1/voucher': voucherRoute,
       ...extraRoutes,
       [`/v1/experiences/${EXPERIENCE_ID}`]: detail,
@@ -116,7 +125,10 @@ describe('confirmación (T-1.10e)', () => {
     expect(screen.getByText('AB23 CD45')).toBeVisible();
     const sheet = screen.getByRole('region', { name: 'Ficha de viaje' });
     expect(await within(sheet).findByText('Parque principal de San Carlos')).toBeVisible();
-    expect(within(sheet).queryByText(/EPS/)).toBeNull();
+    expect(await within(sheet).findByText('Aviso publicado de EPS.')).toBeVisible();
+    expect(
+      within(sheet).queryByText(/EPS privada de prueba|Contacto privado de prueba|\+573001234567/),
+    ).toBeNull();
     // Sin paradas en la respuesta autorizada, la sección no aparece (ADR-0049).
     expect(screen.queryByRole('heading', { name: 'Paradas del recorrido' })).toBeNull();
   });

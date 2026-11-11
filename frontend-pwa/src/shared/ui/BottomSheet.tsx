@@ -16,6 +16,13 @@ interface BottomSheetProps {
    * de cerrar, sin cierre por toque fuera y con Esc anulado. La hoja solo se cierra desde el pie.
    */
   readonly dismissible?: boolean;
+  /**
+   * Tamaño del diálogo en computador (ADR-0059):
+   * - `'md'` (por defecto): centrado `max-w-lg` (512 px) para hojas compactas y confirmaciones.
+   * - `'xl'`: centrado `max-w-5xl` (1024 px) para formularios densos con mapas y dos columnas.
+   * En celular y tableta (`mobile`) no cambia: siempre es hoja inferior `max-w-md`.
+   */
+  readonly size?: 'md' | 'xl' | undefined;
 }
 
 /**
@@ -32,6 +39,7 @@ export function BottomSheet({
   children,
   footer,
   dismissible = true,
+  size = 'md',
 }: BottomSheetProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closingFromProp = useRef(false);
@@ -111,9 +119,12 @@ export function BottomSheet({
       // Cierre por toque fuera de la hoja donde el navegador lo soporta (light dismiss).
       {...{ closedby: dismissible ? 'any' : 'none' }}
       data-placement={centered ? 'center' : 'bottom'}
+      data-size={size}
       className={`${
         centered
-          ? 'sheet sheet-center fixed inset-0 m-auto flex h-fit max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border-2 border-border-subtle shadow-2xl'
+          ? size === 'xl'
+            ? 'sheet sheet-center fixed inset-0 m-auto flex h-fit max-h-[90dvh] w-full max-w-5xl flex-col rounded-2xl border-2 border-border-subtle shadow-2xl'
+            : 'sheet sheet-center fixed inset-0 m-auto flex h-fit max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border-2 border-border-subtle shadow-2xl'
           : 'sheet fixed inset-x-0 top-auto bottom-0 m-0 mx-auto flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-2xl'
       } bg-surface-elevated p-0 text-ink not-open:hidden focus:outline-none focus:ring-0 focus-visible:outline-none backdrop:bg-surface-inverse/60${
         closing ? ' closing' : ''

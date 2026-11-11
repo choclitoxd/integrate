@@ -44,6 +44,11 @@ public record ConsentStatus(String currentPolicyVersion, List<PurposeConsent> pu
         MISSING
     }
 
-    public record PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt) {
+    public record PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt,
+                                 String healthNoticeVersion) {
+
+        public PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt) {
+            this(purpose, state, policyVersion, occurredAt, null);
+        }
     }
 }

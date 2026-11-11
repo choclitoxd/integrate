@@ -7,6 +7,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 ## Autenticación y consentimiento — módulo `auth`
 | Método y ruta | Controlador | Rol | ADR |
 |---|---|---|---|
+| GET `/health` | Actuator HealthEndpoint | público (solo estado agregado) | ADR-0053 |
 | POST `/auth/login`, `/auth/register`, `/auth/activate`, `/auth/refresh`, `/auth/logout` | `AuthController` | público / sesión | ADR-0005, ADR-0013 |
 | POST `/auth/forgot-password`, `/auth/reset-password` | `AuthController` | público | ADR-0014 |
 | GET, PATCH `/auth/me`; POST `/auth/me/password` | `OwnAccountController` | autenticado | ADR-0046 |
@@ -23,6 +24,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | Método y ruta | ADR |
 |---|---|
 | POST, GET `/host/experiences`; GET, PUT `/host/experiences/{id}` | ADR-0006 |
+| GET `/host/bookings`, `/host/bookings/{bookingId}/holder-eps` | ADR-0060 |
 | POST `/host/experiences/{id}/submit` | ADR-0006 |
 | POST `/host/experiences/{id}/meeting-point/check` | ADR-0030 |
 | POST, GET `/host/experiences/{id}/schedules`; POST `/host/schedules/{id}/cancel` | ADR-0006 |
@@ -35,7 +37,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 | POST `/admin/experiences/{id}/meeting-point/confirm` | `AdminCatalogController` | ADR-0030 |
 | POST `/admin/link-managers`; POST `/admin/link-managers/{id}/suspend\|reinstate\|revoke` | `AdminLinkManagerController` | ADR-0007 |
 | GET `/admin/audit`, `/admin/audit/export`, `/admin/audit/verify` | `AuditController` (módulo `audit`) | ADR-0035 |
-| GET `/admin/users?role=`, POST `/admin/users` | `AdminPeopleController` | ADR-0048 |
+| GET `/admin/users?role=`, POST `/admin/users`, PUT `/admin/users/{id}` | `AdminPeopleController` | ADR-0048, ADR-0057 |
 | GET `/admin/users/search?email=\|docType=&document=`, `/admin/users/{id}` | `AdminPeopleController` | ADR-0043 §1 |
 | GET `/admin/link-managers`, `/admin/host-profiles` | `AdminPeopleController` | ADR-0043 §1 |
 | GET `/admin/incidents`, `/admin/incidents/{id}`; POST `/admin/incidents/{id}/take\|resolve\|dismiss` | `AdminIncidentController` (módulo `offline`) | ADR-0043 §2, ADR-0045 §1 |
@@ -50,7 +52,7 @@ La columna ADR se infirió de los títulos de las ADR; si cambia un endpoint, ac
 ## Reservas, pagos y voucher — rol TOURIST (módulos `booking`, `payment`, `voucher`)
 | Método y ruta | Controlador | ADR |
 |---|---|---|
-| POST `/bookings/lock`; GET `/bookings/{bookingId}` | `BookingController` | ADR-0008, ADR-0015 |
+| POST `/bookings/lock`; GET `/bookings/{bookingId}` | `BookingController` | ADR-0008, ADR-0015, ADR-0054 |
 | GET `/me/bookings` | `MyBookingsController` | ADR-0023 |
 | POST `/bookings/{bookingId}/payment` | `PaymentCheckoutController` | ADR-0009, ADR-0016 |
 | POST `/bookings/{bookingId}/cancel` | `BookingCancellationController` | ADR-0034 (regla 72 h, reembolsos) |

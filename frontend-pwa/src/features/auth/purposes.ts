@@ -9,8 +9,8 @@ export const PURPOSE_COPY: Readonly<Record<ConsentPurpose, { title: string; body
     body: 'Nombre, documento, correo y celular, para crear tu cuenta, gestionar tus reservas y enviarte el voucher.',
   },
   HEALTH_EMERGENCY: {
-    title: 'Datos de salud y contacto de emergencia',
-    body: 'EPS y contacto de emergencia de quienes viajan, solo para la póliza de turismo y para atender una emergencia en el recorrido. Es necesario para reservar.',
+    title: 'Mi EPS',
+    body: '',
   },
   SENSITIVE_VICTIM: {
     title: 'Condición de víctima del conflicto armado',

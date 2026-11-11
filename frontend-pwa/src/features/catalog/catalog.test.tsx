@@ -191,6 +191,32 @@ describe('detalle (T-1.10a)', () => {
       '/',
     );
   });
+
+  it('muestra migas de pan, inclusiones, impacto comunitario 85/15 y garantías de reserva (ADR-0050)', async () => {
+    renderApp(`/experiencias/${EXPERIENCE_ID}`, catalogRoutes);
+    expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
+
+    // Migas de pan accesibles (ADR-0050 §1)
+    const nav = screen.getByRole('navigation', { name: 'Migas de pan' });
+    expect(within(nav).getByRole('link', { name: /Explorar/ })).toHaveAttribute('href', '/');
+    expect(within(nav).getByText(summary.municipality.name)).toBeVisible();
+
+    // ¿Qué incluye esta experiencia? (ADR-0050 §2)
+    expect(screen.getByRole('heading', { name: '¿Qué incluye esta experiencia?' })).toBeVisible();
+    expect(screen.getByText('Guía local comunitario')).toBeVisible();
+    expect(screen.getByText('Póliza de asistencia médica')).toBeVisible();
+
+    // Aporte a la comunidad con barra de distribución 85/15 (ADR-0050 §3)
+    expect(screen.getByRole('meter', { name: /85 % comunidad/ })).toHaveAttribute(
+      'aria-valuenow',
+      '85',
+    );
+    expect(screen.getByText('Economía solidaria y justa')).toBeVisible();
+
+    // Garantías de reserva (ADR-0050 §4)
+    expect(screen.getByText('Confirmación inmediata')).toBeVisible();
+    expect(screen.getByText('Cancelación flexible')).toBeVisible();
+  });
 });
 
 describe('selector de franjas (T-1.10b)', () => {
