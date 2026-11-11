@@ -4,6 +4,7 @@ import com.integrate.common.payload.PageResponse;
 import com.integrate.common.web.PageRequests;
 import com.integrate.modules.auth.entity.CredentialStatus;
 import com.integrate.modules.catalog.dto.request.DocumentUploadRequest;
+import com.integrate.modules.catalog.dto.response.AccreditationResponse;
 import com.integrate.modules.catalog.dto.response.ActivationCodeResponse;
 import com.integrate.modules.catalog.dto.response.DocumentUploadResponse;
 import com.integrate.modules.catalog.dto.response.ManagedHostResponse;
@@ -49,6 +50,14 @@ public class GestorController {
     public DocumentUploadResponse presignUpload(@AuthenticationPrincipal Jwt jwt, Authentication authentication,
                                                 @Valid @RequestBody DocumentUploadRequest request) {
         return enrollmentService.presignUpload(Actors.subject(jwt), Actors.isAdmin(authentication), request.kind());
+    }
+
+    /** Estado de la acreditación (ADR-0069): responde también con la acreditación suspendida o revocada. */
+    @GetMapping("/accreditation")
+    @PreAuthorize("hasRole('LINK_MANAGER')")
+    public ResponseEntity<AccreditationResponse> accreditation(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(hostService.accreditation(Actors.subject(jwt)));
     }
 
     @GetMapping("/hosts")

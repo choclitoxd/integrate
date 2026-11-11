@@ -59,7 +59,7 @@ Las excepciones se declaran en §2 como desnormalizaciones controladas.
 |---|---|---|---|---|
 | `departments` / `municipalities` | DIVIPOLA | `code` (natural DANE) | `(department_code, name)` | El nombre depende del código. |
 | `community_associations` | Titular de NIT y RNT; receptora del 85% | `id` UUID | `nit`, `rnt_number` | La ubicación se expresa con FK al municipio: el departamento no se repite. |
-| `host_profiles` | Anfitrión: N:1 con asociación; datos de víctima cifrados | `id` UUID | `user_id` vigente | Los datos sensibles dependen del perfil, no del usuario (el usuario puede tener otros roles). |
+| `host_profiles` | Anfitrión: N:1 con asociación; datos de víctima cifrados | `id` UUID | `user_id` vigente | Los datos sensibles dependen del perfil, no del usuario (el usuario puede tener otros roles). `status` (V21, ADR-0070): `ACTIVE`, `SUSPENDED` o `REVOKED`; fuera de `ACTIVE` sus experiencias salen del catálogo público y no puede operar. |
 | `link_manager_profiles` | Acreditación del gestor ante una sola asociación | `id` UUID | `user_id` vigente | Igual que el anterior. |
 | `host_manager_assignments` | Gestor ↔ anfitrión con vigencia | `id` BIGINT | EXCLUDE sin solapamientos por anfitrión | Ver §2-D3 (`association_id`). |
 | `categories` | Categorías temáticas | `id` SMALLINT | `code` | — |
@@ -347,6 +347,7 @@ erDiagram
         boolean is_verified
         timestamptz verified_at
         uuid verified_by FK
+        varchar status "ACTIVE|SUSPENDED|REVOKED"
         timestamptz created_at
         timestamptz updated_at
         uuid created_by FK

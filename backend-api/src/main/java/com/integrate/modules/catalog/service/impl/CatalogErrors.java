@@ -55,6 +55,11 @@ final class CatalogErrors {
         return new BusinessRuleException(ErrorCode.CATALOG_HOST_PROFILE_EXISTS, detail);
     }
 
+    /** El anfitrión está suspendido o revocado aunque su JWT conserve el rol (ADR-0070). */
+    static BusinessRuleException hostNotActive() {
+        return new BusinessRuleException(ErrorCode.CATALOG_HOST_NOT_ACTIVE, "The host profile is not active.");
+    }
+
     /** El gestor no tiene acreditación {@code ACTIVE} aunque su JWT conserve el rol (ADR-0007 §2). */
     static BusinessRuleException managerNotActive() {
         return new BusinessRuleException(ErrorCode.ENROLLMENT_MANAGER_NOT_ACTIVE,

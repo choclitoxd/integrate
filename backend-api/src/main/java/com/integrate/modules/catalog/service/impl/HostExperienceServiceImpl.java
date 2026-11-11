@@ -6,6 +6,7 @@ import com.integrate.common.persistence.StatusReasonContext;
 import com.integrate.modules.catalog.dto.request.ExperienceRequest;
 import com.integrate.modules.catalog.dto.request.ScheduleBatchRequest;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
+import com.integrate.modules.catalog.dto.response.HostStatusResponse;
 import com.integrate.modules.catalog.dto.response.ScheduleResponse;
 import com.integrate.modules.catalog.entity.Category;
 import com.integrate.modules.catalog.entity.Experience;
@@ -67,7 +68,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     @Override
     @Transactional
     public HostExperienceResponse create(UUID hostUserId, ExperienceRequest request) {
-        HostProfile host = requireHost(hostUserId);
+        HostProfile host = requireActiveHost(hostUserId);
         List<Category> categories = validate(request);
         Experience experience = experienceRepository.saveAndFlush(Experience.draft(host.getId(), request.toContent()));
         replaceCategories(experience.getId(), categories);
@@ -92,7 +93,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     @Override
     @Transactional
     public HostExperienceResponse update(UUID hostUserId, UUID experienceId, ExperienceRequest request) {
-        Experience experience = ownedExperience(requireHost(hostUserId), experienceId, true);
+        Experience experience = ownedExperience(requireActiveHost(hostUserId), experienceId, true);
         if (!experience.getStatus().isEditableByHost()) {
             throw CatalogErrors.invalidTransition(experience.getStatus(), "edit");
         }
@@ -118,7 +119,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     @Override
     @Transactional
     public HostExperienceResponse submit(UUID hostUserId, UUID experienceId) {
-        Experience experience = ownedExperience(requireHost(hostUserId), experienceId, true);
+        Experience experience = ownedExperience(requireActiveHost(hostUserId), experienceId, true);
         if (!experience.getStatus().canTransitionTo(ExperienceStatus.PENDING_REVIEW)) {
             throw CatalogErrors.invalidTransition(experience.getStatus(), "submit");
         }
@@ -136,18 +137,18 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     @Override
     public HostExperienceResponse checkMeetingPoint(UUID hostUserId, UUID experienceId) {
         boolean started = Boolean.TRUE.equals(transactions.execute(status ->
-                meetingPointChecks.beginManualCheck(ownedExperience(requireHost(hostUserId), experienceId, true))));
+                meetingPointChecks.beginManualCheck(ownedExperience(requireActiveHost(hostUserId), experienceId, true))));
         if (started) {
             meetingPointChecks.runVerification(experienceId);
         }
-        return transactions.execute(status -> views.forHost(ownedExperience(requireHost(hostUserId), experienceId,
+        return transactions.execute(status -> views.forHost(ownedExperience(requireActiveHost(hostUserId), experienceId,
                 false)));
     }
 
     @Override
     @Transactional
     public List<ScheduleResponse> createSchedules(UUID hostUserId, UUID experienceId, ScheduleBatchRequest request) {
-        Experience experience = ownedExperience(requireHost(hostUserId), experienceId, true);
+        Experience experience = ownedExperience(requireActiveHost(hostUserId), experienceId, true);
         if (!SCHEDULABLE.contains(experience.getStatus())) {
             throw CatalogErrors.invalidTransition(experience.getStatus(), "add schedules to");
         }
@@ -217,7 +218,7 @@ public class HostExperienceServiceImpl implements HostExperienceService {
     @Override
     @Transactional
     public ScheduleResponse cancelSchedule(UUID hostUserId, UUID scheduleId, String reason) {
-        HostProfile host = requireHost(hostUserId);
+        HostProfile host = requireActiveHost(hostUserId);
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> CatalogErrors.notFound("Schedule"));
         ownedExperience(host, schedule.getExperienceId(), true);
@@ -233,11 +234,27 @@ public class HostExperienceServiceImpl implements HostExperienceService {
         return ScheduleResponse.from(schedule, ZONE);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public HostStatusResponse status(UUID hostUserId) {
+        HostProfile host = requireHost(hostUserId);
+        return new HostStatusResponse(host.getId(), host.getStatus());
+    }
+
     // ---------------------------------------------------------------- helpers
 
     private HostProfile requireHost(UUID userId) {
         return hostProfileRepository.findByUserIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> CatalogErrors.forbidden("No active host profile for this account"));
+    }
+
+    /** Operaciones que cambian algo: un anfitrión suspendido o revocado no las hace (ADR-0070). Leer sigue permitido. */
+    private HostProfile requireActiveHost(UUID userId) {
+        HostProfile host = requireHost(userId);
+        if (!host.isActive()) {
+            throw CatalogErrors.hostNotActive();
+        }
+        return host;
     }
 
     /** Experiencia del anfitrión; una ajena responde 404 igual que una inexistente. */

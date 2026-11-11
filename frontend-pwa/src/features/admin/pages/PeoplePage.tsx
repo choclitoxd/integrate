@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router';
 
 import { Button, Icon, ProblemNotice, Select, Skeleton, type IconName } from '@/shared/ui';
 
-import type { AdminLinkManager, LinkManagerStatus, ManagerAction } from '../api';
+import type { AdminHost, AdminLinkManager, LinkManagerStatus, ManagerAction } from '../api';
+import { HostStatusDialog } from '../components/HostStatusDialog';
 import { ManagerStatusDialog } from '../components/ManagerStatusDialog';
 import { PersonSearch } from '../components/PersonSearch';
 import {
@@ -295,6 +296,8 @@ function HostsTable() {
   const hosts = useHosts(associationId, page);
   const associations = useAssociationOptions();
   const lookup = useSearchUser();
+  const [dialog, setDialog] = useState<{ host: AdminHost; action: ManagerAction } | null>(null);
+  const [result, setResult] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [resolvedUserId, setResolvedUserId] = useState<string | null | undefined>(undefined);
   const allItems = hosts.data?.items ?? [];
@@ -307,6 +310,7 @@ function HostsTable() {
       host.email,
       host.associationName,
       host.verified ? 'Verificado' : 'Sin verificar',
+      MANAGER_STATUS[host.status].text,
     ]);
   });
   const options = [
@@ -356,6 +360,12 @@ function HostsTable() {
         />
       </div>
 
+      {result && (
+        <div className="mt-4">
+          <Notice tone="success">{result}</Notice>
+        </div>
+      )}
+
       <div className="mt-4">
         {hosts.isError ? (
           <ProblemNotice
@@ -385,19 +395,25 @@ function HostsTable() {
                     Verificado
                   </th>
                   <th scope="col" className={TH_CLASS}>
+                    Estado
+                  </th>
+                  <th scope="col" className={TH_CLASS}>
                     Alta
+                  </th>
+                  <th scope="col" className={TH_CLASS}>
+                    Acciones
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {hosts.isPending && (
-                  <EmptyRow columns={4}>
+                  <EmptyRow columns={6}>
                     <span role="status">Cargando anfitriones…</span>
                     <Skeleton className="mx-auto mt-3 h-6 w-2/3" />
                   </EmptyRow>
                 )}
                 {hosts.isSuccess && items.length === 0 && (
-                  <EmptyRow columns={4}>No hay anfitriones para este filtro.</EmptyRow>
+                  <EmptyRow columns={6}>No hay anfitriones para este filtro.</EmptyRow>
                 )}
                 {items.map((host) => (
                   <tr key={host.hostProfileId}>
@@ -416,7 +432,33 @@ function HostsTable() {
                         {host.verified ? 'Verificado' : 'Sin verificar'}
                       </StatusBadge>
                     </td>
+                    <td className={TD_CLASS}>
+                      <StatusBadge tone={MANAGER_STATUS[host.status].tone}>
+                        {MANAGER_STATUS[host.status].text}
+                      </StatusBadge>
+                    </td>
                     <td className={`${TD_CLASS} text-sm`}>{formatInstant(host.createdAt)}</td>
+                    <td className={TD_CLASS}>
+                      <div className="flex flex-wrap gap-2">
+                        {ACTIONS[host.status].map((action) => (
+                          <Button
+                            key={action}
+                            variant="secondary"
+                            aria-label={`${ACTION_LABEL[action]} a ${host.fullName}`}
+                            onClick={() => {
+                              setResult(null);
+                              setDialog({ host, action });
+                            }}
+                          >
+                            <Icon name={ACTION_ICON[action]} />
+                            <span className="hidden sm:inline">{ACTION_LABEL[action]}</span>
+                          </Button>
+                        ))}
+                        {ACTIONS[host.status].length === 0 && (
+                          <span className="text-ink-muted">Sin acciones</span>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -439,6 +481,21 @@ function HostsTable() {
           />
         )}
       </div>
+
+      {dialog && (
+        <HostStatusDialog
+          key={`${dialog.host.hostProfileId}-${dialog.action}`}
+          host={dialog.host}
+          action={dialog.action}
+          onClose={() => {
+            setDialog(null);
+          }}
+          onDone={(message) => {
+            setDialog(null);
+            setResult(message);
+          }}
+        />
+      )}
     </>
   );
 }

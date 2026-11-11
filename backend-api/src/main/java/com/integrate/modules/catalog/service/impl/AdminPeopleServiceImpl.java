@@ -207,7 +207,7 @@ public class AdminPeopleServiceImpl implements AdminPeopleService {
             return new AdminHostResponse(profile.getId(), profile.getUserId(), nameOf(person), email,
                     email != null && isSynthetic(email), profile.getAssociationId(),
                     associationName(associations, profile.getAssociationId()), profile.isVerified(),
-                    profile.getCreatedAt());
+                    profile.getStatus(), profile.getCreatedAt());
         }).toList();
         record("ADMIN_USER_LIST", List.of("fullName", "email"), userIds.stream().map(UUID::toString).toList(),
                 adminId, client);

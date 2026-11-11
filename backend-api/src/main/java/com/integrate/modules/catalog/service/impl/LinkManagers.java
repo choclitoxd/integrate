@@ -16,6 +16,12 @@ class LinkManagers {
 
     private final LinkManagerProfileRepository repository;
 
+    /** Perfil del gestor en cualquier estado; 404 si la cuenta no tiene perfil (ADR-0069). */
+    LinkManagerProfile require(UUID userId) {
+        return repository.findByUserIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> CatalogErrors.notFound("Link manager"));
+    }
+
     /** @throws com.integrate.common.exception.BusinessRuleException {@code ENROLLMENT_MANAGER_NOT_ACTIVE} (403) */
     LinkManagerProfile requireActive(UUID userId) {
         return repository.findByUserIdAndDeletedAtIsNull(userId)

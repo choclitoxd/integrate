@@ -1,5 +1,6 @@
 package com.integrate.modules.catalog.dto.response;
 
+import com.integrate.modules.catalog.entity.AccreditationStatus;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,5 +10,5 @@ import java.util.UUID;
  */
 public record AdminHostResponse(UUID hostProfileId, UUID userId, String fullName, String email,
                                 boolean emailIsSynthetic, UUID associationId, String associationName,
-                                boolean verified, Instant createdAt) {
+                                boolean verified, AccreditationStatus status, Instant createdAt) {
 }

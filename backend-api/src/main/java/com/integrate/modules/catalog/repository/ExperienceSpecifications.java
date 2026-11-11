@@ -1,9 +1,11 @@
 package com.integrate.modules.catalog.repository;
 
+import com.integrate.modules.catalog.entity.AccreditationStatus;
 import com.integrate.modules.catalog.entity.Category;
 import com.integrate.modules.catalog.entity.Experience;
 import com.integrate.modules.catalog.entity.ExperienceCategory;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
+import com.integrate.modules.catalog.entity.HostProfile;
 import com.integrate.modules.catalog.entity.PhysicalIntensity;
 import com.integrate.modules.catalog.entity.Schedule;
 import com.integrate.modules.catalog.entity.ScheduleStatus;
@@ -24,9 +26,19 @@ public final class ExperienceSpecifications {
     }
 
     public static Specification<Experience> publicCatalog() {
-        return (root, query, cb) -> cb.and(
-                cb.equal(root.get("status"), ExperienceStatus.APPROVED),
-                cb.isNull(root.get("deletedAt")));
+        return (root, query, cb) -> {
+            // ADR-0070: las experiencias de un anfitrión suspendido o revocado dejan de aparecer en el catálogo.
+            Subquery<Integer> host = query.subquery(Integer.class);
+            Root<HostProfile> h = host.from(HostProfile.class);
+            host.select(cb.literal(1)).where(
+                    cb.equal(h.get("id"), root.get("hostId")),
+                    cb.equal(h.get("status"), AccreditationStatus.ACTIVE),
+                    cb.isNull(h.get("deletedAt")));
+            return cb.and(
+                    cb.equal(root.get("status"), ExperienceStatus.APPROVED),
+                    cb.isNull(root.get("deletedAt")),
+                    cb.exists(host));
+        };
     }
 
     public static Specification<Experience> inMunicipality(String municipalityCode) {

@@ -3,6 +3,8 @@ package com.integrate.modules.catalog.entity;
 import com.integrate.common.persistence.PgDomains;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -31,6 +33,10 @@ public class HostProfile {
     @Column(name = "association_id", nullable = false, updatable = false)
     private UUID associationId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private AccreditationStatus status = AccreditationStatus.ACTIVE;
+
     @Getter(AccessLevel.NONE)
     @Column(name = "victim_condition_enc", columnDefinition = PgDomains.CIPHERTEXT)
     private byte[] victimConditionEnc;
@@ -58,6 +64,28 @@ public class HostProfile {
 
     @Column(name = "deleted_at", insertable = false, updatable = false)
     private Instant deletedAt;
+
+    /** ¿Opera el anfitrión? Suspendido o revocado no crea ni publica nada (ADR-0070). */
+    public boolean isActive() {
+        return status == AccreditationStatus.ACTIVE && deletedAt == null;
+    }
+
+    /** Mismas transiciones que la acreditación del gestor: ACTIVE ↔ SUSPENDED y cualquiera → REVOKED (final). */
+    public boolean canMoveTo(AccreditationStatus target) {
+        return switch (status) {
+            case ACTIVE -> target == AccreditationStatus.SUSPENDED || target == AccreditationStatus.REVOKED;
+            case SUSPENDED -> target == AccreditationStatus.ACTIVE || target == AccreditationStatus.REVOKED;
+            case REVOKED -> false;
+        };
+    }
+
+    /** El invocador valida antes con {@link #canMoveTo(AccreditationStatus)}. */
+    public void moveTo(AccreditationStatus target) {
+        if (!canMoveTo(target)) {
+            throw new IllegalStateException("Invalid host transition " + status + " -> " + target);
+        }
+        this.status = target;
+    }
 
     /** Alta mínima por el administrador, sin datos de víctima (ADR-0006 §3). */
     public static HostProfile create(UUID userId, UUID associationId) {

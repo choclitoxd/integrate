@@ -7,6 +7,7 @@ import com.integrate.modules.auth.service.CredentialActivationService;
 import com.integrate.modules.auth.service.CredentialActivationService.IssuedActivationCode;
 import com.integrate.modules.auth.service.UserDirectory;
 import com.integrate.modules.auth.service.UserDirectory.UserSummary;
+import com.integrate.modules.catalog.dto.response.AccreditationResponse;
 import com.integrate.modules.catalog.dto.response.ActivationCodeResponse;
 import com.integrate.modules.catalog.dto.response.ManagedHostResponse;
 import com.integrate.modules.catalog.entity.HostManagerAssignment;
@@ -41,6 +42,12 @@ public class GestorHostServiceImpl implements GestorHostService {
     private final HostProfileRepository hostProfileRepository;
     private final UserDirectory userDirectory;
     private final CredentialActivationService activationService;
+
+    @Override
+    @Transactional(readOnly = true)
+    public AccreditationResponse accreditation(UUID managerUserId) {
+        return AccreditationResponse.from(linkManagers.require(managerUserId));
+    }
 
     @Override
     // Sin readOnly: la lectura de datos de contacto registra acceso sensible en la bitácora (ADR-0046 §2).

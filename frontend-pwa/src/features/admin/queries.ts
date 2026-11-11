@@ -5,6 +5,7 @@ import { useHttpClient } from '@/shared/api';
 import {
   accreditLinkManager,
   changeAssociationStatus,
+  changeHostStatus,
   changeLinkManagerStatus,
   createAssociation,
   createAdminExperience,
@@ -276,6 +277,17 @@ export function useChangeManagerStatus() {
     mutationFn: ({ id, action }: { id: string; action: ManagerAction }) =>
       changeLinkManagerStatus(http, id, action),
     onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.managers }),
+  });
+}
+
+/** Suspender, reactivar o revocar a un anfitrión; la lista se recarga tras cada intento (ADR-0070). */
+export function useChangeHostStatus() {
+  const http = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action, reason }: { id: string; action: ManagerAction; reason: string }) =>
+      changeHostStatus(http, id, action, reason),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.hosts }),
   });
 }
 

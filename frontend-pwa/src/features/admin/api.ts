@@ -333,6 +333,7 @@ export interface AdminHost {
   readonly associationId: string;
   readonly associationName: string | null;
   readonly verified: boolean;
+  readonly status: LinkManagerStatus;
   readonly createdAt: string;
 }
 
@@ -485,6 +486,19 @@ export function accreditLinkManager(
   body: AccreditRequest,
 ): Promise<{ readonly linkManagerId: string; readonly accreditationStatus: LinkManagerStatus }> {
   return http.request('/v1/admin/link-managers', { method: 'POST', body });
+}
+
+/** Suspender, reactivar o revocar a un anfitrión; el motivo es obligatorio y queda en la bitácora (ADR-0070 §2). */
+export function changeHostStatus(
+  http: HttpClient,
+  hostProfileId: string,
+  action: ManagerAction,
+  reason: string,
+): Promise<{ readonly hostProfileId: string; readonly status: LinkManagerStatus }> {
+  return http.request(`/v1/admin/host-profiles/${encodeURIComponent(hostProfileId)}/${action}`, {
+    method: 'POST',
+    body: { reason },
+  });
 }
 
 export function changeLinkManagerStatus(

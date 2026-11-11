@@ -48,6 +48,7 @@ public enum ErrorCode {
     CATALOG_EXPERIENCE_NOT_APPROVED(HttpStatus.CONFLICT, "experience-not-approved", "Experience Not Approved"),
     CATALOG_INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "invalid-status-transition", "Invalid Status Transition"),
     CATALOG_SCHEDULE_CONFLICT(HttpStatus.CONFLICT, "schedule-conflict", "Schedule Conflict"),
+    CATALOG_HOST_NOT_ACTIVE(HttpStatus.FORBIDDEN, "host-not-active", "Host Not Active"),
     CATALOG_HOST_PROFILE_EXISTS(HttpStatus.CONFLICT, "host-profile-exists", "Host Profile Already Exists"),
     CATALOG_ASSOCIATION_EXISTS(HttpStatus.CONFLICT, "association-exists", "Association Already Exists"),
     CATALOG_MEETING_POINT_MISMATCH(HttpStatus.CONFLICT, "meeting-point-mismatch", "Meeting Point Does Not Match"),

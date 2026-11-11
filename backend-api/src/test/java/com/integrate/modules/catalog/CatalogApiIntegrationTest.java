@@ -5,6 +5,7 @@ import static com.integrate.modules.auth.AuthTestData.PASSWORD;
 import static com.integrate.modules.auth.AuthTestData.tourist;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,11 +15,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.integrate.common.exception.BusinessRuleException;
+import com.integrate.common.exception.ErrorCode;
 import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.RegistrationService;
 import com.integrate.modules.auth.service.RoleAssignmentService;
+import com.integrate.modules.catalog.service.SlotInventory;
 import com.integrate.support.PostgresIntegrationTest;
 import com.jayway.jsonpath.JsonPath;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -35,6 +40,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Catálogo de punta a punta (ADR-0006 §8) sobre la cadena real de Spring Security y PostgreSQL:
@@ -59,6 +66,12 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private SlotInventory slotInventory;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private String adminToken;
     private String associationId;
@@ -141,6 +154,135 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(postJson("/api/v1/admin/host-profiles", adminToken,
                         "{\"userId\":\"" + UUID.randomUUID() + "\",\"associationId\":\"" + associationId + "\"}"))
                 .andExpect(status().isNotFound());
+    }
+
+    // ------------------------------------------------- ciclo de vida del anfitrión (ADR-0070)
+
+    @Test
+    void suspendedHostCannotChangeAnythingAndReinstatementRestoresIt() throws Exception {
+        String profileId = hostProfileId(host);
+        String experienceId = approvedExperience(host, "Taller de tejido");
+
+        mvc.perform(get("/api/v1/host/status").header(HttpHeaders.AUTHORIZATION, bearer(host.token())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.hostProfileId").value(profileId));
+
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/suspend",
+                "{\"reason\":\"Visita de verificación pendiente\"}")
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUSPENDED"));
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM audit.audit_trail
+                 WHERE action = 'HOST_SUSPENDED' AND severity = 'WARNING' AND entity_id = ?""",
+                Long.class, profileId)).as("el cambio queda en la bitácora con su motivo").isEqualTo(1L);
+
+        // Leer sigue permitido; cambiar algo, no (el JWT conserva ROLE_HOST: suspender no toca el rol).
+        mvc.perform(get("/api/v1/host/experiences").header(HttpHeaders.AUTHORIZATION, bearer(host.token())))
+                .andExpect(status().isOk());
+        mvc.perform(postJson("/api/v1/host/experiences", host.token(), experienceBody("Otra experiencia", 8)))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CATALOG_HOST_NOT_ACTIVE"));
+        action(host.token(), "/api/v1/host/experiences/" + experienceId + "/submit", null)
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CATALOG_HOST_NOT_ACTIVE"));
+        mvc.perform(postJson("/api/v1/host/experiences/" + experienceId + "/schedules", host.token(),
+                        "{\"schedules\":[" + slot(daysAhead(30), 7, 12, 8) + "]}"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CATALOG_HOST_NOT_ACTIVE"));
+        mvc.perform(get("/api/v1/host/status").header(HttpHeaders.AUTHORIZATION, bearer(host.token())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUSPENDED"));
+        mvc.perform(get("/api/v1/admin/host-profiles").header(HttpHeaders.AUTHORIZATION, bearer(adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.hostProfileId == '" + profileId + "')].status",
+                        hasItem("SUSPENDED")));
+
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/reinstate", "{\"reason\":\"Verificación completa\"}")
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
+        mvc.perform(postJson("/api/v1/host/experiences", host.token(), experienceBody("Otra experiencia", 8)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void revokingAHostRemovesTheRoleKeepsTouristAndIsFinal() throws Exception {
+        String profileId = hostProfileId(host);
+
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/revoke", "{\"reason\":\"Salió de la plataforma\"}")
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVOKED"));
+
+        assertThat(activeRole(host.userId(), "HOST")).as("ROLE_HOST revocado").isZero();
+        assertThat(activeRole(host.userId(), "TOURIST")).as("ROLE_TOURIST se conserva (ADR-0064)").isEqualTo(1L);
+        assertThat(JsonPath.<List<String>>read(login(host.email()), "$.user.roles"))
+                .contains("ROLE_TOURIST").doesNotContain("ROLE_HOST");
+        // El token viejo aún trae el rol (dura hasta 15 min): el estado se puede consultar y ya no deja operar.
+        mvc.perform(get("/api/v1/host/status").header(HttpHeaders.AUTHORIZATION, bearer(host.token())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVOKED"));
+        mvc.perform(postJson("/api/v1/host/experiences", host.token(), experienceBody("Nueva", 8)))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CATALOG_HOST_NOT_ACTIVE"));
+
+        for (String transition : List.of("reinstate", "suspend", "revoke")) {
+            action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/" + transition, "{\"reason\":\"Otra vez\"}")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.code").value("CATALOG_INVALID_STATUS_TRANSITION"))
+                    .andExpect(jsonPath("$.currentStatus").value("REVOKED"));
+        }
+    }
+
+    @Test
+    void experiencesOfASuspendedHostLeaveThePublicCatalogAndCannotBeBooked() throws Exception {
+        String marker = "Suspension" + SEQ.incrementAndGet();
+        String profileId = hostProfileId(host);
+        String experienceId = approvedExperience(host, marker + " caminata");
+        List<String> scheduleIds = createSchedules(host, experienceId, daysAhead(20), 1, 8);
+        LocalDate day = daysAhead(20);
+        mvc.perform(get("/api/v1/experiences").param("q", marker.toLowerCase()))
+                .andExpect(jsonPath("$.totalElements").value(1));
+
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/suspend", "{\"reason\":\"Alerta\"}")
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/v1/experiences").param("q", marker.toLowerCase()))
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/v1/experiences/" + experienceId)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/experiences/" + experienceId + "/availability")
+                        .param("dateFrom", day.toString()).param("dateTo", day.plusDays(3).toString()))
+                .andExpect(status().isNotFound());
+        assertThatThrownBy(() -> new TransactionTemplate(transactionManager).executeWithoutResult(
+                status -> slotInventory.reserve(UUID.fromString(scheduleIds.get(0)), 1, Instant.now())))
+                .isInstanceOfSatisfying(BusinessRuleException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND));
+
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/reinstate", "{\"reason\":\"Resuelto\"}")
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/v1/experiences").param("q", marker.toLowerCase()))
+                .andExpect(jsonPath("$.totalElements").value(1));
+        mvc.perform(get("/api/v1/experiences/" + experienceId + "/availability")
+                        .param("dateFrom", day.toString()).param("dateTo", day.plusDays(3).toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.schedules.length()").value(1));
+        new TransactionTemplate(transactionManager).executeWithoutResult(
+                status -> slotInventory.reserve(UUID.fromString(scheduleIds.get(0)), 1, Instant.now()));
+    }
+
+    @Test
+    void onlyAnAdminChangesAHostStatusAndTheReasonIsRequired() throws Exception {
+        String profileId = hostProfileId(host);
+        String reason = "{\"reason\":\"Motivo\"}";
+
+        action(host.token(), "/api/v1/admin/host-profiles/" + profileId + "/suspend", reason)
+                .andExpect(status().isForbidden());
+        action(tokenFor(registeredTourist()), "/api/v1/admin/host-profiles/" + profileId + "/suspend", reason)
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/admin/host-profiles/" + profileId + "/suspend")
+                        .contentType(MediaType.APPLICATION_JSON).content(reason))
+                .andExpect(status().isUnauthorized());
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/suspend", "{}")
+                .andExpect(status().isUnprocessableEntity());
+        action(adminToken, "/api/v1/admin/host-profiles/" + profileId + "/suspend", "{\"reason\":\"  \"}")
+                .andExpect(status().isUnprocessableEntity());
+        action(adminToken, "/api/v1/admin/host-profiles/" + UUID.randomUUID() + "/suspend", reason)
+                .andExpect(status().isNotFound());
+        // Nada de lo anterior cambió el estado.
+        mvc.perform(get("/api/v1/host/status").header(HttpHeaders.AUTHORIZATION, bearer(host.token())))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+        // Un turista sin perfil de anfitrión no consulta el estado de anfitrión.
+        mvc.perform(get("/api/v1/host/status").header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(registeredTourist()))))
+                .andExpect(status().isForbidden());
     }
 
     // ------------------------------------------------------------- ciclo de moderación
@@ -413,6 +555,17 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
     // ---------------------------------------------------------------- fixtures
 
     private record Host(UUID userId, String email, String token) {
+    }
+
+    private String hostProfileId(Host owner) {
+        return jdbc.queryForObject("SELECT id::text FROM catalog.host_profiles WHERE user_id = ?::uuid",
+                String.class, owner.userId().toString());
+    }
+
+    private long activeRole(UUID userId, String role) {
+        return jdbc.queryForObject("""
+                SELECT count(*) FROM auth.user_roles ur JOIN auth.roles r ON r.id = ur.role_id
+                 WHERE ur.user_id = ? AND r.code = ? AND ur.revoked_at IS NULL""", Long.class, userId, role);
     }
 
     private Host createHost() throws Exception {
