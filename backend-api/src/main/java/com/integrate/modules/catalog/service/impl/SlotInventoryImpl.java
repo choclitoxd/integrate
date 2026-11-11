@@ -55,6 +55,10 @@ public class SlotInventoryImpl implements SlotInventory {
         Experience experience = experienceRepository.findById(schedule.getExperienceId())
                 .filter(Experience::isPublic)
                 .orElseThrow(() -> CatalogErrors.notFound("Schedule"));
+        if (hostProfileRepository.findById(experience.getHostId()).filter(HostProfile::isActive).isEmpty()) {
+            // ADR-0070: no se reserva en una experiencia de un anfitrión suspendido o revocado.
+            throw CatalogErrors.notFound("Schedule");
+        }
         if (schedule.getStatus() != ScheduleStatus.OPEN || !schedule.getStartTime().isAfter(now)) {
             throw CatalogErrors.scheduleNotBookable(schedule.getStatus(), schedule.getStartTime());
         }

@@ -17,9 +17,11 @@ import com.integrate.modules.catalog.dto.response.ExperienceSummaryResponse;
 import com.integrate.modules.catalog.dto.response.PlaceResponse;
 import com.integrate.modules.catalog.entity.Experience;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
+import com.integrate.modules.catalog.entity.HostProfile;
 import com.integrate.modules.catalog.repository.CategoryRepository;
 import com.integrate.modules.catalog.repository.DepartmentRepository;
 import com.integrate.modules.catalog.repository.ExperienceRepository;
+import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
 import com.integrate.modules.catalog.service.CatalogQueryService;
@@ -51,6 +53,7 @@ public class CatalogQueryServiceImpl implements CatalogQueryService {
     private final CategoryRepository categoryRepository;
     private final DepartmentRepository departmentRepository;
     private final MunicipalityRepository municipalityRepository;
+    private final HostProfileRepository hostProfileRepository;
     private final ExperienceViews views;
     private final Clock clock;
 
@@ -88,6 +91,7 @@ public class CatalogQueryServiceImpl implements CatalogQueryService {
     public ExperienceDetailResponse detail(UUID experienceId) {
         Experience experience = experienceRepository.findById(experienceId)
                 .filter(Experience::isPublic)
+                .filter(this::hostIsActive)
                 .orElseThrow(() -> CatalogErrors.notFound("Experience"));
         return views.detail(experience);
     }
@@ -102,6 +106,10 @@ public class CatalogQueryServiceImpl implements CatalogQueryService {
             // Al público no se le revela que la experiencia existe; el panel sí necesita saber por qué no hay datos.
             throw privilegedViewer ? CatalogErrors.notApproved(experience.getStatus())
                     : CatalogErrors.notFound("Experience");
+        }
+        if (!privilegedViewer && !hostIsActive(experience)) {
+            // ADR-0070: sin franjas nuevas para el público mientras el anfitrión esté suspendido o revocado.
+            throw CatalogErrors.notFound("Experience");
         }
         requireRange(dateFrom, dateTo);
         // Sin minSlots se incluyen las franjas agotadas: la PWA las muestra como "Agotado" (RF-04).
@@ -150,5 +158,10 @@ public class CatalogQueryServiceImpl implements CatalogQueryService {
 
     private static Instant startOf(LocalDate date) {
         return date.atStartOfDay(ZONE).toInstant();
+    }
+
+    /** ADR-0070: la experiencia de un anfitrión suspendido o revocado no se ofrece al público. */
+    private boolean hostIsActive(Experience experience) {
+        return hostProfileRepository.findById(experience.getHostId()).filter(HostProfile::isActive).isPresent();
     }
 }

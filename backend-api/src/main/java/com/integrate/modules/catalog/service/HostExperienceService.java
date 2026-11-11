@@ -4,6 +4,7 @@ import com.integrate.common.payload.PageResponse;
 import com.integrate.modules.catalog.dto.request.ExperienceRequest;
 import com.integrate.modules.catalog.dto.request.ScheduleBatchRequest;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
+import com.integrate.modules.catalog.dto.response.HostStatusResponse;
 import com.integrate.modules.catalog.dto.response.ScheduleResponse;
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +17,9 @@ import org.springframework.data.domain.Pageable;
  * Sin perfil de anfitrión vigente → 403.
  */
 public interface HostExperienceService {
+
+    /** Estado del perfil del anfitrión (ADR-0070); responde también si está suspendido o revocado. */
+    HostStatusResponse status(UUID hostUserId);
 
     HostExperienceResponse create(UUID hostUserId, ExperienceRequest request);
 

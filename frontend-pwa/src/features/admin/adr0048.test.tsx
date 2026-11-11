@@ -25,6 +25,7 @@ const hostOption = {
   associationId: 'a-1',
   associationName: 'Asociación Chameza',
   verified: true,
+  status: 'ACTIVE',
   createdAt: '2026-11-01T10:00:00Z',
 };
 

@@ -1,15 +1,21 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router';
 
 import { useHttpClient } from '@/shared/api';
-import { useSession } from '@/shared/session';
 
+import { ZoneBlockedPage } from '../pages/ZoneBlockedPage';
 import { AppShell } from './AppShell';
-import { roleNavigation } from './roleNavigation';
+import { useRoleNavigation } from './useRoleNavigation';
+import { useZoneStatus } from './zoneStatus';
 
 /** Shell del Gestor de Enlace; la ruta exige ROLE_LINK_MANAGER (ADR-0013 §6, ADR-0037 §5.3). */
 export function ManagerLayout() {
   const http = useHttpClient();
-  const session = useSession();
+  const navItems = useRoleNavigation();
+  const { gestor } = useZoneStatus();
+  const { pathname } = useLocation();
+  // ADR-0069: con la acreditación suspendida o revocada ve un aviso en lugar del panel; «Mi cuenta» sigue disponible.
+  const blocked = gestor !== undefined && gestor !== 'ACTIVE' && !pathname.endsWith('/cuenta');
 
   useEffect(() => {
     const triggerFlush = () => {
@@ -48,10 +54,8 @@ export function ManagerLayout() {
   }, [http]);
 
   return (
-    <AppShell
-      navLabel="Navegación del gestor"
-      navItems={roleNavigation(session)}
-      homeTo="/gestor"
-    />
+    <AppShell navLabel="Navegación del gestor" navItems={navItems} homeTo="/gestor">
+      {blocked ? <ZoneBlockedPage zone="gestor" status={gestor} /> : undefined}
+    </AppShell>
   );
 }

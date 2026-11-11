@@ -2,9 +2,9 @@ import { Navigate, useLocation } from 'react-router';
 
 import { hasRole, useSession } from '@/shared/session';
 
-import { AppShell, type NavItem } from './AppShell';
+import { AppShell } from './AppShell';
 import { ADMIN_NAV_ITEMS } from './shell';
-import { roleNavigation } from './roleNavigation';
+import { useRoleNavigation } from './useRoleNavigation';
 
 const TOURIST_ONLY_PREFIXES = ['/experiencias', '/mis-experiencias', '/reservas'] as const;
 
@@ -17,6 +17,7 @@ const TOURIST_ONLY_PREFIXES = ['/experiencias', '/mis-experiencias', '/reservas'
 export function TouristLayout() {
   const session = useSession();
   const { pathname } = useLocation();
+  const navItems = useRoleNavigation();
 
   if (hasRole(session, 'ROLE_ADMIN')) {
     // Su perfil vive en el panel, no en la cuenta de turista: /cuenta le lleva a /admin/cuenta.
@@ -40,6 +41,5 @@ export function TouristLayout() {
     );
   }
 
-  const navItems: readonly NavItem[] = roleNavigation(session);
   return <AppShell navLabel="Navegación principal" navItems={navItems} homeTo="/" />;
 }

@@ -6,6 +6,7 @@ import com.integrate.modules.catalog.dto.request.ExperienceRequest;
 import com.integrate.modules.catalog.dto.request.ReasonRequest;
 import com.integrate.modules.catalog.dto.request.ScheduleBatchRequest;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
+import com.integrate.modules.catalog.dto.response.HostStatusResponse;
 import com.integrate.modules.catalog.dto.response.ScheduleResponse;
 import com.integrate.modules.catalog.service.HostExperienceService;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,6 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class HostExperienceController {
 
     private final HostExperienceService service;
+
+    /** Estado del perfil (ADR-0070): responde también si está suspendido o revocado, para que la PWA lo explique. */
+    @GetMapping("/status")
+    public ResponseEntity<HostStatusResponse> status(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(service.status(subject(jwt)));
+    }
 
     @PostMapping("/experiences")
     public ResponseEntity<HostExperienceResponse> create(@AuthenticationPrincipal Jwt jwt,

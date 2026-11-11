@@ -621,6 +621,28 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/EnrollmentForbidden' }
 
+  /api/v1/gestor/accreditation:
+    get:
+      tags: [Gestor]
+      operationId: getMyAccreditation
+      summary: Estado de la acreditación del gestor autenticado (ADR-0069).
+      description: >
+        Responde también con la acreditación `SUSPENDED` o `REVOKED` para que la app explique el motivo del bloqueo
+        en lugar de un rechazo genérico. Quien no tiene perfil de gestor recibe 403.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_LINK_MANAGER]
+      responses:
+        '200':
+          description: Estado de la acreditación.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Accreditation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
   /api/v1/gestor/hosts/{hostProfileId}/activation-code:
     post:
       tags: [Gestor]
@@ -764,6 +786,28 @@ paths:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/Place' } }
         '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/host/status:
+    get:
+      tags: [Host]
+      operationId: getMyHostStatus
+      summary: Estado del perfil del anfitrión autenticado (ADR-0070).
+      description: >
+        Responde con el estado aunque esté `SUSPENDED` o `REVOKED`. Mientras no esté `ACTIVE`, las operaciones de
+        escritura del anfitrión responden 403 `CATALOG_HOST_NOT_ACTIVE` y sus experiencias salen del catálogo público.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_HOST]
+      responses:
+        '200':
+          description: Estado del perfil.
+          headers:
+            Cache-Control:
+              schema: { type: string, example: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostStatus' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /api/v1/host/experiences:
     post:
@@ -1394,6 +1438,42 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+
+  /api/v1/admin/host-profiles/{id}/{action}:
+    post:
+      tags: [Admin]
+      operationId: changeHostStatus
+      summary: Suspende, reactiva o revoca el perfil de un anfitrión (ADR-0070).
+      description: >
+        `suspend`: ACTIVE → SUSPENDED · `reinstate`: SUSPENDED → ACTIVE · `revoke`: → REVOKED (terminal, retira el rol
+        `HOST`; se conserva `TOURIST`). El motivo es obligatorio y queda en la bitácora (`HOST_SUSPENDED`,
+        `HOST_REINSTATED`, `HOST_REVOKED`). Las reservas confirmadas no se cancelan automáticamente.
+      security: [{ bearerAuth: [] }]
+      x-required-roles: [ROLE_ADMIN]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: action
+          in: path
+          required: true
+          schema: { type: string, enum: [suspend, reinstate, revoke] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReasonRequest' }
+      responses:
+        '200':
+          description: Perfil actualizado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HostStatus' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/InvalidStatusTransition' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /api/v1/admin/experiences:
     post:
@@ -3645,7 +3725,7 @@ components:
         accreditedByName: { type: string, nullable: true }
     AdminHost:
       type: object
-      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, createdAt]
+      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, status, createdAt]
       properties:
         hostProfileId: { type: string, format: uuid }
         userId: { type: string, format: uuid }
@@ -3655,7 +3735,20 @@ components:
         associationId: { type: string, format: uuid }
         associationName: { type: string, nullable: true }
         verified: { type: boolean }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
         createdAt: { type: string, format: date-time }
+    HostStatus:
+      type: object
+      required: [hostProfileId, status]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+    Accreditation:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
 
     # ---------- Catalog ----------
     PageMeta:
@@ -5060,7 +5153,7 @@ components:
         accreditedByName: { type: string, nullable: true }
     AdminHost:
       type: object
-      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, createdAt]
+      required: [hostProfileId, userId, fullName, emailIsSynthetic, associationId, verified, status, createdAt]
       properties:
         hostProfileId: { type: string, format: uuid }
         userId: { type: string, format: uuid }
@@ -5070,7 +5163,20 @@ components:
         associationId: { type: string, format: uuid }
         associationName: { type: string, nullable: true }
         verified: { type: boolean }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
         createdAt: { type: string, format: date-time }
+    HostStatus:
+      type: object
+      required: [hostProfileId, status]
+      properties:
+        hostProfileId: { type: string, format: uuid }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+    Accreditation:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ACTIVE, SUSPENDED, REVOKED] }
+        accreditedOn: { type: string, format: date }
 
     # ---------- Catalog ----------
     PageMeta:

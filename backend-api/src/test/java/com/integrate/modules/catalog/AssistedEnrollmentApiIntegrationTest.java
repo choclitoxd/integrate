@@ -9,6 +9,7 @@ import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -123,6 +124,34 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CATALOG_INVALID_STATUS_TRANSITION"))
                 .andExpect(jsonPath("$.currentStatus").value("REVOKED"));
+    }
+
+    /** ADR-0069: la PWA consulta el estado para explicar por qué se ocultan las herramientas del gestor. */
+    @Test
+    void accreditationEndpointReportsTheStatusEvenWhenSuspendedOrRevoked() throws Exception {
+        accreditation(gestor.token()).andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.accreditedOn").isString());
+
+        action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/suspend")
+                .andExpect(status().isOk());
+        // Con la acreditación suspendida las consultas restringidas se rechazan, pero el estado sí se puede leer.
+        mvc.perform(get("/api/v1/gestor/hosts").header(HttpHeaders.AUTHORIZATION, bearer(gestor.token())))
+                .andExpect(status().isForbidden());
+        accreditation(gestor.token()).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUSPENDED"));
+
+        action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/reinstate")
+                .andExpect(status().isOk());
+        accreditation(gestor.token()).andExpect(jsonPath("$.status").value("ACTIVE"));
+
+        action(adminToken, "/api/v1/admin/link-managers/" + gestor.linkManagerId() + "/revoke")
+                .andExpect(status().isOk());
+        // El token viejo aún trae el rol (dura hasta 15 min): el estado se sigue pudiendo consultar.
+        accreditation(gestor.token()).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVOKED"));
+
+        accreditation(tokenFor(registeredTourist(), PASSWORD)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/gestor/accreditation")).andExpect(status().isUnauthorized());
     }
 
     /** ADR-0038 §2 (hallazgo E-02): revocar quita el rol, lo audita y el siguiente login ya no lo trae. */
@@ -548,6 +577,10 @@ class AssistedEnrollmentApiIntegrationTest extends PostgresIntegrationTest {
         return JsonPath.read(mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.accessToken");
+    }
+
+    private ResultActions accreditation(String token) throws Exception {
+        return mvc.perform(get("/api/v1/gestor/accreditation").header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     private ResultActions action(String token, String path) throws Exception {

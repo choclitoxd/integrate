@@ -1,6 +1,6 @@
 # ADR-0070: Suspender, reactivar y revocar a un anfitrión
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-11-11)
 - **Proyecto / Módulo:** Intégrate · `backend-api/` — `modules/catalog` (`HostProfile`, servicio de administración de anfitriones, `AdminPeopleController` o un controlador nuevo, `HostExperienceController`), migración Flyway **V21**, `docs/api/`; `frontend-pwa/` — `features/admin` (Personas → Anfitriones) y la navegación del anfitrión.
 - **Fecha:** 2026-11-11
 - **Trazabilidad:** observación de la «Auditoría funcional de Intégrate» (2026-11-11, caso Fabio) y hallazgo de la carga de datos de demostración («retirar una experiencia no cancela sus reservas»); ADR-0007 (acreditación del gestor, mismo ciclo de vida), ADR-0057 (acciones de personas en hoja emergente), ADR-0064 (anfitrión también es turista), ADR-0069 (estado del gestor en la navegación).
@@ -16,7 +16,7 @@ Restricciones: la cuenta no se borra físicamente (trazabilidad y auditoría enc
 ## Decisión
 
 1. **Estado del anfitrión.** Se agrega `catalog.host_profiles.status` (`ACTIVE`, `SUSPENDED`, `REVOKED`; por defecto `ACTIVE`) con la migración **V21**, con las mismas transiciones del gestor: `ACTIVE ↔ SUSPENDED` y cualquiera → `REVOKED` (final).
-2. **Endpoints de administración** (rol `ADMIN`, con motivo obligatorio, igual que los del gestor): `POST /api/v1/admin/host-profiles/{id}/suspend`, `.../reinstate` y `.../revoke`. Cada cambio queda en la auditoría.
+2. **Endpoints de administración** (rol `ADMIN`, con motivo obligatorio: a diferencia de los endpoints equivalentes del gestor, que no piden motivo, aquí se exige y queda en la auditoría): `POST /api/v1/admin/host-profiles/{id}/suspend`, `.../reinstate` y `.../revoke`. Cada cambio queda en la auditoría.
 3. **Efecto en el servidor.**
    - Con el perfil `SUSPENDED` o `REVOKED`, las operaciones de `HostExperienceController` (crear, editar, enviar a revisión, gestionar franjas) responden 403 `CATALOG_HOST_NOT_ACTIVE`.
    - **Revocar** además quita `ROLE_HOST` (`ROLE_TOURIST` se conserva, ADR-0064). **Suspender** conserva el rol, como con el gestor.

@@ -2,6 +2,7 @@ package com.integrate.modules.catalog.service;
 
 import com.integrate.common.payload.PageResponse;
 import com.integrate.modules.auth.entity.CredentialStatus;
+import com.integrate.modules.catalog.dto.response.AccreditationResponse;
 import com.integrate.modules.catalog.dto.response.ActivationCodeResponse;
 import com.integrate.modules.catalog.dto.response.ManagedHostResponse;
 import java.util.UUID;
@@ -9,6 +10,14 @@ import org.springframework.data.domain.Pageable;
 
 /** Trabajo del gestor sobre los anfitriones de su jurisdicción vigente (ADR-0007 §1 y §6). */
 public interface GestorHostService {
+
+    /**
+     * Estado de la acreditación del gestor (ADR-0069). Responde también si está suspendida o revocada: es la
+     * consulta con la que la PWA explica por qué se ocultan las herramientas.
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code RESOURCE_NOT_FOUND} (404) sin perfil
+     */
+    AccreditationResponse accreditation(UUID managerUserId);
 
     /** @throws com.integrate.common.exception.BusinessRuleException {@code ENROLLMENT_MANAGER_NOT_ACTIVE} (403) */
     PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, String name,

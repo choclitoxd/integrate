@@ -69,6 +69,7 @@ const host = {
   associationId: ASSOCIATION_ID,
   associationName: association.legalName,
   verified: false,
+  status: 'ACTIVE',
   createdAt: '2026-10-28T15:00:00Z',
 };
 
@@ -551,4 +552,105 @@ describe('Personas · accesibilidad', () => {
       expect(findings).toEqual([]);
     },
   );
+});
+
+describe('anfitriones: suspender, reactivar y revocar (ADR-0070)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const withHost = (status: string, extra: FakeRoutes = {}) =>
+    routes({
+      '/v1/admin/host-profiles': (_url: URL, options: RequestOptions) =>
+        options.method === 'POST'
+          ? { hostProfileId: 'h-9', userId: 'u-1', associationId: ASSOCIATION_ID }
+          : page([{ ...host, status }]),
+      ...extra,
+    });
+
+  it('muestra el estado y suspende con un motivo obligatorio', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    const { http } = renderApp(
+      '/admin/personas?vista=anfitriones',
+      withHost('ACTIVE', {
+        '/v1/admin/host-profiles/h-1/suspend': { hostProfileId: 'h-1', status: 'SUSPENDED' },
+      }),
+      ADMIN,
+    );
+    const table = await screen.findByRole('table', { name: /Anfitriones/ });
+    expect(
+      await within(table).findByRole('rowheader', { name: /Hernando Anfitrión/ }),
+    ).toBeVisible();
+    expect(within(table).getByText('Vigente')).toBeVisible();
+
+    await user.click(within(table).getByRole('button', { name: 'Suspender a Hernando Anfitrión' }));
+    const dialog = screen.getByRole('dialog', { name: 'Suspender al anfitrión' });
+    await user.click(within(dialog).getByRole('button', { name: 'Suspender' }));
+    // Sin motivo no se envía nada.
+    expect(within(dialog).getByText(/Escribe el motivo/)).toBeVisible();
+    expect(http.calls.some(([path]) => path.endsWith('/suspend'))).toBe(false);
+
+    await user.type(within(dialog).getByLabelText('Motivo'), 'Visita de verificación pendiente');
+    await user.click(within(dialog).getByRole('button', { name: 'Suspender' }));
+
+    expect(await screen.findByText('Hernando Anfitrión quedó suspendido.')).toBeVisible();
+    expect(http.calls).toContainEqual([
+      '/v1/admin/host-profiles/h-1/suspend',
+      { method: 'POST', body: { reason: 'Visita de verificación pendiente' } },
+    ]);
+  });
+
+  it('un anfitrión suspendido se reactiva o se revoca; uno revocado no tiene acciones', async () => {
+    stubMatchMedia(LAPTOP);
+    const first = renderApp('/admin/personas?vista=anfitriones', withHost('SUSPENDED'), ADMIN);
+    expect(
+      await screen.findByRole('button', { name: 'Reactivar a Hernando Anfitrión' }),
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Revocar a Hernando Anfitrión' })).toBeVisible();
+    expect(screen.getByText('Suspendido')).toBeVisible();
+    first.unmount();
+
+    renderApp('/admin/personas?vista=anfitriones', withHost('REVOKED'), ADMIN);
+    expect(await screen.findByText('Revocado')).toBeVisible();
+    expect(screen.getByText('Sin acciones')).toBeVisible();
+    expect(screen.queryByRole('button', { name: /a Hernando Anfitrión/ })).toBeNull();
+  });
+
+  it('revocar avisa que no se deshace y que las reservas no se cancelan solas', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    renderApp(
+      '/admin/personas?vista=anfitriones',
+      withHost('ACTIVE', {
+        '/v1/admin/host-profiles/h-1/revoke': { hostProfileId: 'h-1', status: 'REVOKED' },
+      }),
+      ADMIN,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Revocar a Hernando Anfitrión' }));
+    const dialog = screen.getByRole('dialog', { name: 'Revocar al anfitrión' });
+    expect(within(dialog).getByText(/no se puede deshacer/)).toBeVisible();
+    expect(within(dialog).getByText(/no se cancelan solas/)).toBeVisible();
+    expect(within(dialog).getByText(/hasta 15 minutos/)).toBeVisible();
+    await user.type(within(dialog).getByLabelText('Motivo'), 'Salió de la plataforma');
+    await user.click(within(dialog).getByRole('button', { name: 'Revocar definitivamente' }));
+    expect(await screen.findByText(/su perfil fue revocado/)).toBeVisible();
+  });
+
+  it('traduce el 409 cuando el perfil ya cambió de estado', async () => {
+    stubMatchMedia(LAPTOP);
+    const user = userEvent.setup();
+    renderApp(
+      '/admin/personas?vista=anfitriones',
+      withHost('ACTIVE', {
+        '/v1/admin/host-profiles/h-1/suspend': apiError(409, 'CATALOG_INVALID_STATUS_TRANSITION'),
+      }),
+      ADMIN,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Suspender a Hernando Anfitrión' }));
+    const dialog = screen.getByRole('dialog', { name: 'Suspender al anfitrión' });
+    await user.type(within(dialog).getByLabelText('Motivo'), 'Motivo');
+    await user.click(within(dialog).getByRole('button', { name: 'Suspender' }));
+    expect(await within(dialog).findByText(/cambió de estado mientras lo revisabas/)).toBeVisible();
+  });
 });

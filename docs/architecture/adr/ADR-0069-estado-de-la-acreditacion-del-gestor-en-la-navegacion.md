@@ -1,6 +1,6 @@
 # ADR-0069: Mostrar el estado de la acreditación del gestor en la navegación
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado (2026-11-11)
 - **Proyecto / Módulo:** Intégrate · `backend-api/` — `modules/catalog` (`GestorController`, servicio de lectura del estado) y `docs/api/` (`openapi.yaml`, `endpoints-index.md`); `frontend-pwa/` — `src/app/layouts` (`roleNavigation`, shells) y `features/enrollment`. Sin migración Flyway.
 - **Fecha:** 2026-11-11
 - **Trazabilidad:** hallazgo **H03** de la «Auditoría funcional de Intégrate» (2026-11-11); ADR-0007 (acreditación del gestor), ADR-0061 (operación del gestor), ADR-0067 (menú «Módulos»), `LinkManagerAdminServiceImpl.changeStatus`.
