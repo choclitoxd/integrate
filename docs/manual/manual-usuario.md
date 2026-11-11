@@ -23,7 +23,7 @@ Intégrate es una aplicación web progresiva (PWA): se abre desde el navegador d
 ### Qué necesitas
 
 - Un navegador actualizado (Chrome, Edge, Firefox o Safari).
-- La dirección de la aplicación. En el entorno local de desarrollo es `http://localhost:5173`.
+- La dirección de la aplicación. En el entorno local de desarrollo es `http://localhost:5173`; en la demostración publicada, `https://integrate-demo.pages.dev`.
 - Una cuenta. Los turistas la crean solos; los anfitriones la reciben de su Gestor de Enlace.
 
 ### Navegación general
