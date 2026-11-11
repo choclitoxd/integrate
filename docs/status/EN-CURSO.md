@@ -13,6 +13,7 @@ Este archivo evita que dos cambios choquen en los mismos archivos. Se lee **ante
 
 | Quién | Área / archivos | Qué se está haciendo | Desde | Estado |
 | :--- | :--- | :--- | :--- | :--- |
+| Claude (sesión con Sebastián) | Base de datos **local** (Docker `integrate-postgres`), `infra/scripts/datos-demo-local.py`, `docs/datos-de-prueba/` (ignorado por Git), `.claude/launch.json` (config `backend-api-mailpit`) | Limpiar la base local y cargar datos demo realistas de los 4 roles con flujo completo; documento local de lo creado | 2026-11-11 | Terminado (comiteado en `feature/datos-demo-local`; el documento local de `docs/datos-de-prueba/` no se sube) |
 | Equipo de Desarrollo | `frontend-pwa/src/features/admin/*`, `backend-api/` y `docs/` | ADR-0047 y ADR-0048: Edición administrativa de experiencias/asociaciones, altas de usuarios/experiencias y listado por roles | 2026-11-10 16:44 | Terminado (ADR-0048 completado y verificado) |
 | Sin identificar | `docs/manual/*`, `frontend-pwa/public/manual*`, `ADR-0027`, `ADR-0028`, `.github/workflows/deploy-manual.yml`, `infra/`, `render.yaml` | Manual de usuario y despliegue | 2026-10-27 | Sin comitear |
 | Claude (sesión con Sebastián) | `backend-api/.../booking` (meeting-point), `backend-api/.../catalog` (`ScheduleDirectory`, `OperationalLocation`), `frontend-pwa/src/features/booking/*`, `docs/api/*` | ADR-0049: paradas del recorrido en la reserva confirmada | 2026-11-10 | Terminado (sin comitear: 13 archivos del ADR-0049; también quité una `}` suelta de `openapi.yaml` que venía de `951ddda`) |
