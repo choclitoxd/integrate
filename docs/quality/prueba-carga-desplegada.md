@@ -8,7 +8,7 @@ Procedimiento para medir RNF-02, RNF-08 y RNF-10 contra `pruebas` con los escena
 2. **Versión:** el contenedor de `pruebas` está construido desde el commit que se declara (`git rev-parse origin/pruebas`) y su estado es `RUNNING`. Si la construcción falla, no se mide: se diagnostica con el log de construcción del panel.
 3. **Datos sintéticos:** los scripts crean sus propias asociaciones, anfitriones, experiencias, franjas y turistas. `pruebas` no debe contener datos de personas reales; si los tuviera, usar una base aislada.
 4. **Credenciales:** `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `USER_PASSWORD` se pasan como variables `-e` de la corrida y no se escriben en disco ni en este documento (SEC-DIR-004).
-5. **Presupuesto SnapDeploy:** anotar los usos gastados (push, `wake`) y apagar con `bash infra/scripts/snapdeploy.sh stop` al terminar. Variables siempre con `ENV_FILE=infra/env/.env.demo.pruebas`.
+5. **Presupuesto SnapDeploy:** anotar los usos gastados (push, `wake`) y apagar con `SNAPDEPLOY_NAME=integrate-pruebas bash infra/scripts/snapdeploy.sh stop` al terminar. Variables siempre con `ENV_FILE=infra/env/.env.demo.pruebas`. El nombre por defecto de `.env.snapdeploy` es otro contenedor.
 6. **Origen de la carga:** k6 corre desde un equipo con red estable; la latencia de red del origen se anota porque suma a la medida.
 
 ## Ejecución
@@ -19,6 +19,8 @@ docker run --rm -v "$PWD/qa/k6:/scripts" -w /scripts \
   -e ADMIN_EMAIL=... -e ADMIN_PASSWORD=... -e USER_PASSWORD=... \
   grafana/k6:2.2.0 run --summary-export results/<escenario>-desplegado.json <escenario>.js
 ```
+
+Orden de la corrida, con un solo `wake`: `smoke-desplegado.js` (humo funcional; debe dar 100 %), `login.js`, `booking-lock.js` y `catalog-checkout-mix.js`. Los escenarios crean sus datos por la API y, como la verificación del punto de encuentro es asíncrona (ADR-0030), esperan o confirman el punto antes de aprobar la experiencia.
 
 Con k6 instalado en lugar de Docker, sustituir el `docker run` por `k6 run` con las mismas variables. Escenarios: `login.js`, `booking-lock.js` y `catalog-checkout-mix.js`. La CPU se lee del panel del contenedor durante `catalog-checkout-mix.js`.
 
