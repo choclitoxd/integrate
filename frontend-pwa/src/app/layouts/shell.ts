@@ -9,6 +9,8 @@ export interface NavItem {
   readonly to: string;
   readonly label: string;
   readonly icon: IconName;
+  /** Módulo de un rol de zona (ADR-0067): en celular se agrupa bajo «Módulos». Sin grupo, va suelto en la barra. */
+  readonly group?: string;
 }
 
 /**
