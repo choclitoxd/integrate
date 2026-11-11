@@ -189,7 +189,8 @@ class ConsentLedger {
                 .collect(Collectors.toMap(PurposeConsent::purpose, PurposeConsent::state));
         // Sin política vigente no hay nada que aceptar: no se marca nada como pendiente.
         List<ConsentPurpose> pending = currentId == null ? List.of()
-                : requiredPurposes(roles).stream().filter(p -> stateByPurpose.get(p) != State.VALID).toList();
+                : requiredPurposes(roles, latest.keySet()).stream()
+                        .filter(p -> stateByPurpose.get(p) != State.VALID).toList();
         return new ConsentStatus(current.map(PrivacyPolicy::getVersion).orElse(null), purposes, pending);
     }
 
@@ -203,12 +204,16 @@ class ConsentLedger {
     }
 
     /**
-     * Finalidades exigidas para operar (§7): {@code PERSONAL_DATA} y, para {@code HOST},
-     * {@code SENSITIVE_VICTIM}. {@code HEALTH_EMERGENCY} es precondición del lock, no del login.
+     * Finalidades exigidas para operar (§7, enmendado por ADR-0068): {@code PERSONAL_DATA} y, para
+     * {@code HOST}, {@code SENSITIVE_VICTIM} solo si la persona ya tiene constancia de ese consentimiento
+     * (un acto en cualquier estado: vigente, desactualizado o revocado). Un anfitrión sin datos de víctima
+     * no tiene qué autorizar y no queda bloqueado. {@code HEALTH_EMERGENCY} es precondición del lock, no del login.
+     *
+     * @param withRecord finalidades de las que el usuario tiene al menos un acto en su historial
      */
-    static Set<ConsentPurpose> requiredPurposes(Collection<RoleCode> roles) {
+    static Set<ConsentPurpose> requiredPurposes(Collection<RoleCode> roles, Collection<ConsentPurpose> withRecord) {
         EnumSet<ConsentPurpose> purposes = EnumSet.of(ConsentPurpose.PERSONAL_DATA);
-        if (roles.contains(RoleCode.HOST)) {
+        if (roles.contains(RoleCode.HOST) && withRecord.contains(ConsentPurpose.SENSITIVE_VICTIM)) {
             purposes.add(ConsentPurpose.SENSITIVE_VICTIM);
         }
         return purposes;
