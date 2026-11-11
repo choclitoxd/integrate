@@ -1,6 +1,8 @@
 import { useId, useRef, useState, type SubmitEvent } from 'react';
 
 import type { FieldErrors } from '@/features/auth';
+import { LocationPicker } from '@/shared/maps/LocationPicker';
+import { parseCoordinate } from '@/shared/maps/googleMaps';
 import { Button, Icon, ProblemNotice, Select, TextField } from '@/shared/ui';
 
 import type { AdminExperience, ExperienceUpdateRequest } from '../api';
@@ -135,10 +137,24 @@ export function ExperienceForm({
         <TextField label="Vereda (opcional)" {...input('vereda')} />
       </div>
       <TextField label="Dirección o punto de encuentro" {...input('meetingPoint')} />
-      <div className="grid grid-cols-2 gap-4">
-        <TextField label="Latitud (opcional)" inputMode="decimal" {...input('latitude')} />
-        <TextField label="Longitud (opcional)" inputMode="decimal" {...input('longitude')} />
-      </div>
+      <LocationPicker
+        lat={parseCoordinate(draft.latitude)}
+        lng={parseCoordinate(draft.longitude)}
+        onChange={(point) => {
+          setDraft((current) => ({
+            ...current,
+            latitude: String(point.lat),
+            longitude: String(point.lng),
+          }));
+        }}
+      />
+      <details className="rounded-lg border-2 border-border-subtle p-3">
+        <summary className="min-h-11 cursor-pointer font-semibold text-ink">Avanzado</summary>
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <TextField label="Latitud (opcional)" inputMode="decimal" {...input('latitude')} />
+          <TextField label="Longitud (opcional)" inputMode="decimal" {...input('longitude')} />
+        </div>
+      </details>
       <div>
         <label htmlFor={descId} className="block font-semibold text-ink">
           Descripción
