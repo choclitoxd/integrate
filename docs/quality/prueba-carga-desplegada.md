@@ -43,3 +43,24 @@ Con k6 instalado en lugar de Docker, sustituir el `docker run` por `k6 run` con 
 | Observaciones | |
 
 Si el entorno se degrada por causas ajenas a la aplicación, se repite la corrida y se conservan ambas evidencias con su explicación. Un incumplimiento abre una acción de diagnóstico; H-16 no se cierra con una corrida local ni con una versión desplegada distinta de la declarada.
+
+## Registro de corridas
+
+### 2026-11-11 · `integrate-pruebas` · commit `42a3fd0`
+
+Contenedor SnapDeploy de 0,25 vCPU y heap de 144 MB, desplegado desde `pruebas` (PostgreSQL 18.6 en Neon). Origen de la carga: un equipo en Colombia con Docker (`grafana/k6:2.2.0`). Usos de SnapDeploy: 1 push y 1 `wake` (5 por 12 h; quedan 2). Contenedor apagado al terminar.
+
+| Escenario | Resultado | Detalle |
+| :--- | :--- | :--- |
+| `smoke-desplegado.js` | **Cumple** | 24 de 24 comprobaciones; p95 de la petición 1,3 s con 1 usuario. Confirma que corre la versión de hoy (salud acotada, V18 y V19 aplicadas, EPS bloqueada sin aviso aprobado, rol HOST). |
+| `login.js` (RNF-08, p95 < 800 ms, 100 % correctos) | **No cumple** | 4 inicios por segundo durante 1 min: p95 3,12 s, mediana 90 ms; fallaron 235 de 235 comprobaciones `login_ok`; 5 iteraciones descartadas. El código de respuesta de cada fallo no quedó registrado. |
+| `booking-lock.js` (RNF-02) | **No ejecutado** | El inicio de sesión del `setup` recibió 429 de la regla «Container flood guard» de Cloudflare de la zona `snapdeploy.app`, justo después de `login.js`. |
+| `catalog-checkout-mix.js` (RNF-10) | **No ejecutado** | Tras las dos corridas anteriores el contenedor respondía 502 (más de 2 minutos, estado `RUNNING`), así que se apagó. Con 600 usuarios simultáneos solo se habría repetido el efecto. |
+
+**Lectura:** el resultado no mide la aplicación sino los límites de la plataforma de pruebas: una regla de Cloudflare limita la tasa por origen y el contenedor gratuito cayó con una carga de 4 inicios de sesión por segundo (cada uno con hash de contraseña sobre 0,25 vCPU). No se eludió la regla de Cloudflare ni se repitió con otro origen. H-16 sigue **abierto**; no se cambió ningún umbral.
+
+**Acciones de diagnóstico:**
+1. Registrar el código de respuesta y la latencia por intento en `login.js` (hoy solo cuenta aciertos) y repetir con una tasa menor para hallar el punto de caída.
+2. Consultar con SnapDeploy los umbrales de «Container flood guard» y si admite una excepción para pruebas de carga autorizadas, o ejecutar la carga desde la red de la plataforma.
+3. Medir RNF-10 en un entorno con recursos representativos del despliegue final (el contenedor gratuito de 0,25 vCPU no lo es) o aprobar, con el propietario de requisitos, el alcance de la prueba para este entorno.
+4. Leer los logs de ejecución del contenedor durante la caída para saber si fue memoria (`ExitOnOutOfMemoryError` con heap de 144 MB) o la plataforma; hoy `snapdeploy.sh logs` devolvió registros del día anterior.
