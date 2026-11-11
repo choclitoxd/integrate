@@ -64,3 +64,21 @@ Contenedor SnapDeploy de 0,25 vCPU y heap de 144 MB, desplegado desde `pruebas` 
 2. Consultar con SnapDeploy los umbrales de «Container flood guard» y si admite una excepción para pruebas de carga autorizadas, o ejecutar la carga desde la red de la plataforma.
 3. Medir RNF-10 en un entorno con recursos representativos del despliegue final (el contenedor gratuito de 0,25 vCPU no lo es) o aprobar, con el propietario de requisitos, el alcance de la prueba para este entorno.
 4. Leer los logs de ejecución del contenedor durante la caída para saber si fue memoria (`ExitOnOutOfMemoryError` con heap de 144 MB) o la plataforma; hoy `snapdeploy.sh logs` devolvió registros del día anterior.
+
+### 2026-11-11 · Referencia local aislada (no desplegada) · commit `7ce35e3`
+
+Postgres 16.6 propio en Docker (puerto 55432, con el bootstrap del repo), jar empaquetado con perfil `dev` y secretos generados para la corrida, k6 `grafana/k6:2.2.0` en Docker en la misma máquina (12 núcleos, Windows con Docker Desktop). No sustituye la validación desplegada que pide H-16.
+
+| Escenario | Resultado | Detalle |
+| :--- | :--- | :--- |
+| Humo funcional | **Cumple** | 24 de 24. |
+| `login.js` (RNF-08, p95 < 800 ms) | **Cumple** | p95 85 ms; 261 de 261 comprobaciones correctas, 241 iteraciones a 4 por segundo. |
+| `booking-lock.js` (RNF-02) | **Cumple** | Sostenido (5 por segundo, 1 min): p95 38 ms con umbral ≤ 200 ms y 301 reservas (≥ 100); ráfaga de 100 simultáneos: p95 834 ms (informativo ≤ 1 s); sin 5xx. |
+| `catalog-checkout-mix.js` (RNF-10, p95 < 1,5 s) | **No cumple** | 500 navegando + 100 en checkout: p95 de navegación 2,7 s y de bloqueo 3,3 s; errores HTTP 0,00 %, sin 5xx; CPU del backend máx. 36 % y media 8 % de 12 núcleos (umbral < 75 %). |
+
+**Por qué RNF-10 no se da por cumplido ni por fallido de forma concluyente.** La referencia del 2026-10-15 (`evidencias-metricas.md`: p95 de navegación 148,6 ms, bloqueo 305 ms) no se reprodujo, así que se descartó un retroceso del código con tres pruebas:
+1. Con el perfil `dev` el logger `com.integrate` va en DEBUG y la corrida escribió 164 MB (350 mil líneas de transacciones). Con `LOGGING_LEVEL_COM_INTEGRATE=INFO` el log bajó a 11 KB y el p95 pasó de 3,1 a 2,7 s: no era la causa principal.
+2. Subir el pool de conexiones de 10 a 40 no cambió el p95 (2,7 s); la media bajó de 1,3 a 0,9 s.
+3. Compilado el commit `ff9e7cb` (el de la referencia) y ejecutado con sus propios scripts sobre una base nueva, dio **p95 de navegación 2,73 s y de bloqueo 3,58 s**: lo mismo que el código actual.
+
+Conclusión: hoy este equipo no reproduce las cifras de octubre con ningún código, de modo que la diferencia está en el entorno de medición (carga y backend compartiendo una máquina, red de Docker Desktop hacia `host.docker.internal`, estado actual del equipo) y no en el código. El resultado local de RNF-10 es **no concluyente**. Para medirlo hay que separar el generador de carga del servidor y registrar el estado del equipo, o usar un entorno desplegado con recursos representativos (acción 3 de la lista anterior). RNF-08 y RNF-02 sí se cumplen con holgura en local. H-16 sigue abierto.
