@@ -128,8 +128,10 @@ venv/
 /ENV/
 env.bak/
 
-# Caché temporal de herramientas de análisis
-graphify-out/cache/
+# Grafo de conocimiento de graphify: se regenera localmente con
+# `graphify update .` y no se versiona (cada regeneración producía
+# decenas de miles de líneas de diff).
+graphify-out/
 
 # ==============================================================================
 # PRUEBAS, COBERTURA Y REPORTES
