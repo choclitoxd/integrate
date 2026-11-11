@@ -195,108 +195,112 @@ export function QrScannerPage() {
         />
       )}
 
-      <section
-        aria-labelledby="camara-qr-heading"
-        className="mt-6 rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <h2 id="camara-qr-heading" className="text-lg font-bold text-ink">
-            Lector óptico de cámara
-          </h2>
-          <Icon name="qr" size={22} className="text-brand" />
-        </div>
-        <p className="mt-1 text-sm text-ink-muted">
-          Apunta la cámara trasera al código QR impreso o en la pantalla del visitante.
-        </p>
-
-        {cameraActive && (
-          <div className="mt-3 overflow-hidden rounded-lg border-2 border-brand bg-canvas">
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              aria-label="Vista previa de cámara para escanear código QR"
-              className="aspect-square w-full object-cover"
-            />
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <section
+          aria-labelledby="camara-qr-heading"
+          className="rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="camara-qr-heading" className="text-lg font-bold text-ink">
+              Lector óptico de cámara
+            </h2>
+            <Icon name="qr" size={22} className="text-brand" />
           </div>
-        )}
-
-        {cameraError !== null && (
-          <p
-            role="alert"
-            className="mt-3 rounded-lg border-2 border-warning-border bg-warning-bg px-3 py-2 text-sm font-semibold text-warning-text"
-          >
-            {cameraError}
+          <p className="mt-1 text-sm text-ink-muted">
+            Apunta la cámara trasera al código QR impreso o en la pantalla del visitante.
           </p>
-        )}
 
-        <div className="mt-4">
-          {!cameraActive ? (
-            <Button type="button" onClick={() => void startCamera()}>
-              Activar cámara trasera
-            </Button>
-          ) : (
-            <Button type="button" variant="secondary" onClick={stopCamera}>
-              Detener cámara
-            </Button>
+          {cameraActive && (
+            <div className="mt-3 overflow-hidden rounded-lg border-2 border-brand bg-canvas">
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                aria-label="Vista previa de cámara para escanear código QR"
+                className="mx-auto aspect-square max-h-[32rem] w-full object-cover"
+              />
+            </div>
           )}
-        </div>
-      </section>
 
-      <section
-        aria-labelledby="token-qr-heading"
-        className="mt-6 rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
-      >
-        <h2 id="token-qr-heading" className="text-lg font-bold text-ink">
-          Verificación criptográfica de token QR
-        </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Si utilizas un lector externo o copias el contenido del QR, pégalo aquí para verificar su
-          firma digital RS256.
-        </p>
+          {cameraError !== null && (
+            <p
+              role="alert"
+              className="mt-3 rounded-lg border-2 border-warning-border bg-warning-bg px-3 py-2 text-sm font-semibold text-warning-text"
+            >
+              {cameraError}
+            </p>
+          )}
 
-        <form
-          className="mt-3 space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleVerifyToken(tokenInput);
-          }}
-        >
-          <div>
-            <label htmlFor="qr-token-input" className="block text-base font-semibold text-ink">
-              Token QR (JWS compacto)
-            </label>
-            <textarea
-              id="qr-token-input"
-              rows={3}
-              value={tokenInput}
-              onChange={(event) => {
-                setTokenInput(event.target.value);
-              }}
-              placeholder="eyJhbGciOiJSUzI1NiIsImtpZCI6..."
-              className="mt-1.5 w-full rounded-lg border-2 border-border-strong bg-canvas px-3.5 py-2.5 font-mono text-sm text-ink"
-            />
+          <div className="mt-4">
+            {!cameraActive ? (
+              <Button type="button" onClick={() => void startCamera()}>
+                Activar cámara trasera
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" onClick={stopCamera}>
+                Detener cámara
+              </Button>
+            )}
           </div>
-          <Button type="submit" disabled={submitting || tokenInput.trim().length === 0}>
-            {submitting ? 'Verificando firma…' : 'Verificar firma y registrar ingreso'}
-          </Button>
-        </form>
-      </section>
+        </section>
 
-      <div className="mt-6 rounded-xl border-2 border-border-subtle bg-canvas px-4 py-4">
-        <h2 className="text-base font-bold text-ink">
-          ¿El código QR está dañado o no se puede leer?
-        </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Utiliza la contingencia manual por código alfanumérico de 8 caracteres o busca al titular
-          en el padrón descargado.
-        </p>
-        <Link
-          to="/gestor/contingencia"
-          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border-2 border-brand bg-canvas px-5 py-3 text-base font-bold text-brand hover:bg-brand-soft"
-        >
-          Ir a contingencia manual (código de 8 caracteres)
-        </Link>
+        <div className="grid gap-6">
+          <section
+            aria-labelledby="token-qr-heading"
+            className="rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
+          >
+            <h2 id="token-qr-heading" className="text-lg font-bold text-ink">
+              Verificación criptográfica de token QR
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Si utilizas un lector externo o copias el contenido del QR, pégalo aquí para verificar
+              su firma digital RS256.
+            </p>
+
+            <form
+              className="mt-3 space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleVerifyToken(tokenInput);
+              }}
+            >
+              <div>
+                <label htmlFor="qr-token-input" className="block text-base font-semibold text-ink">
+                  Token QR (JWS compacto)
+                </label>
+                <textarea
+                  id="qr-token-input"
+                  rows={3}
+                  value={tokenInput}
+                  onChange={(event) => {
+                    setTokenInput(event.target.value);
+                  }}
+                  placeholder="eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+                  className="mt-1.5 w-full rounded-lg border-2 border-border-strong bg-canvas px-3.5 py-2.5 font-mono text-sm text-ink"
+                />
+              </div>
+              <Button type="submit" disabled={submitting || tokenInput.trim().length === 0}>
+                {submitting ? 'Verificando firma…' : 'Verificar firma y registrar ingreso'}
+              </Button>
+            </form>
+          </section>
+
+          <div className="rounded-xl border-2 border-border-subtle bg-canvas px-4 py-4">
+            <h2 className="text-base font-bold text-ink">
+              ¿El código QR está dañado o no se puede leer?
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Utiliza la contingencia manual por código alfanumérico de 8 caracteres o busca al
+              titular en el padrón descargado.
+            </p>
+            <Link
+              to="/gestor/contingencia"
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border-2 border-brand bg-canvas px-5 py-3 text-base font-bold text-brand hover:bg-brand-soft"
+            >
+              Ir a contingencia manual (código de 8 caracteres)
+            </Link>
+          </div>
+        </div>
       </div>
     </>
   );

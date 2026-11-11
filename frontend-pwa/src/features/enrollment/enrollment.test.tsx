@@ -475,6 +475,46 @@ describe('mis anfitriones (ADR-0018 §6)', () => {
     expect(screen.queryByRole('button', { name: 'Ver más' })).toBeNull();
   });
 
+  it('busca por nombre, filtra por estado con el selector y limpia los filtros', async () => {
+    const user = userEvent.setup();
+    const { http } = renderApp(
+      '/gestor/anfitriones',
+      {
+        '/v1/gestor/hosts': {
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+          items: [host(1)],
+        },
+      },
+      { roles: ['ROLE_LINK_MANAGER'] },
+    );
+    expect(await screen.findByText('1 anfitrión')).toBeVisible();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Buscar anfitrión por nombre' }),
+      'Ana{Enter}',
+    );
+    await pickOption(
+      user,
+      screen.getByRole('combobox', { name: 'Estado de activación' }),
+      'Activo',
+    );
+    await waitFor(() => {
+      expect(
+        http.calls.some(([path]) => {
+          const params = new URL(path, 'http://test').searchParams;
+          return params.get('name') === 'Ana' && params.get('activation') === 'ACTIVE';
+        }),
+      ).toBe(true);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(screen.getByRole('searchbox', { name: 'Buscar anfitrión por nombre' })).toHaveValue('');
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull();
+  });
+
   it('una cuenta activa con correo real recupera por correo (409)', async () => {
     renderApp(
       '/gestor/anfitriones',

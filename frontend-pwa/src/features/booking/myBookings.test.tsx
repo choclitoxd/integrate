@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from '@/shared/api';
 import { availability, detail, EXPERIENCE_ID, VOUCHER_TOKEN_SAMPLE } from '@/test/fixtures';
 import { renderApp, type FakeRoutes } from '@/test/renderApp';
+import { pickOption } from '@/test/select';
 
 import type { MyBookingSummary, Page } from './api';
 
@@ -64,6 +65,45 @@ function renderAccount(routes: FakeRoutes, path = '/mis-experiencias') {
 }
 
 describe('Mis experiencias, pantalla propia (T-1.14b, ADR-0023)', () => {
+  it('busca por nombre o municipio y filtra por estado con el selector', async () => {
+    const user = userEvent.setup();
+    renderAccount({
+      '/v1/me/bookings': myBookings({
+        upcoming: () =>
+          pageOf([
+            summary(),
+            summary({
+              bookingId: 'bk-2',
+              status: 'PENDING',
+              hasVoucher: false,
+              experienceTitle: 'Taller de tejido',
+              municipality: 'GRANADA',
+            }),
+          ]),
+      }),
+    });
+    expect(await screen.findByRole('link', { name: /Sendero de la memoria/ })).toBeVisible();
+    expect(screen.getByRole('link', { name: /Taller de tejido/ })).toBeVisible();
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar en mis reservas' }), 'granada');
+    expect(screen.queryByRole('link', { name: /Sendero de la memoria/ })).toBeNull();
+    expect(screen.getByRole('link', { name: /Taller de tejido/ })).toBeVisible();
+
+    await user.clear(screen.getByRole('searchbox', { name: 'Buscar en mis reservas' }));
+    await pickOption(
+      user,
+      screen.getByRole('combobox', { name: 'Estado de la reserva' }),
+      /^Confirmada/,
+    );
+    expect(screen.getByRole('link', { name: /Sendero de la memoria/ })).toBeVisible();
+    expect(screen.queryByRole('link', { name: /Taller de tejido/ })).toBeNull();
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar en mis reservas' }), 'zzz');
+    expect(await screen.findByText(/Ninguna reserva coincide/)).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(screen.getByRole('link', { name: /Taller de tejido/ })).toBeVisible();
+  });
+
   it('es una pantalla propia con su título, y Mi cuenta ya no la incluye', async () => {
     const mine = renderAccount({
       '/v1/me/bookings': myBookings({ upcoming: () => pageOf([summary()]) }),

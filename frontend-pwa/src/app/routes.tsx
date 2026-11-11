@@ -38,9 +38,14 @@ const slotsHandle: ShellHandle = {
 
 const toHosts: ShellHandle = { flow: true, back: () => '/gestor/anfitriones' };
 const toManagerHome: ShellHandle = { flow: true, back: () => '/gestor' };
+/** Las pantallas del gestor con vista de computador aprovechan todo el ancho. */
+const managerWide: ShellHandle = { wide: true };
+const toManagerHomeWide: ShellHandle = { ...toManagerHome, wide: true };
 const adminWide: ShellHandle = { wide: true };
 /** «Mis experiencias» del anfitrión usa el ancho de computador, como la lista del administrador. */
 const hostWide: ShellHandle = { wide: true };
+/** «Mis experiencias» del turista (reservas con buscador y filtro) usa el ancho de computador. */
+const myExperiencesWide: ShellHandle = { wide: true };
 
 /*
  * Carga diferida (ADR-0018 §1): la reserva (QR incluido) y el portal del Gestor no viajan en el
@@ -180,7 +185,7 @@ export const routes: RouteObject[] = [
           { path: 'recuperar-contrasena', element: <ForgotPasswordPage />, handle: toLogin },
           { path: 'restablecer-contrasena', element: <ResetPasswordPage />, handle: toLogin },
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },
-          { path: 'mis-experiencias', lazy: myExperiences },
+          { path: 'mis-experiencias', lazy: myExperiences, handle: myExperiencesWide },
           { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toMyExperiences },
           // `/cuenta` heredada: lleva a «Mi cuenta» de la zona del rol (ADR-0062).
           { path: 'cuenta', element: <AccountRedirect /> },
@@ -216,11 +221,11 @@ export const routes: RouteObject[] = [
           </RequireSession>
         ),
         children: [
-          { index: true, element: <ManagerHomePage /> },
-          { path: 'validar', lazy: qrScannerPage, handle: toManagerHome },
+          { index: true, element: <ManagerHomePage />, handle: managerWide },
+          { path: 'validar', lazy: qrScannerPage, handle: toManagerHomeWide },
           { path: 'contingencia', lazy: contingencyRedeemPage, handle: toManagerHome },
           { path: 'cola', lazy: syncQueuePage, handle: toManagerHome },
-          { path: 'anfitriones', lazy: hostsPage },
+          { path: 'anfitriones', lazy: hostsPage, handle: managerWide },
           { path: 'anfitriones/enrolamiento', lazy: enrollmentPage, handle: toHosts },
           { path: 'cuenta', element: <AccountPage /> },
         ],
