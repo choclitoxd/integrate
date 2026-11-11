@@ -38,9 +38,21 @@ export interface GoogleAutocompleteInstance {
   getPlace(): GooglePlaceResult;
 }
 
+export interface GoogleAddressComponent {
+  readonly long_name: string;
+  readonly types: readonly string[];
+}
+
+export interface GoogleGeocoderInstance {
+  geocode(request: Record<string, unknown>): Promise<{
+    readonly results: readonly { readonly address_components: readonly GoogleAddressComponent[] }[];
+  }>;
+}
+
 export interface GoogleMapsNamespace {
   Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMapInstance;
   Marker: new (options: Record<string, unknown>) => GoogleMarkerInstance;
+  Geocoder: new () => GoogleGeocoderInstance;
   places: {
     Autocomplete: new (
       input: HTMLInputElement,
@@ -87,6 +99,57 @@ export function loadGoogleMaps(key: string): Promise<GoogleMapsNamespace> {
     document.head.appendChild(script);
   });
   return loading;
+}
+
+/** Lo que Google reconoce en un punto; los nombres vienen tal como los escribe Google. */
+export interface DetectedPlace {
+  readonly department: string | undefined;
+  readonly municipality: string | undefined;
+  readonly vereda: string | undefined;
+}
+
+function componentName(
+  components: readonly GoogleAddressComponent[],
+  ...types: readonly string[]
+): string | undefined {
+  for (const type of types) {
+    const found = components.find((component) => component.types.includes(type));
+    if (found) return found.long_name;
+  }
+  return undefined;
+}
+
+/**
+ * Geocodificación inversa con la llave de navegador (ADR-0056, enmienda de la Fase 3).
+ * Solo viajan las coordenadas. Devuelve `null` sin llave, sin red o sin resultado.
+ */
+export async function reverseGeocode(point: LatLngLiteral): Promise<DetectedPlace | null> {
+  const key = getGoogleMapsBrowserKey();
+  if (!key) return null;
+  try {
+    const maps = await loadGoogleMaps(key);
+    const { results } = await new maps.Geocoder().geocode({
+      location: point,
+      language: 'es',
+      region: 'CO',
+    });
+    const withPlace = results.find((result) =>
+      result.address_components.some(
+        (component) =>
+          component.types.includes('administrative_area_level_2') ||
+          component.types.includes('locality'),
+      ),
+    );
+    if (!withPlace) return null;
+    const components = withPlace.address_components;
+    return {
+      department: componentName(components, 'administrative_area_level_1'),
+      municipality: componentName(components, 'administrative_area_level_2', 'locality'),
+      vereda: componentName(components, 'sublocality_level_1', 'sublocality', 'neighborhood'),
+    };
+  } catch {
+    return null;
+  }
 }
 
 /** Redondea a 6 decimales (~11 cm), precisión suficiente para un punto de encuentro. */

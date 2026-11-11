@@ -108,3 +108,38 @@ Campos nuevos o derivados en la experiencia (conceptual, sin código de controla
 | `municipalityCode` | Geocodificación inversa + DIVIPOLA | Se preselecciona; el usuario puede corregir |
 | `vereda` | Geocodificación inversa (si hay) | Opcional |
 | `locationSource` | `SEARCH`, `PIN`, `GEOLOCATION`, `LINK`, `MANUAL` | Trazabilidad para auditoría |
+
+
+## Enmienda 2026-11-10 (Fase 3): geocodificación inversa en el navegador
+
+- **Estado de la enmienda:** Aceptada (2026-11-10, por el desarrollador), incluidas la confirmación visible de lo detectado y el aviso de coherencia con la dirección escrita.
+- **Sustituye:** §2 de este ADR (geocodificación inversa en el backend) para la captura del formulario. No cambia la Fase 5 (verificación advisoria de ADR-0030 con clave de servidor).
+
+### Contexto
+
+El desarrollador pidió ahorrar el paso de elegir el municipio, porque el punto ya está en el mapa. Se verificó el 2026-11-10, en el entorno local, que la clave de navegador ya existente devuelve resultados de `google.maps.Geocoder` para un punto de Medellín: el resultado incluye `locality`, `administrative_area_level_2` (municipio) y `administrative_area_level_1` (departamento). La Fase 3 no necesita una clave de servidor ni un endpoint nuevo.
+
+### Decisión
+
+1. **Cuándo se geocodifica:** una vez cada vez que el punto queda fijado (soltar el pin, clic en el mapa, "Usar mi ubicación", enlace pegado o lugar elegido en la búsqueda). Nunca mientras se arrastra el pin.
+2. **Qué se envía a Google:** solo las coordenadas del punto, con `language=es` y `region=CO`. No se envían datos personales.
+3. **Cómo se llega al código DANE:** el frontend toma el departamento y el municipio del resultado, y los resuelve contra los endpoints públicos que ya existen, `GET /api/v1/catalog/departments` y `GET /api/v1/catalog/departments/{code}/municipalities`. La comparación ignora mayúsculas, tildes y sufijos como "D.C.". Si hay una única coincidencia, se preselecciona `municipalityCode`.
+4. **Si no hay coincidencia única** (nombre distinto, área no municipalizada, Google sin resultado o sin red): el campo de municipio queda visible para elegirlo a mano. La captura manual sigue disponible, como pide el §5 del ADR.
+5. **Vereda:** se sugiere con `sublocality` o `neighborhood` solo si la vereda está vacía; el usuario puede corregirla.
+6. **El usuario siempre puede corregir** el municipio sugerido. Ese campo pasa de "código DANE" escrito a mano a un `Select` con búsqueda sobre DIVIPOLA, con el código DANE solo como valor interno.
+7. **Sin almacenamiento de la respuesta:** de la respuesta de Google solo se conserva el código derivado; no se guarda el texto devuelto.
+8. **Verificación de la información (cambio pedido por el desarrollador):** el municipio y la vereda detectados no se aplican en silencio. Debajo del mapa se muestra un resumen, "Detectamos: municipio, departamento, vereda", con las acciones "Es correcto" y "Cambiar". Mientras el anfitrión o el administrador no confirme, el municipio queda marcado como "por confirmar" y el formulario no se bloquea. Un cambio posterior del pin vuelve a pedir confirmación.
+9. **Coherencia con la dirección escrita:** si el texto de "Dirección o punto de encuentro" menciona otro municipio distinto del detectado, el resumen muestra un aviso "La dirección menciona X, pero el punto está en Y. Revisa antes de guardar". Es una advertencia, no un bloqueo, en la misma línea de la verificación advisoria de ADR-0030.
+
+### Consecuencias
+
+- **Positivas:** se elimina un paso del formulario; no requiere backend, ni clave de servidor, ni migración; usa los endpoints públicos ya existentes.
+- **Costo:** una solicitud de Geocoding por punto fijado. Se mitiga geocodificando solo al soltar el pin y con el límite diario configurado en Google Cloud (§5).
+- **Requisito:** la API Geocoding debe estar habilitada para la clave de navegador (ya lo está en el entorno local). La clave de navegador sigue restringida por referrer.
+- **Riesgo:** los nombres de Google y de DIVIPOLA no siempre coinciden (por ejemplo, Bogotá). Mitigación: normalización de nombres, respaldo manual y pruebas con casos conocidos.
+- **Cumplimiento:** se revisan los términos de Google Maps Platform antes de publicar, según §6 del ADR.
+
+### Alternativas descartadas
+
+- **Backend con clave de servidor (diseño original del §2):** protege mejor la cuota, pero exige endpoint, clave restringida por IP y despliegue antes de poder usarse.
+- **Solo `address_components` del autocompletado:** no cubre el pin, el GPS ni el enlace pegado.

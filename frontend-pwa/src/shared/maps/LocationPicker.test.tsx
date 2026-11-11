@@ -55,6 +55,9 @@ describe('LocationPicker con llave de Google Maps', () => {
     setPosition = vi.fn();
     addListener = vi.fn();
   }
+  class FakeGeocoder {
+    geocode = vi.fn(() => Promise.resolve({ results: [] }));
+  }
   class FakeAutocomplete {
     addListener = vi.fn();
     getPlace = vi.fn(() => ({}));
@@ -71,7 +74,12 @@ describe('LocationPicker con llave de Google Maps', () => {
 
   it('crea el mapa y muestra "Usar mi ubicación" cuando la API está disponible', async () => {
     window.google = {
-      maps: { Map: FakeMap, Marker: FakeMarker, places: { Autocomplete: FakeAutocomplete } },
+      maps: {
+        Map: FakeMap,
+        Marker: FakeMarker,
+        Geocoder: FakeGeocoder,
+        places: { Autocomplete: FakeAutocomplete },
+      },
     };
     render(<LocationPicker lat={null} lng={null} onChange={vi.fn()} />);
     expect(await screen.findByRole('button', { name: 'Usar mi ubicación' })).toBeInTheDocument();

@@ -1,8 +1,11 @@
-import { useId, useRef, useState, type SubmitEvent } from 'react';
+import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
 
 import type { FieldErrors } from '@/features/auth';
+import { useDepartments, useMunicipalities } from '@/features/catalog';
+import { toTitleCase } from '@/shared/lib';
 import { LocationPicker } from '@/shared/maps/LocationPicker';
 import { parseCoordinate } from '@/shared/maps/googleMaps';
+import { otherMunicipalityMentioned } from '@/shared/maps/places';
 import { Button, Icon, ProblemNotice, Select, TextField } from '@/shared/ui';
 
 import type { AdminExperience, ExperienceUpdateRequest } from '../api';
@@ -15,6 +18,8 @@ import {
   type ExperienceField,
 } from '../forms';
 import { INTENSITY_OPTIONS } from '../labels';
+import { LocationSummary } from './LocationSummary';
+import { useLocationDetection } from './locationDetection';
 import { operationFieldClass } from './tableStyles';
 
 interface ExperienceFormProps {
@@ -57,6 +62,43 @@ export function ExperienceForm({
     initial ? fromAdminExperience(initial) : emptyExperienceDraft(),
   );
   const [errors, setErrors] = useState<FieldErrors<ExperienceField>>({});
+  const municipalityErrorId = useId();
+  const detection = useLocationDetection();
+  const departments = useDepartments();
+  // El código DANE empieza por el del departamento: al editar se conoce sin consultar nada.
+  const [departmentCode, setDepartmentCode] = useState(
+    () => initial?.municipalityCode.slice(0, 2) ?? '',
+  );
+  const municipalities = useMunicipalities(departmentCode || undefined);
+  // Lo elegido a mano cuenta como confirmado; solo lo detectado en el mapa espera confirmación.
+  const [confirmed, setConfirmed] = useState(true);
+  const appliedSeq = useRef(0);
+  const { status, seq, department, municipality, vereda } = detection;
+
+  useEffect(() => {
+    if (status !== 'found' || !department || !municipality || appliedSeq.current === seq) return;
+    appliedSeq.current = seq;
+    setDepartmentCode(department.code);
+    setConfirmed(false);
+    setDraft((current) => ({
+      ...current,
+      municipalityCode: municipality.code,
+      ...(current.vereda.trim() === '' && vereda ? { vereda } : {}),
+    }));
+  }, [status, seq, department, municipality, vereda]);
+
+  const departmentOptions = (departments.data ?? []).map((place) => ({
+    value: place.code,
+    label: toTitleCase(place.name),
+  }));
+  const municipalityOptions = (municipalities.data ?? []).map((place) => ({
+    value: place.code,
+    label: toTitleCase(place.name),
+  }));
+  const mismatch =
+    status === 'found' && municipality
+      ? otherMunicipalityMentioned(draft.meetingPoint, municipality, detection.municipalities)
+      : undefined;
 
   const set = (field: ExperienceField) => (value: string) => {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -127,16 +169,6 @@ export function ExperienceForm({
           }}
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <TextField
-          label="Municipio (código DANE)"
-          inputMode="numeric"
-          maxLength={5}
-          {...input('municipalityCode')}
-        />
-        <TextField label="Vereda (opcional)" {...input('vereda')} />
-      </div>
-      <TextField label="Dirección o punto de encuentro" {...input('meetingPoint')} />
       <LocationPicker
         lat={parseCoordinate(draft.latitude)}
         lng={parseCoordinate(draft.longitude)}
@@ -147,8 +179,62 @@ export function ExperienceForm({
             longitude: String(point.lng),
             ...(point.address ? { meetingPoint: point.address } : {}),
           }));
+          detection.detect(point);
         }}
       />
+      <LocationSummary
+        status={status}
+        municipality={municipality?.name}
+        department={department?.name}
+        vereda={vereda}
+        confirmed={confirmed}
+        mismatch={mismatch}
+        onConfirm={() => {
+          setConfirmed(true);
+        }}
+        onChange={() => {
+          (formRef.current?.elements.namedItem('municipalityCode') as HTMLElement | null)?.focus();
+        }}
+      />
+      <Select
+        label="Departamento"
+        name="departmentCode"
+        size="lg"
+        searchable
+        searchPlaceholder="Escribe para buscar el departamento…"
+        value={departmentCode}
+        options={departmentOptions}
+        onChange={(value) => {
+          setDepartmentCode(value);
+          setConfirmed(true);
+          setDraft((current) => ({ ...current, municipalityCode: '' }));
+        }}
+      />
+      <div>
+        <Select
+          label="Municipio"
+          name="municipalityCode"
+          size="lg"
+          searchable
+          searchPlaceholder="Escribe para buscar el municipio…"
+          value={draft.municipalityCode}
+          options={municipalityOptions}
+          disabled={!departmentCode}
+          invalid={Boolean(errors.municipalityCode)}
+          describedBy={errors.municipalityCode ? municipalityErrorId : undefined}
+          onChange={(value) => {
+            set('municipalityCode')(value);
+            setConfirmed(true);
+          }}
+        />
+        {errors.municipalityCode && (
+          <p id={municipalityErrorId} className="mt-1 text-sm font-semibold text-danger-text">
+            {errors.municipalityCode}
+          </p>
+        )}
+      </div>
+      <TextField label="Vereda (opcional)" {...input('vereda')} />
+      <TextField label="Dirección o punto de encuentro" {...input('meetingPoint')} />
       <details className="rounded-lg border-2 border-border-subtle p-3">
         <summary className="min-h-11 cursor-pointer font-semibold text-ink">Avanzado</summary>
         <div className="mt-3 grid grid-cols-2 gap-4">

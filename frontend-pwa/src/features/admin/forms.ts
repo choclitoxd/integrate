@@ -299,7 +299,7 @@ export function validateAdminExperience(
 
   const municipalityCode = draft.municipalityCode.trim();
   if (!/^[0-9]{5}$/.test(municipalityCode)) {
-    errors.municipalityCode = 'El código DANE del municipio tiene 5 dígitos, por ejemplo 05001.';
+    errors.municipalityCode = 'Elige el municipio.';
   }
 
   const vereda = draft.vereda.trim();
