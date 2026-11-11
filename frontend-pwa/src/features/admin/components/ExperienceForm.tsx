@@ -145,6 +145,7 @@ export function ExperienceForm({
             ...current,
             latitude: String(point.lat),
             longitude: String(point.lng),
+            ...(point.address ? { meetingPoint: point.address } : {}),
           }));
         }}
       />
