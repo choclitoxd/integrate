@@ -115,34 +115,7 @@ export function matchesFilters(schedule: ScheduleAvailability, filters: SlotFilt
 
 /* ---------- Calendario del mes ---------- */
 
-/** "2026-10-17" → "2026-10-01". */
-export function monthStart(date: string): string {
-  return `${date.slice(0, 7)}-01`;
-}
-
-/** Primer día del mes desplazado `months` meses. */
-export function addMonths(firstOfMonth: string, months: number): string {
-  const year = Number(firstOfMonth.slice(0, 4));
-  const month = Number(firstOfMonth.slice(5, 7)) - 1 + months;
-  const y = year + Math.floor(month / 12);
-  const m = ((month % 12) + 12) % 12;
-  return `${String(y)}-${String(m + 1).padStart(2, '0')}-01`;
-}
-
-/**
- * Celdas del mes en semanas de lunes a domingo: `null` rellena antes del día 1 y después del último,
- * para que cada fecha caiga bajo su día de la semana.
- */
-export function monthGrid(firstOfMonth: string): readonly (string | null)[] {
-  const cells: (string | null)[] = [];
-  for (let day = startOfWeek(firstOfMonth); day < firstOfMonth; day = addDays(day, 1)) {
-    cells.push(null);
-  }
-  const month = firstOfMonth.slice(0, 7);
-  for (let day = firstOfMonth; day.startsWith(month); day = addDays(day, 1)) cells.push(day);
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
-}
+export { addMonths, monthGrid, monthStart } from '@/shared/lib';
 
 /** Lunes de la primera y la última semana navegables dentro de la ventana. */
 export function weekBounds(range: { readonly from: string; readonly to: string }) {

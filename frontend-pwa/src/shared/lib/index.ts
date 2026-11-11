@@ -1,5 +1,6 @@
 export {
   addDays,
+  addMonths,
   BOGOTA_TIME_ZONE,
   dayOfMonth,
   formatClockTime,
@@ -10,6 +11,8 @@ export {
   formatLocalTime,
   formatLongDate,
   formatMonthYear,
+  monthGrid,
+  monthStart,
   pluralize,
   startOfWeek,
   todayInBogota,

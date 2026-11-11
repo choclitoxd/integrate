@@ -44,12 +44,87 @@ describe('routes', () => {
     );
   });
 
+  it('mantiene las opciones del gestor al volver a Explorar y deja «Mi cuenta» a la derecha', async () => {
+    const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
+    const links = () =>
+      within(screen.getByRole('navigation'))
+        .getAllByRole('link')
+        .map((link) => link.textContent);
+    const expected = ['Explorar', 'Jornada', 'Validar QR', 'Anfitriones', 'Mi cuenta'];
+    expect(links()).toEqual(expected);
+    await userEvent.click(screen.getByRole('link', { name: 'Jornada' }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/gestor');
+    });
+    expect(links()).toEqual(expected);
+    await userEvent.click(screen.getByRole('link', { name: 'Explorar' }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/');
+    });
+    expect(links()).toEqual(expected);
+  });
+
   it('muestra el panel del gestor solo con ROLE_LINK_MANAGER', async () => {
     const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_LINK_MANAGER'] });
-    await userEvent.click(screen.getByRole('link', { name: 'Gestor' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Jornada' }));
     expect(router.state.location.pathname).toBe('/gestor');
     expect(screen.getByRole('heading', { level: 1, name: 'Panel de jornada' })).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Navegación del gestor' })).toBeInTheDocument();
+  });
+
+  it('mantiene las opciones del anfitrión al volver a Explorar y deja «Mi cuenta» a la derecha', async () => {
+    const user = userEvent.setup();
+    const { router } = renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST', 'ROLE_HOST'] });
+    const links = () =>
+      within(screen.getByRole('navigation', { name: 'Navegación principal' }))
+        .getAllByRole('link')
+        .map((link) => link.textContent);
+    const expected = [
+      'Explorar',
+      'Mis experiencias',
+      'Anfitrión',
+      'Mis métricas',
+      'Experiencias del anfitrión',
+      'Mi cuenta',
+    ];
+    expect(links()).toEqual(expected);
+    await user.click(screen.getByRole('link', { name: 'Anfitrión' }));
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Reservas confirmadas' }),
+    ).toBeVisible();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/anfitrion');
+    });
+    expect(links()).toEqual(expected);
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Navegación principal' })).getByRole('link', {
+        name: 'Explorar',
+      }),
+    );
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Experiencias comunitarias' }),
+    ).toBeVisible();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/');
+    });
+    expect(links()).toEqual(expected);
+  });
+
+  it.each([
+    [['ROLE_HOST'], 'Anfitrión', '/anfitrion/cuenta'],
+    [['ROLE_LINK_MANAGER'], 'Gestor de enlace', '/gestor/cuenta'],
+  ])('identifica el rol %s en el catálogo y en la cuenta', (roles, label, accountPath) => {
+    const first = renderApp('/', catalogRoutes, { roles });
+    expect(screen.getByLabelText(`Tus roles: ${label}`)).toBeVisible();
+    first.unmount();
+    renderApp(accountPath, catalogRoutes, { roles });
+    expect(screen.getByLabelText(`Tus roles: ${label}`)).toBeVisible();
+    const nav = screen.getByRole('navigation');
+    expect(within(nav).getAllByRole('link', { current: 'page' })).toHaveLength(1);
+    expect(within(nav).getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('el panel del gestor lleva a enrolar y a sus anfitriones (ADR-0018 §1)', async () => {
@@ -105,8 +180,35 @@ describe('routes', () => {
   });
   it('cambia "Ingresar" por "Mi cuenta" con sesión', () => {
     renderApp('/', catalogRoutes, { roles: ['ROLE_TOURIST'] });
-    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/cuenta');
+    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute(
+      'href',
+      '/turista/cuenta',
+    );
     expect(screen.queryByRole('link', { name: 'Ingresar' })).toBeNull();
+  });
+
+  it('«Mi cuenta» de cada rol vive en su zona y /cuenta lleva a ella (ADR-0062)', async () => {
+    const cases = [
+      [['ROLE_TOURIST'], '/turista/cuenta'],
+      [['ROLE_HOST'], '/anfitrion/cuenta'],
+      [['ROLE_LINK_MANAGER'], '/gestor/cuenta'],
+      [['ROLE_TOURIST', 'ROLE_HOST'], '/turista/cuenta'],
+      [['ROLE_ADMIN', 'ROLE_TOURIST'], '/admin/cuenta'],
+    ] as const;
+    for (const [roles, zone] of cases) {
+      const { router, unmount } = renderApp('/cuenta', catalogRoutes, { roles });
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe(zone);
+      });
+      unmount();
+    }
+  });
+
+  it('un rol ajeno no entra a la cuenta de otra zona', () => {
+    renderApp('/gestor/cuenta', {}, { roles: ['ROLE_TOURIST'] });
+    expect(
+      screen.getByRole('heading', { name: 'Esta sección no está disponible para tu cuenta' }),
+    ).toBeVisible();
   });
 
   it('responde 404 accesible para rutas desconocidas', () => {
