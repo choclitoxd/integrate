@@ -3,8 +3,8 @@
 Uso, desde la raíz del repositorio:
     python docs/manual/generar-markdown.py docs/manual/manual-usuario.html docs/manual/manual-usuario.md docs/manual/img
 
-Solo usa la biblioteca estándar. Si cambian la fecha de revisión o las secciones del HTML,
-actualice también la cabecera y el índice que este script escribe al final.
+Solo usa la biblioteca estándar. Si cambian las secciones del HTML,
+actualice también el índice que este script escribe al final.
 """
 import base64, re, sys, unicodedata
 from html.parser import HTMLParser
@@ -13,6 +13,7 @@ from pathlib import Path
 src = Path(sys.argv[1]); out_md = Path(sys.argv[2]); img_dir = Path(sys.argv[3])
 img_dir.mkdir(parents=True, exist_ok=True)
 html = src.read_text(encoding="utf-8")
+revision = re.search(r'<p class="meta">([^<]+)</p>', html)[1]
 html = html[html.index('<main'):html.index('</main>')]
 
 
@@ -125,9 +126,9 @@ for old, new in {"#admin": "#6-administrador-role_admin", "#turista": "#3-turist
 header = (
     "# Manual de usuario · Intégrate\n\n"
     "Cómo usar la aplicación según tu rol: Turista, Gestor de Enlace, Anfitrión comunitario y Administrador.\n"
-    "Cada paso se verificó recorriendo el flujo real en la aplicación.\n\n"
-    "> **Versión:** Fase 1 · MVP transaccional · Revisado el 16 de octubre de 2026. "
-    "Versión navegable con estilos: [manual-usuario.html](manual-usuario.html) (descárguela y ábrala en el navegador).\n\n"
+    "\n"
+    f"> {revision}. "
+    "Descarga la [versión HTML](manual-usuario.html) para abrirla en el navegador.\n\n"
     "## Contenido\n\n"
     "1. [Antes de empezar](#1-antes-de-empezar)\n"
     "2. [Roles y permisos](#2-roles-y-permisos)\n"
@@ -136,7 +137,7 @@ header = (
     "5. [Anfitrión comunitario](#5-anfitrión-comunitario-role_host)\n"
     "6. [Administrador](#6-administrador-role_admin)\n"
     "7. [Mensajes y problemas frecuentes](#7-mensajes-y-problemas-frecuentes)\n"
-    "8. [Registro de la prueba del flujo](#8-registro-de-la-prueba-del-flujo)\n\n"
+    "8. [Registro histórico de la prueba del flujo](#8-registro-histórico-de-la-prueba-del-flujo)\n\n"
 )
 out_md.write_text(header + body.strip() + "\n", encoding="utf-8")
 print("images:", p.img_n)

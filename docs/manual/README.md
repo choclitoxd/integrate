@@ -1,8 +1,7 @@
 # Manual de usuario
 
 Guía paso a paso para usar Intégrate según el rol: Turista, Gestor de Enlace, Anfitrión comunitario y
-Administrador. Versión **Fase 1 · MVP transaccional**, revisada el 16 de octubre de 2026 recorriendo el
-flujo real en la aplicación.
+Administrador. La revisión del 11 de noviembre de 2026 se cotejó con las pantallas y rutas de la PWA.
 
 | Formato | Archivo | Cuándo usarlo |
 | :--- | :--- | :--- |
@@ -13,12 +12,12 @@ flujo real en la aplicación.
 
 1. **Antes de empezar** — requisitos, navegación general y cuentas de prueba del entorno local.
 2. **Roles y permisos** — qué puede hacer cada rol y cómo obtiene su cuenta.
-3. **Turista** — crear cuenta, explorar y filtrar, reservar, pagar, voucher con QR y Mi cuenta.
-4. **Gestor de Enlace** — panel de jornada, enrolar anfitriones, entregar el código de activación.
-5. **Anfitrión comunitario** — activar la cuenta con el código del gestor.
-6. **Administrador** — alcance actual del rol.
+3. **Turista** — crear cuenta, recuperar la contraseña, explorar, reservar, pagar y volver a abrir el voucher desde Mis experiencias.
+4. **Gestor de Enlace** — enrolar anfitriones, emitir códigos de activación, descargar el padrón, validar vouchers en campo y sincronizar asistencias.
+5. **Anfitrión comunitario** — activar la cuenta, gestionar experiencias y horarios, consultar reservas y métricas.
+6. **Administrador** — moderar experiencias, gestionar asociaciones y personas, revisar incidentes, liquidaciones y auditoría.
 7. **Mensajes y problemas frecuentes**.
-8. **Registro de la prueba del flujo** — qué se verificó y qué no.
+8. **Registro histórico de la prueba del flujo** — resultados del recorrido local de octubre.
 
 ## Mantenimiento
 
@@ -26,5 +25,5 @@ flujo real en la aplicación.
   HTML, regenere ambos para que no diverjan. La PWA lo copia en su build; no hay otra copia que actualizar.
 - Las capturas usan solo datos ficticios de la semilla de desarrollo. Nunca incluya contraseñas, tokens ni
   datos reales de personas (ver [política de secretos](../security/security_secrets_policy.md)).
-- Cuando una funcionalidad nueva llegue a la PWA (por ejemplo, la validación offline de la Etapa 2), añada su
-  sección y una fila en el registro de prueba.
+- Cuando cambie un flujo, actualice su sección y compruebe los nombres de los controles y los permisos de
+  cada rol. Si realiza una prueba en la aplicación, registre su fecha, entorno y resultado.

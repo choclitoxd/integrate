@@ -1,9 +1,8 @@
 # Manual de usuario · Intégrate
 
 Cómo usar la aplicación según tu rol: Turista, Gestor de Enlace, Anfitrión comunitario y Administrador.
-Cada paso se verificó recorriendo el flujo real en la aplicación.
 
-> **Versión:** Fase 1 · MVP transaccional · Revisado el 16 de octubre de 2026. Versión navegable con estilos: [manual-usuario.html](manual-usuario.html) (descárguela y ábrala en el navegador).
+> Documentación revisada el 11 de noviembre de 2026. Descarga la [versión HTML](manual-usuario.html) para abrirla en el navegador.
 
 ## Contenido
 
@@ -14,7 +13,7 @@ Cada paso se verificó recorriendo el flujo real en la aplicación.
 5. [Anfitrión comunitario](#5-anfitrión-comunitario-role_host)
 6. [Administrador](#6-administrador-role_admin)
 7. [Mensajes y problemas frecuentes](#7-mensajes-y-problemas-frecuentes)
-8. [Registro de la prueba del flujo](#8-registro-de-la-prueba-del-flujo)
+8. [Registro histórico de la prueba del flujo](#8-registro-histórico-de-la-prueba-del-flujo)
 
 ## 1. Antes de empezar
 
@@ -23,14 +22,14 @@ Intégrate es una aplicación web progresiva (PWA): se abre desde el navegador d
 ### Qué necesitas
 
 - Un navegador actualizado (Chrome, Edge, Firefox o Safari).
-- La dirección de la aplicación. En el entorno local de desarrollo es `http://localhost:5173`; en la demostración publicada, `https://integrate-demo.pages.dev`.
+- La dirección de Intégrate que te compartió el equipo o tu asociación. En el pie de la aplicación puedes abrir este **Manual de usuario**.
 - Una cuenta. Los turistas la crean solos; los anfitriones la reciben de su Gestor de Enlace.
 
 ### Navegación general
 
-- **Barra inferior** (celular): *Explorar* e *Ingresar* / *Mi cuenta*. El Gestor de Enlace ve además *Jornada* y *Anfitriones*.
+- **Barra inferior** (celular): *Explorar* e *Ingresar* / *Mi cuenta*. Si tienes el rol de Gestor de Enlace o Anfitrión, toca **Módulos** para abrir las herramientas de tu rol. En computador, los accesos aparecen en la navegación.
 - **Botón «Atrás»** en la barra superior: vuelve a la pantalla anterior conservando filtros y posición.
-- **Botón de acción principal**: siempre fijo abajo (por ejemplo, «Ver fechas», «Reservar», «Pagar»).
+- **Acciones como Ver fechas, Reservar y Pagar** aparecen en el contenido, junto a la información que debes revisar.
 
 <p align="center"><img src="img/01-catalogo-en-vista-de-escritorio-filtros.jpg" alt="Catálogo en vista de escritorio: filtros en una columna lateral y experiencias en cuadrícula de tres columnas." width="640"><br><em>Vista de escritorio del catálogo (pantallas anchas).</em></p>
 
@@ -55,11 +54,11 @@ Una misma persona puede tener varios roles; en *Mi cuenta* aparecen todos (por e
 | Rol | Qué puede hacer en esta versión | Cómo obtiene la cuenta |
 | :--- | :--- | :--- |
 | Turista | Explorar y filtrar experiencias, reservar cupos, pagar, recibir el voucher con QR, gestionar sus autorizaciones de datos. | Se registra solo en «Crea una gratis». |
-| Gestor de Enlace | Todo lo del turista, más: enrolar anfitriones de su asociación, emitir códigos de activación y consultar el estado de sus anfitriones. | Lo acredita el Administrador. |
-| Anfitrión comunitario | Activar su cuenta con el código del gestor, ingresar, explorar el catálogo y gestionar sus autorizaciones de datos. | Lo enrola su Gestor de Enlace. |
-| Administrador | Todo lo del turista, más la **consola de administración** (desde un computador): moderar experiencias, confirmar puntos de encuentro, registrar asociaciones, convertir personas en anfitriones, acreditar gestores y consultar la bitácora de auditoría. | Configurado por el equipo de Intégrate. |
+| Gestor de Enlace | Enrolar anfitriones de su asociación, emitir códigos de activación, descargar el padrón y registrar asistencias en campo. | Lo acredita el Administrador. |
+| Anfitrión comunitario | Gestionar sus experiencias y horarios, consultar reservas confirmadas y revisar sus métricas. | Lo enrola su Gestor de Enlace. |
+| Administrador | Administrar experiencias, asociaciones y personas, consultar auditoría y gestionar incidentes de sincronización y liquidaciones. | Configurado por el equipo de Intégrate. |
 
-> El portal propio del Anfitrión (crear experiencias y franjas) todavía no tiene pantallas en la aplicación, Si un rol intenta abrir una sección que no le corresponde, verá «Esta sección no está disponible para tu cuenta» (ver [sección 6](#6-administrador-role_admin)).
+Las opciones que ves dependen de tus roles. Las herramientas del anfitrión y del gestor requieren que su acceso esté activo. La administración tiene su propio menú.
 
 ## 3. Turista ROLE_TOURIST
 
@@ -85,6 +84,12 @@ El recorrido completo es: **explorar → elegir fecha y franja → ingresar → 
 3. Toca **Ingresar**. Si venías de una reserva, la aplicación te regresa a ella.
 
 <p align="center"><img src="img/03-pantalla-ingresa-a-tu-cuenta-con-campos.jpg" alt="Pantalla Ingresa a tu cuenta con campos de correo y contraseña y botón Ingresar." width="300"><br><em>Ingresar</em></p>
+
+#### Recuperar tu contraseña
+
+1. En **Ingresar**, toca **¿Olvidaste tu contraseña?** y escribe el correo de tu cuenta.
+2. Si tienes acceso a ese correo, abre el enlace que recibas. Es válido por 15 minutos.
+3. Escribe y repite la nueva contraseña, toca **Guardar contraseña** e ingresa con ella.
 
 ### 3.2 Explorar experiencias
 
@@ -128,7 +133,7 @@ Abajo ves el precio por persona y el botón **Ver fechas**.
 
 #### Datos de los viajeros
 
-1. Por cada viajero escribe nombre completo, tipo y número de documento El viajero 1 es el titular y se llena con tus datos. Si la aplicación lo ofrece, el titular puede compartir su **EPS**: es voluntaria, solo la da el titular y el anfitrión de la experiencia podrá consultarla en una emergencia. Puedes reservar sin ella.
+1. Por cada viajero escribe nombre completo, tipo y número de documento. El viajero 1 es el titular y se llena con tus datos. Si la aplicación lo ofrece, el titular puede compartir su **EPS**: es voluntaria, solo la da el titular y el anfitrión de la experiencia podrá consultarla en una emergencia. Puedes reservar sin ella.
 2. Agrega un **contacto de emergencia** que *no* viaje con el grupo (nombre y celular).
 3. Toca **Apartar cupos**.
 
@@ -179,6 +184,10 @@ Debajo del voucher está la **ficha de viaje**: experiencia, fecha y hora, punto
 
 <p align="center"><img src="img/12-mi-cuenta-del-turista-con-perfil-autoriz.jpg" alt="Mi cuenta del turista con perfil, autorizaciones Autorizado y botón Cerrar sesión." width="300"><br><em>Mi cuenta</em></p>
 
+### 3.7 Mis experiencias
+
+Abre **Mis experiencias** para consultar tus reservas y su estado. Selecciona una reserva para continuar un pago pendiente o volver a abrir su voucher si ya está confirmada. Descarga el voucher antes de viajar si esperas quedarte sin conexión.
+
 ## 4. Gestor de Enlace ROLE_LINK_MANAGER
 
 El Gestor de Enlace es el puente entre Intégrate y la comunidad: registra a los anfitriones de su asociación (con su autorización firmada) y les entrega el código para activar su cuenta. Como también es turista, puede usar todo lo de la [sección 3](#3-turista-role_tourist).
@@ -187,12 +196,12 @@ El Gestor de Enlace es el puente entre Intégrate y la comunidad: registra a los
 
 #### Entrar al portal del gestor
 
-Al ingresar con una cuenta de gestor, la barra inferior muestra **Jornada**, **Anfitriones** y **Mi cuenta**. El **Panel de jornada** (`/gestor`) tiene dos accesos:
+Abre **Jornada** desde **Módulos** en el celular o desde la navegación en computador. Para el enrolamiento, usa estos accesos del **Panel de jornada**:
 
 - **Enrolar anfitrión**: registrar a una persona nueva.
 - **Mis anfitriones**: ver su estado y entregar códigos.
 
-> Próximamente este panel permitirá descargar el padrón del día para validar vouchers sin conexión.
+Desde **Jornada** también puedes descargar el padrón de hoy, validar QR, abrir **Contingencia manual** y revisar la **Cola de sincronización**.
 
 <p align="center"><img src="img/13-panel-de-jornada-del-gestor-con-las-tarj.jpg" alt="Panel de jornada del gestor con las tarjetas Enrolar anfitrión y Mis anfitriones." width="300"><br><em>Panel de jornada</em></p>
 
@@ -210,7 +219,7 @@ El indicador **En línea** confirma que hay conexión. Nada de lo que escribas s
 
 #### Pasos 2 y 3 · Condición y autorización
 
-1. **Condición de víctima**: responde Sí o No a si la persona es víctima del conflicto armado (Ley 1448). Es un dato sensible: se cifra y nadie lo ve en la aplicación.
+1. **Condición de víctima**: responde Sí o No a si la persona es víctima del conflicto armado (Ley 1448). Es un dato sensible y se cifra. Si respondes **Sí**, puedes añadir el número de registro RUV, el hecho victimizante y un documento soporte en PDF de hasta 5 MB.
 2. **Autorización de datos**: lee la política con la persona y marca las dos autorizaciones obligatorias (datos personales y condición de víctima; se piden siempre, sea o no víctima).
 3. **Formato de consentimiento firmado**: toca **Elegir PDF** y carga el escaneo (máximo 5 MB). Puedes escanearlo con la opción «Escanear» de Google Drive, Archivos o Notas.
 4. Toca **Registrar anfitrión**.
@@ -250,11 +259,16 @@ El documento se muestra enmascarado (solo los últimos 4 dígitos). Con **+ Enro
 
 <p align="center"><img src="img/18-lista-mis-anfitriones-con-una-anfitriona.jpg" alt="Lista Mis anfitriones con una anfitriona Pendiente de activación y otro anfitrión Activo." width="300"><br><em>Mis anfitriones</em></p>
 
+### 4.5 Validar asistencia en campo
+
+1. Antes de salir, con conexión y en el teléfono que llevarás, entra a **Jornada** y toca **Descargar padrón de hoy**. Revisa la fecha del padrón y el estado de disponibilidad sin conexión.
+2. En campo, abre **Validar QR en campo**, toca **Activar cámara trasera**, concede el permiso y apunta al QR del voucher. Lee el resultado antes de registrar a la siguiente persona. Si el voucher ya figura como utilizado, revisa el historial de validaciones de la jornada.
+3. Si no puedes leer el QR, abre **Contingencia manual**. Usa el código de ocho caracteres del voucher o busca al titular en el padrón descargado. Verifica la coincidencia antes de registrar la asistencia.
+4. Al recuperar la conexión, abre **Cola de sincronización** en el mismo teléfono y toca **Sincronizar ahora** si quedan asistencias pendientes. Revisa el resultado y el historial antes de terminar la jornada.
+
 ## 5. Anfitrión comunitario ROLE_HOST
 
-El anfitrión no se registra solo: su Gestor de Enlace lo enrola y le entrega un código de activación.
-
-Todo anfitrión es también turista: con la misma cuenta puede explorar el catálogo y reservar. En la barra ve **Explorar** y **Mis experiencias** junto a sus propias opciones, y **Mi cuenta** siempre a la derecha. Si ya tenías la sesión abierta cuando se activó esto, cierra sesión y vuelve a ingresar para ver **Mis experiencias**.
+Si te enroló un Gestor de Enlace, pídele tu correo de acceso y código de activación. Si ya tenías una cuenta y un administrador te asignó el rol de anfitrión, vuelve a ingresar para ver tus opciones.
 
 #### Activar la cuenta
 
@@ -278,44 +292,40 @@ Si el código no funciona, aparece: «El código no es válido, venció o ya se 
 
 En **Mi cuenta** aparece el rol «Anfitrión comunitario» y tres autorizaciones: datos personales, **condición de víctima del conflicto armado** (registradas en el enrolamiento) y datos de salud. Si quieres reservar experiencias como viajero, toca **Autorizar datos de salud para reservar**.
 
-> Por ahora el anfitrión usa el catálogo y su cuenta. La creación de experiencias y franjas desde la aplicación llegará en una fase posterior.
-
 <p align="center"><img src="img/21-mi-cuenta-del-anfitrion-con-autorizacion.jpg" alt="Mi cuenta del anfitrión con autorización de condición de víctima y datos de salud Sin autorizar." width="300"><br><em>Mi cuenta (anfitrión)</em></p>
+
+### 5.1 Crear y gestionar experiencias
+
+1. Abre **Experiencias del anfitrión** desde la navegación de tu rol. En el celular está dentro de **Módulos**.
+2. Toca **Nueva experiencia**, completa los datos solicitados, incluido el punto de encuentro, y toca **Guardar borrador**.
+3. En la lista, toca **Gestionar**. Revisa la ficha y usa **Verificar punto de encuentro** si aparece. Cuando el borrador esté listo, toca **Enviar a revisión**. Si lo rechazan, consulta el motivo, guarda las correcciones y vuelve a enviarlo.
+4. En la ficha, abre **Horarios**. Si el estado lo permite, usa **Añadir horario**, completa los campos y toca **Guardar horario**. Puedes consultar los cupos y cancelar un horario cuando la ficha ofrezca esa acción.
+
+### 5.2 Consultar reservas y métricas
+
+- Abre **Anfitrión** para ver **Reservas confirmadas**. Usa los filtros para encontrar una jornada. Si hay una emergencia y tienes conexión, abre **Consultar EPS en emergencia** en la reserva correspondiente. El dato depende de que el titular lo haya compartido y autorizado.
+- Abre **Mis métricas** y elige el mes para ver reservas, viajeros, ocupación de próximas jornadas y asistencia.
 
 ## 6. Administrador ROLE_ADMIN
 
-El Administrador ingresa como cualquier usuario (ver [3.1](#31-crear-cuenta-e-ingresar)). En esta versión su cuenta también tiene el rol Turista, así que puede explorar, reservar y pagar, y en **Mi cuenta** aparece «Turista · Administrador».
+Ingresa con tu cuenta de administrador para abrir **Resumen**. En el celular, toca **Módulos** en la barra inferior. En computador, elige la sección en la navegación de administración.
 
 ### 6.1 Consola de administración
 
-Al ingresar, el Administrador llega directo a la **consola de administración** (`/admin`). Es una ventana distinta a la del resto de la aplicación: tiene una barra lateral oscura con el rótulo «Intégrate · Administración». Desde el sitio público también se abre con **Administración** en el menú, y se vuelve al sitio con **Volver al sitio**.
-
-La consola está pensada para un **computador**. En un celular o una tablet, `/admin` solo muestra un aviso y cuántas experiencias esperan revisión, sin poder actuar sobre ellas.
-
-| Sección | Qué permite |
+| Sección | Qué puedes hacer |
 | :--- | :--- |
-| **Resumen** | Ver cuántas experiencias esperan revisión, cuántas tienen el punto de encuentro dudoso, cuántas están suspendidas y cuántas asociaciones hay. Verificar la integridad de la bitácora. |
-| **Experiencias** | Filtrar por estado (Por revisar, Publicadas, Suspendidas, Rechazadas, Retiradas, Todas) y abrir la ficha de cada una. Desde la ficha: **Aprobar y publicar**, **Rechazar**, **Suspender**, **Reactivar**, **Retirar** y **Confirmar el punto de encuentro**. |
-| **Asociaciones** | Ver las asociaciones registradas y registrar una nueva (razón social, NIT con dígito de verificación, RNT, tipo, municipio DANE, correo y celular de contacto). |
-| **Personas** | **Buscar a una persona** por correo exacto o por tipo y número de documento exactos; desde el resultado, **Convertir en anfitrión** o **Acreditar como gestor** (eliges la asociación y, para el gestor, la fecha de acreditación). Ver el historial de roles. Dos listas: **Gestores de enlace** (con **Suspender**, **Reactivar** y **Revocar**) y **Anfitriones**. |
-| **Auditoría** | Consultar la bitácora por módulo, acción, severidad y fechas; ver el detalle de cada registro; **Exportar CSV**; **Verificar la cadena**. |
+| Resumen | Revisa indicadores, experiencias pendientes de moderación y accesos a las tareas administrativas. |
+| Experiencias | Usa **Nueva experiencia** para registrar una. Para moderar, filtra por estado, toca **Gestionar**, revisa el punto de encuentro y elige la acción que corresponda. Si la consola señala que el punto de encuentro es dudoso, verifica la ubicación antes de confirmarla y aprobar la publicación. Si rechazas, suspendes o retiras una experiencia, registra el motivo. |
+| Asociaciones | Usa **Nueva asociación** para registrarla o **Gestionar** para consultar y modificar una existente. |
+| Personas | Elige la pestaña de rol y usa **Nuevo usuario**, **Nuevo gestor** o **Nuevo anfitrión**, según corresponda. Para una cuenta existente, busca por correo exacto o documento completo y revisa las acciones disponibles. Si asignas un rol, pide a la persona que vuelva a ingresar. |
+| Incidentes | Filtra los incidentes de sincronización y abre el detalle. Cuando corresponda, usa **Resolver** o **Descartar** y registra la nota de cierre. |
+| Liquidaciones | Filtra y abre el detalle del lote para consultar su estado y sus dispersiones. Si está pendiente de confirmación, puedes usar **Conciliar lote** con conexión. Consulta el comprobante cuando esté disponible. |
+| Auditoría | Filtra la bitácora, abre los registros, exporta CSV o verifica la cadena. |
+| Mi cuenta | Consulta tu perfil y cierra sesión. |
 
-Reglas que conviene saber:
+### 6.2 Acceso por rol
 
-- **Rechazar, suspender y retirar piden un motivo.** El anfitrión lo lee y queda en el historial. Retirar no se puede deshacer.
-- **Un punto de encuentro dudoso bloquea la aprobación.** Si las coordenadas no coinciden con la dirección, la consola lo avisa. Confírmalo solo si conoces el lugar; si no, rechaza la experiencia para que el anfitrión lo corrija.
-- **Todo queda registrado.** Cada consulta, exportación y verificación de la bitácora genera a su vez un registro de auditoría.
-- **La búsqueda de personas es exacta.** Escribe el correo o el documento completo: no hay búsqueda parcial ni autocompletado. Al buscar por documento, el correo del resultado sale parcialmente oculto. Las cuentas de anfitriones enrolados por un gestor (con correo interno `@comunidad.integrate.co`) no se encuentran por correo; se encuentran por documento o en la lista de anfitriones.
-- **Hay un límite de 20 búsquedas por minuto.** Si lo superas, la consola te lo dice y debes esperar un momento.
-- **El rol llega al siguiente ingreso.** Tras convertir en anfitrión o acreditar a un gestor, la persona ve su nuevo rol cuando vuelva a ingresar. Al revocar a un gestor, su sesión abierta puede seguir válida hasta 15 minutos.
-- **Revocar no se puede deshacer.** Suspender sí se puede reactivar.
-- **Consultar personas queda registrado.** Cada búsqueda, detalle o lista de personas deja una entrada en la bitácora, sin guardar el correo ni el documento que buscaste.
-
-### 6.2 Secciones de otros roles
-
-Si un Administrador o Anfitrión abre una sección reservada a otro rol, como `/gestor`, ve **«Esta sección no está disponible para tu cuenta»** y el botón **Ir al inicio**.
-
-<p align="center"><img src="img/22-pantalla-esta-seccion-no-esta-disponible.jpg" alt="Pantalla Esta sección no está disponible para tu cuenta con botón Ir al inicio." width="300"><br><em>Sin acceso</em></p>
+Si ves **Esta sección no está disponible para tu cuenta**, toca **Ir al inicio**. Si necesitas esa sección para tu trabajo, pide al equipo de Intégrate que revise tu rol.
 
 ## 7. Mensajes y problemas frecuentes
 
@@ -331,9 +341,11 @@ Si un Administrador o Anfitrión abre una sección reservada a otro rol, como `/
 | «El código no es válido, venció o ya se usó». | (Anfitrión) Pide a tu gestor que emita un código nuevo; el anterior deja de servir. |
 | «Esta sección no está disponible para tu cuenta». | Tu rol no tiene acceso. Si crees que deberías tenerlo, pide al equipo de Intégrate que revise tus permisos. |
 
-## 8. Registro de la prueba del flujo
+## 8. Registro histórico de la prueba del flujo
 
 Prueba manual realizada el **16 de octubre de 2026** en el entorno local (PWA en `localhost:5173`, API Spring Boot en `localhost:8081` con perfil `dev`, PostgreSQL, LocalStack y Mailpit en Docker), con la semilla de datos de prueba, en vista móvil de 375 × 812 px.
+
+Estos resultados corresponden al recorrido de octubre. Las instrucciones añadidas en noviembre se cotejaron con las pantallas y rutas del proyecto.
 
 | Rol | Paso | Resultado |
 | :--- | :--- | :--- |
@@ -353,4 +365,4 @@ Prueba manual realizada el **16 de octubre de 2026** en el entorno local (PWA en
 | Turista | Vista de escritorio del catálogo (1280 px) | Correcto |
 | Turista | Pago rechazado, vencimiento de los 15 min, descarga del PDF del voucher | No probado en esta pasada |
 
-Intégrate · Turismo comunitario en Colombia. Manual generado a partir de la aplicación en la rama `feature/fase-1-mvp-transaccional`. Las capturas usan datos ficticios de la semilla de desarrollo.
+Intégrate · Turismo comunitario en Colombia. Las capturas ilustran el recorrido de octubre con datos ficticios y pueden mostrar una interfaz anterior.
