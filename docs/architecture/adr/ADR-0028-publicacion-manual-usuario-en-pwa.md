@@ -9,17 +9,17 @@ El proyecto dispone de un manual de usuario integral en [`docs/manual/manual-usu
 Se requiere que este manual esté publicado en la web y accesible para docentes, evaluadores y usuarios en general, sin incurrir en costos de infraestructura, sin riesgo de que el servicio se suspenda por inactividad y garantizando su disponibilidad tanto en la demostración en la nube como en el entorno local de desarrollo.
 
 ## Decisión
-Publicar el manual de usuario **directamente como un activo estático dentro de la PWA** (`frontend-pwa/public/manual/index.html`):
+Publicar el manual de usuario **directamente como un activo estático dentro de la PWA**, servido en `/manual/`:
 
-1. **Empaquetado transparente con Vite:**
-   Vite copia todo el contenido del directorio `frontend-pwa/public/` directamente a `dist/` durante el empaquetado (`npm run build`) sin procesarlo a través del pipeline de JavaScript, generando `dist/manual/index.html`.
+1. **Empaquetado con Vite desde una sola fuente (enmienda 2026-11-11):**
+   El plugin `integrate-manual` de `frontend-pwa/vite.config.ts` lee `docs/manual/manual-usuario.html` (y su `favicon.svg`): en `npm run dev` lo sirve en `/manual/` y en `npm run build` lo emite como `dist/manual/index.html` sin pasarlo por el pipeline de JavaScript. Ya no existen copias versionadas en `frontend-pwa/public/manual/` ni en `docs/manual/index.html`, que además habían divergido de la fuente (logo, favicon y la dirección de la app solo estaban en la copia publicada).
 2. **Disponibilidad universal y persistente:**
    - En la demo desplegada en **Cloudflare Pages** (ADR-0024), el manual queda accesible de forma pública y permanente en:
      `https://integrate-demo.pages.dev/manual/`
    - En el entorno local de desarrollo (`npm run dev`), queda accesible de inmediato en:
      `http://localhost:5173/manual/`
 3. **Mantenimiento y trazabilidad:**
-   La fuente canónica del documento continúa siendo [`docs/manual/manual-usuario.html`](../../manual/manual-usuario.html). Se conserva además una copia idéntica en [`docs/manual/index.html`](../../manual/index.html) para permitir que cualquier servidor estático alternativo (como Render Static Site o GitHub Pages) pueda servirlo directamente en la raíz de dicha carpeta si se requiere en el futuro.
+   La fuente única del documento es [`docs/manual/manual-usuario.html`](../../manual/manual-usuario.html); editarla basta para que el siguiente build publique el cambio. Incorpora el logo y el favicon de Intégrate (icono incrustado, válido también al abrirlo como archivo suelto) y menciona tanto la dirección local como la de la demostración. Se retiró la copia `docs/manual/index.html`; quien necesite servirlo como sitio estático alterno puede usar `dist/manual/` tras el build.
 4. **Acceso ergonómico desde la interfaz:**
    Integrar un enlace accesible en los pies de página de la aplicación (`DesktopShell` y `MobileShell`) que abra el manual en una pestaña nueva mediante `<a href="/manual/" target="_blank" rel="noopener noreferrer">Manual de usuario ↗</a>`, cumpliendo con las directivas de contraste WCAG AAA y áreas táctiles de `docs/rules/frontend-rules.md` (FE-DIR-001).
 
@@ -37,19 +37,17 @@ Publicar el manual de usuario **directamente como un activo estático dentro de 
   - **Cero impacto en rendimiento:** Al ser un archivo estático independiente fuera del bundle JS principal (`index.js`), el peso de la PWA no se incrementa y la descarga de 1.3 MB solo ocurre cuando el usuario decide abrir el manual.
 - **Negativas / Riesgos asumidos:**
   - El archivo autocontenido pesa ~1.3 MB debido a las imágenes embebidas. Su carga inicial depende de la conexión del usuario, aunque una vez descargado queda cacheado por el navegador.
-  - Toda modificación en `docs/manual/manual-usuario.html` debe replicarse en `frontend-pwa/public/manual/index.html`.
+  - El build de la PWA depende de `../docs/manual/`: el despliegue debe hacerse desde el repositorio completo (el CI y Cloudflare Pages clonan todo), no solo desde `frontend-pwa/`. Si falta la fuente, el build falla con un mensaje explícito.
 
 ## Contrato o Esquema Conceptual
 ```mermaid
 flowchart TD
     subgraph Repo [Repositorio integrate]
-        DOCS["docs/manual/manual-usuario.html<br/>(Fuente canónica)"]
-        PUB["frontend-pwa/public/manual/index.html<br/>(Activo público)"]
-        DOCS -.->|Sincronización| PUB
+        DOCS["docs/manual/manual-usuario.html<br/>(Fuente única)"]
     end
 
     subgraph Build [Vite Build]
-        PUB -->|npm run build| DIST["dist/manual/index.html"]
+        DOCS -->|plugin integrate-manual| DIST["dist/manual/index.html"]
     end
 
     subgraph Hosting [Cloudflare Pages CDN]

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Manual de usuario · Intégrate</title>
 <meta name="description" content="Manual de usuario de la PWA Intégrate para los roles Turista, Gestor de Enlace, Anfitrión comunitario y Administrador.">
+<meta name="theme-color" content="#14532d">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314532d'/%3E%3Cpath d='M9 23 16 9l7 14z' fill='%23fef3c7'/%3E%3C/svg%3E">
 <style>
   :root {
     --brand: #14532d;
@@ -74,7 +76,9 @@
     padding: 28px 16px 32px;
   }
   header.top .wrap { max-width: 1120px; margin: 0 auto; }
-  header.top p.kicker { margin: 0 0 4px; font-weight: 600; letter-spacing: .02em; opacity: .9; }
+  .brand-badge { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .brand-logo { width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; box-shadow: 0 0 0 1px rgba(254, 243, 199, 0.4); }
+  header.top p.kicker { margin: 0; font-weight: 600; letter-spacing: .02em; opacity: .9; }
   header.top h1 { margin: 0; font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1.15; }
   header.top p.lead { margin: 10px 0 0; max-width: 60ch; font-size: 1.05rem; opacity: .95; }
   header.top .meta { margin-top: 14px; font-size: .9rem; opacity: .9; }
@@ -151,7 +155,13 @@
 
 <header class="top">
   <div class="wrap">
-    <p class="kicker">Intégrate · Turismo comunitario en Colombia</p>
+    <div class="brand-badge">
+      <svg class="brand-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect width="32" height="32" rx="6" fill="#14532d"/>
+        <path d="M9 23 16 9l7 14z" fill="#fef3c7"/>
+      </svg>
+      <p class="kicker">Intégrate · Turismo comunitario en Colombia</p>
+    </div>
     <h1>Manual de usuario</h1>
     <p class="lead">Cómo usar la aplicación según tu rol: Turista, Gestor de Enlace, Anfitrión comunitario y Administrador. Cada paso se verificó recorriendo el flujo real en la aplicación.</p>
     <p class="meta">Versión: Fase 1 · MVP transaccional · Revisado el 16 de octubre de 2026</p>
@@ -201,7 +211,7 @@
       <h3>Qué necesitas</h3>
       <ul>
         <li>Un navegador actualizado (Chrome, Edge, Firefox o Safari).</li>
-        <li>La dirección de la aplicación. En el entorno local de desarrollo es <code>http://localhost:5173</code>.</li>
+        <li>La dirección de la aplicación. En el entorno local de desarrollo es <code>http://localhost:5173</code>; en la demostración publicada, <code>https://integrate-demo.pages.dev</code>.</li>
         <li>Una cuenta. Los turistas la crean solos; los anfitriones la reciben de su Gestor de Enlace.</li>
       </ul>
 
