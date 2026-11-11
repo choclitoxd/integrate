@@ -113,14 +113,19 @@ Los mensajes de commit deben seguir la estructura:
 
 Para el desarrollo del proyecto se utiliza **GitHub Flow con ramas de feature cortas**:
 
-- **`main`:** Rama protegida de producción. Refleja el estado estable y desplegable.
-- **`develop` (o tronco central de desarrollo):** Rama de integración de las fases en curso.
+- **`main`:** Rama protegida de producción (Hetzner, ADR-0027). Refleja el estado estable y desplegable.
+- **`pruebas`:** Rama de integración y entorno de pruebas (SnapDeploy con base propia, ADR-0027/ADR-0031). Todo cambio pasa por aquí antes de llegar a `main`.
 - **`feature/<id-tarea>-<nombre-corto>`:** Ramas de trabajo para cada requerimiento (ej. `feature/T-0.4-backend-bootstrap`).
 - **`hotfix/<nombre>`:** Correcciones críticas sobre producción.
 
 ### Flujo de Integración:
-1. Crear rama desde `develop`: `git checkout -b feature/T-0.4-backend-bootstrap develop`
+1. Crear rama desde `pruebas`: `git checkout -b feature/T-0.4-backend-bootstrap pruebas`
 2. Desarrollar la subtarea, validar aceptación localmente y actualizar `PROJECT_STATUS.md`.
 3. Comitear siguiendo Conventional Commits: `git commit -m "feat(backend): [T-0.4] ..."`
 4. Hacer push: `git push -u origin feature/T-0.4-backend-bootstrap`
-5. Abrir Pull Request hacia `develop` para revisión y validación de checks automáticos.
+5. Abrir Pull Request hacia `pruebas` para revisión, checks automáticos y prueba en el entorno de pruebas.
+6. Verificado en pruebas, abrir Pull Request de `pruebas` hacia `main` para producción.
+
+### Higiene de ramas:
+- Una rama `feature/*`, `chore/*` o `hotfix/*` se borra (local y en GitHub) en cuanto se fusiona.
+- En GitHub solo viven de forma permanente `main` y `pruebas`.

@@ -90,20 +90,40 @@ export default defineConfig(({ mode }) => {
   // sin HTTPS la sesión no sobrevive a una recarga. El backend y la cookie no cambian.
   const devHttps = process.env.PWA_DEV_HTTPS === '1';
 
-  const serveManualPlugin = {
-    name: 'serve-manual',
-    configureServer(server: {
-      middlewares: {
-        use: (fn: (req: { url?: string }, res: unknown, next: () => void) => void) => void;
-      };
-    }) {
-      server.middlewares.use((req, _res, next) => {
-        const path = req.url?.split('?')[0];
-        if (path === '/manual' || path === '/manual/') {
-          req.url = '/manual/index.html';
+  // ADR-0028: el manual tiene una sola fuente, docs/manual/manual-usuario.html. En desarrollo se sirve
+  // desde ahí y en el build se emite en dist/manual/, así la PWA lo publica en /manual/ sin una copia
+  // versionada en public/. El build necesita el repositorio completo (no solo frontend-pwa/).
+  const manualDir = fileURLToPath(new URL('../docs/manual/', import.meta.url));
+  const manualFiles: Record<string, { source: string; type: string }> = {
+    'manual/index.html': { source: 'manual-usuario.html', type: 'text/html; charset=utf-8' },
+    'manual/favicon.svg': { source: 'favicon.svg', type: 'image/svg+xml' },
+  };
+  const readManualFile = (source: string): Buffer => {
+    const path = manualDir + source;
+    if (!existsSync(path)) {
+      throw new Error(`Falta ${path}: el manual se publica desde docs/manual/ (ADR-0028).`);
+    }
+    return readFileSync(path);
+  };
+  const manualPlugin: Plugin = {
+    name: 'integrate-manual',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        let path = req.url?.split('?')[0] ?? '';
+        if (path === '/manual' || path === '/manual/') path = '/manual/index.html';
+        const file = manualFiles[path.slice(1)];
+        if (!file) {
+          next();
+          return;
         }
-        next();
+        res.setHeader('Content-Type', file.type);
+        res.end(readManualFile(file.source));
       });
+    },
+    generateBundle() {
+      for (const [fileName, file] of Object.entries(manualFiles)) {
+        this.emitFile({ type: 'asset', fileName, source: readManualFile(file.source) });
+      }
     },
   };
 
@@ -111,7 +131,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
-      serveManualPlugin,
+      manualPlugin,
       buildServiceWorkerPlugin(),
       ...(devHttps ? [basicSsl()] : []),
     ],
