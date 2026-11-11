@@ -153,6 +153,15 @@ export function LoginPage() {
           Crea una gratis
         </Link>
       </p>
+      <p className="text-ink-muted">
+        ¿Tu gestor te dio un código de activación?{' '}
+        <Link
+          to="/activar"
+          className="inline-flex min-h-11 items-center font-semibold text-brand underline underline-offset-4"
+        >
+          Activa tu cuenta
+        </Link>
+      </p>
     </>
   );
 }

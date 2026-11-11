@@ -30,6 +30,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,7 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import com.integrate.modules.booking.service.BookingCancellations;
+import com.integrate.modules.booking.service.BookingPayments;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -79,6 +84,15 @@ class BookingCancellationApiIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private BookingPayments bookingPayments;
+
+    @Autowired
+    private BookingCancellations bookingCancellations;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private String adminToken;
     private String hostToken;
@@ -299,6 +313,28 @@ class BookingCancellationApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     // ----------------------------------------------------------------------- concurrencia
+
+    /**
+     * Determinista: reproduce el orden que hacía intermitente la prueba de abajo. La transacción ya cargó la reserva
+     * (la verificación de dueño de {@code cancel}), otra transacción confirma el canje mientras ella espera el
+     * bloqueo, y {@code lock} debe devolver lo que dejó esa otra transacción, no la copia que ya tenía en memoria.
+     */
+    @Test
+    void lockingTheBookingSeesWhatAnotherTransactionCommittedWhileItWaited() throws Exception {
+        Paid paid = paidBooking(1);
+        UUID bookingId = UUID.fromString(paid.bookingId);
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            assertThat(bookingPayments.find(bookingId).orElseThrow().status()).isEqualTo("CONFIRMED");
+            // Otra transacción (otro hilo, su propia conexión) deja la reserva en EXECUTED y confirma.
+            CompletableFuture.runAsync(() -> jdbc.update(
+                    "UPDATE booking.bookings SET status = 'EXECUTED' WHERE id = ?::uuid", paid.bookingId)).join();
+
+            assertThat(bookingCancellations.lock(bookingId).orElseThrow().status())
+                    .as("el bloqueo debe reponer el estado confirmado por la otra transacción")
+                    .isEqualTo("EXECUTED");
+        });
+    }
 
     @Test
     void cancellingAndRedeemingAtTheSameTimeLeaveOneConsistentWinner() throws Exception {

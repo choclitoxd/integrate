@@ -26,7 +26,7 @@ interface Tab {
 const UPCOMING_TAB: Tab = { key: 'proximas', scope: 'upcoming', label: 'Próximas' };
 const TABS: readonly Tab[] = [
   UPCOMING_TAB,
-  { key: 'realizadas', scope: 'past', label: 'Realizadas' },
+  { key: 'realizadas', scope: 'past', label: 'Historial' },
 ];
 
 type Tone = 'success' | 'warning' | 'muted';
@@ -222,7 +222,7 @@ function BookingList({
   );
 }
 
-/** Contenido de "Mis experiencias" (T-1.14b, ADR-0023 §2): próximas y realizadas, con acceso al voucher. */
+/** Contenido de "Mis experiencias" (T-1.14b, ADR-0023 §2): próximas e historial (incluye canceladas y pagos que no se completaron), con acceso al voucher. */
 export function MyBookingsSection() {
   const [params, setParams] = useSearchParams();
   const active = TABS.find((tab) => tab.key === params.get('tab')) ?? UPCOMING_TAB;
@@ -267,7 +267,7 @@ export function MyBookingsSection() {
     <section aria-label="Mis experiencias" className="mt-5">
       <div
         role="tablist"
-        aria-label="Próximas y realizadas"
+        aria-label="Próximas e historial"
         className="grid grid-cols-2 gap-2 md:max-w-sm"
       >
         {TABS.map((tab, index) => {

@@ -8,6 +8,8 @@ import com.integrate.modules.booking.repository.BookingRepository;
 import com.integrate.modules.booking.service.BookingCancellations;
 import com.integrate.modules.booking.service.model.CancellableBooking;
 import com.integrate.modules.catalog.service.SlotInventory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
@@ -29,12 +31,20 @@ class BookingCancellationsImpl implements BookingCancellations {
     private final BookingCancellationRepository cancellations;
     private final SlotInventory slotInventory;
     private final StatusReasonContext statusReason;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Optional<CancellableBooking> lock(UUID bookingId) {
-        return bookings.findByIdForUpdate(bookingId).map(b -> new CancellableBooking(b.getId(), b.getTouristId(),
-                b.getScheduleId(), b.getStatus().name(), b.getSlotsCount(), b.getTotalAmountCop()));
+        return bookings.findByIdForUpdate(bookingId).map(b -> {
+            // Una consulta con bloqueo no repone el estado de una entidad que la transacción ya había cargado (la
+            // verificación de dueño de la cancelación la carga antes de esperar el bloqueo del voucher). Si mientras
+            // tanto el canje dejó la reserva en EXECUTED, sin recargarla se vería CONFIRMED y la cancelación chocaría
+            // con la protección de la base: un 500 en lugar del 409. Se recarga ya con el bloqueo tomado.
+            entityManager.refresh(b, LockModeType.PESSIMISTIC_WRITE);
+            return new CancellableBooking(b.getId(), b.getTouristId(), b.getScheduleId(), b.getStatus().name(),
+                    b.getSlotsCount(), b.getTotalAmountCop());
+        });
     }
 
     @Override
