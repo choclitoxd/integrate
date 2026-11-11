@@ -122,6 +122,7 @@ export async function downloadAndStoreRoster(
     generatedAt: response.generatedAt,
     associationId: response.associationId,
     revocationsWatermark: response.revocations.watermark,
+    revocationsCheckedAt: response.generatedAt,
     voucherCount: response.vouchers.length,
   };
   updateOfflineMeta({ rosterMeta: meta });
@@ -167,6 +168,7 @@ export async function refreshRevocationDelta(
       rosterMeta: {
         ...currentMeta.rosterMeta,
         revocationsWatermark: response.watermark ?? currentMeta.rosterMeta.revocationsWatermark,
+        revocationsCheckedAt: new Date().toISOString(),
       },
     });
   }

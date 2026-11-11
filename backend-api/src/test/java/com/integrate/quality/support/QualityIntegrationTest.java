@@ -109,7 +109,7 @@ public abstract class QualityIntegrationTest extends PostgresIntegrationTest {
     protected String registerTourist() {
         String email = uniqueEmail("turista-calidad");
         registrationService.registerTourist(tourist(email, uniqueDocNumber(), new ConsentAcceptance(DEV_POLICY,
-                Set.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.HEALTH_EMERGENCY))), CLIENT);
+                Set.of(ConsentPurpose.PERSONAL_DATA))), CLIENT);
         return email;
     }
 
@@ -208,7 +208,7 @@ public abstract class QualityIntegrationTest extends PostgresIntegrationTest {
         StringBuilder participants = new StringBuilder();
         for (int i = 0; i < slots; i++) {
             participants.append(i == 0 ? "" : ",").append("""
-                    {"fullName":"Participante %d","docType":"CC","docNumber":"40940%05d","medicalEps":"Sura","isHolder":%s}"""
+                    {"fullName":"Participante %d","docType":"CC","docNumber":"40940%05d","isHolder":%s}"""
                     .formatted(i, i, i == 0));
         }
         return """

@@ -132,9 +132,13 @@ export function registerAssisted(
 export function listManagedHosts(
   http: HttpClient,
   page: number,
+  name: string,
+  activation: string,
   signal?: AbortSignal,
 ): Promise<ManagedHostPage> {
   const query = new URLSearchParams({ page: String(page), size: String(HOSTS_PAGE_SIZE) });
+  if (name) query.set('name', name);
+  if (activation) query.set('activation', activation);
   return http.request<ManagedHostPage>(
     `/v1/gestor/hosts?${query.toString()}`,
     signal ? { signal } : {},

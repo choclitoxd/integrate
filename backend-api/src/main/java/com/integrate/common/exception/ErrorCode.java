@@ -12,6 +12,8 @@ public enum ErrorCode {
 
     // --- Protocolo (type: about:blank) -------------------------------------
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, null, "Bad Request"),
+    SYNC_INCIDENT_TRANSITION_CONFLICT(HttpStatus.CONFLICT, "sync-incident-transition-conflict",
+            "Sync Incident Transition Conflict"),
 
     // --- Transversales -------------------------------------------------------
     VALIDATION_FAILED(HttpStatus.UNPROCESSABLE_CONTENT, "validation-failed", "Validation Failed"),
@@ -21,6 +23,9 @@ public enum ErrorCode {
     IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "idempotency-key-reused", "Idempotency Key Reused"),
 
     // --- Auth ----------------------------------------------------------------
+    AUTH_PASSWORD_CHANGE_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "password-change-rate-limited", "Too Many Attempts"),
+    AUTH_REAUTH_REQUIRED(HttpStatus.FORBIDDEN, "reauth-required", "Reauthentication Required"),
+    AUTH_REAUTH_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "reauth-rate-limited", "Too Many Attempts"),
     AUTH_INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "invalid-credentials", "Invalid Credentials"),
     AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "authentication-required", "Authentication Required"),
     AUTH_REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "refresh-token-invalid", "Refresh Token Invalid"),
@@ -30,6 +35,9 @@ public enum ErrorCode {
     AUTH_ACTIVATION_INVALID(HttpStatus.UNAUTHORIZED, "activation-invalid", "Activation Code Invalid"),
     AUTH_RESET_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "reset-token-invalid", "Password Reset Token Invalid"),
     PRIVACY_POLICY_NOT_PUBLISHED(HttpStatus.NOT_FOUND, "privacy-policy-not-published", "Privacy Policy Not Published"),
+    ADMIN_CONSENT_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "admin-consent-required", "Consent Required"),
+    ADMIN_PRIVACY_POLICY_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "admin-privacy-policy-unavailable",
+            "Privacy Policy Unavailable"),
 
     // --- Enrolamiento asistido (ADR-0007) ------------------------------------
     ENROLLMENT_MANAGER_NOT_ACTIVE(HttpStatus.FORBIDDEN, "manager-not-active", "Link Manager Not Active"),
@@ -47,6 +55,7 @@ public enum ErrorCode {
     BOOKING_INSUFFICIENT_SLOTS(HttpStatus.CONFLICT, "insufficient-slots", "Insufficient Available Slots"),
     BOOKING_SCHEDULE_NOT_BOOKABLE(HttpStatus.CONFLICT, "schedule-not-bookable", "Schedule Not Bookable"),
     CONSENT_HEALTH_EMERGENCY_REQUIRED(HttpStatus.PRECONDITION_REQUIRED, "consent-required", "Consent Required"),
+    HEALTH_EPS_UNAVAILABLE(HttpStatus.FORBIDDEN, "health-eps-unavailable", "EPS Unavailable"),
 
     // --- Payments ------------------------------------------------------------
     WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "webhook-signature-invalid", "Webhook Signature Invalid"),
@@ -70,6 +79,7 @@ public enum ErrorCode {
     // --- Offline (ADR-0032) --------------------------------------------------
     OFFLINE_DEVICE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "device-not-authorized", "Device Not Authorized"),
     OFFLINE_DEVICE_OWNED_BY_OTHER(HttpStatus.CONFLICT, "device-owned-by-other", "Device Owned By Another Manager"),
+    ADMIN_LOOKUP_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "admin-lookup-rate-limited", "Too Many Lookups"),
     AUDIT_EXPORT_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "audit-export-too-large", "Audit Export Too Large"),
     OFFLINE_ROSTER_TOO_LARGE(HttpStatus.UNPROCESSABLE_CONTENT, "roster-too-large", "Roster Too Large"),
     SYNC_BATCH_PAYLOAD_MISMATCH(HttpStatus.CONFLICT, "sync-batch-payload-mismatch", "Sync Batch Payload Mismatch");

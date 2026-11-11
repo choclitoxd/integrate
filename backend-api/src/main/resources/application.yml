@@ -65,6 +65,8 @@ spring:
           time_zone: UTC
 
 integrate:
+  auth:
+    admin-consent-enforcement-enabled: ${INTEGRATE_AUTH_ADMIN_CONSENT_ENFORCEMENT_ENABLED:false}
   # --- Sesión (ADR-0005 §2): llave RSA ≥ 2048 PKCS#8 PEM en Base64; sin default (fail-fast)
   jwt:
     signing-key: ${JWT_SIGNING_KEY}
@@ -90,6 +92,8 @@ integrate:
       current-version: ${SENSITIVE_DATA_KEY_CURRENT_VERSION:1}
       keys:
         1: ${SENSITIVE_DATA_KEY_V1}
+        # Siguiente versión para la rotación (ADR-0046); sin valor no se declara.
+        2: ${SENSITIVE_DATA_KEY_V2:}
   # --- Documentos sensibles en S3 (ADR-0007 §5): endpoint y credenciales estáticas solo en local
   #     (LocalStack); vacías = cadena por defecto del SDK (rol IAM en despliegue).
   storage:
@@ -178,8 +182,26 @@ server:
     include-binding-errors: never
 
 logging:
-  # traceId publicado en el MDC por TraceIdFilter (ADR-0003); se inserta en el patrón por defecto.
+  structured:
+    format:
+      console: ecs
+  # traceId publicado en el MDC por TraceIdFilter (ADR-0003); ECS lo conserva como campo MDC.
   pattern:
     correlation: "[%X{traceId:-}] "
   level:
     root: INFO
+
+management:
+  endpoints:
+    web:
+      base-path: /api/v1
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+      path-mapping:
+        health: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never

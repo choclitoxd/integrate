@@ -6,9 +6,11 @@ import com.integrate.modules.catalog.entity.Municipality;
 import com.integrate.modules.catalog.entity.Schedule;
 import com.integrate.modules.catalog.repository.DepartmentRepository;
 import com.integrate.modules.catalog.repository.ExperienceRepository;
+import com.integrate.modules.catalog.repository.ExperienceStopRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
 import com.integrate.modules.catalog.repository.ScheduleRepository;
 import com.integrate.modules.catalog.service.ScheduleDirectory;
+import com.integrate.modules.catalog.service.model.OperationalLocation;
 import com.integrate.modules.catalog.service.model.ScheduleSummary;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ public class ScheduleDirectoryImpl implements ScheduleDirectory {
 
     private final ScheduleRepository scheduleRepository;
     private final ExperienceRepository experienceRepository;
+    private final ExperienceStopRepository experienceStopRepository;
     private final MunicipalityRepository municipalityRepository;
     private final DepartmentRepository departmentRepository;
 
@@ -61,6 +64,24 @@ public class ScheduleDirectoryImpl implements ScheduleDirectory {
                     schedule.getStartTime(), schedule.getEndTime(), experience.getTimezone()));
         }
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<OperationalLocation> operationalLocation(UUID scheduleId) {
+        return scheduleRepository.findById(scheduleId).map(schedule -> {
+            Experience experience = experienceRepository.findById(schedule.getExperienceId())
+                    .orElseThrow(() -> new IllegalStateException("Schedule " + scheduleId + " has no experience"));
+            boolean trusted = experience.getMeetingPointCheckStatus().coordinatesTrusted()
+                    && experience.getLatitude() != null && experience.getLongitude() != null;
+            List<OperationalLocation.Stop> stops = experienceStopRepository
+                    .findByExperienceIdOrderByPositionAsc(experience.getId()).stream()
+                    .map(stop -> new OperationalLocation.Stop(stop.getPosition(), stop.getName(), stop.getDescription()))
+                    .toList();
+            return new OperationalLocation(experience.getMeetingPoint(),
+                    trusted ? experience.getLatitude() : null, trusted ? experience.getLongitude() : null, trusted,
+                    stops);
+        });
     }
 
     @Override

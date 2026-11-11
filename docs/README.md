@@ -77,6 +77,25 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [0036](architecture/adr/ADR-0036-infraestructura-offline-pwa-workbox-indexeddb.md) | Configurar la infraestructura offline de la PWA con Workbox e IndexedDB (`IntegrateOfflineDB`) | Aceptado |
 | [0037](architecture/adr/ADR-0037-padron-validacion-qr-contingencia-y-sincronizacion-pwa.md) | Implementar la descarga preventiva del padrón, validación criptográfica QR con Web Crypto, anti-doble canje local, contingencia manual y sincronización diferida en la PWA | Aceptado |
 | [0038](architecture/adr/ADR-0038-correo-sintetico-opaco-rol-gestor-revocado-y-firma-del-pdf.md) | Correo sintético opaco, rol del gestor revocado y firma del PDF (hallazgos de la prueba de ciclo de vida) | Aceptado |
+| [0039](architecture/adr/ADR-0039-proteger-identidad-y-punto-de-encuentro.md) | Protección del documento, celular y punto de encuentro (H-01) | Aceptado |
+| [0040](architecture/adr/ADR-0040-publicar-politica-y-exigir-consentimiento-inicial.md) | Política accesible y consentimiento inicial (H-02) | Aceptado |
+| [0041](architecture/adr/ADR-0041-respaldar-y-restaurar-postgresql.md) | Respaldo externo y restauración de PostgreSQL (H-03) | Aceptado |
+| [0042](architecture/adr/ADR-0042-consola-de-administracion-con-shell-propio.md) | Consola de administración con shell propio (H-09); Fase 1 implementada | Aceptado |
+| [0043](architecture/adr/ADR-0043-consola-de-administracion-fase-2-personas-incidentes-y-liquidaciones.md) | Consola de administración, Fase 2: Personas, Incidentes y Liquidaciones | Aceptado |
+| [0044](architecture/adr/ADR-0044-integrar-administracion-en-appshell-con-identidad-verde.md) | Integrar el panel de administración en `AppShell` con la identidad visual verde y navegación exclusiva de rol (sin Explorar ni Mis experiencias) | Aceptado |
+| [0045](architecture/adr/ADR-0045-completar-y-validar-la-consola-de-administracion.md) | Completar Incidentes y Liquidaciones, corregir la navegación móvil y validar la consola | Aceptado |
+| [0046](architecture/adr/ADR-0046-cifrar-identidad-y-gestionar-cuenta-propia.md) | Completar la protección de identidad y gestionar la cuenta propia | Propuesto |
+| [0051](architecture/adr/ADR-0051-automatizar-controles-de-calidad-y-proteger-ramas.md) | Automatizar controles de calidad y proteger ramas (H-06) | Aceptado |
+| [0052](architecture/adr/ADR-0052-endurecer-el-despliegue-de-la-pwa.md) | Endurecer el despliegue de la PWA (H-07) | Aceptado |
+| [0053](architecture/adr/ADR-0053-observar-salud-y-fallos-de-la-aplicacion.md) | Observar disponibilidad y fallos de la aplicación (H-10) | Aceptado |
+| [0054](architecture/adr/ADR-0054-unificar-la-solicitud-de-informacion-de-salud.md) | Unificar información de salud en la aplicación (H-14) | Aceptado |
+| [0055](architecture/adr/ADR-0055-validar-rendimiento-en-entorno-desplegado.md) | Validar rendimiento en un entorno desplegado (H-16) | Propuesto |
+| [0060](architecture/adr/ADR-0060-consulta-eps-titular-por-anfitrion.md) | Restringir la consulta de EPS al anfitrión de la experiencia | Aceptado |
+| [0062](architecture/adr/ADR-0062-cuenta-por-rol-y-pagina-de-edicion-separada.md) | Cuenta con ruta por rol y edición en una página separada | Aceptado |
+| [0061](architecture/adr/ADR-0061-operacion-anfitrion-gestor-y-metricas.md) | Completar la operación del anfitrión y del gestor de enlace por entregas | Aceptado |
+| [0064](architecture/adr/ADR-0064-anfitrion-y-gestor-tambien-son-turistas.md) | Todo anfitrión y gestor de enlace es también turista (rol `TOURIST`) | Aceptado |
+
+El [procedimiento de respaldo y recuperación](despliegue/respaldo-postgresql.md) documenta la operación y el simulacro local de ADR-0041.
 
 ## Calidad
 
@@ -85,6 +104,7 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [Plan de Gestión de la Calidad v1.10](quality/) | Documento Word del plan (`1.1 Integrate Plan de Gestión de la Calidad del Proyecto v1.10.docx`). |
 | [Matriz de trazabilidad RNF](quality/matriz-trazabilidad-rnf.md) | Relación entre cada RNF, su prueba y su evidencia. |
 | [Evidencias métricas](quality/evidencias-metricas.md) | Informe generado por la suite (no editar a mano). |
+| [Auditoría de TejiendoHogar](quality/auditoria-tejiendohogar.md) | Informe original en PDF y acceso a la matriz de seguimiento. |
 | [Guía de pruebas del ciclo de vida por rol](quality/guion-pruebas-ciclo-de-vida.md) | Prueba manual de cada rol (visitante, turista, administrador, gestor, anfitrión) en computador y celular, con la causa probable de cada error. |
 
 ## Reglas del equipo
@@ -95,3 +115,4 @@ general y el inicio rápido, vea el [README principal](../README.md).
 | [Directiva de frontend](rules/frontend-rules.md) | FE-DIR-001 | Cualquier cambio en la PWA. |
 | [Flujo de Git](rules/git-workflow.md) | GIT-WF-001 | Ramas, commits, push y Pull Requests. |
 | [Política de secretos](security/security_secrets_policy.md) | SEC-DIR-004 | Código, configuración, commits y GitHub Actions. |
+

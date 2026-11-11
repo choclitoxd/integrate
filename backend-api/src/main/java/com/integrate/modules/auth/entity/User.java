@@ -5,10 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -29,7 +28,6 @@ import org.hibernate.annotations.DynamicUpdate;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, length = 254, columnDefinition = PgDomains.EMAIL)
@@ -45,11 +43,35 @@ public class User {
     @Column(name = "doc_type", nullable = false, length = 3, columnDefinition = PgDomains.DOC_TYPE)
     private DocType docType;
 
-    @Column(name = "doc_number", nullable = false, length = 20, columnDefinition = PgDomains.DOC_NUMBER)
+    @Transient
     private String docNumber;
 
-    @Column(nullable = false, length = 16, columnDefinition = PgDomains.PHONE_E164)
+    @Transient
     private String phone;
+
+    @Column(name = "doc_number_enc", columnDefinition = PgDomains.CIPHERTEXT)
+    private byte[] encryptedDocument;
+
+    @Column(name = "doc_key_version")
+    private Short documentKeyVersion;
+
+    @Column(name = "document_index")
+    private byte[] documentIndex;
+
+    @Column(name = "document_index_version")
+    private Short documentIndexVersion;
+
+    @Column(name = "document_index_next")
+    private byte[] nextDocumentIndex;
+
+    @Column(name = "document_index_next_version")
+    private Short nextDocumentIndexVersion;
+
+    @Column(name = "phone_enc", columnDefinition = PgDomains.CIPHERTEXT)
+    private byte[] encryptedPhone;
+
+    @Column(name = "phone_key_version")
+    private Short phoneKeyVersion;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -77,6 +99,7 @@ public class User {
     public static User register(String email, String passwordHash, String fullName, DocType docType,
                                 String docNumber, String phone) {
         User user = new User();
+        user.id = UUID.randomUUID();
         user.email = email;
         user.passwordHash = passwordHash;
         user.fullName = fullName;
@@ -88,6 +111,31 @@ public class User {
         return user;
     }
 
+    public void protectDocument(byte[] encrypted, short keyVersion, byte[] index, short indexVersion) {
+        this.encryptedDocument = encrypted;
+        this.documentKeyVersion = keyVersion;
+        this.documentIndex = index;
+        this.documentIndexVersion = indexVersion;
+    }
+
+    public void protectPhone(byte[] encrypted, short keyVersion) {
+        this.encryptedPhone = encrypted;
+        this.phoneKeyVersion = keyVersion;
+    }
+
+    public void prepareNextDocumentIndex(byte[] index, short indexVersion) {
+        this.nextDocumentIndex = index;
+        this.nextDocumentIndexVersion = indexVersion;
+    }
+
+    public void updateFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void updateDocType(DocType docType) {
+        this.docType = docType;
+    }
+
     /**
      * Anfitrión registrado por un gestor (ADR-0007 §3): {@code PENDING_RESET} con un hash de un secreto
      * aleatorio que nadie conoce. No puede iniciar sesión hasta activar la cuenta.
@@ -96,6 +144,15 @@ public class User {
                                             DocType docType, String docNumber, String phone) {
         User user = register(email, unusablePasswordHash, fullName, docType, docNumber, phone);
         user.credentialStatus = CredentialStatus.PENDING_RESET;
+        return user;
+    }
+
+    public static User identityForAnonymization(UUID id) {
+        User user = new User();
+        user.id = id;
+        user.docType = DocType.PA;
+        user.docNumber = "ANON" + id.toString().replace("-", "").substring(0, 16);
+        user.phone = "+10000000000";
         return user;
     }
 

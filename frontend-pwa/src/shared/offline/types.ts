@@ -167,6 +167,7 @@ export interface RosterDownloadMeta {
   readonly generatedAt: string;
   readonly associationId: string;
   readonly revocationsWatermark: string | null;
+  readonly revocationsCheckedAt?: string;
   readonly voucherCount: number;
 }
 

@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,6 +37,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -319,7 +323,16 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
                  WHERE revoked_at IS NULL AND role_id = (SELECT id FROM auth.roles WHERE code = 'ADMIN')""");
         registrationService.bootstrapAdmin(new AdminBootstrapCommand(adminEmail, PASSWORD, "Admin de prueba",
                 DocType.PA, uniqueDocNumber(), "+10000000000"));
-        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken(adminEmail)))
+        String adminAuthorization = "Bearer " + accessToken(adminEmail);
+        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, adminAuthorization))
+                .andExpect(status().isPreconditionRequired())
+                .andExpect(jsonPath("$.code").value("ADMIN_CONSENT_REQUIRED"));
+        mvc.perform(post("/api/v1/me/consents").header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"policyVersion":"%s","purposes":["PERSONAL_DATA"]}""".formatted(DEV_POLICY)))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, adminAuthorization))
                 .andExpect(status().isOk());
     }
 
@@ -352,6 +365,132 @@ class AuthApiIntegrationTest extends PostgresIntegrationTest {
         Object anonymous = transactionTemplate.execute(s -> entityManager
                 .createNativeQuery(ACTOR_SQL).getSingleResult());
         assertThat(anonymous).isNull();
+    }
+
+    private static final String REAUTH_HEADER = "X-Reauth-Token";
+
+    private String reauthToken(String bearer) throws Exception {
+        String body = mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + bearer)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return JsonPath.read(body, "$.reauthToken");
+    }
+
+    @Test
+    void ownProfileIsAuthenticatedAndCannotSelectAnotherAccount() throws Exception {
+        mvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
+        String first = accessToken(registerTourist());
+        String second = accessToken(registerTourist());
+        // Editar los datos propios no pide confirmar la contraseña (ADR-0062); cambiarla sí.
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Nombre editado\",\"phone\":\"+573001111111\"}"))
+                .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
+                .andExpect(jsonPath("$.fullName").value("Nombre editado"));
+        mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + second))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Carlos Restrepo"));
+        mvc.perform(patch("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"A\",\"phone\":\"bad\"}"))
+                .andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void ownPasswordChangeRequiresRecentPasswordConfirmation() throws Exception {
+        String first = accessToken(registerTourist());
+        String second = accessToken(registerTourist());
+        String body = "{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"nueva-clave-"
+                + UUID.randomUUID() + "\"}";
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"incorrecta\"}"))
+                .andExpect(status().isUnprocessableContent());
+        String token = reauthToken(first);
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, "token-inventado").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + second)
+                        .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + first)
+                        .header(REAUTH_HEADER, token).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void reauthIsLockedAfterFiveWrongPasswords() throws Exception {
+        String token = accessToken(registerTourist());
+        for (int attempt = 0; attempt < 5; attempt++) {
+            mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"incorrecta\"}"))
+                    .andExpect(status().isUnprocessableContent());
+        }
+        mvc.perform(post("/api/v1/auth/me/reauth").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists(HttpHeaders.RETRY_AFTER));
+    }
+
+    @Test
+    void ownPasswordRequiresCurrentValueAndRevokesRefresh() throws Exception {
+        String email = registerTourist();
+        MvcResult login = mvc.perform(login(email, PASSWORD)).andExpect(status().isOk()).andReturn();
+        String token = JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+        Cookie cookie = login.getResponse().getCookie("refresh_token");
+        String next = "nueva-clave-" + UUID.randomUUID();
+        String reauth = reauthToken(token);
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"incorrecta\",\"newPassword\":\"" + next + "\"}"))
+                .andExpect(status().isUnprocessableContent());
+        mvc.perform(post("/api/v1/auth/me/password").header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + next + "\"}"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")));
+        mvc.perform(post("/api/v1/auth/refresh").cookie(cookie)).andExpect(status().isUnauthorized());
+        mvc.perform(login(email, PASSWORD)).andExpect(status().isUnauthorized());
+        mvc.perform(login(email, next)).andExpect(status().isOk());
+    }
+
+    @Test
+    void concurrentRefreshCannotSurvivePasswordChange() throws Exception {
+        String email = registerTourist();
+        MvcResult login = mvc.perform(login(email, PASSWORD)).andExpect(status().isOk()).andReturn();
+        String token = JsonPath.read(login.getResponse().getContentAsString(), "$.accessToken");
+        Cookie cookie = login.getResponse().getCookie("refresh_token");
+        String next = "nueva-clave-" + UUID.randomUUID();
+        CountDownLatch start = new CountDownLatch(1);
+        CompletableFuture<MvcResult> refresh = CompletableFuture.supplyAsync(() -> {
+            try {
+                start.await();
+                return mvc.perform(post("/api/v1/auth/refresh").cookie(cookie)).andReturn();
+            } catch (Exception ex) { throw new RuntimeException(ex); }
+        });
+        CompletableFuture<MvcResult> change = CompletableFuture.supplyAsync(() -> {
+            try {
+                start.await();
+                return mvc.perform(post("/api/v1/auth/me/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .header(REAUTH_HEADER, reauthToken(token)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"" + next + "\"}"))
+                        .andReturn();
+            } catch (Exception ex) { throw new RuntimeException(ex); }
+        });
+        start.countDown();
+        MvcResult changed = change.get(30, TimeUnit.SECONDS);
+        MvcResult refreshed = refresh.get(30, TimeUnit.SECONDS);
+        assertThat(changed.getResponse().getStatus()).isEqualTo(204);
+        assertThat(refreshed.getResponse().getStatus()).isIn(200, 401);
+        if (refreshed.getResponse().getStatus() == 200) {
+            mvc.perform(post("/api/v1/auth/refresh").cookie(refreshed.getResponse().getCookie("refresh_token")))
+                    .andExpect(status().isUnauthorized());
+        }
+        mvc.perform(post("/api/v1/auth/refresh").cookie(cookie)).andExpect(status().isUnauthorized());
     }
 
     // ---------------------------------------------------------------- helpers

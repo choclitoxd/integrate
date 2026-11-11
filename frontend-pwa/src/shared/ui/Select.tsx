@@ -341,7 +341,7 @@ export function Select({
               }}
               onKeyDown={handleInputKeyDown}
               onBlur={closeMenu}
-              className={`w-full rounded-lg border-2 bg-canvas pr-10 pl-10 text-base text-ink placeholder:text-ink-subtle hover:bg-surface-subtle aria-expanded:border-brand disabled:border-border-subtle disabled:bg-surface-subtle disabled:text-ink-muted ${sizeClass} ${borderClass}`}
+              className={`w-full rounded-lg border-2 bg-canvas pr-10 pl-10 text-base text-ink placeholder:text-ink-subtle hover:bg-surface-subtle aria-expanded:border-brand focus:border-brand focus:outline-none focus-visible:outline-none focus-visible:shadow-none disabled:border-border-subtle disabled:bg-surface-subtle disabled:text-ink-muted ${sizeClass} ${borderClass}`}
             />
             {/* La flecha abre y cierra el menú; no se enfoca con Tab (el campo ya hace todo con teclado). */}
             <button
@@ -401,7 +401,7 @@ export function Select({
                 swallowClick.current = false;
               }, 0);
             }}
-            className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 bg-canvas px-3 text-left text-base text-ink hover:bg-surface-subtle aria-expanded:border-brand disabled:border-border-subtle disabled:bg-surface-subtle disabled:text-ink-muted ${sizeClass} ${borderClass}`}
+            className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 bg-canvas px-3 text-left text-base text-ink hover:bg-surface-subtle aria-expanded:border-brand focus:border-brand focus:outline-none focus-visible:outline-none focus-visible:shadow-none disabled:border-border-subtle disabled:bg-surface-subtle disabled:text-ink-muted ${sizeClass} ${borderClass}`}
           >
             <span className="min-w-0 truncate">
               {options[selectedIndex]?.shortLabel ?? selectedLabel}

@@ -27,7 +27,7 @@ class BookingRequestHasher {
                 strip(request.emergencyContact().fullName()), strip(request.emergencyContact().phone()),
                 request.participants().stream()
                         .map(p -> new CanonicalParticipant(strip(p.fullName()), p.docType().name(),
-                                strip(p.docNumber()), strip(p.medicalEps()), p.isHolder()))
+                                strip(p.docNumber()), BookingLockServiceImpl.normalizedEps(p.medicalEps()), p.isHolder()))
                         .toList());
         byte[] json = jsonMapper.writeValueAsString(canonical).getBytes(StandardCharsets.UTF_8);
         try {

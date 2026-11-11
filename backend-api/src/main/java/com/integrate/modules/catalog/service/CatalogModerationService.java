@@ -1,19 +1,31 @@
 package com.integrate.modules.catalog.service;
 
 import com.integrate.common.payload.PageResponse;
+import com.integrate.modules.catalog.dto.request.ExperienceRequest;
 import com.integrate.modules.catalog.dto.response.HostExperienceResponse;
 import com.integrate.modules.catalog.entity.ExperienceStatus;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Moderación del catálogo por el administrador (RF-07, RF-08, ADR-0006 §4). Cada transición queda en
+ * Moderación del catálogo por el administrador (RF-07, RF-08, ADR-0006 §4, ADR-0047 §1). Cada transición queda en
  * {@code catalog.experience_status_history} con el actor y el motivo. Una transición no permitida → 409.
  */
 public interface CatalogModerationService {
 
     /** {@code status} nulo = todas. La cola de revisión es {@code PENDING_REVIEW}. */
     PageResponse<HostExperienceResponse> list(ExperienceStatus status, Pageable pageable);
+
+    /**
+     * Crea una experiencia a nombre de un anfitrión y la deja en revisión (ADR-0048 §2).
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code RESOURCE_NOT_FOUND} (404) si el perfil de
+     *         anfitrión no existe; {@code VALIDATION_FAILED} (422)
+     */
+    HostExperienceResponse create(UUID hostProfileId, ExperienceRequest request, UUID adminUserId);
+
+    /** Actualiza los datos de una experiencia sin alterar su estado de publicación (ADR-0047 §1). */
+    HostExperienceResponse update(UUID experienceId, ExperienceRequest request, UUID adminUserId);
 
     HostExperienceResponse approve(UUID experienceId);
 

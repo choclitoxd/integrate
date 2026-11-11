@@ -103,6 +103,7 @@ La base de accesibilidad es muy buena: **ninguna de las 14 pantallas revisadas t
 - El router solo tiene rutas de turista y de gestor. No hay pantallas para que un anfitrión cree experiencias ni para que un administrador las apruebe.
 - **Impacto:** las cuentas `tester.anfitrion` y `tester.admin` solo sirven por la API. La descripción de la experiencia de ejemplo dice «puede editarla desde su cuenta», lo cual hoy no es cierto.
 - **Arreglo:** dejarlo explícito en `docs/despliegue/demo-gratuita.md` (§5) y planear esas pantallas en la fase siguiente.
+- **Estado (2026-11-09):** resuelto en parte. El Administrador tiene consola propia en `/admin` (ADR-0042 y ADR-0043: moderación, asociaciones, personas y auditoría). Sigue pendiente el portal del Anfitrión.
 
 ---
 

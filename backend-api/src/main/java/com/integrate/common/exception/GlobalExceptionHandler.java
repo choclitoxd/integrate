@@ -157,7 +157,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (hasSqlState(ex, POSTGRES_LOCK_NOT_AVAILABLE)) {
             return handleLockTimeout(ex, request);
         }
-        log.error("Unhandled exception", ex);
+        log.atError()
+                .addKeyValue("event", "application.unhandled_exception")
+                .addKeyValue("error.type", ex.getClass().getName())
+                .log("Unhandled application exception");
         // Sin detail ni code: nunca se exponen detalles internos (server.error.include-*: never).
         ProblemDetail body = ProblemDetail.forStatus(500);
         return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatusCode.valueOf(500), request);

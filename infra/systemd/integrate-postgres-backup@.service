@@ -1,0 +1,17 @@
+[Unit]
+Description=Respaldo cifrado PostgreSQL Intégrate (%i)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=integrate-backup
+Group=integrate-backup
+EnvironmentFile=/etc/integrate/backup/%i.conf
+ExecStart=/bin/bash /opt/integrate/infra/scripts/backup-postgres.sh %i
+TimeoutStartSec=2h
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

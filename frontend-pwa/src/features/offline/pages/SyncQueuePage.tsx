@@ -255,6 +255,13 @@ export function SyncQueuePage() {
                       {validation.syncMessage ?? outbox?.lastError}
                     </p>
                   )}
+                  {(isConflict || isRejected) && (
+                    <p className="mt-2 text-sm text-ink-muted">
+                      {isConflict
+                        ? 'Revisa el resultado conciliado. Contacta a soporte si no coincide con lo ocurrido.'
+                        : 'Revisa el motivo antes de intentar otro envío. Contacta a soporte si necesitas corregir el registro.'}
+                    </p>
+                  )}
                 </li>
               );
             })}

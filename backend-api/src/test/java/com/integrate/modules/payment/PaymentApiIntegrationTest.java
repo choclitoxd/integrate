@@ -125,7 +125,7 @@ class PaymentApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.provider").value("MOCK_GATEWAY"))
                 .andExpect(jsonPath("$.amountCop").value(2 * PRICE))
                 .andExpect(jsonPath("$.currency").value("COP"))
-                .andExpect(jsonPath("$.bookingExpiresAt").value("2026-10-05T12:15:00Z"))
+                .andExpect(jsonPath("$.bookingExpiresAt").value(START.plusSeconds(900).toString()))
                 .andExpect(jsonPath("$.checkout.type").value("MOCK"))
                 .andReturn().getResponse().getContentAsString(), "$.paymentId");
 
@@ -455,7 +455,7 @@ class PaymentApiIntegrationTest extends PostgresIntegrationTest {
         StringBuilder participants = new StringBuilder();
         for (int i = 0; i < slots; i++) {
             participants.append(i == 0 ? "" : ",").append("""
-                    {"fullName":"Participante %d","docType":"CC","docNumber":"20940%05d","medicalEps":"Sura","isHolder":%s}"""
+                    {"fullName":"Participante %d","docType":"CC","docNumber":"20940%05d","isHolder":%s}"""
                     .formatted(i, i, i == 0));
         }
         String body = """
@@ -503,7 +503,7 @@ class PaymentApiIntegrationTest extends PostgresIntegrationTest {
     private String registerTourist() {
         String email = uniqueEmail("turista-pago");
         registrationService.registerTourist(tourist(email, uniqueDocNumber(), new ConsentAcceptance(DEV_POLICY,
-                Set.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.HEALTH_EMERGENCY))), CLIENT);
+                Set.of(ConsentPurpose.PERSONAL_DATA))), CLIENT);
         return email;
     }
 

@@ -11,11 +11,17 @@ export interface PrivacyPolicy {
   readonly documentUrl: string;
   readonly effectiveFrom: string;
   readonly contentSha256: string;
+  readonly healthNotice: {
+    readonly noticeVersion: string;
+    readonly body: string;
+    readonly contentSha256: string;
+  } | null;
 }
 
 export interface ConsentAcceptance {
   readonly policyVersion: string;
   readonly purposes: readonly ConsentPurpose[];
+  readonly healthNoticeVersion?: string;
 }
 
 export interface RegisterRequest {
@@ -56,4 +62,41 @@ export function getMyConsents(http: HttpClient, signal?: AbortSignal): Promise<C
 
 export function grantConsents(http: HttpClient, body: ConsentAcceptance): Promise<ConsentStatus> {
   return http.request<ConsentStatus>('/v1/me/consents', { method: 'POST', body });
+}
+
+export interface AccountProfile {
+  readonly fullName: string;
+  readonly phone: string;
+}
+export function getAccountProfile(http: HttpClient, signal?: AbortSignal): Promise<AccountProfile> {
+  return http.request('/v1/auth/me', signal ? { signal } : {});
+}
+/** Cabecera con la que el servidor reconoce la confirmación de identidad reciente (ADR-0058). */
+const REAUTH_HEADER = 'X-Reauth-Token';
+
+export interface ReauthGrant {
+  readonly reauthToken: string;
+  readonly expiresAt: string;
+}
+/** Confirma la identidad con la contraseña; el token resultante dura unos minutos. */
+export function reauthenticate(http: HttpClient, password: string): Promise<ReauthGrant> {
+  return http.request('/v1/auth/me/reauth', { method: 'POST', body: { password } });
+}
+/** Editar los datos propios no pide confirmar la contraseña (ADR-0062). */
+export function updateAccountProfile(
+  http: HttpClient,
+  body: AccountProfile,
+): Promise<AccountProfile> {
+  return http.request('/v1/auth/me', { method: 'PATCH', body });
+}
+export function changePassword(
+  http: HttpClient,
+  body: { currentPassword: string; newPassword: string },
+  reauthToken: string,
+): Promise<void> {
+  return http.request('/v1/auth/me/password', {
+    method: 'POST',
+    body,
+    headers: { [REAUTH_HEADER]: reauthToken },
+  });
 }

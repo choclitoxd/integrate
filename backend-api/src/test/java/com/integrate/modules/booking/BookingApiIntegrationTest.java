@@ -8,6 +8,7 @@ import static com.integrate.modules.auth.AuthTestData.uniqueDocNumber;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -62,6 +63,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * bloqueo pesimista, idempotencia, consentimiento, cifrado, auditoría, concurrencia y worker TTL.
  */
 @AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(properties = "integrate.privacy.host-eps-approved-policy-version=v0.1")
 class BookingApiIntegrationTest extends PostgresIntegrationTest {
 
     private static final String PROBLEM_JSON = "application/problem+json";
@@ -82,6 +84,9 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private SensitiveDataCipher cipher;
+
+    @Autowired
+    private com.integrate.modules.auth.service.UserDirectory userDirectory;
 
     @Autowired
     private DataSource dataSource;
@@ -134,8 +139,8 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.unitPriceCop").value(80000))
                 .andExpect(jsonPath("$.totalAmountCop").value(160000))
                 .andExpect(jsonPath("$.currency").value("COP"))
-                .andExpect(jsonPath("$.createdAt").value("2026-10-05T12:00:00Z"))
-                .andExpect(jsonPath("$.expiresAt").value("2026-10-05T12:15:00Z"))
+                .andExpect(jsonPath("$.createdAt").value(START.toString()))
+                .andExpect(jsonPath("$.expiresAt").value(START.plusSeconds(900).toString()))
                 .andExpect(jsonPath("$.ttlSecondsRemaining").value(900))
                 .andReturn();
         String bookingId = JsonPath.read(result.getResponse().getContentAsString(), "$.bookingId");
@@ -167,25 +172,12 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void healthDataIsEncryptedAndBoundToItsRow() throws Exception {
-        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 2))
+    void emergencyContactIsEncrypted() throws Exception {
+        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 1))
                 .andExpect(status().isCreated()));
-
-        Map<String, Object> holder = jdbc.queryForMap("""
-                SELECT doc_type, doc_number, eps_enc, sensitive_key_version FROM booking.booking_participants
-                 WHERE booking_id = ?::uuid AND is_holder""", bookingId);
-        byte[] eps = (byte[]) holder.get("eps_enc");
+        Map<String, Object> holder = jdbc.queryForMap("SELECT sensitive_key_version FROM booking.booking_participants WHERE booking_id = ?::uuid AND is_holder", bookingId);
         short version = ((Number) holder.get("sensitive_key_version")).shortValue();
-        String aad = "booking.booking_participants.eps_enc:" + bookingId + ":" + holder.get("doc_type") + ":"
-                + holder.get("doc_number");
-        assertThat(new String(eps, java.nio.charset.StandardCharsets.ISO_8859_1)).doesNotContain("Sura");
-        assertThat(cipher.decrypt(eps, aad, version)).isEqualTo("Sura");
-        assertThatThrownBy(() -> cipher.decrypt(eps, aad.replace(bookingId, UUID.randomUUID().toString()), version))
-                .isInstanceOf(SensitiveDataException.class);
-
-        Map<String, Object> contact = jdbc.queryForMap("""
-                SELECT emergency_contact_name_enc, emergency_contact_phone_enc FROM booking.bookings
-                 WHERE id = ?::uuid""", bookingId);
+        Map<String, Object> contact = jdbc.queryForMap("SELECT emergency_contact_name_enc, emergency_contact_phone_enc FROM booking.bookings WHERE id = ?::uuid", bookingId);
         assertThat(cipher.decrypt((byte[]) contact.get("emergency_contact_phone_enc"),
                 "booking.bookings.emergency_contact_phone_enc:" + bookingId, version)).isEqualTo("+573001234567");
         assertThat(cipher.decrypt((byte[]) contact.get("emergency_contact_name_enc"),
@@ -208,7 +200,7 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.ttlSecondsRemaining").value(600));
         assertThat(availableSlots(scheduleId)).isEqualTo(3);
 
-        lock(touristToken, key, lockBody(scheduleId, 1).replace("Sura", "Sanitas"))
+        lock(touristToken, key, lockBody(scheduleId, 1).replace("Carlos Gómez", "Otro Contacto"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"));
 
@@ -352,15 +344,44 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void healthConsentIsAPrecondition() throws Exception {
-        String email = uniqueEmail("sin-consentimiento");
+    void bookingWithoutApprovedNoticeRejectsEpsButAcceptsNoEps() throws Exception {
+        String scheduleId = schedule(4);
+        lock(touristToken, UUID.randomUUID(), withHolderEps(lockBody(scheduleId, 1), touristId))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("HEALTH_EPS_UNAVAILABLE"));
+        lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 1)).andExpect(status().isCreated());
+    }
+
+    @Test
+    void epsRemainsUnavailableEvenWithConfiguredPolicyAndExistingConsent() throws Exception {
+        String body = withHolderEps(lockBody(schedule(4), 1), touristId);
+        lock(touristToken, UUID.randomUUID(), body).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("HEALTH_EPS_UNAVAILABLE"));
+    }
+
+    @Test
+    void bookingWithoutEpsDoesNotRequireHealthConsentAndNormalizesEmptyValues() throws Exception {
+        String email = uniqueEmail("sin-eps");
         registerTourist(email, false);
-        lock(tokenFor(email), UUID.randomUUID(), lockBody(schedule(4), 1))
-                .andExpect(status().isPreconditionRequired())
-                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
-                .andExpect(jsonPath("$.code").value("CONSENT_HEALTH_EMERGENCY_REQUIRED"))
-                .andExpect(jsonPath("$.requiredPurposes[0]").value("HEALTH_EMERGENCY"))
-                .andExpect(jsonPath("$.policyVersion").value(DEV_POLICY));
+        String body = lockBody(schedule(4), 1).replace("\"medicalEps\":\"\"", "\"medicalEps\":null");
+        UUID key = UUID.randomUUID();
+        String id = bookingIdOf(lock(tokenFor(email), key, body).andExpect(status().isCreated()));
+        assertThat(jdbc.queryForObject("SELECT eps_enc FROM booking.booking_participants WHERE booking_id = ?::uuid",
+                byte[].class, id)).isNull();
+        lock(tokenFor(email), key, body.replace("\"medicalEps\":null", "\"medicalEps\":\"  \""))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void epsForSomeoneOtherThanAuthenticatedTouristIsRejected() throws Exception {
+        lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 1)
+                .replace("\"medicalEps\":\"\"", "\"medicalEps\":\"Sura\""))
+                .andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void companionEpsIsRejected() throws Exception {
+        lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 2).replace("\"medicalEps\":\"\"", "\"medicalEps\":\"Sanitas\""))
+                .andExpect(status().isUnprocessableContent());
     }
 
     @Test
@@ -387,6 +408,188 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isNotFound());
         mvc.perform(get("/api/v1/bookings/" + UUID.randomUUID()).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void hostMetricsCountOwnConfirmedReservationsInBogotaMonth() throws Exception {
+        String scheduleId = schedule(4);
+        String id = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 2))
+                .andExpect(status().isCreated()));
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", id);
+        Instant start = jdbc.queryForObject("SELECT start_time FROM catalog.schedules WHERE id = ?::uuid",
+                java.sql.Timestamp.class, scheduleId).toInstant();
+        String otherEmail = userWithRole("metricas-otro-host", RoleCode.HOST);
+        String email = jdbc.queryForObject("""
+                SELECT u.email FROM auth.users u
+                JOIN catalog.host_profiles h ON h.user_id = u.id
+                JOIN catalog.experiences e ON e.host_id = h.id
+                JOIN catalog.schedules s ON s.experience_id = e.id
+                WHERE s.id = ?::uuid
+                """, String.class, scheduleId);
+        clock.set(start.minusSeconds(60));
+        String month = java.time.YearMonth.from(start.atZone(BOGOTA)).toString();
+        mvc.perform(get("/api/v1/host/metrics").param("month", month)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(email))))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.month").value(month))
+                .andExpect(jsonPath("$.reservations").value(1))
+                .andExpect(jsonPath("$.people").value(2))
+                .andExpect(jsonPath("$.upcoming").value(1))
+                .andExpect(jsonPath("$.upcomingPeople").value(2))
+                .andExpect(jsonPath("$.ranking[0].reservations").value(1))
+                .andExpect(jsonPath("$.ranking[0].people").value(2))
+                // Series de las gráficas (ADR-0063): un día con datos, 12 meses continuos y la ocupación futura.
+                .andExpect(jsonPath("$.daily.length()").value(1))
+                .andExpect(jsonPath("$.daily[0].date").value(start.atZone(BOGOTA).toLocalDate().toString()))
+                .andExpect(jsonPath("$.daily[0].reservations").value(1))
+                .andExpect(jsonPath("$.daily[0].people").value(2))
+                .andExpect(jsonPath("$.monthly.length()").value(12))
+                .andExpect(jsonPath("$.monthly[11].month").value(month))
+                .andExpect(jsonPath("$.monthly[11].reservations").value(1))
+                .andExpect(jsonPath("$.monthly[11].people").value(2))
+                .andExpect(jsonPath("$.monthly[0].reservations").value(0))
+                .andExpect(jsonPath("$.occupancy.slots").value(org.hamcrest.Matchers.greaterThanOrEqualTo(4)))
+                .andExpect(jsonPath("$.occupancy.booked").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));
+        mvc.perform(get("/api/v1/host/metrics")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reservations").value(0))
+                .andExpect(jsonPath("$.ranking").isEmpty())
+                .andExpect(jsonPath("$.daily").isEmpty())
+                .andExpect(jsonPath("$.monthly.length()").value(12))
+                .andExpect(jsonPath("$.monthly[?(@.reservations > 0)]").isEmpty())
+                .andExpect(jsonPath("$.occupancy.slots").value(0))
+                .andExpect(jsonPath("$.occupancy.booked").value(0));
+    }
+
+    @Test
+    void hostCannotReadEpsWithoutEvidenceOfExactNotice() throws Exception {
+        String id = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 1))
+                .andExpect(status().isCreated()));
+        String url = "/api/v1/host/bookings/" + id + "/holder-eps";
+        mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(hostToken))).andExpect(status().isNotFound());
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", id);
+        mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isForbidden()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")));
+        mvc.perform(get("/api/v1/host/bookings").header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].bookingId").value(id))
+                .andExpect(jsonPath("$.items[0].slotsCount").value(1))
+                .andExpect(jsonPath("$.items[0].scheduleBookings").value(1))
+                .andExpect(jsonPath("$.items[0].scheduleSlots").value(1))
+                .andExpect(jsonPath("$.items[0].medicalEps").doesNotExist());
+        mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(touristToken))).andExpect(status().isForbidden());
+        String anotherHost = userWithRole("otro-host", RoleCode.HOST);
+        mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(anotherHost)))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/host/bookings").param("period", "UPCOMING")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(anotherHost))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        mvc.perform(get("/api/v1/host/bookings").param("experience", "título inexistente")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM audit.audit_trail WHERE entity_id = ? AND action = 'SENSITIVE_DATA_ACCESSED'", Long.class, id)).isZero();
+    }
+
+    @Test
+    void hostCannotReadWithoutHealthConsent() throws Exception {
+        String email = uniqueEmail("host-sin-consentimiento");
+        registerTourist(email, false);
+        String id = bookingIdOf(lock(tokenFor(email), UUID.randomUUID(), lockBody(schedule(4), 1))
+                .andExpect(status().isCreated()));
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", id);
+        mvc.perform(get("/api/v1/host/bookings/" + id + "/holder-eps")
+                .header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void hostDoesNotReadEvenWhenHolderDidNotSupplyEps() throws Exception {
+        String id = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(schedule(4), 1))
+                .andExpect(status().isCreated()));
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", id);
+        mvc.perform(get("/api/v1/host/bookings/" + id + "/holder-eps")
+                .header(HttpHeaders.AUTHORIZATION, bearer(hostToken)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void exactMeetingPointIsOnlyForTheOwnersConfirmedBooking() throws Exception {
+        String scheduleId = schedule(4);
+        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 1))
+                .andExpect(status().isCreated()));
+        String meetingPointUrl = "/api/v1/bookings/" + bookingId + "/meeting-point";
+
+        // PENDING: ni el dueño accede al punto exacto antes de confirmar.
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+
+        jdbc.update("UPDATE catalog.experiences SET latitude = 5.123456, longitude = -75.654321, "
+                + "meeting_point_check_status = 'MATCH' WHERE id = ?::uuid", experienceId);
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", bookingId);
+
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.meetingPoint").isString())
+                .andExpect(jsonPath("$.latitude").value(5.123456))
+                .andExpect(jsonPath("$.longitude").value(-75.654321))
+                .andExpect(jsonPath("$.coordinatesTrusted").value(true))
+                .andExpect(jsonPath("$.stops").isEmpty());
+
+        // Coordenadas dudosas: el punto textual sigue, las coordenadas no.
+        jdbc.update("UPDATE catalog.experiences SET meeting_point_check_status = 'MISMATCH' WHERE id = ?::uuid",
+                experienceId);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.latitude").doesNotExist())
+                .andExpect(jsonPath("$.coordinatesTrusted").value(false));
+
+        // Otro turista y un id inexistente responden como inexistente.
+        String otherEmail = uniqueEmail("otro-punto");
+        registerTourist(otherEmail, true);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/bookings/" + UUID.randomUUID() + "/meeting-point")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void confirmedBookingListsTheRouteStopsInOrderWhilePublicDetailKeepsThemHidden() throws Exception {
+        String scheduleId = schedule(4);
+        String bookingId = bookingIdOf(lock(touristToken, UUID.randomUUID(), lockBody(scheduleId, 1))
+                .andExpect(status().isCreated()));
+        String meetingPointUrl = "/api/v1/bookings/" + bookingId + "/meeting-point";
+        // Se insertan fuera de orden: la respuesta debe ordenarlas por posición (ADR-0049).
+        jdbc.update("INSERT INTO catalog.experience_stops (experience_id, position, name, description) "
+                + "VALUES (?::uuid, 2, 'Beneficiadero', 'Proceso del café')", experienceId);
+        jdbc.update("INSERT INTO catalog.experience_stops (experience_id, position, name, description) "
+                + "VALUES (?::uuid, 1, 'Mirador del cafetal', 'Vista del paisaje')", experienceId);
+
+        // PENDING: ni el dueño ve las paradas antes de confirmar.
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isNotFound());
+
+        jdbc.update("UPDATE booking.bookings SET status = 'CONFIRMED' WHERE id = ?::uuid", bookingId);
+
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(touristToken)))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+                .andExpect(jsonPath("$.stops.length()").value(2))
+                .andExpect(jsonPath("$.stops[0].position").value(1))
+                .andExpect(jsonPath("$.stops[0].name").value("Mirador del cafetal"))
+                .andExpect(jsonPath("$.stops[0].description").value("Vista del paisaje"))
+                .andExpect(jsonPath("$.stops[1].position").value(2))
+                .andExpect(jsonPath("$.stops[1].name").value("Beneficiadero"));
+
+        // Otro turista no accede, y la ficha pública sigue sin paradas (ADR-0046 §1).
+        String otherEmail = uniqueEmail("otro-paradas");
+        registerTourist(otherEmail, true);
+        mvc.perform(get(meetingPointUrl).header(HttpHeaders.AUTHORIZATION, bearer(tokenFor(otherEmail))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/experiences/" + experienceId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stops").isEmpty());
     }
 
     // ------------------------------------------------------------- worker TTL
@@ -504,11 +707,17 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
         String participants = String.join(",", IntStream.range(0, slots).mapToObj(i -> """
                 {"fullName":"Participante %d","docType":"CC","docNumber":"%s","medicalEps":"%s","isHolder":%s}"""
                 .formatted(i, i == 0 ? "1094000111" : i == 1 ? "1094000222" : "10940003" + (10 + i),
-                        i == 0 ? "Sura" : "Sanitas", i == 0)).toList());
+                        "", i == 0)).toList());
         return """
                 {"scheduleId":"%s","requestedSlots":%d,
                  "emergencyContact":{"fullName":"Carlos Gómez","phone":"+573001234567"},
                  "participants":[%s]}""".formatted(scheduleId, slots, participants);
+    }
+
+    private String withHolderEps(String body, UUID userId) {
+        var account = userDirectory.findAccount(userId).orElseThrow();
+        return body.replace("1094000111", account.docNumber())
+                .replaceFirst("\"medicalEps\":\"\"", "\"medicalEps\":\"Sura\"");
     }
 
     private int availableSlots(String scheduleId) {
@@ -521,9 +730,7 @@ class BookingApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     private UUID registerTourist(String email, boolean healthConsent) {
-        ConsentAcceptance consent = new ConsentAcceptance(DEV_POLICY, healthConsent
-                ? java.util.Set.of(ConsentPurpose.PERSONAL_DATA, ConsentPurpose.HEALTH_EMERGENCY)
-                : java.util.Set.of(ConsentPurpose.PERSONAL_DATA));
+        ConsentAcceptance consent = new ConsentAcceptance(DEV_POLICY, java.util.Set.of(ConsentPurpose.PERSONAL_DATA));
         return registrationService.registerTourist(tourist(email, uniqueDocNumber(), consent), CLIENT).userId();
     }
 

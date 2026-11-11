@@ -10,6 +10,7 @@ import com.integrate.modules.auth.service.model.ClientInfo;
 import com.integrate.modules.auth.service.model.ConsentStatus;
 import com.integrate.modules.auth.service.model.ConsentStatus.PurposeConsent;
 import com.integrate.modules.auth.service.model.ConsentStatus.State;
+import com.integrate.modules.auth.service.model.HealthConsentGrant;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -44,14 +45,39 @@ public class ConsentServiceImpl implements ConsentService {
     @Transactional
     public ConsentStatus grant(UUID userId, ConsentAcceptance acceptance, ClientInfo client) {
         List<RoleCode> roles = userRoleRepository.findActiveRoleCodes(userId);
-        PrivacyPolicy policy = ledger.requireCurrentPolicy(acceptance.policyVersion(), "policyVersion");
+        String noticeVersion = acceptance.healthNoticeVersion();
+        boolean withNotice = noticeVersion != null;
+        if (withNotice) {
+            if (!acceptance.purposes().contains(ConsentPurpose.HEALTH_EMERGENCY)) {
+                throw AuthErrors.invalidField("healthNoticeVersion", "only applies to the HEALTH_EMERGENCY purpose");
+            }
+            // Mismo orden que currentHealthGrant: candado del titular y política retenida antes de leer o insertar.
+            ledger.lockHealthConsent(userId);
+        }
+        PrivacyPolicy policy = withNotice
+                ? ledger.currentPolicyLockedForHealth()
+                        .filter(current -> current.getVersion().equals(acceptance.policyVersion()))
+                        .orElseGet(() -> ledger.requireCurrentPolicy(acceptance.policyVersion(), "policyVersion"))
+                : ledger.requireCurrentPolicy(acceptance.policyVersion(), "policyVersion");
         ledger.requireApplicable(acceptance.purposes(), roles, "purposes");
-        // Idempotente: las finalidades ya vigentes no generan un acto nuevo.
+        if (withNotice) {
+            ledger.requireApprovedNotice(policy, noticeVersion, "healthNoticeVersion");
+        }
+        // Idempotente: las finalidades ya vigentes no generan un acto nuevo. Un acto de salud sin el aviso
+        // pedido no basta: la EPS exige el acto que acredita ese aviso.
         Set<ConsentPurpose> alreadyValid = ledger.status(userId, roles, Optional.of(policy)).purposes().stream()
                 .filter(p -> p.state() == State.VALID)
+                .filter(p -> !withNotice || p.purpose() != ConsentPurpose.HEALTH_EMERGENCY
+                        || noticeVersion.equals(p.healthNoticeVersion()))
                 .map(PurposeConsent::purpose)
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(ConsentPurpose.class)));
-        ledger.insertGrants(userId, policy, acceptance.purposes(), alreadyValid, client);
+        ledger.insertGrants(userId, policy, acceptance.purposes(), alreadyValid, client, noticeVersion);
         return ledger.status(userId, roles, Optional.of(policy));
+    }
+
+    @Override
+    @Transactional
+    public Optional<HealthConsentGrant> currentHealthGrant(UUID userId) {
+        return ledger.currentHealthGrant(userId);
     }
 }

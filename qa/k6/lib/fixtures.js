@@ -2,7 +2,7 @@
 // sistema contra un entorno desechable: nunca contra producción ni contra la base de desarrollo.
 // Credenciales: solo por variables de entorno de k6 (-e), nunca en este archivo (SEC-DIR-004).
 import http from 'k6/http';
-import { check, fail } from 'k6';
+import { check, fail, sleep } from 'k6';
 
 export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const API = `${BASE_URL}/api/v1`;
@@ -117,7 +117,7 @@ export function catalogScenario(schedules, password) {
     'experiencia',
   );
   must(post(`/host/experiences/${experience.id}/submit`, undefined, host), 200, 'envío a revisión');
-  must(post(`/admin/experiences/${experience.id}/approve`, undefined, admin), 200, 'aprobación');
+  approveWhenVerified(experience.id, admin);
 
   const base = new Date();
   const days = [];
@@ -133,13 +133,28 @@ export function catalogScenario(schedules, password) {
   return { experienceId: experience.id, scheduleIds: created.map((s) => s.id), dateFrom: days[0].localStart.slice(0, 10) };
 }
 
+/** La verificación del punto de encuentro es asíncrona (ADR-0030 §4): se reintenta mientras responda 409 sin resultado. */
+function approveWhenVerified(experienceId, admin) {
+  let response;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    response = post(`/admin/experiences/${experienceId}/approve`, undefined, admin);
+    if (response.status !== 409) break;
+    if (String(response.body).includes('does not match')) {
+      // Punto dudoso: el administrador lo confirma (ADR-0030), como haría con una experiencia real.
+      must(post(`/admin/experiences/${experienceId}/meeting-point/confirm`, undefined, admin), 200, 'confirmación del punto');
+    } else if (!String(response.body).includes('not been verified')) break;
+    sleep(1.5);
+  }
+  must(response, 200, 'aprobación');
+}
+
 export function lockBody(scheduleId) {
   return {
     scheduleId,
     requestedSlots: 1,
     emergencyContact: { fullName: 'Carlos Gomez', phone: '+573001234567' },
     participants: [
-      { fullName: 'Participante Uno', docType: 'CC', docNumber: '50940000', medicalEps: 'Sura', isHolder: true },
+      { fullName: 'Participante Uno', docType: 'CC', docNumber: '50940000', isHolder: true },
     ],
   };
 }

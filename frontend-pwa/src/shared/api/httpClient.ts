@@ -8,6 +8,8 @@ export interface RequestOptions {
   readonly body?: unknown;
   readonly headers?: Readonly<Record<string, string>>;
   readonly signal?: AbortSignal;
+  /** `blob` para descargas (p. ej. un CSV): entrega el cuerpo tal cual en vez de leerlo como JSON. */
+  readonly responseType?: 'json' | 'blob';
 }
 
 export interface HttpClientOptions {
@@ -37,7 +39,12 @@ const TRACE_ID_HEADER = 'X-Trace-Id';
  * reintentar gastaría intentos. La excepción es el enrolamiento asistido, que va con el token del gestor.
  */
 function renewsOnUnauthorized(path: string): boolean {
-  return !path.startsWith('/v1/auth/') || path === '/v1/auth/register-assisted';
+  return (
+    !path.startsWith('/v1/auth/') ||
+    path === '/v1/auth/register-assisted' ||
+    path === '/v1/auth/me' ||
+    path === '/v1/auth/me/password'
+  );
 }
 
 function isJson(contentType: string | null): boolean {
@@ -51,7 +58,12 @@ export function createHttpClient({
   fetchImpl = (input, init) => fetch(input, init),
 }: HttpClientOptions): HttpClient {
   async function send(path: string, options: RequestOptions, token: string | null | undefined) {
-    const headers = new Headers({ Accept: 'application/json, application/problem+json' });
+    const headers = new Headers({
+      Accept:
+        options.responseType === 'blob'
+          ? '*/*, application/problem+json'
+          : 'application/json, application/problem+json',
+    });
     for (const [name, value] of Object.entries(options.headers ?? {})) headers.set(name, value);
     if (options.body !== undefined) headers.set('Content-Type', 'application/json');
     if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -88,6 +100,7 @@ export function createHttpClient({
           response.headers.get(TRACE_ID_HEADER),
         );
       }
+      if (options.responseType === 'blob') return (await response.blob()) as T;
       if (response.status === 204 || !isJson(contentType)) return undefined as T;
       return (await response.json()) as T;
     },

@@ -23,6 +23,11 @@ public record ConsentStatus(String currentPolicyVersion, List<PurposeConsent> pu
         return !pendingPurposes.isEmpty();
     }
 
+    public boolean hasCurrentPersonalDataConsent() {
+        return purposes.stream().anyMatch(purpose ->
+                purpose.purpose() == ConsentPurpose.PERSONAL_DATA && purpose.state() == State.VALID);
+    }
+
     /** Versión que el titular debe aceptar, o {@code null} si no hay nada pendiente. */
     public String pendingPolicyVersion() {
         return requiresConsentUpdate() ? currentPolicyVersion : null;
@@ -39,6 +44,11 @@ public record ConsentStatus(String currentPolicyVersion, List<PurposeConsent> pu
         MISSING
     }
 
-    public record PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt) {
+    public record PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt,
+                                 String healthNoticeVersion) {
+
+        public PurposeConsent(ConsentPurpose purpose, State state, String policyVersion, Instant occurredAt) {
+            this(purpose, state, policyVersion, occurredAt, null);
+        }
     }
 }

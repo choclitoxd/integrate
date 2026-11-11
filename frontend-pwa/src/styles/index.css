@@ -92,7 +92,7 @@
   }
 
   /* Hoja inferior (ADR-0012 §6): entrada y salida animadas; la regla de movimiento reducido la anula. */
-  dialog.sheet[open] {
+  dialog.sheet:not(.sheet-center)[open] {
     animation: sheet-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -100,13 +100,39 @@
     animation: backdrop-in 200ms ease-out;
   }
 
-  dialog.sheet.closing {
+  dialog.sheet.closing:not(.sheet-center) {
     animation: sheet-out 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     pointer-events: none;
   }
 
   dialog.sheet.closing::backdrop {
     animation: backdrop-out 260ms ease-out forwards;
+  }
+
+  /* En computador la hoja es un diálogo centrado: aparece con un fundido corto, sin subir desde abajo. */
+  dialog.sheet.sheet-center[open],
+  dialog.sheet-center[open] {
+    animation: dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  dialog.sheet.sheet-center.closing,
+  dialog.sheet-center.closing {
+    animation: dialog-out 200ms ease-in forwards;
+    pointer-events: none;
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.97);
+    }
+  }
+
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.97);
+    }
   }
 
   @keyframes sheet-in {
@@ -144,6 +170,51 @@
     outline: 3px solid var(--color-focus);
     outline-offset: 0;
     box-shadow: 0 0 0 6px var(--color-focus-halo);
+  }
+
+  /*
+   * Casillas y radios: el doble anillo no se suprime, se traslada a la etiqueta que los envuelve, que
+   * es el área táctil completa (FE-DIR-001, Directiva 2.3). Una casilla sin etiqueta que la envuelva
+   * conserva su propio anillo.
+   */
+  label:has(input:is([type='checkbox'], [type='radio']):focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 0;
+    box-shadow: 0 0 0 6px var(--color-focus-halo);
+  }
+
+  label input:is([type='checkbox'], [type='radio']):focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /*
+   * La hoja recibe el foco al abrirse para que ningún control arranque marcado. Es un contenedor no
+   * interactivo (tabindex=-1, fuera del orden de tabulación): no lleva anillo. Sus controles sí.
+   */
+  dialog.sheet:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* Las casillas de verificación y radio usan el acento de marca nativo; no llevan el doble anillo grueso sobre la casilla pequeña */
+  input[type='checkbox']:focus-visible,
+  input[type='radio']:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Campos de texto, selects y controles de formulario: foco limpio con borde de marca, sin el contorno amarillo/negro */
+  input:focus-visible,
+  input:focus,
+  select:focus-visible,
+  select:focus,
+  textarea:focus-visible,
+  textarea:focus,
+  [role='combobox']:focus-visible,
+  [role='combobox']:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -44,7 +44,7 @@ public class BookingParticipant {
     private String docNumber;
 
     @Getter(AccessLevel.NONE)
-    @Column(name = "eps_enc", nullable = false, columnDefinition = PgDomains.CIPHERTEXT)
+    @Column(name = "eps_enc", columnDefinition = PgDomains.CIPHERTEXT)
     private byte[] epsEnc;
 
     @Column(name = "sensitive_key_version", nullable = false)

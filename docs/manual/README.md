@@ -7,7 +7,7 @@ flujo real en la aplicación.
 | Formato | Archivo | Cuándo usarlo |
 | :--- | :--- | :--- |
 | Markdown | [manual-usuario.md](manual-usuario.md) | Leerlo directamente en GitHub o en el editor. Las capturas están en [`img/`](img/). |
-| HTML autocontenido | [manual-usuario.html](manual-usuario.html) | Abrirlo en el navegador, imprimirlo o enviarlo como un solo archivo (las imágenes van embebidas). |
+| HTML autocontenido | [manual-usuario.html](manual-usuario.html) | Abrirlo en el navegador, imprimirlo o enviarlo como un solo archivo (las imágenes van embebidas). Es el mismo que publica la PWA en `/manual/` (ADR-0028). |
 
 ## Contenido
 
@@ -23,7 +23,7 @@ flujo real en la aplicación.
 ## Mantenimiento
 
 - El HTML es la fuente. `manual-usuario.md` y las imágenes de `img/` se generaron a partir de él; si cambia el
-  HTML, regenere ambos para que no diverjan.
+  HTML, regenere ambos para que no diverjan. La PWA lo copia en su build; no hay otra copia que actualizar.
 - Las capturas usan solo datos ficticios de la semilla de desarrollo. Nunca incluya contraseñas, tokens ni
   datos reales de personas (ver [política de secretos](../security/security_secrets_policy.md)).
 - Cuando una funcionalidad nueva llegue a la PWA (por ejemplo, la validación offline de la Etapa 2), añada su

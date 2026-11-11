@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
 import { Link, useBlocker, useNavigate, useSearchParams } from 'react-router';
 
-import { ConsentDialog, useMyConsents } from '@/features/auth';
+import { ConsentDialog, useCurrentPolicy, useMyConsents } from '@/features/auth';
 import {
   catalogKeys,
   MAX_PARTICIPANTS,
@@ -95,6 +95,7 @@ export function BookingFormPage() {
   const { experienceId, scheduleId, people, valid } = parseParams(params);
   const availability = useAvailability(experienceId);
   const consents = useMyConsents();
+  const policy = useCurrentPolicy();
   const session = useSession();
   const http = useHttpClient();
   const queryClient = useQueryClient();
@@ -216,10 +217,16 @@ export function BookingFormPage() {
         setFailure(error);
         return;
       }
-      if (error.status === 428) {
+      if (error.status === 428 && error.code === 'CONSENT_HEALTH_EMERGENCY_REQUIRED') {
         pendingBody.current = body;
         const version = error.problem.policyVersion;
         setConsentFor(typeof version === 'string' ? { policyVersion: version } : {});
+        return;
+      }
+      if (error.code === 'HEALTH_EPS_UNAVAILABLE') {
+        setNotice(
+          'Por ahora no está disponible el tratamiento de la EPS. Déjala vacía para reservar.',
+        );
         return;
       }
       if (error.status === 503 && attempt === 0) {
@@ -266,8 +273,12 @@ export function BookingFormPage() {
     }
     setErrors({});
     const body = toLockRequest(scheduleId, parsed.data);
-    // Precondición HEALTH_EMERGENCY (ADR-0015 §5): se pide antes de enviar; el 428 queda de respaldo.
-    if (healthMissing) {
+    if (body.participants[0]?.medicalEps && !policy.data?.healthNotice) {
+      setNotice('La EPS no está disponible por ahora. Déjala vacía para reservar.');
+      return;
+    }
+    // Solo se solicita autorización si el titular decide proporcionar su EPS.
+    if (body.participants[0]?.medicalEps && healthMissing) {
       pendingBody.current = body;
       setConsentFor({});
       return;
@@ -319,12 +330,17 @@ export function BookingFormPage() {
         </div>
       )}
 
-      {healthMissing && (
+      {
+        <p className="mt-4 text-ink-muted">
+          La EPS no está disponible por ahora. Puedes reservar sin proporcionarla.
+        </p>
+      }
+      {healthMissing && travelers[0]?.medicalEps.trim() && (
         <div className="mt-4 flex items-start gap-2 rounded-xl border-2 border-info-border bg-info-bg px-4 py-3 text-info-text">
           <Icon name="shield" className="mt-0.5" />
           <p>
-            Para reservar necesitamos tu autorización para tratar la EPS y el contacto de
-            emergencia. Te la pediremos al apartar los cupos.
+            Si decides compartir tu EPS, te pediremos autorización al apartar los cupos. Puedes
+            dejarla vacía y continuar.
           </p>
         </div>
       )}
@@ -348,6 +364,7 @@ export function BookingFormPage() {
             total={travelers.length}
             value={traveler}
             epsListId={epsListId}
+            healthNotice={policy.data?.healthNotice?.body}
             errors={errors}
             onChange={(next) => {
               touch();
@@ -359,7 +376,7 @@ export function BookingFormPage() {
         <fieldset className="grid gap-4 rounded-xl border-2 border-border-subtle px-4 pt-2 pb-4">
           <legend className="px-1 text-lg font-bold text-ink">Contacto de emergencia</legend>
           <p className="text-sm text-ink-muted">
-            Alguien que no viaje con el grupo y pueda responder.
+            Alguien que no viaje con el grupo y pueda responder si ocurre una emergencia.
           </p>
           <TextField
             label="Nombre completo"

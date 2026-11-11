@@ -1,11 +1,14 @@
 package com.integrate.security;
 
 import com.integrate.common.web.TraceIdFilter;
+import com.integrate.modules.auth.service.ConsentService;
 import com.integrate.security.jwt.JwtAccessTokenIssuer;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
@@ -15,10 +18,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * Cadena de seguridad de la API (ADR-0005 §1, §5, §9): stateless, deny-by-default, access token
@@ -34,7 +39,12 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain apiSecurityFilterChain(HttpSecurity http, ProblemAuthenticationEntryPoint entryPoint,
-                                               ProblemAccessDeniedHandler accessDeniedHandler) throws Exception {
+                                               ProblemAccessDeniedHandler accessDeniedHandler,
+                                               ConsentService consents,
+                                               @Value("${integrate.auth.admin-consent-enforcement-enabled}")
+                                               boolean enforcementEnabled,
+                                               @Qualifier("handlerExceptionResolver")
+                                               HandlerExceptionResolver exceptionResolver) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -48,6 +58,8 @@ public class SecurityConfig {
                         // Catálogo público (RF-04, ADR-0006 §6): lectura anónima.
                         .requestMatchers(HttpMethod.GET, "/api/v1/experiences", "/api/v1/experiences/*",
                                 "/api/v1/experiences/*/availability", "/api/v1/catalog/**").permitAll()
+                        // Salud pública acotada (ADR-0053): el actuator no revela componentes ni detalles.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
                         // Política de datos vigente: se lee antes de registrarse (ADR-0013 §1).
                         .requestMatchers(HttpMethod.GET, "/api/v1/privacy-policies/current").permitAll()
                         // Paneles por rol; además @PreAuthorize en cada controlador (defensa en profundidad).
@@ -75,6 +87,9 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler));
+        if (enforcementEnabled) {
+            http.addFilterAfter(new AdminConsentFilter(consents, exceptionResolver), AuthorizationFilter.class);
+        }
         return http.build();
     }
 
@@ -97,7 +112,7 @@ public class SecurityConfig {
             cors.setAllowedOrigins(properties.allowedOrigins());
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
             cors.setAllowedHeaders(List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE, "Idempotency-Key",
-                    TraceIdFilter.HEADER));
+                    TraceIdFilter.HEADER, "X-Reauth-Token"));
             cors.setExposedHeaders(List.of(TraceIdFilter.HEADER, HttpHeaders.RETRY_AFTER, HttpHeaders.LOCATION));
             // La cookie refresh_token solo viaja con credenciales.
             cors.setAllowCredentials(true);

@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
             return transactions.rejectLocked(user, email, client);
         }
         boolean matches = passwordEncoder.matches(request.password(), user.getPasswordHash());
-        return transactions.completeLogin(user.getId(), email, matches, client);
+        return transactions.completeLogin(user.getId(), email, matches, user.getPasswordHash(), client);
     }
 
     @Override

@@ -10,6 +10,7 @@ interface TravelerCardProps {
   readonly onChange: (value: TravelerDraft) => void;
   readonly errors: Readonly<Record<string, string>>;
   readonly epsListId: string;
+  readonly healthNotice: string | undefined;
 }
 
 /** Un viajero por tarjeta (ADR-0015 §4). El primero es el titular de la reserva. */
@@ -20,6 +21,7 @@ export function TravelerCard({
   onChange,
   errors,
   epsListId,
+  healthNotice,
 }: TravelerCardProps) {
   const holder = index === 0;
   const prefix = `participants.${String(index)}`;
@@ -67,18 +69,20 @@ export function TravelerCard({
         }}
         error={errors[`${prefix}.docNumber`]}
       />
-      <TextField
-        label="EPS"
-        hint="Para la póliza de turismo. Escribe la EPS o el régimen de salud."
-        name={`${prefix}.medicalEps`}
-        list={epsListId}
-        autoComplete="off"
-        value={value.medicalEps}
-        onChange={(event) => {
-          set({ medicalEps: event.target.value });
-        }}
-        error={errors[`${prefix}.medicalEps`]}
-      />
+      {holder && healthNotice && (
+        <TextField
+          label="EPS (opcional)"
+          hint={healthNotice}
+          name={`${prefix}.medicalEps`}
+          list={epsListId}
+          autoComplete="off"
+          value={value.medicalEps}
+          onChange={(event) => {
+            set({ medicalEps: event.target.value });
+          }}
+          error={errors[`${prefix}.medicalEps`]}
+        />
+      )}
     </fieldset>
   );
 }

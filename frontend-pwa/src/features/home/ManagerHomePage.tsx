@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import { useHttpClient } from '@/shared/api';
+import { formatDateTime, todayInBogota } from '@/shared/lib';
 import { readOfflineMeta, useOfflineStatus } from '@/shared/offline';
 import { Button, Icon, type IconName } from '@/shared/ui';
 
@@ -139,118 +140,135 @@ export function ManagerHomePage() {
         almacenamiento en este teléfono.
       </p>
 
-      <section
-        aria-labelledby="padron-jornada-heading"
-        className="mt-6 rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="padron-jornada-heading" className="text-lg font-bold text-ink">
-            Padrón operativo de la jornada
-          </h2>
-          <Icon name="download" size={20} className="text-brand" />
-        </div>
-
-        <p className="mt-1 text-sm text-ink-muted">
-          {rosterMeta
-            ? `Padrón activo para la fecha ${rosterMeta.rosterDate} (${String(rosterCount)} ${
-                rosterCount === 1 ? 'voucher' : 'vouchers'
-              }).`
-            : 'Aún no has descargado el padrón de reservas de hoy en este dispositivo.'}
-        </p>
-
-        {rosterNotice !== null && (
-          <p
-            role={rosterNotice.tone === 'danger' ? 'alert' : 'status'}
-            className={`mt-3 rounded-lg border-2 px-3 py-2 text-sm font-semibold ${
-              rosterNotice.tone === 'success'
-                ? 'border-success-border bg-success-bg text-success-text'
-                : 'border-danger-border bg-danger-bg text-danger-text'
-            }`}
-          >
-            {rosterNotice.text}
-          </p>
-        )}
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Button
-            type="button"
-            disabled={!online || downloading}
-            onClick={() => void handleDownloadRoster()}
-          >
-            {downloading ? 'Descargando padrón…' : 'Descargar padrón de hoy'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!online || refreshingRevocations}
-            onClick={() => void handleRefreshRevocations()}
-          >
-            {refreshingRevocations ? 'Actualizando…' : 'Actualizar revocaciones'}
-          </Button>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="estado-offline-heading"
-        className="mt-6 rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <h2 id="estado-offline-heading" className="text-lg font-bold text-ink">
-            Almacenamiento en el teléfono
-          </h2>
-          <span className="text-sm font-bold text-ink-muted">
-            {formatMegabytes(diagnostics.usageBytes)} MB / 10 MB
-          </span>
-        </div>
-
-        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-lg border border-border-subtle bg-canvas px-3 py-2">
-            <dt className="text-ink-muted">Padrón en dispositivo</dt>
-            <dd className="mt-0.5 text-base font-bold text-ink">
-              {rosterCount} {rosterCount === 1 ? 'voucher' : 'vouchers'}
-            </dd>
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <section
+          aria-labelledby="padron-jornada-heading"
+          className="rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="padron-jornada-heading" className="text-lg font-bold text-ink">
+              Padrón operativo de la jornada
+            </h2>
+            <Icon name="download" size={20} className="text-brand" />
           </div>
-          <div className="rounded-lg border border-border-subtle bg-canvas px-3 py-2">
-            <dt className="text-ink-muted">Por sincronizar</dt>
-            <dd className="mt-0.5 text-base font-bold text-ink">
-              {pendingOutboxCount} {pendingOutboxCount === 1 ? 'pendiente' : 'pendientes'}
-            </dd>
+
+          <p className="mt-1 text-sm text-ink-muted">
+            {rosterMeta
+              ? `${rosterMeta.rosterDate === todayInBogota() ? 'Padrón de hoy' : 'Padrón de otra fecha'}: ${rosterMeta.rosterDate} (${String(rosterCount)} ${
+                  rosterCount === 1 ? 'voucher' : 'vouchers'
+                }).`
+              : 'Aún no has descargado el padrón de reservas de hoy en este dispositivo.'}
+          </p>
+          {rosterMeta && (
+            <div className="mt-2 grid gap-1 text-sm text-ink-muted">
+              <p>Generado: {formatDateTime(Date.parse(rosterMeta.generatedAt))}</p>
+              <p>
+                Última consulta de cancelaciones:{' '}
+                {rosterMeta.revocationsCheckedAt
+                  ? formatDateTime(Date.parse(rosterMeta.revocationsCheckedAt))
+                  : 'Sin fecha registrada'}
+              </p>
+              <p>
+                Las ventas y cancelaciones posteriores a la descarga pueden faltar. Actualiza el
+                padrón cuando tengas conexión.
+              </p>
+            </div>
+          )}
+
+          {rosterNotice !== null && (
+            <p
+              role={rosterNotice.tone === 'danger' ? 'alert' : 'status'}
+              className={`mt-3 rounded-lg border-2 px-3 py-2 text-sm font-semibold ${
+                rosterNotice.tone === 'success'
+                  ? 'border-success-border bg-success-bg text-success-text'
+                  : 'border-danger-border bg-danger-bg text-danger-text'
+              }`}
+            >
+              {rosterNotice.text}
+            </p>
+          )}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Button
+              type="button"
+              disabled={!online || downloading}
+              onClick={() => void handleDownloadRoster()}
+            >
+              {downloading ? 'Descargando padrón…' : 'Descargar padrón de hoy'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!online || refreshingRevocations}
+              onClick={() => void handleRefreshRevocations()}
+            >
+              {refreshingRevocations ? 'Actualizando…' : 'Actualizar revocaciones'}
+            </Button>
           </div>
-        </dl>
+        </section>
 
-        {diagnostics.persisted === false && (
-          <p
-            role="status"
-            className="mt-3 flex items-start gap-2 rounded-lg border-2 border-warning-border bg-warning-bg px-3 py-2 text-sm font-semibold text-warning-text"
-          >
-            <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
-            <span>
-              Almacenamiento volátil: libera espacio en el teléfono para evitar que el navegador
-              borre el padrón desconectado.
+        <section
+          aria-labelledby="estado-offline-heading"
+          className="rounded-xl border-2 border-border-subtle bg-surface px-4 py-4"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="estado-offline-heading" className="text-lg font-bold text-ink">
+              Almacenamiento en el teléfono
+            </h2>
+            <span className="text-sm font-bold text-ink-muted">
+              {formatMegabytes(diagnostics.usageBytes)} MB / 10 MB
             </span>
-          </p>
-        )}
+          </div>
 
-        {diagnostics.nearLimit && (
-          <p
-            role="alert"
-            className="mt-3 flex items-start gap-2 rounded-lg border-2 border-danger-border bg-danger-bg px-3 py-2 text-sm font-semibold text-danger-text"
-          >
-            <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
-            <span>
-              El espacio local está cerca del límite de 10 MB. Conéctate a la red para sincronizar y
-              depurar registros antiguos.
-            </span>
-          </p>
-        )}
-      </section>
+          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg border border-border-subtle bg-canvas px-3 py-2">
+              <dt className="text-ink-muted">Padrón en dispositivo</dt>
+              <dd className="mt-0.5 text-base font-bold text-ink">
+                {rosterCount} {rosterCount === 1 ? 'voucher' : 'vouchers'}
+              </dd>
+            </div>
+            <div className="rounded-lg border border-border-subtle bg-canvas px-3 py-2">
+              <dt className="text-ink-muted">Por sincronizar</dt>
+              <dd className="mt-0.5 text-base font-bold text-ink">
+                {pendingOutboxCount} {pendingOutboxCount === 1 ? 'pendiente' : 'pendientes'}
+              </dd>
+            </div>
+          </dl>
 
-      <ul className="mt-6 grid gap-3">
+          {diagnostics.persisted === false && (
+            <p
+              role="status"
+              className="mt-3 flex items-start gap-2 rounded-lg border-2 border-warning-border bg-warning-bg px-3 py-2 text-sm font-semibold text-warning-text"
+            >
+              <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
+              <span>
+                Almacenamiento volátil: libera espacio en el teléfono para evitar que el navegador
+                borre el padrón desconectado.
+              </span>
+            </p>
+          )}
+
+          {diagnostics.nearLimit && (
+            <p
+              role="alert"
+              className="mt-3 flex items-start gap-2 rounded-lg border-2 border-danger-border bg-danger-bg px-3 py-2 text-sm font-semibold text-danger-text"
+            >
+              <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
+              <span>
+                El espacio local está cerca del límite de 10 MB. Conéctate a la red para sincronizar
+                y depurar registros antiguos.
+              </span>
+            </p>
+          )}
+        </section>
+      </div>
+
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SHORTCUTS.map((item) => (
           <li key={item.to}>
             <Link
               to={item.to}
-              className="flex min-h-11 items-start gap-3 rounded-xl border-2 border-border-subtle bg-canvas px-4 py-4 hover:border-brand hover:bg-brand-soft"
+              className="flex h-full min-h-11 items-start gap-3 rounded-xl border-2 border-border-subtle bg-canvas px-4 py-4 hover:border-brand hover:bg-brand-soft"
             >
               <span className="rounded-lg bg-brand-soft p-2 text-brand">
                 <Icon name={item.icon} size={24} />

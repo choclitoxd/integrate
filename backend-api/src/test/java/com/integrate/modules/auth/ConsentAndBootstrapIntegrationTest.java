@@ -8,6 +8,10 @@ import static com.integrate.modules.auth.AuthTestData.uniqueDocNumber;
 import static com.integrate.modules.auth.AuthTestData.uniqueEmail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.integrate.common.exception.BusinessRuleException;
 import com.integrate.common.exception.ErrorCode;
@@ -15,11 +19,13 @@ import com.integrate.modules.auth.dto.request.ConsentAcceptance;
 import com.integrate.modules.auth.dto.request.LoginRequest;
 import com.integrate.modules.auth.entity.ConsentPurpose;
 import com.integrate.modules.auth.entity.DocType;
+import com.integrate.modules.auth.entity.RoleCode;
 import com.integrate.modules.auth.service.AuthService;
 import com.integrate.modules.auth.service.ConsentService;
 import com.integrate.modules.auth.service.RegistrationService;
 import com.integrate.modules.auth.service.RegistrationService.AdminBootstrapCommand;
 import com.integrate.modules.auth.service.RegistrationService.BootstrapOutcome;
+import com.integrate.modules.auth.service.RoleAssignmentService;
 import com.integrate.modules.auth.service.model.ConsentStatus;
 import com.integrate.modules.auth.service.model.ConsentStatus.PurposeConsent;
 import com.integrate.modules.auth.service.model.ConsentStatus.State;
@@ -29,9 +35,14 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 
 /** Consentimiento por autoservicio (RF-02, ADR-0005 §6-§7) y bootstrap del primer ADMIN (§9). */
+@AutoConfigureMockMvc
 class ConsentAndBootstrapIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
@@ -45,6 +56,38 @@ class ConsentAndBootstrapIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private MockMvc mvc;
+
+    @Autowired
+    private RoleAssignmentService roles;
+
+    @Test
+    void adminWithOldJwtMustGrantTheNewPolicyBeforeOperating() throws Exception {
+        String email = uniqueEmail("admin-consent");
+        UUID id = registrationService.registerTourist(tourist(email), CLIENT).userId();
+        roles.grant(id, RoleCode.ADMIN);
+        String authorization = "Bearer " + authService.login(new LoginRequest(email, PASSWORD), CLIENT).accessToken();
+        publishPolicy("v9.2");
+        try {
+            mvc.perform(get("/api/v1/admin/associations").header(HttpHeaders.AUTHORIZATION, authorization))
+                    .andExpect(status().isPreconditionRequired())
+                    .andExpect(jsonPath("$.code").value("ADMIN_CONSENT_REQUIRED"))
+                    .andExpect(jsonPath("$.policyVersion").value("v9.2"));
+            mvc.perform(get("/api/v1/me/consents").header(HttpHeaders.AUTHORIZATION, authorization))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.requiresConsentUpdate").value(true));
+            mvc.perform(post("/api/v1/me/consents").header(HttpHeaders.AUTHORIZATION, authorization)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"policyVersion\":\"v9.2\",\"purposes\":[\"PERSONAL_DATA\"]}"))
+                    .andExpect(status().isOk());
+            mvc.perform(get("/api/v1/admin/associations").header(HttpHeaders.AUTHORIZATION, authorization))
+                    .andExpect(status().isOk());
+        } finally {
+            restoreDevPolicy();
+        }
+    }
 
     @Test
     void statusListsApplicablePurposesForTourist() {

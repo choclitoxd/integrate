@@ -3,7 +3,11 @@ import { Link } from 'react-router';
 import { formatCop } from '@/shared/lib';
 import { buttonClassName, Icon } from '@/shared/ui';
 
-import { DetailHeader, DetailSections } from '../../components/ExperienceDetailParts';
+import {
+  DetailHeader,
+  DetailSections,
+  ExperienceGuarantees,
+} from '../../components/ExperienceDetailParts';
 import { ExperienceFacts } from '../../components/ExperienceFacts';
 import { ExperienceDetailLoader } from '../ExperienceDetailPage';
 
@@ -41,6 +45,7 @@ export function ExperienceDetailDesktopPage() {
               <Icon name="calendar" />
               Ver fechas disponibles
             </Link>
+            <ExperienceGuarantees variant="full" />
           </aside>
         </div>
       )}

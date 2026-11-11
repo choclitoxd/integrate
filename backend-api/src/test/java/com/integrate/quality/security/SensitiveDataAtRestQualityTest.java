@@ -54,12 +54,12 @@ class SensitiveDataAtRestQualityTest extends QualityIntegrationTest {
                 SELECT eps_enc AS v FROM booking.booking_participants WHERE booking_id = ?::uuid
                 UNION ALL SELECT emergency_contact_name_enc FROM booking.bookings WHERE id = ?::uuid
                 UNION ALL SELECT emergency_contact_phone_enc FROM booking.bookings WHERE id = ?::uuid""",
-                (rs, i) -> rs.getBytes("v"), bookingId, bookingId, bookingId);
+                (rs, i) -> java.util.Optional.ofNullable(rs.getBytes("v")).orElse(new byte[0]), bookingId, bookingId, bookingId);
         long leaks = stored.stream().map(b -> new String(b, StandardCharsets.ISO_8859_1))
                 .filter(v -> v.contains("Sura") || v.contains("Carlos") || v.contains("3001234567")).count();
 
         QualityMetrics.record("RNF-01", "Valores sensibles de reserva legibles en reposo", leaks, "valores",
-                "= 0", leaks == 0, stored.size() + " valores cifrados (EPS por participante y contacto de emergencia)");
+                "= 0", leaks == 0, stored.size() + " valores (EPS voluntaria, nula si no se da, y contacto de emergencia cifrado)");
         assertThat(stored).hasSize(4);
         assertThat(leaks).isZero();
     }

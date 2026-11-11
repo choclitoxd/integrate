@@ -38,6 +38,9 @@ public class HabeasDataConsent {
     @Column(name = "policy_id", nullable = false)
     private Short policyId;
 
+    @Column(name = "health_notice_version", length = 40)
+    private String healthNoticeVersion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private ConsentPurpose purpose;
@@ -69,9 +72,16 @@ public class HabeasDataConsent {
     /** Otorgamiento por el propio titular ({@code channel = SELF_SERVICE}, sin {@code captured_by}). */
     public static HabeasDataConsent selfServiceGrant(UUID userId, PrivacyPolicy policy, ConsentPurpose purpose,
                                                      InetAddress ipAddress, String userAgent, Instant now) {
+        return selfServiceGrant(userId, policy, purpose, ipAddress, userAgent, now, null);
+    }
+
+    public static HabeasDataConsent selfServiceGrant(UUID userId, PrivacyPolicy policy, ConsentPurpose purpose,
+                                                     InetAddress ipAddress, String userAgent, Instant now,
+                                                     String healthNoticeVersion) {
         HabeasDataConsent consent = new HabeasDataConsent();
         consent.userId = userId;
         consent.policyId = policy.getId();
+        consent.healthNoticeVersion = healthNoticeVersion;
         consent.purpose = purpose;
         consent.action = ConsentAction.GRANTED;
         consent.ipAddress = ipAddress;

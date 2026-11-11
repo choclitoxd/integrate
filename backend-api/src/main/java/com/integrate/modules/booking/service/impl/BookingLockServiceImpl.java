@@ -4,13 +4,13 @@ import com.integrate.common.audit.AuditEntry;
 import com.integrate.common.audit.AuditEntry.Severity;
 import com.integrate.common.audit.AuditTrail;
 import com.integrate.common.crypto.SensitiveDataCipher;
+import com.integrate.common.exception.BusinessRuleException;
+import com.integrate.common.exception.ErrorCode;
 import com.integrate.common.payload.InvalidParam;
 import com.integrate.common.web.TraceIdFilter;
-import com.integrate.modules.auth.entity.ConsentPurpose;
 import com.integrate.modules.auth.service.ConsentService;
+import com.integrate.modules.auth.service.UserDirectory;
 import com.integrate.modules.auth.service.model.ClientInfo;
-import com.integrate.modules.auth.service.model.ConsentStatus;
-import com.integrate.modules.auth.service.model.ConsentStatus.State;
 import com.integrate.modules.booking.config.BookingProperties;
 import com.integrate.modules.booking.dto.request.BookingLockRequest;
 import com.integrate.modules.booking.dto.request.BookingLockRequest.Participant;
@@ -57,6 +57,7 @@ public class BookingLockServiceImpl implements BookingLockService {
     private final BookingParticipantRepository participantRepository;
     private final SlotInventory slotInventory;
     private final ConsentService consentService;
+    private final UserDirectory userDirectory;
     private final SensitiveDataCipher cipher;
     private final AuditTrail auditTrail;
     private final BookingRequestHasher hasher;
@@ -66,13 +67,14 @@ public class BookingLockServiceImpl implements BookingLockService {
 
     public BookingLockServiceImpl(BookingRepository bookingRepository,
                                   BookingParticipantRepository participantRepository, SlotInventory slotInventory,
-                                  ConsentService consentService, SensitiveDataCipher cipher, AuditTrail auditTrail,
+                                  ConsentService consentService, UserDirectory userDirectory, SensitiveDataCipher cipher, AuditTrail auditTrail,
                                   BookingRequestHasher hasher, BookingProperties properties, Clock clock,
                                   PlatformTransactionManager transactionManager) {
         this.bookingRepository = bookingRepository;
         this.participantRepository = participantRepository;
         this.slotInventory = slotInventory;
         this.consentService = consentService;
+        this.userDirectory = userDirectory;
         this.cipher = cipher;
         this.auditTrail = auditTrail;
         this.hasher = hasher;
@@ -91,7 +93,13 @@ public class BookingLockServiceImpl implements BookingLockService {
         if (replay.isPresent()) {
             return replay.get();
         }
-        requireHealthConsent(touristId);
+        if (request.participants().stream().anyMatch(p -> normalizedEps(p.medicalEps()) != null)) {
+            Participant holder = request.participants().stream().filter(Participant::isHolder).findFirst().orElseThrow();
+            if (userDirectory.findAccountByDocument(holder.docType(), holder.docNumber())
+                    .filter(account -> touristId.equals(account.userId())).isEmpty()) {
+                throw BookingErrors.invalid(List.of(new InvalidParam("participants", "EPS requires the authenticated tourist as holder")));
+            }
+        }
 
         try {
             return lockTransaction.execute(tx -> lockInTransaction(touristId, idempotencyKey, requestSha256, request,
@@ -110,6 +118,12 @@ public class BookingLockServiceImpl implements BookingLockService {
                                           BookingLockRequest request, ClientInfo client) {
         // timestamptz guarda microsegundos: así el 201 y las lecturas posteriores muestran el mismo instante.
         Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
+        Long healthConsentId = request.participants().stream().anyMatch(p -> normalizedEps(p.medicalEps()) != null)
+                ? consentService.currentHealthGrant(touristId)
+                        .orElseThrow(() -> new BusinessRuleException(ErrorCode.HEALTH_EPS_UNAVAILABLE,
+                                "EPS is not available; omit it to continue the booking."))
+                        .grantId()
+                : null;
         int slots = request.requestedSlots();
         ReservedSlots reserved = slotInventory.reserve(request.scheduleId(), slots, now);
 
@@ -118,10 +132,10 @@ public class BookingLockServiceImpl implements BookingLockService {
         Booking booking = bookingRepository.saveAndFlush(Booking.hold(bookingId, touristId, request.scheduleId(),
                 slots, reserved.unitPriceCop(), now, now.plus(properties.holdTtl()),
                 encryptEmergencyContact(bookingId, request.emergencyContact(), keyVersion), idempotencyKey,
-                requestSha256));
+                requestSha256, healthConsentId));
         participantRepository.saveAllAndFlush(request.participants().stream()
                 .map(p -> BookingParticipant.of(bookingId, p.fullName().strip(), p.docType(), p.docNumber(),
-                        cipher.encrypt(p.medicalEps().strip(),
+                        normalizedEps(p.medicalEps()) == null ? null : cipher.encrypt(normalizedEps(p.medicalEps()),
                                 BookingParticipant.epsAad(bookingId, p.docType(), p.docNumber()), keyVersion),
                         keyVersion, p.isHolder()))
                 .toList());
@@ -160,15 +174,6 @@ public class BookingLockServiceImpl implements BookingLockService {
         });
     }
 
-    private void requireHealthConsent(UUID touristId) {
-        ConsentStatus status = consentService.status(touristId);
-        boolean granted = status.purposes().stream()
-                .anyMatch(p -> p.purpose() == ConsentPurpose.HEALTH_EMERGENCY && p.state() == State.VALID);
-        if (!granted) {
-            throw BookingErrors.healthConsentRequired(status.currentPolicyVersion());
-        }
-    }
-
     /** Reglas entre campos del contrato §5.1 (422), evaluadas antes de cualquier lectura de la base. */
     private static void requireConsistent(BookingLockRequest request) {
         List<InvalidParam> params = new ArrayList<>();
@@ -187,6 +192,14 @@ public class BookingLockServiceImpl implements BookingLockService {
                 params.add(new InvalidParam("participants[" + i + "].fullName",
                         "must have at least 3 non-blank characters"));
             }
+            String eps = normalizedEps(p.medicalEps());
+            if (eps != null && eps.length() < 2) {
+                params.add(new InvalidParam("participants[" + i + "].medicalEps", "must have at least 2 characters"));
+            }
+            if (eps != null && !p.isHolder()) {
+                params.add(new InvalidParam("participants[" + i + "].medicalEps",
+                        "only the booking holder may provide EPS"));
+            }
             Integer first = seen.putIfAbsent(p.docType() + ":" + p.docNumber().toUpperCase(), i);
             if (first != null) {
                 params.add(new InvalidParam("participants[" + i + "].docNumber",
@@ -199,6 +212,10 @@ public class BookingLockServiceImpl implements BookingLockService {
         if (!params.isEmpty()) {
             throw BookingErrors.invalid(params);
         }
+    }
+
+    static String normalizedEps(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 
     private EmergencyCiphertexts encryptEmergencyContact(UUID bookingId, BookingLockRequest.EmergencyContact contact,

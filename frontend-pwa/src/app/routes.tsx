@@ -1,7 +1,8 @@
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 
 import {
   AccountPage,
+  AccountRedirect,
   ActivatePage,
   ForgotPasswordPage,
   LoginPage,
@@ -14,8 +15,10 @@ import { AdaptiveView } from '@/shared/ui';
 
 import { CatalogDesktop, ExperienceDetailDesktop, SlotPickerDesktop } from './desktopViews';
 import { RequireSession } from './guards/RequireSession';
+import { AdminLayout } from './layouts/AdminLayout';
 import type { ShellHandle } from './layouts/AppShell';
 import { ManagerLayout } from './layouts/ManagerLayout';
+import { HostLayout } from './layouts/HostLayout';
 import { TouristLayout } from './layouts/TouristLayout';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RouteErrorPage } from './pages/RouteErrorPage';
@@ -35,6 +38,14 @@ const slotsHandle: ShellHandle = {
 
 const toHosts: ShellHandle = { flow: true, back: () => '/gestor/anfitriones' };
 const toManagerHome: ShellHandle = { flow: true, back: () => '/gestor' };
+/** Las pantallas del gestor con vista de computador aprovechan todo el ancho. */
+const managerWide: ShellHandle = { wide: true };
+const toManagerHomeWide: ShellHandle = { ...toManagerHome, wide: true };
+const adminWide: ShellHandle = { wide: true };
+/** «Mis experiencias» del anfitrión usa el ancho de computador, como la lista del administrador. */
+const hostWide: ShellHandle = { wide: true };
+/** «Mis experiencias» del turista (reservas con buscador y filtro) usa el ancho de computador. */
+const myExperiencesWide: ShellHandle = { wide: true };
 
 /*
  * Carga diferida (ADR-0018 §1): la reserva (QR incluido) y el portal del Gestor no viajan en el
@@ -82,6 +93,18 @@ const bookingStatus = async () => {
     ),
   };
 };
+const hostExperiencesPage = async () => {
+  const { HostExperiencesPage } = await import('@/features/host');
+  return { Component: HostExperiencesPage };
+};
+const hostMetricsPage = async () => {
+  const { HostMetricsPage } = await import('@/features/host');
+  return { Component: HostMetricsPage };
+};
+const hostBookingsPage = async () => {
+  const { HostBookingsPage } = await import('@/features/host');
+  return { Component: HostBookingsPage };
+};
 const hostsPage = async () => {
   const { HostsPage } = await import('@/features/enrollment');
   return { Component: HostsPage };
@@ -89,6 +112,31 @@ const hostsPage = async () => {
 const enrollmentPage = async () => {
   const { EnrollmentPage } = await import('@/features/enrollment');
   return { Component: EnrollmentPage };
+};
+
+/*
+ * Consola de administración (ADR-0042 §2, ADR-0044 §1): la feature `admin` viaja en un chunk propio
+ * que ni el turista ni el gestor descargan.
+ */
+const adminHomePage = async () => {
+  const { AdminHomePage } = await import('@/features/admin');
+  return { Component: AdminHomePage };
+};
+const adminExperiencesPage = async () => {
+  const { ExperiencesPage } = await import('@/features/admin');
+  return { Component: ExperiencesPage };
+};
+const adminAssociationsPage = async () => {
+  const { AssociationsPage } = await import('@/features/admin');
+  return { Component: AssociationsPage };
+};
+const adminPeoplePage = async () => {
+  const { PeoplePage } = await import('@/features/admin');
+  return { Component: PeoplePage };
+};
+const adminAuditPage = async () => {
+  const { AuditPage } = await import('@/features/admin');
+  return { Component: AuditPage };
 };
 
 /**
@@ -131,22 +179,38 @@ export const routes: RouteObject[] = [
             ),
             handle: slotsHandle,
           },
-          { path: 'ingresar', element: <LoginPage /> },
+          { path: 'ingresar', element: <LoginPage />, handle: { centerOnDesktop: true } },
           { path: 'registro', element: <RegisterPage />, handle: toCatalog },
           { path: 'activar', element: <ActivatePage />, handle: toCatalog },
           { path: 'recuperar-contrasena', element: <ForgotPasswordPage />, handle: toLogin },
           { path: 'restablecer-contrasena', element: <ResetPasswordPage />, handle: toLogin },
           { path: 'reservas/nueva', lazy: bookingForm, handle: toCatalog },
-          { path: 'mis-experiencias', lazy: myExperiences },
+          { path: 'mis-experiencias', lazy: myExperiences, handle: myExperiencesWide },
           { path: 'reservas/:bookingId', lazy: bookingStatus, handle: toMyExperiences },
+          // `/cuenta` heredada: lleva a «Mi cuenta» de la zona del rol (ADR-0062).
+          { path: 'cuenta', element: <AccountRedirect /> },
           {
-            path: 'cuenta',
+            path: 'turista/cuenta',
             element: (
-              <RequireSession>
+              <RequireSession roles={['ROLE_TOURIST']}>
                 <AccountPage />
               </RequireSession>
             ),
           },
+        ],
+      },
+      {
+        path: '/anfitrion',
+        element: (
+          <RequireSession roles={['ROLE_HOST']}>
+            <HostLayout />
+          </RequireSession>
+        ),
+        children: [
+          { index: true, lazy: hostBookingsPage, handle: hostWide },
+          { path: 'experiencias', lazy: hostExperiencesPage, handle: hostWide },
+          { path: 'metricas', lazy: hostMetricsPage, handle: hostWide },
+          { path: 'cuenta', element: <AccountPage /> },
         ],
       },
       {
@@ -157,12 +221,49 @@ export const routes: RouteObject[] = [
           </RequireSession>
         ),
         children: [
-          { index: true, element: <ManagerHomePage /> },
-          { path: 'validar', lazy: qrScannerPage, handle: toManagerHome },
+          { index: true, element: <ManagerHomePage />, handle: managerWide },
+          { path: 'validar', lazy: qrScannerPage, handle: toManagerHomeWide },
           { path: 'contingencia', lazy: contingencyRedeemPage, handle: toManagerHome },
           { path: 'cola', lazy: syncQueuePage, handle: toManagerHome },
-          { path: 'anfitriones', lazy: hostsPage },
+          { path: 'anfitriones', lazy: hostsPage, handle: managerWide },
           { path: 'anfitriones/enrolamiento', lazy: enrollmentPage, handle: toHosts },
+          { path: 'cuenta', element: <AccountPage /> },
+        ],
+      },
+      {
+        path: '/admin',
+        element: (
+          <RequireSession roles={['ROLE_ADMIN']}>
+            <AdminLayout />
+          </RequireSession>
+        ),
+        children: [
+          { index: true, lazy: adminHomePage, handle: adminWide },
+          { path: 'experiencias', lazy: adminExperiencesPage, handle: adminWide },
+          { path: 'asociaciones', lazy: adminAssociationsPage, handle: adminWide },
+          { path: 'personas', lazy: adminPeoplePage, handle: adminWide },
+          {
+            path: 'incidentes',
+            lazy: async () => ({ Component: (await import('@/features/admin')).IncidentsPage }),
+            handle: adminWide,
+          },
+          {
+            path: 'liquidaciones',
+            lazy: async () => ({ Component: (await import('@/features/admin')).PayoutsPage }),
+            handle: adminWide,
+          },
+          { path: 'auditoria', lazy: adminAuditPage, handle: adminWide },
+          // El perfil del administrador vive dentro del panel: /admin/cuenta (ADR-0044 enmendado).
+          {
+            path: 'cuenta',
+            element: (
+              <RequireSession roles={['ROLE_ADMIN']}>
+                <AccountPage />
+              </RequireSession>
+            ),
+          },
+          // Una ruta desconocida dentro del panel vuelve a su inicio, no a la página pública de no encontrada.
+          { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
       {

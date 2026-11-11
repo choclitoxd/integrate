@@ -308,17 +308,25 @@ Api POST "/bookings/<id-de-la-reserva>/cancel" $tur @{ reason = 'Cambio de plane
 
 ## 6. Administrador
 
-El Administrador **no se registra**: el equipo lo configura al arrancar el sistema (`BOOTSTRAP_ADMIN_*`). En la PWA solo
-tiene las pantallas de un turista; lo propio de su rol se hace por API.
+El equipo configura al administrador al arrancar el sistema con `BOOTSTRAP_ADMIN_*`. En `/admin` están Resumen,
+Experiencias, Asociaciones, Personas, Incidentes, Liquidaciones y Auditoría. La consola permite convertir una cuenta
+en anfitrión y acreditar gestores (§6.6, ADR-0043). Los pasos de §6.2 y §6.3 comprueban esas operaciones por API.
 
 ### 6.1 En la PWA
 
 | # | Acción | Debe ver | 🖥 | 📱 | Si falla, por qué |
 |---|---|---|---|---|---|
-| A-01 | Ingresar como administrador. | Entra; el menú es el de un turista (Explorar · Mis experiencias · Mi cuenta). | ✘ | ✘ | Credenciales: la cuenta no existe en este entorno (la semilla o `crear-testers.py` no se cargó). |
+| A-01 | Ingresar como administrador y recargar el panel. | Abre Resumen en /admin. En celular se ven Resumen, Módulos y Mi cuenta. Módulos abre los seis apartados. En escritorio la barra agrupa los módulos si falta espacio. | | | Si abre el catálogo, verificar el rol y la redirección. |
 | A-02 | **Mi cuenta**. | «Turista · **Administrador**». Si le pide **renovar el consentimiento**, apruébelo: es el comportamiento de una cuenta creada por arranque, sin consentimiento previo. | ✔ | ✔ | Falta «Administrador»: rol no asignado → no podrá hacer A-10 en adelante. |
 | A-03 | Abrir `/gestor`. | «**Esta sección no está disponible para tu cuenta**» y **Ir al inicio**. | ✔ | ✔ | Entra al portal: **defecto de permisos (alta)**. |
-| A-04 | Reservar y pagar como en 5.4–5.6. | Funciona igual que para un turista. | ✔ | ✔ | — |
+| A-04 | Abrir el catálogo o Mis experiencias con una cuenta ADMIN y TOURIST. | La aplicación redirige a Resumen. | | | Si aparecen los destinos de turista, verificar la guarda del ADR-0044. |
+| A-05 | Como turista o gestor, abrir `/admin`. | «Esta sección no está disponible para tu cuenta». El menú no ofrece «Administración». | | | Entra a la consola: **defecto de permisos (alta)**. |
+| A-06 | En **Experiencias**, abrir una ficha de «Por revisar» e intentar rechazarla con el motivo vacío. | El campo «Motivo» queda marcado y la ficha conserva su estado. | | | Si se envía, revisar la validación. |
+| A-07 | En una ficha con punto «No coincide», elegir **Aprobar y publicar**. | El aviso ofrece **Confirmar el punto de encuentro**. Tras confirmar y aprobar, la experiencia aparece en el catálogo. | | | Si permite aprobar antes de confirmar, revisar la regla del ADR-0030. |
+| A-08 | En **Asociaciones**, registrar un NIT que ya existe y luego probar con uno nuevo. | El NIT existente muestra el mensaje de duplicado. El nuevo aparece en la lista. | | | Si aparecen dos asociaciones con el mismo NIT, revisar la restricción. |
+| A-09 | En **Auditoría**, filtrar por módulo `booking`, exportar CSV y verificar la cadena. | El CSV `auditoria-AAAA-MM-DD.csv` contiene las filas filtradas. La verificación muestra «La cadena está íntegra». La consulta aparece como `AUDIT_QUERIED`. | | | Si la cadena presenta una ruptura, registrar el incidente. |
+| A-09.1 | En **Incidentes**, filtrar un conflicto de QA, tomarlo y cerrar con una nota. Repetir con la acción de descartar en otro caso. | La ficha muestra el estado, la nota, el actor y la hora de cierre. La bitácora contiene la toma y el cierre. | | | Si el caso cambió en otra sesión, verificar el aviso y el refresco de la ficha. |
+| A-09.2 | En **Liquidaciones**, filtrar por asociación y conciliar lotes enviados con el simulador. Abrir el comprobante del lote pagado. | Se conserva el lote pendiente, el rechazo muestra su motivo y el pagado ofrece su comprobante. Repetir la consulta del pagado conserva el mismo comprobante. | | | Si no se puede verificar la referencia, la ficha debe indicar que la consulta está indisponible. |
 
 ### 6.2 Por API: asociaciones y anfitriones
 
@@ -346,6 +354,8 @@ $adm = Login 'tester.admin@integrate-demo.test'
 
 ### 6.4 Por API: moderar experiencias (incluye el punto de encuentro)
 
+Desde ADR-0042 esto también se hace en la consola (A-06 y A-07); los pasos por API comprueban el servidor sin la PWA.
+
 Requiere una experiencia en revisión (ver H-22).
 
 | # | Acción | Debe ver | 🖥 | Si falla, por qué |
@@ -368,6 +378,24 @@ Requiere una experiencia en revisión (ver H-22).
 | A-42 | `Api GET '/admin/audit/verify' $adm`. | La cadena de la bitácora es **íntegra** (sin eslabones rotos). | ✔ | Eslabón roto: alguien alteró la bitácora (**incidente**). |
 | A-43 | Repetir A-40. | La consulta anterior aparece **como entrada de auditoría** (`AUDIT_QUERIED`). | ✔ | No queda registrada: falta la auditoría de la consulta. |
 | A-44 | Como **turista**: `Api GET '/admin/audit' $tur`. | `Status` 403. | ✔ | 200: **defecto de permisos (alta)**. |
+
+
+### 6.6 En la PWA: personas (ADR-0043)
+
+Se ejecuta con una cuenta de turista registrada para el futuro anfitrión o gestor, y una asociación creada (A-08).
+
+| # | Acción | Debe ver | 🖥 | Si falla, por qué |
+|---|---|---|---|---|
+| A-50 | 🖥 **Personas** → **Buscar por** «Correo» → escribir solo la mitad del correo. | «No hay una cuenta con ese dato». No hay búsqueda parcial. | ✔ | Devuelve cuentas parecidas: búsqueda parcial (**defecto de privacidad**). |
+| A-51 | Buscar con el correo completo (en otro uso de mayúsculas). | La persona con su nombre, correo y roles; botones **Convertir en anfitrión** y **Acreditar como gestor**. Sin celular ni documento. | ✔ | Muestra celular o documento completo: **defecto de privacidad (alta)**. |
+| A-52 | **Buscar por** «Documento» con el tipo y el número completos. | La misma persona, con el correo **parcialmente oculto** (`l***@dominio`). | ✔ | Correo en claro: se filtra un dato que no se conocía. |
+| A-53 | **Convertir en anfitrión** sin elegir asociación; luego elegirla y confirmar. | Primero «Elige la asociación»; después «… ya es anfitrión» y la tarjeta dice «Ya es anfitrión». Aviso: el rol llega al siguiente ingreso. | ✔ | 409 si ya era anfitrión o la asociación no está activa. |
+| A-54 | **Acreditar como gestor** con la fecha de hoy. | «… quedó acreditado como gestor de enlace». Al reingresar, esa persona ve **Gestor** (A-22). | ✔ | 409: ya tiene acreditación vigente. La fecha futura no se deja elegir. |
+| A-55 | Lista **Gestores de enlace** (filtro «Vigentes») → **Suspender** al gestor y confirmar. | «… quedó suspendido»; sale de «Vigentes» y aparece en «Suspendidos». El gestor no puede enrolar (A-23). | ✔ | Sigue operando: la suspensión no se aplicó. |
+| A-56 | **Reactivar**, y luego **Revocar** (el diálogo avisa que no se puede deshacer). | Revocado: la fila queda sin acciones; al reingresar pierde el rol (G-61). | ✔ | Conserva el rol: ver ADR-0038 §2. |
+| A-57 | Lista **Anfitriones**; filtrar por asociación. | Nombre, asociación, verificado y fecha; los correos internos dicen «(interno)». | ✔ | — |
+| A-58 | Hacer **21 búsquedas seguidas** en un minuto. | La búsqueda 21 dice que superaste el límite de 20 por minuto. | ✔ | No limita: barrido posible con una cuenta comprometida. |
+| A-59 | **Auditoría** → módulo `catalog`, acción `SENSITIVE_DATA_ACCESSED`. | Una entrada por búsqueda, detalle o lista (`ADMIN_USER_LOOKUP_EMAIL`, `ADMIN_USER_LOOKUP_DOCUMENT`, `ADMIN_USER_LIST`, `ADMIN_USER_DETAIL`), con las personas vistas y **sin** el correo ni el documento buscados. | ✔ | El criterio aparece escrito: **defecto de privacidad (alta)**. |
 
 ---
 

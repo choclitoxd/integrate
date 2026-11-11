@@ -299,8 +299,8 @@ export function EnrollmentPage() {
         <ConnectionBadge online={online} />
       </div>
       <p className="mt-2 text-ink-muted">
-        Registra a la persona con su autorización. Nada de lo que escribas se guarda en este
-        teléfono.
+        Necesitas conexión para consultar la política y registrar al anfitrión. Los datos se
+        conservan mientras mantengas abierto el formulario. Si sales o recargas, se pierden.
       </p>
 
       <nav aria-label="Secciones del formulario" className="mt-4">
@@ -627,7 +627,8 @@ function EnrollmentFailure({ error }: { error: unknown }) {
       <ProblemNotice error={error} />
       {error instanceof NetworkError && (
         <p className="text-sm font-semibold text-ink">
-          Tus datos siguen aquí: envíalos cuando vuelva la señal.
+          Tus datos siguen aquí. Cuando vuelva la señal, verifica en «Mis anfitriones» si el
+          registro se completó antes de enviarlo otra vez.
         </p>
       )}
     </div>

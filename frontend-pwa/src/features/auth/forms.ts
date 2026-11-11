@@ -105,7 +105,6 @@ export const registerSchema = z
     }),
   );
 
-export type RegisterForm = z.input<typeof registerSchema>;
 export type FieldErrors<K extends string> = Partial<Record<K, string>>;
 
 /** Primer error de cada campo de un safeParse fallido. */

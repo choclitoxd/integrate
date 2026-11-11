@@ -6,7 +6,11 @@ import { formatCop } from '@/shared/lib';
 import { buttonClassName, Icon, ProblemNotice, Skeleton } from '@/shared/ui';
 
 import type { ExperienceDetail } from '../api/types';
-import { DetailHeader, DetailSections } from '../components/ExperienceDetailParts';
+import {
+  DetailHeader,
+  DetailSections,
+  ExperienceGuarantees,
+} from '../components/ExperienceDetailParts';
 import { ExperienceFacts } from '../components/ExperienceFacts';
 import { useExperience } from '../queries';
 
@@ -95,6 +99,7 @@ function DetailContent({ detail }: { detail: ExperienceDetail }) {
           <Icon name="calendar" />
           Ver fechas
         </Link>
+        <ExperienceGuarantees variant="compact" />
       </div>
 
       <DetailSections detail={detail} />

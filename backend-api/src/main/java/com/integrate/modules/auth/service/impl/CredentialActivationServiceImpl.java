@@ -40,7 +40,7 @@ public class CredentialActivationServiceImpl implements CredentialActivationServ
     @Override
     @Transactional
     public IssuedActivationCode issue(UUID userId, UUID issuedBy) {
-        User user = userRepository.findById(userId).filter(u -> !u.isClosed())
+        User user = userRepository.findByIdForUpdate(userId).filter(u -> !u.isClosed())
                 .orElseThrow(() -> new BusinessRuleException(ErrorCode.RESOURCE_NOT_FOUND, "User not found"));
         if (!canActivate(user)) {
             throw new BusinessRuleException(ErrorCode.CATALOG_INVALID_STATUS_TRANSITION,

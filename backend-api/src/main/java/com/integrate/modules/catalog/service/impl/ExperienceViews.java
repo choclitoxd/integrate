@@ -18,6 +18,8 @@ import com.integrate.modules.catalog.repository.ExperienceCategoryRepository.Exp
 import com.integrate.modules.catalog.repository.ExperienceStopRepository;
 import com.integrate.modules.catalog.repository.HostProfileRepository;
 import com.integrate.modules.catalog.repository.MunicipalityRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -88,10 +90,18 @@ class ExperienceViews {
     }
 
     ExperienceDetailResponse detail(Experience e) {
-        return new ExperienceDetailResponse(summaries(List.of(e)).getFirst(), e.getDescription(),
-                e.getSafetyGuidelines(), e.getVereda(), e.getMeetingPoint(), e.getLatitude(), e.getLongitude(),
-                e.getTimezone(), stopsOf(List.of(e)).getOrDefault(e.getId(), List.of()),
-                e.getMeetingPointCheckStatus().coordinatesTrusted());
+        ExperienceSummaryResponse summary = summaries(List.of(e)).getFirst();
+        boolean showApproximateMap = e.getMeetingPointCheckStatus().coordinatesTrusted()
+                && e.getLatitude() != null && e.getLongitude() != null;
+        return new ExperienceDetailResponse(summary, e.getDescription(), e.getSafetyGuidelines(), null,
+                summary.municipality().name(),
+                showApproximateMap ? approximate(e.getLatitude()) : null,
+                showApproximateMap ? approximate(e.getLongitude()) : null,
+                e.getTimezone(), List.of(), showApproximateMap);
+    }
+
+    private static BigDecimal approximate(BigDecimal coordinate) {
+        return coordinate.setScale(2, RoundingMode.HALF_UP);
     }
 
     private Map<UUID, List<StopResponse>> stopsOf(Collection<Experience> experiences) {

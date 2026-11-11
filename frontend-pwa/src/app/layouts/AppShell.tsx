@@ -5,6 +5,7 @@ import { useFormFactor } from '@/shared/lib';
 
 import { RouteLoading } from '../pages/RouteLoading';
 import { MobileShell } from './MobileShell';
+import { accountLast } from './navOrder';
 import type { ShellProps } from './shell';
 
 export type { NavItem, ShellHandle } from './shell';
@@ -15,8 +16,10 @@ const DesktopShell = lazy(() =>
 );
 
 /** Elige el shell por factor de forma (ADR-0020 §3); las URLs son las mismas en ambos. */
-export function AppShell(props: ShellProps) {
+export function AppShell(rawProps: ShellProps) {
   const formFactor = useFormFactor();
+  // «Mi cuenta» siempre a la derecha de todo, lo agregue quien lo agregue (ver navOrder.ts).
+  const props = { ...rawProps, navItems: accountLast(rawProps.navItems) };
   return (
     <>
       {formFactor === 'desktop' ? (

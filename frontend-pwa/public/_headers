@@ -1,0 +1,10 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(self), geolocation=(), microphone=()
+  Content-Security-Policy-Report-Only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src https://www.google.com https://www.openstreetmap.org; worker-src 'self'; upgrade-insecure-requests
+
+# The standalone manual has inline CSS and an embedded base64 image; collect CSP reports only for the PWA.
+/manual/*
+  ! Content-Security-Policy-Report-Only

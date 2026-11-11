@@ -10,11 +10,11 @@ export const enrollmentKeys = {
 };
 
 /** Anfitriones de la jurisdicción, página a página con "Ver más" (ADR-0018 §6). */
-export function useManagedHosts() {
+export function useManagedHosts(name: string, activation: string) {
   const http = useHttpClient();
   return useInfiniteQuery({
-    queryKey: enrollmentKeys.hosts,
-    queryFn: ({ pageParam, signal }) => listManagedHosts(http, pageParam, signal),
+    queryKey: [...enrollmentKeys.hosts, name, activation],
+    queryFn: ({ pageParam, signal }) => listManagedHosts(http, pageParam, name, activation, signal),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
     staleTime: 0,

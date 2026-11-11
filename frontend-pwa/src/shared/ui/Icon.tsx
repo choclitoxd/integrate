@@ -91,6 +91,7 @@ const PATHS = {
       <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
+  chart: <path d="M3 21h18M6 21V11M12 21V4M18 21v-6" />,
   backpack: (
     <>
       <path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />
@@ -151,6 +152,18 @@ const PATHS = {
     <>
       <path d="M12 3v12M7 10l5 5 5-5" />
       <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </>
+  ),
+  pause: (
+    <>
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
     </>
   ),
 } satisfies Record<string, ReactNode>;

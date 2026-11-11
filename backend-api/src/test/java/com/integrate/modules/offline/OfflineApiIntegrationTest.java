@@ -408,7 +408,7 @@ class OfflineApiIntegrationTest extends PostgresIntegrationTest {
         StringBuilder participants = new StringBuilder();
         for (int i = 0; i < slots; i++) {
             participants.append(i == 0 ? "" : ",").append("""
-                    {"fullName":"Participante %d","docType":"CC","docNumber":"%s%02d","medicalEps":"Sura","isHolder":%s}"""
+                    {"fullName":"Participante %d","docType":"CC","docNumber":"%s%02d","isHolder":%s}"""
                     .formatted(i, HOLDER_DOC, i, i == 0));
         }
         String body = """
@@ -456,8 +456,7 @@ class OfflineApiIntegrationTest extends PostgresIntegrationTest {
     private String registerTourist() {
         touristEmail = uniqueEmail("turista-offline");
         registrationService.registerTourist(tourist(touristEmail, uniqueDocNumber(),
-                new ConsentAcceptance(DEV_POLICY, Set.of(ConsentPurpose.PERSONAL_DATA,
-                        ConsentPurpose.HEALTH_EMERGENCY))), CLIENT);
+                new ConsentAcceptance(DEV_POLICY, Set.of(ConsentPurpose.PERSONAL_DATA))), CLIENT);
         return touristEmail;
     }
 

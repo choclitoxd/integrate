@@ -50,7 +50,7 @@ docker compose -f compose.vps.yml logs -f api
 
 ### Riesgos asumidos
 
-- Un solo servidor y sin alta disponibilidad: si cae, cae el backend. Conviene un monitor externo gratuito sobre `/api/v1/privacy-policies/current`.
+- Un solo servidor y sin alta disponibilidad: si cae, cae el backend. Configura el monitor externo sobre `/api/v1/health` (ADR-0053), que devuelve el estado agregado sin revelar detalles de dependencias.
 - `sslip.io` es un servicio de terceros: si dejara de resolver, hay que cambiar `API_HOST` por un dominio propio.
 - **Hetzner es la producción; SnapDeploy es el entorno de pruebas** (ADR-0027). Los dos **no deben compartir base de datos**: con la misma base de Neon los procesos de fondo se duplicarían y las pruebas ensuciarían los datos reales. El entorno de pruebas necesita su propia base (rama o base separada en Neon) y sus propias variables (`ENV_FILE` del script `snapdeploy.sh`); mientras no la tenga, el contenedor de SnapDeploy debe estar detenido, porque cada push a `main` lo reconstruye y lo despierta.
 
@@ -82,6 +82,17 @@ cambio → rama `pruebas` → SnapDeploy + PWA de vista previa → verificar →
 3. **Verificar** el cambio en `pruebas.integrate-demo.pages.dev`. Al terminar, deténgalo (`POST …/containers/<id>/stop` o desde el panel).
 4. **Promover:** fusione a `main` y ejecute `bash infra/scripts/hetzner.sh deploy` y `bash infra/scripts/pages.sh deploy produccion`. Si algo sale mal: `bash infra/scripts/hetzner.sh rollback`.
 
+### Presupuesto de usos de SnapDeploy (5 al día)
+
+El plan de SnapDeploy da **5 usos diarios**. Cuentan como uso cada push a `pruebas` (dispara una construcción), cada `wake` y cada reconstrucción.
+
+- **Evaluar antes de gastar:** si lo cubren las pruebas locales (`./mvnw test`, `vitest`, `build`), no se usa SnapDeploy.
+- **Un solo push por tanda** de cambios; no empujar para ver algo pequeño.
+- **Comprobar sin conexión** antes del push: variables del contenedor frente a `infra/env/.env.demo.pruebas`, pruebas y build locales.
+- **Sin sondeos en bucle** (`wake`, `deploys`, `logs`, `vars`): una lectura por decisión.
+- **Variables:** `ENV_FILE=infra/env/.env.demo.pruebas bash infra/scripts/snapdeploy.sh env`, siempre con el archivo explícito. Sin él toma `.env.demo` (producción).
+- **Apagar al terminar:** `bash infra/scripts/snapdeploy.sh stop`.
+
 ### Comprobar el aislamiento (obligatorio tras cambiar variables)
 
 SnapDeploy **aplica las variables solo al construir un despliegue nuevo**: `snapdeploy.sh env` las guarda, pero un contenedor detenido que se despierta arranca con las que tenía al construirse. El 2026-10-27 esto hizo que el entorno de pruebas arrancara contra la base de **producción** durante unos minutos (se detuvo y se limpió: un solo usuario de prueba y un correo a una dirección ficticia, sin reservas ni pagos tocados).
@@ -99,7 +110,8 @@ Por eso, antes de usar el entorno de pruebas:
 ### Lista de cierre (la hace el desarrollador)
 
 - [ ] Crear el rol `integrate_api` en la rama `pruebas` y reemplazar el provisional `integrate_owner` en `.env.demo.pruebas`.
-- [ ] Monitor externo gratuito (por ejemplo UptimeRobot) sobre `https://2-31-111-240.sslip.io/api/v1/privacy-policies/current`, cada 5 minutos.
+- [ ] Monitor externo gratuito (por ejemplo UptimeRobot) sobre `https://2-31-111-240.sslip.io/api/v1/health`, cada 5 minutos; configura alerta al canal operativo acordado.
+- [ ] En `pruebas`, simular indisponibilidad y recuperación, confirmar las dos notificaciones y registrar el incidente con la plantilla de [`registro-incidente.md`](../quality/registro-incidente.md). No provocar alertas en producción sin una ventana acordada.
 - [ ] Decidir si se borra el servidor duplicado `integrate-server` de Hetzner (apagado, pero se cobra).
 - [ ] Al terminar el proyecto: revocar los tokens de Hetzner, SnapDeploy y Cloudflare; regenerar la llave de Google Maps; rotar la contraseña de la rama de Neon. Todos pasaron por el chat.
 - [ ] Administrador pendiente: crear la cuenta cuando haya un correo permanente.
@@ -406,6 +418,18 @@ General). Evite que el PC se suspenda mientras haya demo (Windows: `powercfg /ch
 
 ### 7. Política de privacidad de la demo
 
+**Publicación de una política aprobada (ADR-0040).** Aloje los bytes del documento aprobado en una URL
+HTTPS pública y versionada. Configure `PGSERVICEFILE` y `PGPASSFILE` fuera de Git. El primero debe
+tener una entrada `integrate-policy-pruebas` o `integrate-policy-produccion` con destino explícito,
+TLS y una identidad autorizada para publicar. Ejecute `infra/scripts/publicar-politica.sh` con el entorno,
+una versión nueva, el título, la URL y el archivo aprobado. El script exige que la descarga coincida
+con el original, registra la huella y activa la versión en una transacción. Verifique el enlace en
+registro y enrolamiento. Tras verificar la política vigente, configure
+`INTEGRATE_AUTH_ADMIN_CONSENT_ENFORCEMENT_ENABLED=true` en el backend del entorno y redespliéguelo.
+La variable queda desactivada de forma predeterminada durante la transición.
+Para una prueba con un administrador pendiente, confirme que la operación
+protegida devuelve 428, que puede aceptar desde el diálogo y que la operación funciona después.
+
 Con el backend ya iniciado (Flyway creó las tablas), publique la política de demostración. Sin ella
 `GET /api/v1/privacy-policies/current` responde 404 y nadie puede registrarse (la política de ejemplo
 solo viene con el perfil `dev`). Es idempotente:
@@ -414,6 +438,9 @@ solo viene con el perfil `dev`). Es idempotente:
 psql "postgresql://integrate_owner:<contraseña-owner>@ep-xxx.<region>.aws.neon.tech/integrate?sslmode=require" \
   -f infra/postgres/seed/demo_privacy_policy.sql
 ```
+
+La semilla anterior es histórica y apunta a una URL de ejemplo. Para validar el flujo en pruebas,
+publique un artefacto de demostración accesible y use datos sintéticos.
 
 ### 8. Cloudflare Pages (PWA)
 
@@ -579,7 +606,7 @@ Cómo se inicializa la base de la demo desplegada (Neon + SnapDeploy + Cloudflar
    `DROP SCHEMA IF EXISTS notification, audit, offline, voucher, payments, booking, catalog, auth, common CASCADE`.
 2. **Reiniciar el backend** (`bash infra/scripts/snapdeploy.sh env` y luego `wake`). Al arrancar, Flyway aplica las 14 migraciones (V1–V14) y recrea las extensiones.
 3. **Cargar la política de privacidad vigente** (sin ella nadie puede registrarse): `infra/postgres/seed/demo_privacy_policy.sql` (versión `v0.1`, idempotente). Se carga con `psql` leyendo el archivo en binario.
-4. **Crear el ADMIN inicial** con las variables `BOOTSTRAP_ADMIN_*` de `infra/env/.env.demo`: se registra por la API y se le concede el rol por SQL. La app no tiene pantalla para otorgar ADMIN.
+4. **Crear el ADMIN inicial** con las variables `BOOTSTRAP_ADMIN_*` de `infra/env/.env.demo`: se registra por la API y se le concede el rol por SQL. La app no tiene pantalla para otorgar ADMIN. Una vez creado, el ADMIN usa la consola `/admin` (ADR-0042) desde un computador para moderar experiencias, registrar asociaciones, convertir personas en anfitriones, acreditar gestores y revisar la auditoría (ADR-0043).
 
 ### 2. Cuentas de prueba (testers) · todos los roles
 

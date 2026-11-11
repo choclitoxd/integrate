@@ -1,6 +1,8 @@
 package com.integrate.modules.payment.gateway;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,9 +13,20 @@ import org.springframework.stereotype.Component;
 public class MockPayoutGateway implements PayoutGateway {
 
     private volatile Result forced;
+    private final ConcurrentHashMap<String, Result> results = new ConcurrentHashMap<>();
 
     @Override
     public Result payout(String idempotencyKey, UUID batchId, UUID payoutAccountId, long amountCop) {
+        return results.compute(idempotencyKey, (key, previous) ->
+                previous != null && previous.outcome() != Outcome.RETRY ? previous : send(key, amountCop));
+    }
+
+    @Override
+    public Optional<Result> lookup(String idempotencyKey, String gatewayPayoutId) {
+        return Optional.ofNullable(results.get(idempotencyKey));
+    }
+
+    private synchronized Result send(String idempotencyKey, long amountCop) {
         Result result = forced;
         if (result != null) {
             forced = null;

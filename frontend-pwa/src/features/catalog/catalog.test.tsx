@@ -139,26 +139,16 @@ describe('detalle (T-1.10a)', () => {
     renderApp(`/experiencias/${EXPERIENCE_ID}`, catalogRoutes);
     expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
     expect(screen.getByRole('heading', { name: '¿Qué llevar y recomendaciones?' })).toBeVisible();
-    // Datos del recorrido (ADR-0022): distancia, ida y vuelta y paradas en orden.
+    // El catálogo muestra la distancia y duración, sin las paradas detalladas (ADR-0039).
     expect(screen.getByText('8,5 km · Circular')).toBeVisible();
     expect(screen.getByText('5 h')).toBeVisible();
-    const stopsSection = screen
-      .getByRole('heading', { name: 'Paradas del recorrido' })
-      .closest('section');
-    if (!stopsSection) throw new Error('Sin sección de paradas');
-    expect(
-      within(stopsSection)
-        .getAllByRole('listitem')
-        .map((item) => item.textContent),
-    ).toEqual([
-      '1Mirador del ríoDescanso de 15 minutos con vista al cañón.',
-      '2Casa de la memoria',
-    ]);
+    expect(screen.queryByRole('heading', { name: 'Paradas del recorrido' })).toBeNull();
+    expect(screen.queryByText(detail.meetingPoint)).toBeNull();
     // Enlace web, no `geo:`: abre en computador y en celular (en el teléfono, la app si existe).
     const googleMaps = screen.getByRole('link', { name: /Abrir en Google Maps/ });
     expect(googleMaps).toHaveAttribute(
       'href',
-      'https://www.google.com/maps/search/?api=1&query=6.187%2C-74.995',
+      'https://www.google.com/maps/search/?api=1&query=6.19%2C-75.00',
     );
     expect(googleMaps).toHaveAttribute('target', '_blank');
     expect(document.querySelector('a[href^="geo:"]')).toBeNull();
@@ -175,19 +165,15 @@ describe('detalle (T-1.10a)', () => {
     expect(screen.queryByRole('navigation', { name: 'Navegación principal' })).toBeNull();
   });
 
-  it('con coordenadas dudosas (ADR-0030) oculta las coordenadas y el enlace busca por la dirección', async () => {
+  it('con coordenadas dudosas oculta el mapa y la dirección de respuestas antiguas', async () => {
     renderApp(`/experiencias/${EXPERIENCE_ID}`, {
       ...catalogRoutes,
       [`/v1/experiences/${EXPERIENCE_ID}`]: { ...detail, meetingPointCoordinatesTrusted: false },
     });
     expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
-    expect(screen.queryByText('Coordenadas')).toBeNull();
-    const href =
-      screen.getByRole('link', { name: /Abrir en Google Maps/ }).getAttribute('href') ?? '';
-    const query = new URL(href).searchParams.get('query') ?? '';
-    expect(query.startsWith('Parque principal de San Carlos, ')).toBe(true);
-    expect(query.endsWith(', Colombia')).toBe(true);
-    expect(query).not.toContain('6.187');
+    expect(screen.queryByText('Coordenadas aproximadas')).toBeNull();
+    expect(screen.queryByText(detail.meetingPoint)).toBeNull();
+    expect(screen.queryByRole('link', { name: /Abrir en Google Maps/ })).toBeNull();
   });
 
   it('responde con una vista propia si la experiencia no está disponible', async () => {
@@ -204,6 +190,32 @@ describe('detalle (T-1.10a)', () => {
       'href',
       '/',
     );
+  });
+
+  it('muestra migas de pan, inclusiones, impacto comunitario 85/15 y garantías de reserva (ADR-0050)', async () => {
+    renderApp(`/experiencias/${EXPERIENCE_ID}`, catalogRoutes);
+    expect(await screen.findByRole('heading', { level: 1, name: summary.title })).toBeVisible();
+
+    // Migas de pan accesibles (ADR-0050 §1)
+    const nav = screen.getByRole('navigation', { name: 'Migas de pan' });
+    expect(within(nav).getByRole('link', { name: /Explorar/ })).toHaveAttribute('href', '/');
+    expect(within(nav).getByText(summary.municipality.name)).toBeVisible();
+
+    // ¿Qué incluye esta experiencia? (ADR-0050 §2)
+    expect(screen.getByRole('heading', { name: '¿Qué incluye esta experiencia?' })).toBeVisible();
+    expect(screen.getByText('Guía local comunitario')).toBeVisible();
+    expect(screen.getByText('Póliza de asistencia médica')).toBeVisible();
+
+    // Aporte a la comunidad con barra de distribución 85/15 (ADR-0050 §3)
+    expect(screen.getByRole('meter', { name: /85 % comunidad/ })).toHaveAttribute(
+      'aria-valuenow',
+      '85',
+    );
+    expect(screen.getByText('Economía solidaria y justa')).toBeVisible();
+
+    // Garantías de reserva (ADR-0050 §4)
+    expect(screen.getByText('Confirmación inmediata')).toBeVisible();
+    expect(screen.getByText('Cancelación flexible')).toBeVisible();
   });
 });
 

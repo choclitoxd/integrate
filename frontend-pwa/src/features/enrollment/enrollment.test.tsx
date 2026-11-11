@@ -1,8 +1,8 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, type RequestOptions } from '@/shared/api';
+import { ApiError, NetworkError, type RequestOptions } from '@/shared/api';
 import { renderApp } from '@/test/renderApp';
 import { pickOption } from '@/test/select';
 
@@ -302,6 +302,41 @@ describe('enrolamiento asistido (T-1.12)', () => {
     ).toBeVisible();
   });
 
+  it('conserva el borrador tras un corte durante el envío y espera un reintento explícito', async () => {
+    stubStorage();
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+    const register = vi
+      .fn<() => unknown>()
+      .mockImplementationOnce(() => {
+        online.mockReturnValue(false);
+        window.dispatchEvent(new Event('offline'));
+        return new NetworkError(new Error('Conexión interrumpida'));
+      })
+      .mockReturnValue(registration);
+    const { bodies } = renderEnrollment(register);
+    const user = userEvent.setup();
+    await fillIdentity(user);
+    await user.click(screen.getByRole('radio', { name: 'No' }));
+    await grantConsents(user);
+    await submit();
+
+    expect(await screen.findByText(/verifica en «Mis anfitriones»/)).toBeVisible();
+    expect(screen.getByLabelText('Nombre completo')).toHaveValue('Rosa Patiño');
+    expect(screen.getByRole('button', { name: 'Registrar anfitrión' })).toBeDisabled();
+    expect(screen.queryByRole('heading', { name: 'Anfitrión registrado' })).toBeNull();
+    expect(JSON.stringify([localStorage, sessionStorage])).not.toContain('1094857483');
+    act(() => {
+      online.mockReturnValue(true);
+      window.dispatchEvent(new Event('online'));
+    });
+    expect(screen.getByRole('button', { name: 'Registrar anfitrión' })).toBeEnabled();
+    expect(bodies).toHaveLength(1);
+    await submit();
+    expect(await screen.findByRole('heading', { name: 'Anfitrión registrado' })).toBeVisible();
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1]).toEqual(bodies[0]);
+  });
+
   it.each([
     [
       problem(403, { code: 'ENROLLMENT_MANAGER_NOT_ACTIVE' }),
@@ -438,6 +473,46 @@ describe('mis anfitriones (ADR-0018 §6)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ver más' }));
     expect(await screen.findByText('Anfitrión 3')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Ver más' })).toBeNull();
+  });
+
+  it('busca por nombre, filtra por estado con el selector y limpia los filtros', async () => {
+    const user = userEvent.setup();
+    const { http } = renderApp(
+      '/gestor/anfitriones',
+      {
+        '/v1/gestor/hosts': {
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+          items: [host(1)],
+        },
+      },
+      { roles: ['ROLE_LINK_MANAGER'] },
+    );
+    expect(await screen.findByText('1 anfitrión')).toBeVisible();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Buscar anfitrión por nombre' }),
+      'Ana{Enter}',
+    );
+    await pickOption(
+      user,
+      screen.getByRole('combobox', { name: 'Estado de activación' }),
+      'Activo',
+    );
+    await waitFor(() => {
+      expect(
+        http.calls.some(([path]) => {
+          const params = new URL(path, 'http://test').searchParams;
+          return params.get('name') === 'Ana' && params.get('activation') === 'ACTIVE';
+        }),
+      ).toBe(true);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(screen.getByRole('searchbox', { name: 'Buscar anfitrión por nombre' })).toHaveValue('');
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull();
   });
 
   it('una cuenta activa con correo real recupera por correo (409)', async () => {

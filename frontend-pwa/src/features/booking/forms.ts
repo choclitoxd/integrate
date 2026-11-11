@@ -28,13 +28,13 @@ const participant = z
     docNumber: z
       .string()
       .check(z.trim(), z.regex(DOC_NUMBER, 'Entre 4 y 20 letras o dígitos, sin espacios.')),
-    medicalEps: z
-      .string()
-      .check(
-        z.trim(),
-        z.minLength(2, 'Escribe la EPS o el régimen de salud.'),
-        z.maxLength(120, 'El nombre de la EPS es demasiado largo.'),
-      ),
+    medicalEps: z.string().check(
+      z.trim(),
+      z.maxLength(120, 'El nombre de la EPS es demasiado largo.'),
+      z.refine((value) => value.length === 0 || value.length >= 2, {
+        error: 'Escribe al menos 2 caracteres o deja el campo vacío.',
+      }),
+    ),
   })
   .check(
     z.refine((p) => !NUMERIC_DOC_TYPES.includes(p.docType) || /^\d+$/.test(p.docNumber), {
@@ -82,7 +82,11 @@ export function toLockRequest(scheduleId: string, form: BookingForm): BookingLoc
     scheduleId,
     requestedSlots: form.participants.length,
     emergencyContact: { fullName: form.emergencyName, phone: form.emergencyPhone },
-    participants: form.participants.map((p, index) => ({ ...p, isHolder: index === 0 })),
+    participants: form.participants.map((p, index) => ({
+      ...p,
+      medicalEps: p.medicalEps || null,
+      isHolder: index === 0,
+    })),
   };
 }
 

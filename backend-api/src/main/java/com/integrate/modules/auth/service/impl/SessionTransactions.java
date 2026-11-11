@@ -54,7 +54,7 @@ class SessionTransactions {
      * @param passwordMatches resultado de la verificación Argon2id, hecha fuera de la transacción
      */
     @Transactional(noRollbackFor = BusinessRuleException.class)
-    public Session completeLogin(UUID userId, String email, boolean passwordMatches, ClientInfo client) {
+    public Session completeLogin(UUID userId, String email, boolean passwordMatches, String verifiedHash, ClientInfo client) {
         User user = userRepository.findByIdForUpdate(userId).orElseThrow(AuthErrors::invalidCredentials);
         Instant now = clock.instant();
 
@@ -62,7 +62,7 @@ class SessionTransactions {
             recordFailure(user, email, client, LoginFailureReason.ACCOUNT_LOCKED, now);
             throw AuthErrors.accountLocked(user.getLockedUntil(), now);
         }
-        if (!passwordMatches) {
+        if (!passwordMatches || !user.getPasswordHash().equals(verifiedHash)) {
             recordFailure(user, email, client, LoginFailureReason.BAD_CREDENTIALS, now);
             if (reachedFailureThreshold(user, now)) {
                 Instant lockedUntil = now.plus(properties.lockout().duration());

@@ -128,8 +128,10 @@ venv/
 /ENV/
 env.bak/
 
-# Caché temporal de herramientas de análisis
-graphify-out/cache/
+# Grafo de conocimiento de graphify: se regenera localmente con
+# `graphify update .` y no se versiona (cada regeneración producía
+# decenas de miles de líneas de diff).
+graphify-out/
 
 # ==============================================================================
 # PRUEBAS, COBERTURA Y REPORTES
@@ -263,4 +265,10 @@ qa/k6/results/
 # Credenciales para testers: nunca al repositorio (SEC-DIR-004)
 docs/testers/
 *.pdf.credentials
+infra/postgres/seed/import_testers.sql
+
+# Temporales de pruebas y Cloudflare
+.wrangler/
+.test-tmp/
+**/.test-tmp/
 

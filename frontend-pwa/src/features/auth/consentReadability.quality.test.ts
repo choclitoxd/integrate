@@ -61,10 +61,12 @@ describe('[RNF-15] Claridad y comprensión del consentimiento informado', () => 
     '[RNF-15] NC: el texto de autorización tiene IFSZ > 60 (lenguaje sencillo)',
     ({ task }) => {
       const text = Object.values(PURPOSE_COPY)
+        .filter((copy) => copy.body)
         .map((copy) => (/[.!?]$/.test(copy.body) ? copy.body : `${copy.body}.`))
         .join(' ');
       const result = fleschSzigriszt(text);
       const perPurpose = Object.entries(PURPOSE_COPY)
+        .filter(([, copy]) => copy.body)
         .map(([purpose, copy]) => `${purpose}=${fleschSzigriszt(copy.body).score.toFixed(1)}`)
         .join(', ');
       recordQuality(task, {

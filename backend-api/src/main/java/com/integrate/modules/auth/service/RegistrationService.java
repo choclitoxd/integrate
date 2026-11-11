@@ -18,6 +18,24 @@ public interface RegistrationService {
     RegisteredUser registerTourist(RegisterRequest request, ClientInfo client);
 
     /**
+     * Alta de una cuenta de turista por el administrador (ADR-0048 §2). No inicia sesión ni toca la sesión del
+     * administrador; el titular otorga sus consentimientos al ingresar por primera vez.
+     *
+     * @throws com.integrate.common.exception.BusinessRuleException {@code VALIDATION_FAILED} (422) si la contraseña
+     *         no cumple la política, {@code AUTH_USER_ALREADY_EXISTS} (409) si el correo o el documento ya existen
+     */
+    RegisteredUser registerByAdmin(AdminAccountCommand command);
+
+    record AdminAccountCommand(String email, String password, String fullName, DocType docType, String docNumber,
+                               String phone) {
+
+        @Override
+        public String toString() {
+            return "AdminAccountCommand[email=" + email + "]";
+        }
+    }
+
+    /**
      * Crea el primer {@code ADMIN} si aún no existe ninguno vigente. Idempotente.
      *
      * @return el resultado, para que el invocador lo registre en el log

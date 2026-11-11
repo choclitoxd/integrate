@@ -1,6 +1,7 @@
 package com.integrate.modules.catalog.service.impl;
 
 import com.integrate.common.payload.PageResponse;
+import com.integrate.modules.auth.entity.CredentialStatus;
 import com.integrate.modules.auth.service.AssistedAccountService;
 import com.integrate.modules.auth.service.CredentialActivationService;
 import com.integrate.modules.auth.service.CredentialActivationService.IssuedActivationCode;
@@ -42,11 +43,13 @@ public class GestorHostServiceImpl implements GestorHostService {
     private final CredentialActivationService activationService;
 
     @Override
-    @Transactional(readOnly = true)
-    public PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, Pageable pageable) {
+    // Sin readOnly: la lectura de datos de contacto registra acceso sensible en la bitácora (ADR-0046 §2).
+    @Transactional
+    public PageResponse<ManagedHostResponse> listHosts(UUID managerUserId, String name,
+            CredentialStatus activation, Pageable pageable) {
         LinkManagerProfile manager = linkManagers.requireActive(managerUserId);
-        Page<HostManagerAssignment> assignments = assignmentRepository.findByManagerIdAndValidToIsNull(manager.getId(),
-                pageable);
+        Page<HostManagerAssignment> assignments = assignmentRepository.findManagedHosts(manager.getId(),
+                name.strip(), activation, pageable);
         Map<UUID, HostProfile> profiles = hostProfileRepository
                 .findAllById(assignments.map(HostManagerAssignment::getHostId).toList()).stream()
                 .collect(Collectors.toMap(HostProfile::getId, Function.identity()));

@@ -6,6 +6,7 @@ Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- Para preguntas sobre endpoints (ruta → controlador → rol → ADR), leer primero `docs/api/endpoints-index.md` (~70 líneas); es más barato y preciso que `graphify query`. Actualizarlo al añadir o cambiar un endpoint.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 - On this machine `graphify.exe` is blocked by Windows Application Control. Run every `graphify <cmd>` as `& "C:\Users\victx\AppData\Roaming\uv\tools\graphifyy\Scripts\python.exe" -m graphify <cmd>`.
 - To build the graph from scratch, use the project skill `/graphify` (in `.claude/skills/graphify`).
@@ -21,6 +22,25 @@ Rules:
 Para cualquier petición de desarrollo, nueva funcionalidad, módulo o cambio estructural en el backend, se debe seguir estrictamente el flujo definido en `@docs/rules/adr-workflow.md`, generando primero el documento ADR correspondiente y esperando la confirmación y aceptación expresa del desarrollador antes de producir código.
 Para cualquier desarrollo, creación de componentes, vistas o interacción con la PWA cliente, es **OBLIGATORIO** adherirse a la directiva de frontend en [`docs/rules/frontend-rules.md`](file:///c:/Users/victx/OneDrive/Documentos/U/Ing3/Proyecto/integrate/docs/rules/frontend-rules.md) (diseño Mobile-First 360–430 px, tokens de color certificados para contraste solar WCAG AAA, áreas táctiles $\ge 44 \times 44$ px, fronteras arquitectónicas de capas y superación obligatoria de los 5 comandos del Quality Gate).
 Toda interacción con Git, commits y subida de cambios debe regirse estrictamente por `@docs/rules/git-workflow.md` y la política de secretos `@docs/security/security_secrets_policy.md`.
+
+## Coordinación de cambios en curso (obligatorio)
+
+- **Antes de editar** cualquier archivo, leer `docs/status/EN-CURSO.md`. Si el área está ocupada por otra fila, **no editarla**: preguntar al desarrollador primero.
+- **Al empezar** un cambio, agregar una fila en `docs/status/EN-CURSO.md` (quién, área, qué, desde cuándo). **Al terminar**, quitarla o marcarla `Terminado`.
+- **Archivos modificados que no son míos:** si `git status` muestra cambios en archivos que no toqué en esta sesión, no comitearlos, no revertirlos ni "arreglarlos" sin preguntar.
+- Un cambio que el desarrollador hace mientras trabajamos se considera vigente: releer el archivo antes de editarlo.
+
+## Uso de SnapDeploy (entorno de pruebas): presupuesto de 5 usos al día
+
+SnapDeploy solo permite **5 usos diarios**. Tratar como un uso cada push a `pruebas` (dispara una construcción), cada `wake` y cada reconstrucción. Reglas:
+
+- **Evaluar antes de gastar.** Si el cambio ya lo cubren las pruebas locales (`./mvnw test` con Testcontainers, `vitest`, `build`), **no** se usa SnapDeploy. Una prueba de punta a punta en pruebas solo se justifica si algo depende del entorno real (variables, Neon, correos).
+- **Un solo push por tanda.** Juntar los cambios y empujar una vez a `pruebas`; nunca empujar para ver un cambio pequeño.
+- **Comprobar sin conexión lo que pueda fallar** antes del push: variables del contenedor frente a `infra/env/.env.demo.pruebas`, pruebas y build locales.
+- **Sin sondeos en bucle.** No repetir `wake`, `deploys`, `logs` ni `vars`; una lectura por decisión, y un solo bucle de espera acotado tras un push.
+- **Avisar el costo.** Si una acción gasta uno o más usos, decirlo al desarrollador antes de hacerla.
+- **Apagar al terminar:** `bash infra/scripts/snapdeploy.sh stop`, salvo que el desarrollador pida dejarlo encendido.
+- **Variables:** `snapdeploy.sh env` se ejecuta siempre con `ENV_FILE=infra/env/.env.demo.pruebas` explícito; sin él toma `.env.demo` (producción) y el entorno de pruebas queda apuntando a otra base.
 
 ## Precedencia sobre skills de diseño (Impeccable y similares)
 

@@ -2,6 +2,7 @@ export { AdaptiveView } from './AdaptiveView';
 export { BottomSheet } from './BottomSheet';
 export { Button } from './Button';
 export { buttonClassName, type ButtonVariant } from './buttonStyles';
+export { DatePickerField, type DatePickerFieldProps } from './DatePickerField';
 export { Icon, type IconName } from './Icon';
 export { PhoneField } from './PhoneField';
 export { ProblemNotice } from './ProblemNotice';

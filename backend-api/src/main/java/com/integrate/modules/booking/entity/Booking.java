@@ -72,6 +72,9 @@ public class Booking {
     @Column(name = "sensitive_key_version", nullable = false, updatable = false)
     private short sensitiveKeyVersion;
 
+    @Column(name = "health_consent_id", updatable = false)
+    private Long healthConsentId;
+
     @Column(name = "idempotency_key", updatable = false)
     private UUID idempotencyKey;
 
@@ -92,7 +95,7 @@ public class Booking {
      */
     public static Booking hold(UUID id, UUID touristId, UUID scheduleId, int slots, BigDecimal unitPriceCop,
                                Instant createdAt, Instant expiresAt, EmergencyCiphertexts emergencyContact,
-                               UUID idempotencyKey, String requestSha256) {
+                               UUID idempotencyKey, String requestSha256, Long healthConsentId) {
         Booking booking = new Booking();
         booking.id = Objects.requireNonNull(id, "id");
         booking.touristId = touristId;
@@ -108,6 +111,7 @@ public class Booking {
         booking.sensitiveKeyVersion = emergencyContact.keyVersion();
         booking.idempotencyKey = idempotencyKey;
         booking.requestSha256 = requestSha256;
+        booking.healthConsentId = healthConsentId;
         return booking;
     }
 

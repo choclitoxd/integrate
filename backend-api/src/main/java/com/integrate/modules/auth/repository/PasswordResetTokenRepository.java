@@ -12,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
 
+    @Query("select t.userId from PasswordResetToken t where t.tokenSha256 = :hash")
+    Optional<UUID> findUserIdByTokenHash(@Param("hash") String hash);
+
     /** {@code SELECT … FOR UPDATE}: dos canjes simultáneos del mismo enlace se serializan y solo uno gana. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from PasswordResetToken t where t.tokenSha256 = :hash")

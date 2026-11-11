@@ -45,6 +45,8 @@ function isValidRosterMeta(raw: unknown): raw is RosterDownloadMeta {
     typeof candidate.associationId === 'string' &&
     (candidate.revocationsWatermark === null ||
       typeof candidate.revocationsWatermark === 'string') &&
+    (candidate.revocationsCheckedAt === undefined ||
+      typeof candidate.revocationsCheckedAt === 'string') &&
     typeof candidate.voucherCount === 'number'
   );
 }

@@ -94,6 +94,43 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void adminCanUpdatePublishedExperienceAndManageAssociationLifecycle() throws Exception {
+        String id = approvedExperience(host, "Sendero de la Memoria");
+        mvc.perform(put("/api/v1/admin/experiences/" + id)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(experienceBody("Sendero de la Memoria (Edición Admin)", 14)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Sendero de la Memoria (Edición Admin)"))
+                .andExpect(jsonPath("$.maxCapacityPerSlot").value(14))
+                .andExpect(jsonPath("$.status").value("APPROVED"));
+
+        String nit = uniqueNit();
+        String rnt = uniqueRnt();
+        String assocJson = mvc.perform(postJson("/api/v1/admin/associations", adminToken,
+                        associationBody(nit, rnt, "05001")))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String assocId = JsonPath.read(assocJson, "$.id");
+
+        mvc.perform(put("/api/v1/admin/associations/" + assocId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(associationBody(nit, rnt, "05649")
+                                .replace("Asociación Campesina La Esperanza", "Asociación Renovada")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.legalName").value("Asociación Renovada"))
+                .andExpect(jsonPath("$.municipalityCode").value("05649"));
+
+        action(adminToken, "/api/v1/admin/associations/" + assocId + "/suspend", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUSPENDED"));
+        action(adminToken, "/api/v1/admin/associations/" + assocId + "/activate", null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
     void hostProfileGrantsHostRoleOnlyOnce() throws Exception {
         assertThat(JsonPath.<List<String>>read(login(host.email()), "$.user.roles")).contains("ROLE_HOST");
 
@@ -193,7 +230,7 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
     // ------------------------------------------------------------- datos de recorrido (ADR-0022)
 
     @Test
-    void routeDetailsAreStoredReplacedAndExposedInCatalog() throws Exception {
+    void routeDetailsAreStoredReplacedAndOnlyTheirCountIsPublic() throws Exception {
         String route = """
                 "routeType":"LOOP","distanceKm":8.5,"roundTripMinutes":300,
                 "stops":[{"name":"Mirador del río","description":"Descanso de 15 minutos"},{"name":"Casa de la memoria"}],""";
@@ -226,7 +263,9 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.summary.distanceKm").value(8.5))
                 .andExpect(jsonPath("$.summary.roundTripMinutes").value(300))
                 .andExpect(jsonPath("$.summary.stopsCount").value(2))
-                .andExpect(jsonPath("$.stops[0].name").value("Mirador del río"));
+                .andExpect(jsonPath("$.stops").isEmpty())
+                .andExpect(jsonPath("$.vereda").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.meetingPoint").value("MEDELLÍN"));
     }
 
     @Test
@@ -319,7 +358,7 @@ class CatalogApiIntegrationTest extends PostgresIntegrationTest {
         mvc.perform(get("/api/v1/experiences/" + approved))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.summary.associationName").isString())
-                .andExpect(jsonPath("$.meetingPoint").value("Parque principal"));
+                .andExpect(jsonPath("$.meetingPoint").value("MEDELLÍN"));
     }
 
     @Test

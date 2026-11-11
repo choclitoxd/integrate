@@ -5,9 +5,10 @@ import com.integrate.modules.catalog.dto.request.AssociationRequest;
 import com.integrate.modules.catalog.dto.request.HostProfileRequest;
 import com.integrate.modules.catalog.dto.response.AssociationResponse;
 import com.integrate.modules.catalog.dto.response.HostProfileResponse;
+import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 
-/** Alta mínima de asociaciones y anfitriones por el administrador (RF-03, ADR-0006 §3). */
+/** Alta y gestión de asociaciones y anfitriones por el administrador (RF-03, ADR-0006 §3, ADR-0047 §2). */
 public interface CatalogAdminService {
 
     /**
@@ -15,6 +16,12 @@ public interface CatalogAdminService {
      *         NIT o el RNT ya están registrados; {@code VALIDATION_FAILED} (422) si el municipio no existe
      */
     AssociationResponse createAssociation(AssociationRequest request);
+
+    AssociationResponse updateAssociation(UUID id, AssociationRequest request, UUID adminUserId);
+
+    AssociationResponse suspendAssociation(UUID id, UUID adminUserId);
+
+    AssociationResponse activateAssociation(UUID id, UUID adminUserId);
 
     PageResponse<AssociationResponse> listAssociations(Pageable pageable);
 

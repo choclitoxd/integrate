@@ -12,6 +12,7 @@ interface ConsentCheckboxProps {
   readonly required?: boolean;
   readonly error?: string | undefined;
   readonly name?: string;
+  readonly body?: string | undefined;
 }
 
 /**
@@ -25,6 +26,7 @@ export function ConsentCheckbox({
   required = false,
   error,
   name,
+  body,
 }: ConsentCheckboxProps) {
   const bodyId = useId();
   const errorId = useId();
@@ -32,7 +34,7 @@ export function ConsentCheckbox({
   return (
     <div>
       <label
-        className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 has-checked:border-brand has-checked:bg-brand-soft ${
+        className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 has-checked:border-brand has-checked:bg-brand-soft has-[:focus-visible]:border-brand ${
           error ? 'border-danger-border' : 'border-border'
         }`}
       >
@@ -45,7 +47,8 @@ export function ConsentCheckbox({
           }}
           aria-describedby={[bodyId, error ? errorId : null].filter(Boolean).join(' ')}
           aria-invalid={error ? true : undefined}
-          className="mt-0.5 size-6 shrink-0 accent-brand"
+          className="mt-0.5 size-6 shrink-0 accent-brand focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+          style={{ outline: 'none', boxShadow: 'none' }}
         />
         <span className="font-semibold text-ink">
           Autorizo el tratamiento de: {copy.title}
@@ -53,7 +56,7 @@ export function ConsentCheckbox({
         </span>
       </label>
       <p id={bodyId} className="mt-1.5 pl-1 text-sm text-ink-muted">
-        {copy.body}
+        {body ?? copy.body}
       </p>
       {error && (
         <p

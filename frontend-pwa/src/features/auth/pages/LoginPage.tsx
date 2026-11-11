@@ -46,6 +46,9 @@ function LoginError({ error }: { error: unknown }) {
 export function LoginPage() {
   const [params] = useSearchParams();
   const destination = safeReturnPath(params.get('volver'));
+  // Sin destino pedido, el administrador aterriza en su consola (ADR-0042 §3).
+  const landingFor = (roles: readonly string[]) =>
+    !params.has('volver') && roles.includes('ROLE_ADMIN') ? '/admin' : destination;
   // Aviso de otra pantalla (p. ej. "Tu contraseña cambió"), por estado de navegación y no por URL.
   const { state } = useLocation() as { state: { notice?: unknown } | null };
   const notice = typeof state?.notice === 'string' ? state.notice : null;
@@ -58,7 +61,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   if (session.status === 'authenticated' && !submitting) {
-    return <Navigate to={destination} replace />;
+    return <Navigate to={landingFor(session.user.roles)} replace />;
   }
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -79,8 +82,8 @@ export function LoginPage() {
     setErrors({});
     setSubmitting(true);
     try {
-      await store.signIn(parsed.data);
-      void navigate(destination, { replace: true });
+      const user = await store.signIn(parsed.data);
+      void navigate(landingFor(user.roles), { replace: true });
     } catch (error) {
       setServerError(error);
       setSubmitting(false);

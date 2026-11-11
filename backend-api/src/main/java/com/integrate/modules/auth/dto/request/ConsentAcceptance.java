@@ -13,5 +13,10 @@ import java.util.Set;
  */
 public record ConsentAcceptance(
         @NotBlank @Size(max = 20) String policyVersion,
-        @NotEmpty Set<@NotNull ConsentPurpose> purposes) {
+        @NotEmpty Set<@NotNull ConsentPurpose> purposes,
+        @Size(max = 40) String healthNoticeVersion) {
+
+    public ConsentAcceptance(String policyVersion, Set<ConsentPurpose> purposes) {
+        this(policyVersion, purposes, null);
+    }
 }

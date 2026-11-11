@@ -12,7 +12,7 @@ import { createIntentKeys } from './intentKey';
 const form: BookingFormInput = {
   participants: [
     { fullName: ' Ana Gómez ', docType: 'CC', docNumber: '1094000111', medicalEps: 'Sura' },
-    { fullName: 'Luis Gómez', docType: 'TI', docNumber: '1094000222', medicalEps: 'Sanitas' },
+    { fullName: 'Luis Gómez', docType: 'TI', docNumber: '1094000222', medicalEps: '' },
   ],
   emergencyName: 'Carmen Ruiz',
   emergencyPhone: '300 765 4321',
@@ -39,11 +39,24 @@ describe('formulario de reserva', () => {
           fullName: 'Luis Gómez',
           docType: 'TI',
           docNumber: '1094000222',
-          medicalEps: 'Sanitas',
+          medicalEps: null,
           isHolder: false,
         },
       ],
     });
+  });
+
+  it('acepta la reserva sin EPS y envía null en el cuerpo', () => {
+    const parsed = bookingFormSchema.safeParse({
+      ...form,
+      participants: form.participants.map((participant) => ({ ...participant, medicalEps: '' })),
+    });
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(toLockRequest('sch-1', parsed.data).participants.map((p) => p.medicalEps)).toEqual([
+      null,
+      null,
+    ]);
   });
 
   it('rechaza documentos repetidos en el grupo sin distinguir mayúsculas', () => {
@@ -51,7 +64,7 @@ describe('formulario de reserva', () => {
       ...form,
       participants: [
         { fullName: 'Ana', docType: 'PA', docNumber: 'ab1234', medicalEps: 'Sura' },
-        { fullName: 'Luis', docType: 'PA', docNumber: 'AB1234', medicalEps: 'Sura' },
+        { fullName: 'Luis', docType: 'PA', docNumber: 'AB1234', medicalEps: '' },
       ],
     });
     expect(parsed.success).toBe(false);
@@ -61,7 +74,7 @@ describe('formulario de reserva', () => {
     });
   });
 
-  it('exige nombre de 3 caracteres sin espacios externos, EPS y celular válidos', () => {
+  it('exige nombre de 3 caracteres, EPS válida cuando se indica y celular válido', () => {
     const parsed = bookingFormSchema.safeParse({
       participants: [{ fullName: '  Al  ', docType: 'CC', docNumber: '12ab', medicalEps: 'S' }],
       emergencyName: 'Carmen',
