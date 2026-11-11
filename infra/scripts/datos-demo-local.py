@@ -1,27 +1,53 @@
 #!/usr/bin/env python3
-"""Intégrate · Limpia la base LOCAL y carga datos de demostración realistas por la API.
+"""Intégrate · Limpia la base LOCAL (o la de PRUEBAS) y carga datos de demostración realistas por la API.
 
-Uso (desde la raíz del repo, con Docker local y el backend en http://localhost:8081):
-    python infra/scripts/datos-demo-local.py            # limpia y carga todo
+Uso (desde la raíz del repo):
+    python infra/scripts/datos-demo-local.py            # LOCAL: Docker y backend en http://localhost:8081
+    python infra/scripts/datos-demo-local.py --pruebas [--emails infra/env/.env.datos-demo.correos.json]
+        # PRUEBAS: backend integrate-pruebas despierto + base Neon de .env.demo.pruebas. Borra TODA esa base.
 
-SOLO PARA LA BASE LOCAL (contenedor integrate-postgres). Se niega a correr contra otra URL.
+Protecciones: sin --pruebas solo acepta localhost. Con --pruebas solo acepta la base de .env.demo.pruebas y se
+niega si su host es el de producción (ep-calm-firefly) o si la API no es la del contenedor de pruebas.
 Los datos se crean con los mismos endpoints que usa la PWA, así cumplen las reglas de negocio.
-Excepciones hechas por SQL (no hay endpoint): el rol ADMIN y la limpieza inicial.
+Excepciones hechas por SQL (no hay endpoint): el rol ADMIN, las cuentas de dispersión y la limpieza inicial.
+--emails: JSON {"t_camila": "correo@real", ...} para que algunos turistas reciban de verdad sus vouchers
+(en pruebas el correo sale por Brevo; los @integrate-demo.test rebotan).
 
 SEC-DIR-004: la contraseña común de demo se genera la primera vez y se guarda en
-infra/env/.env.datos-demo (ignorado por Git). El resultado detallado queda en
-infra/env/.env.datos-demo.resultado.json (ignorado por Git). No se imprimen contraseñas.
+infra/env/.env.datos-demo[.pruebas] (ignorado por Git). El resultado detallado queda en
+infra/env/.env.datos-demo[.pruebas].resultado.json (ignorado por Git). No se imprimen contraseñas.
 """
-import datetime as dt, http.cookiejar, json, os, secrets, string, subprocess, sys, time, urllib.error, urllib.request, uuid
+import datetime as dt, http.cookiejar, json, os, re, secrets, string, subprocess, sys, time, urllib.error, urllib.request, uuid
 
 ROOT = os.getcwd()
-BASE = os.environ.get('INTEGRATE_BASE', 'http://localhost:8081').rstrip('/')
-if not (BASE.startswith('http://localhost') or BASE.startswith('http://127.0.0.1')):
-    sys.exit('Este script solo corre contra el backend local.')
-PW_FILE = os.path.join(ROOT, 'infra/env/.env.datos-demo')
-OUT = os.path.join(ROOT, 'infra/env/.env.datos-demo.resultado.json')
+PRUEBAS = '--pruebas' in sys.argv
+EMAILS = {}
+if '--emails' in sys.argv:
+    EMAILS = json.load(open(sys.argv[sys.argv.index('--emails') + 1], encoding='utf-8'))
+SUF = '.pruebas' if PRUEBAS else ''
+PRUEBAS_API = 'https://integrate-pruebas.containers.snapdeploy.app'
+PRUEBAS_DB = {}
+if PRUEBAS:
+    _env = {}
+    for _l in open(os.path.join(ROOT, 'infra/env/.env.demo.pruebas'), encoding='utf-8-sig').read().splitlines():
+        _m = re.match(r'^([A-Z0-9_]+)=(.*)$', _l)
+        if _m: _env[_m.group(1)] = _m.group(2).strip().strip('"')
+    _u = re.match(r'jdbc:postgresql://([^/:?]+)(?::(\d+))?/([^?]+)', _env['DATABASE_URL'])
+    PRUEBAS_DB = {'host': _u.group(1), 'port': _u.group(2) or '5432', 'db': _u.group(3), 'user': _env['FLYWAY_USER'], 'pw': _env['FLYWAY_PASSWORD']}
+    if 'ep-calm-firefly' in PRUEBAS_DB['host'] or 'ep-bold-mode' not in PRUEBAS_DB['host']:
+        sys.exit('La base de .env.demo.pruebas no es la de pruebas esperada (ep-bold-mode). Se detiene: no se toca producción.')
+    BASE = os.environ.get('INTEGRATE_BASE', PRUEBAS_API).rstrip('/')
+    if BASE != PRUEBAS_API:
+        sys.exit(f'Con --pruebas la API debe ser {PRUEBAS_API}.')
+else:
+    BASE = os.environ.get('INTEGRATE_BASE', 'http://localhost:8081').rstrip('/')
+    if not (BASE.startswith('http://localhost') or BASE.startswith('http://127.0.0.1')):
+        sys.exit('Sin --pruebas este script solo corre contra el backend local.')
+PW_FILE = os.path.join(ROOT, f'infra/env/.env.datos-demo{SUF}')
+OUT = os.path.join(ROOT, f'infra/env/.env.datos-demo{SUF}.resultado.json')
 TODAY = dt.date.today()
 LOG = []
+PAUSE = 0.8 if PRUEBAS else 0   # SnapDeploy/Cloudflare limitan las peticiones por minuto
 
 
 def demo_password():
@@ -40,8 +66,12 @@ PW = demo_password()
 
 
 def psql(sql):
-    r = subprocess.run(['docker', 'exec', '-i', 'integrate-postgres', 'psql', '-U', 'postgres', '-d', 'integrate', '-v', 'ON_ERROR_STOP=1', '-At'],
-                       input=sql, capture_output=True, text=True, encoding='utf-8')
+    if PRUEBAS:
+        cmd = ['docker', 'run', '--rm', '-i', '-e', 'PGPASSWORD=' + PRUEBAS_DB['pw'], '-e', 'PGSSLMODE=require', 'postgres:16', 'psql', '-h', PRUEBAS_DB['host'],
+               '-p', PRUEBAS_DB['port'], '-U', PRUEBAS_DB['user'], '-d', PRUEBAS_DB['db'], '-v', 'ON_ERROR_STOP=1', '-At']
+    else:
+        cmd = ['docker', 'exec', '-i', 'integrate-postgres', 'psql', '-U', 'postgres', '-d', 'integrate', '-v', 'ON_ERROR_STOP=1', '-At']
+    r = subprocess.run(cmd, input=sql, capture_output=True, text=True, encoding='utf-8')
     if r.returncode != 0:
         sys.exit('SQL falló: ' + r.stderr.strip())
     return r.stdout.strip()
@@ -53,6 +83,7 @@ class Api:
         self.op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 
     def call(self, method, path, body=None, ok=(200, 201, 202, 204), headers=None, fatal=True):
+        if PAUSE: time.sleep(PAUSE)
         h = {'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0 (integrate-datos-demo)'}
         if self.token: h['Authorization'] = 'Bearer ' + self.token
         if body is not None: h['Content-Type'] = 'application/json'
@@ -82,8 +113,36 @@ def step(msg):
 # ---------------------------------------------------------------------------
 # 0. Limpieza de la base local (conserva catálogos gobernados por migraciones)
 # ---------------------------------------------------------------------------
-print('== 0. Limpieza de la base local')
-psql("""
+print('== 0. Limpieza de la base ' + ('de PRUEBAS (Neon)' if PRUEBAS else 'local'))
+# Neon no da superusuario: no se puede usar session_replication_role. Se vacían las tablas de negocio con TRUNCATE (desactivando
+# dentro de la transacción solo trg_forbid_truncate) y luego se borran los usuarios. Si algo falla, no queda nada a medias.
+LIMPIEZA_PRUEBAS = """
+BEGIN;
+DO $$
+DECLARE v_tables text; r record;
+BEGIN
+  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ') INTO v_tables
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE c.relkind IN ('r','p') AND NOT c.relispartition
+     AND n.nspname IN ('audit','auth','booking','catalog','notification','offline','payments','voucher')
+     AND (n.nspname||'.'||c.relname) NOT IN ('auth.users','auth.roles','auth.privacy_policies','auth.health_consent_notices',
+          'catalog.categories','catalog.departments','catalog.municipalities','payments.commission_policies',
+          'audit.chain_head','voucher.signing_keys');
+  FOR r IN SELECT tgrelid::regclass AS t, tgname FROM pg_trigger WHERE tgname = 'trg_forbid_truncate' AND NOT tgisinternal
+           AND tgrelid::regclass::text = ANY (string_to_array(replace(v_tables, '"', ''), ', ')) LOOP
+    EXECUTE format('ALTER TABLE %s DISABLE TRIGGER %I', r.t, r.tgname);
+  END LOOP;
+  EXECUTE 'TRUNCATE TABLE ' || v_tables || ' RESTART IDENTITY';
+  FOR r IN SELECT tgrelid::regclass AS t, tgname FROM pg_trigger WHERE tgname = 'trg_forbid_truncate' AND NOT tgisinternal
+           AND tgrelid::regclass::text = ANY (string_to_array(replace(v_tables, '"', ''), ', ')) LOOP
+    EXECUTE format('ALTER TABLE %s ENABLE TRIGGER %I', r.t, r.tgname);
+  END LOOP;
+END $$;
+DELETE FROM auth.users;
+UPDATE audit.chain_head SET last_id = 0, last_hash = repeat('0', 64), updated_at = now() WHERE id = 1;
+COMMIT;
+"""
+psql(LIMPIEZA_PRUEBAS if PRUEBAS else """
 BEGIN;
 SET LOCAL session_replication_role = replica;
 DO $$
@@ -103,21 +162,26 @@ UPDATE audit.chain_head SET last_id = 0, last_hash = repeat('0', 64), updated_at
 COMMIT;
 """)
 print('  ✔ datos de negocio borrados (usuarios, asociaciones, experiencias, reservas, pagos, vouchers, auditoría)')
-try:
-    urllib.request.urlopen(urllib.request.Request('http://localhost:8025/api/v1/messages', method='DELETE'), timeout=10).read()
-    print('  ✔ bandeja de Mailpit vaciada')
-except Exception as e:
-    print(f'  (aviso: no se pudo vaciar Mailpit: {e})')
+if not PRUEBAS:
+    try:
+        urllib.request.urlopen(urllib.request.Request('http://localhost:8025/api/v1/messages', method='DELETE'), timeout=10).read()
+        print('  ✔ bandeja de Mailpit vaciada')
+    except Exception as e:
+        print(f'  (aviso: no se pudo vaciar Mailpit: {e})')
 
 pub = Api('público')
-POLICY = pub.call('GET', '/api/v1/privacy-policies/current')[1]['version']
+_pol = pub.call('GET', '/api/v1/privacy-policies/current')[1]
+POLICY = _pol['version']
+HEALTH = (_pol.get('healthNotice') or {}).get('noticeVersion')   # con aviso de salud publicado se admite la EPS (ADR-0054)
+print(f'  política {POLICY}; aviso de salud: {HEALTH or "no publicado (la EPS no se admite)"}')
 R = {'password_file': os.path.relpath(PW_FILE, ROOT), 'fecha_carga': TODAY.isoformat(), 'policy': POLICY,
      'usuarios': [], 'asociaciones': [], 'experiencias': [], 'reservas': [], 'bajas': [], 'pasos': LOG}
 
 
 def register(email, name, doc, phone, doc_type='CC', role_txt='Turista', note=''):
     st, js = pub.call('POST', '/api/v1/auth/register', {'email': email, 'password': PW, 'fullName': name, 'docType': doc_type, 'docNumber': doc,
-                                                       'phone': phone, 'consent': {'policyVersion': POLICY, 'purposes': ['PERSONAL_DATA']}})
+                                                       'phone': phone, 'consent': ({'policyVersion': POLICY, 'purposes': ['PERSONAL_DATA', 'HEALTH_EMERGENCY'], 'healthNoticeVersion': HEALTH}
+                                                                                   if HEALTH else {'policyVersion': POLICY, 'purposes': ['PERSONAL_DATA']})})
     u = {'email': email, 'nombre': name, 'documento': f'{doc_type} {doc}', 'celular': phone, 'rol': role_txt, 'id': js['userId'], 'nota': note, 'alta': 'Registro propio en la app'}
     R['usuarios'].append(u)
     return u
@@ -262,7 +326,7 @@ TOUR = [
 ]
 T = {}
 for key, email, name, doc, phone, dtp in TOUR:
-    T[key] = register(email, name, doc, phone, doc_type=dtp, role_txt='Turista (TOURIST)')
+    T[key] = register(EMAILS.get(key, email), name, doc, phone, doc_type=dtp, role_txt='Turista (TOURIST)')
     step(f'Turista {name}')
 
 # ---------------------------------------------------------------------------
@@ -430,7 +494,7 @@ EMERG = {'t_camila': ('Gloria Montoya', '+573104456721'), 't_santiago': ('Jorge 
 
 def book(tkey, exp_key, sched, n, method='NEQUI', pay='APPROVED', note=''):
     t = T[tkey]; api = TAPI[tkey]
-    parts = [{'fullName': t['nombre'], 'docType': t['documento'].split()[0], 'docNumber': t['documento'].split()[1], 'medicalEps': None, 'isHolder': True}]  # sin aviso de salud publicado, la EPS no se admite (ADR-0054)
+    parts = [{'fullName': t['nombre'], 'docType': t['documento'].split()[0], 'docNumber': t['documento'].split()[1], 'medicalEps': EPS[tkey] if HEALTH else None, 'isHolder': True}]  # sin aviso de salud publicado, la EPS no se admite (ADR-0054)
     parts += [{'fullName': a, 'docType': b, 'docNumber': c, 'medicalEps': None, 'isHolder': False} for a, b, c, d in COMPANIONS[tkey][:n - 1]]
     st, lk = api.call('POST', '/api/v1/bookings/lock', {'scheduleId': sched['id'], 'requestedSlots': n,
                                                        'emergencyContact': {'fullName': EMERG[tkey][0], 'phone': EMERG[tkey][1]}, 'participants': parts})
